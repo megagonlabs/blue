@@ -13,13 +13,6 @@ from blue.data.planner import DataPlanner
 from blue.data.pipeline import DataPipeline
 
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
-)
-
-
 ##########################
 ### Agent.CoordinatorAgent
 #
@@ -122,11 +115,11 @@ class CoordinatorAgent(Agent):
         else:
             to_output = t
 
-        logging.info("TRANSFORM DATA:")
-        logging.info(from_agent + "." + from_agent_param)
-        logging.info(to_agent + "." + to_agent_param)
-        logging.info("BUDGET:")
-        logging.info(json.dumps(budget, indent=3))
+        self.logger.info("TRANSFORM DATA:")
+        self.logger.info(from_agent + "." + from_agent_param)
+        self.logger.info(to_agent + "." + to_agent_param)
+        self.logger.info("BUDGET:")
+        self.logger.info(json.dumps(budget, indent=3))
 
         context = {}
         # TODO: get registry info on from_agent, from_agent_param
@@ -187,7 +180,7 @@ class CoordinatorAgent(Agent):
                 try:
                     plan = Plan.from_json(p)
                 except Exception:
-                    logging.info("Error reading valid plan")
+                    self.logger.info("Error reading valid plan")
 
                 if plan:
                     # start plan

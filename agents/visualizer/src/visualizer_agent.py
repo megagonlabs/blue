@@ -8,11 +8,6 @@ from blue.agent import Agent, AgentFactory
 from blue.agents.visualizer import VisualizerAgent
 from blue.session import Session
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -25,9 +20,6 @@ if __name__ == "__main__":
     parser.add_argument("--registry", type=str, default="default")
 
     args = parser.parse_args()
-
-    # set logging
-    logging.getLogger().setLevel(args.loglevel.upper())
 
     # set properties
     properties = {}
@@ -47,21 +39,18 @@ if __name__ == "__main__":
             properties=properties,
         )
         af.wait()
+        af.logger.setLevel(logging.getLevelName(args.loglevel.upper()))
     else:
         a = None
         session = None
         if args.session:
             # join an existing session
             session = Session(cid=args.session)
-            a = VisualizerAgent(
-                name=args.name, session=session, properties=properties
-            )
+            a = VisualizerAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
             session = Session()
-            a = VisualizerAgent(
-                name=args.name, session=session, properties=properties
-            )
+            a = VisualizerAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:

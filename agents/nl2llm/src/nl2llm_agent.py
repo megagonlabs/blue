@@ -8,10 +8,6 @@ from blue.agent import Agent, AgentFactory
 from blue.agents.nl2llm import NL2LLMAgent
 from blue.session import Session
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -28,9 +24,6 @@ if __name__ == "__main__":
     for i in range(10):
         print('qwer' * 100 + str(i))
 
-    # set logging
-    logging.getLogger().setLevel(args.loglevel.upper())
-
     # set properties
     properties = {}
     p = args.properties
@@ -42,13 +35,14 @@ if __name__ == "__main__":
         platform = args.platform
 
         af = AgentFactory(
-            _class=NL2LLMAgent, 
-            _name=args.serve, 
-            _registry=args.registry, 
+            _class=NL2LLMAgent,
+            _name=args.serve,
+            _registry=args.registry,
             platform=platform,
             properties=properties,
         )
         af.wait()
+        af.logger.setLevel(logging.getLevelName(args.loglevel.upper()))
     else:
         a = None
         session = None
