@@ -194,7 +194,11 @@ class Worker:
         self.logger.set_config_data("level", "%(levelname)s", -1)
         self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
         self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
-        self.logger.set_config_data("sid", self.sid, -1)
+        agent_sid = "<NOT_SET>"
+        if self.agent:
+            agent_sid = self.agent.sid
+        self.logger.set_config_data("agent", agent_sid - 1)
+        self.logger.set_config_data("worker", self.sid, -1)
         session_sid = "<NOT_SET>"
         if self.session:
             session_sid = self.session.sid
@@ -684,10 +688,8 @@ class Agent:
         self.logger.set_config_data("level", "%(levelname)s", -1)
         self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
         self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
-        self.logger.set_config_data("sid", self.sid, -1)
+        self.logger.set_config_data("agent", self.sid, -1)
         session_sid = "<NOT_SET>"
-        if self.session:
-            session_sid = self.session.sid
         self.logger.set_config_data("session", session_sid, -1)
 
     ###### database, data
@@ -1094,7 +1096,7 @@ class AgentFactory:
         self.logger.set_config_data("level", "%(levelname)s", -1)
         self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
         self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
-        self.logger.set_config_data("sid", self.sid, -1)
+        self.logger.set_config_data("agent_factory", self.sid, -1)
 
     ###### database, data
     def _start_connection(self):
