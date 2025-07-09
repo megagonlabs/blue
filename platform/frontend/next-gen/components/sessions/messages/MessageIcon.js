@@ -34,6 +34,7 @@ export default function MessageIcon({ metadata }) {
         >
             <RegistryEntityIcon
                 content={_.get(agentMetadata, [createdBy, "icon"], null)}
+                type="agent"
             />
         </div>
     );
