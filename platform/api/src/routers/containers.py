@@ -151,6 +151,7 @@ def list_agent_containers(request: Request):
 def get_agent_container(request: Request, agent_name: str = ""):
     agent = agent_registry.get_agent(agent_name.split('___')[0])
     container_acl_enforce(request, agent, write=True)
+    name = pydash.objects.get(agent, 'name', None)
     client = docker.from_env()
     if PROPERTIES["platform.deploy.target"] == "localhost":
         containers = client.containers.list()
@@ -168,7 +169,7 @@ def get_agent_container(request: Request, agent_name: str = ""):
                 c["agent"] = la[2]
                 c["registry"] = la[1]
                 c["platform"] = la[0]
-                if c["platform"] == platform_id and c['agent'] == agent_name:
+                if c["platform"] == platform_id and c['agent'] == name:
                     return JSONResponse(content={"result": c})
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
@@ -193,7 +194,7 @@ def get_agent_container(request: Request, agent_name: str = ""):
                 c["agent"] = la[2]
                 c["registry"] = la[1]
                 c["platform"] = la[0]
-                if c["platform"] == platform_id and c['agent'] == agent_name:
+                if c["platform"] == platform_id and c['agent'] == name:
                     return JSONResponse(content={"result": c})
     return JSONResponse(content={"message": f"No such container: {agent_name}"}, status_code=404)
 
