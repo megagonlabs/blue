@@ -18,6 +18,7 @@ class CustomLogger:
     def _init_default_config(self):
         self.config = {}
         self.config['options'] = {"datefmt": "%Y-%m-%d %H:%M:%S"}
+        self.config['output'] = {"format":"json"}
         self.config['data'] = [{"name": "time", "format": "%(asctime)s"}, {"name": "message", "format": "%(message)s"}]
 
     def set_config_option(self, key, value):
@@ -26,6 +27,14 @@ class CustomLogger:
 
     def del_config_option(self, key):
         del self.config['options'][key]
+        self._initialized = False
+
+    def set_config_output(self, key, value):
+        self.config['output'][key] = value
+        self._initialized = False
+
+    def del_config_output(self, key):
+        del self.config['output'][key]
         self._initialized = False
 
     def set_config_data(self, key, format, index=None):
@@ -72,7 +81,10 @@ class CustomLogger:
         if self.root_logger.hasHandlers():
             self.root_logger.removeHandler(self.root_logger.handlers[0])
         self.handler = logging.StreamHandler()
-        formatter = logging.Formatter(" ".join(["[" + d['name'] + "=" + d['format'] + "]" for d in self.config['data']]), **self.config['options'])
+        if self.config['output']['format'] == "json":
+            formatter = logging.Formatter("{" + ",".join(['"' + d['name'] + '"' + ":" + '"' + d['format'] +  '"'  for d in self.config['data']]) + "}", **self.config['options'])
+        else:
+            formatter = logging.Formatter(" ".join(["[" + d['name'] + "=" + d['format'] + "]" for d in self.config['data']]), **self.config['options'])
         self.handler.setFormatter(formatter)
         self.root_logger.addHandler(self.handler)
         self.logger = logging.LoggerAdapter(self.root_logger)
