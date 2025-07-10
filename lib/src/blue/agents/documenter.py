@@ -10,13 +10,6 @@ from blue.plan import Plan
 from blue.utils import string_utils, uuid_utils
 
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
-)
-
-
 ##### Helper functions
 def build_doc_form(doc):
     doc_ui = {"type": "VerticalLayout", "elements": [{"type": "Markdown", "scope": "#/properties/markdown", "props": {"style": {}}}]}

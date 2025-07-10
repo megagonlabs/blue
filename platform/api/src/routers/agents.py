@@ -146,15 +146,12 @@ def get_agent_containers():
 
 def merge_container_results(registry_results):
     containers = get_agent_containers()
-    # logging.info(json.dumps(containers, indent=3))
 
-    # logging.info(json.dumps(registry_results, indent=3))
     # run through registry contents
     for registry_result in registry_results:
         t = registry_result.get('type', None)
         if t == 'agent':
             name = registry_result['name']
-            # logging.info(name)
 
             # check if agent has a container running
             if name in containers:

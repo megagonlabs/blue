@@ -9,13 +9,6 @@ from blue.plan import Plan
 from blue.utils import string_utils, uuid_utils
 
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
-)
-
-
 ##### Helper functions
 def build_vis_form(vis):
     vis_ui = {"type": "VerticalLayout", "elements": [{"type": "Vega", "scope": "#/properties/vis"}]}

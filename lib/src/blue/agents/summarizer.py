@@ -8,12 +8,6 @@ from blue.agents.openai import OpenAIAgent
 from blue.plan import Plan
 from blue.utils import string_utils, uuid_utils
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
-)
-
 
 GENERATE_PROMPT = """
 fill in template with query results in the template below, return only the summary as natural language text, rephrasing the template contents:

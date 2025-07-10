@@ -12,10 +12,6 @@ from redis.commands.json.path import Path
 ###### Blue
 from blue.connection import PooledConnectionFactory
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 ###############
 ### Constant
@@ -38,6 +34,7 @@ class Constant:
     def __str__(self):
         return self.c
 
+
 ###############
 ### ConstantEncoder
 #
@@ -47,6 +44,7 @@ class ConstantEncoder(json.JSONEncoder):
             return str(obj)
         else:
             return json.JSONEncoder.default(self, obj)
+
 
 ###############
 ### MessageType
@@ -185,7 +183,6 @@ class Message:
         if self.isControl():
             self.contents['args'][arg] = value
 
-
     # special for EXECUTE_AGENT
     def getAgent(self):
         if self.isControl():
@@ -193,14 +190,14 @@ class Message:
                 args = self.getArgs()
                 if "agent" in args:
                     return args['agent']
-                
+
         return None
 
     def getAgentContext(self):
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
                 args = self.getArgs()
-                if  "context" in args:
+                if "context" in args:
                     return args['context']
         return None
 
@@ -208,10 +205,10 @@ class Message:
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
                 args = self.getArgs()
-                if  "properties" in args:
+                if "properties" in args:
                     return args['properties']
         return {}
-    
+
     def getAgentProperty(self, property):
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
@@ -219,15 +216,15 @@ class Message:
                 if property in properties:
                     return properties[property]
         return None
-     
+
     def getInputParams(self):
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
                 args = self.getArgs()
-                if  "inputs" in args:
+                if "inputs" in args:
                     return args['inputs']
         return {}
-    
+
     def getInputParam(self, param):
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
@@ -235,9 +232,6 @@ class Message:
                 if param in params:
                     return params[param]
         return None
-
-
-
 
     def fromJSON(message_json):
         d = json.loads(message_json)
@@ -332,6 +326,3 @@ class Stream:
                 return value[0]
         else:
             return value
-
-
-

@@ -4,7 +4,7 @@ import time
 import json
 import pydash
 
-##### Communication 
+##### Communication
 import asyncio
 import websockets
 
@@ -15,14 +15,7 @@ from redis.commands.json.path import Path
 ###### Blue
 from blue.connection import PooledConnectionFactory
 from blue.tracker import Tracker, Metric, MetricGroup
-from blue.utils import uuid_utils
-
-
-
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
+from blue.utils import uuid_utils, log_utils
 
 # service tracker
 service_tracker = None
@@ -38,7 +31,7 @@ class ServicePerformanceTracker(Tracker):
 
     def collect(self):
         super().collect()
-        
+
         ### cost group
         service_cost_group = MetricGroup(id="service_cost_group", label="Service Cost Info")
         self.data.add(service_cost_group)
@@ -47,11 +40,9 @@ class ServicePerformanceTracker(Tracker):
         service_response_time_group = MetricGroup(id="service_response_time_group", label="Service Response Time Info")
         self.data.add(service_response_time_group)
 
-
         ### service group
         service_group = MetricGroup(id="service_info", label="Service Info")
         self.data.add(service_group)
-
 
         ### num calls
         # get previous total count
@@ -70,10 +61,10 @@ class ServicePerformanceTracker(Tracker):
         if avg_response_time is None:
             avg_response_time = 0
         total_call_response_time = avg_response_time * total_call_count
-            
+
         # calculate new calls
         socket_stats = self.service.get_metadata("stats.websockets")
-        new_call_count = 0 
+        new_call_count = 0
 
         if socket_stats:
             for socket_id in socket_stats:
@@ -98,14 +89,14 @@ class ServicePerformanceTracker(Tracker):
         total_call_count = total_call_count + new_call_count
         self.service.set_metadata("stats.total_call_count", total_call_count)
 
-        # average length 
+        # average length
         if total_call_count > 0:
             avg_call_length = total_call_length / total_call_count
         else:
             avg_call_length = 0.0
         self.service.set_metadata("stats.avg_call_length", avg_call_length)
 
-        # average response time 
+        # average response time
         if total_call_count > 0:
             avg_response_time = total_call_response_time / total_call_count
         else:
@@ -122,6 +113,7 @@ class ServicePerformanceTracker(Tracker):
         service_response_time_group.add(aavg_response_time_metric)
 
         return self.data.toDict()
+
 
 class Service:
     def __init__(
@@ -174,6 +166,8 @@ class Service:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
 
@@ -193,6 +187,14 @@ class Service:
         for p in properties:
             self.properties[p] = properties[p]
 
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("service", self.sid, -1)
+
     ###### database, data
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
@@ -204,7 +206,7 @@ class Service:
 
     def _init_tracker(self):
         # service stat tracker
-        self._tracker = ServicePerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.stat_tracker_callback(*args, **kwargs) )
+        self._tracker = ServicePerformanceTracker(self, properties=self.properties, callback=lambda *args, **kwargs: self.stat_tracker_callback(*args, **kwargs))
 
     def _start_tracker(self):
         # start tracker
@@ -227,7 +229,7 @@ class Service:
                 return value[0]
         else:
             return value
-        
+
     def _init_metadata_namespace(self):
         # create namespaces for metadata
         self.connection.json().set(
@@ -261,14 +263,13 @@ class Service:
             Path("$" + ("" if pydash.is_empty(key) else ".") + key),
         )
         return self.__get_json_value(value)
-    
+
     def _init_socket_stats(self, websocket):
         # stats by websocket.id
         wsid = websocket.id
         self.set_metadata("stats.websockets." + str(wsid), {}, nx=True)
 
         self.set_socket_stat(websocket, "created_date", int(time.time()), nx=True)
-
 
     def set_socket_stat(self, websocket, key, value, nx=False):
         wsid = websocket.id
@@ -279,7 +280,7 @@ class Service:
         self._init_socket_stats(websocket)
 
         while True:
-            try:        
+            try:
                 ### read message
                 s = await websocket.recv()
 
@@ -287,12 +288,12 @@ class Service:
                 self.set_socket_stat(websocket, "length", len(s))
 
                 message = json.loads(s)
-                
+
                 ### process message
                 start = time.time()
                 response = self.handler(message, websocket=websocket)
                 end = time.time()
-                self.set_socket_stat(websocket, "response_time", end-start)
+                self.set_socket_stat(websocket, "response_time", end - start)
 
                 ### write response
                 await websocket.send(response.json())
@@ -306,22 +307,18 @@ class Service:
 
     ## default handler, override
     def default_handler(self, message, properties=None, websocket=None):
-        logging.info("default_handler: override")
-
+        self.logger.info("default_handler: override")
 
     def _start(self):
         self._start_connection()
 
-       
         # initialize session metadata
         self._init_metadata_namespace()
 
         # init tracker
         self._init_tracker()
 
-
-        logging.info("Started service {name}".format(name=self.name))
+        self.logger.info("Started service {name}".format(name=self.name))
 
     def stop(self):
-        logging.info("Stopped servie {name}".format(name=self.name))
-        
+        self.logger.info("Stopped servie {name}".format(name=self.name))

@@ -14,13 +14,6 @@ from blue.utils import string_utils, json_utils
 from blue.utils.service_utils import ServiceClient
 
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
-)
-
-
 ############################
 ### Agent.RequestorAgent
 #

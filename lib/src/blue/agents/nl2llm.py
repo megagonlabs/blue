@@ -11,16 +11,10 @@ import json
 from blue.agent import Agent
 from blue.data.registry import DataRegistry
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
-)
 
 ##########################
 ### Agent.NL2LLMAgent
-
-
+#
 class NL2LLMAgent(Agent):
 
     PROPERTIES = {

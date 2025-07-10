@@ -197,7 +197,7 @@ class Worker:
         agent_sid = "<NOT_SET>"
         if self.agent:
             agent_sid = self.agent.sid
-        self.logger.set_config_data("agent", agent_sid - 1)
+        self.logger.set_config_data("agent", agent_sid, -1)
         self.logger.set_config_data("worker", self.sid, -1)
         session_sid = "<NOT_SET>"
         if self.session:

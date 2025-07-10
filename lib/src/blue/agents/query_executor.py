@@ -8,13 +8,6 @@ from blue.stream import ContentType, Message
 from blue.data.registry import DataRegistry
 
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(ascstime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
-)
-
-
 ############################
 ### Agent.QueryExecutorAgent
 #
