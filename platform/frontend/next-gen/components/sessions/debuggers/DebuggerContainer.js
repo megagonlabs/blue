@@ -5,6 +5,7 @@ import withAutoSizer from "@/components/hocs/withAutoSizer";
 import Timestamp from "@/components/Timestamp";
 import { useAppStore } from "@/stores/app-store";
 import { useSessionStore } from "@/stores/session-store";
+import { useSocketStore } from "@/stores/socket-store";
 import {
     Alignment,
     Button,
@@ -229,6 +230,25 @@ function DebuggerContainer({ width, height, sessionId }) {
             setFocusStream(current);
         }
     }, [inspection]);
+    const setConnectionSessionAttributes = useSocketStore(
+        (state) => state.setConnectionSessionAttributes
+    );
+    useEffect(() => {
+        setConnectionSessionAttributes({
+            session_id: sessionId,
+            key: "debug_mode",
+            value: true,
+            reObserve: true,
+        });
+        return () => {
+            setConnectionSessionAttributes({
+                session_id: sessionId,
+                key: "debug_mode",
+                value: false,
+                reObserve: true,
+            });
+        };
+    }, []);
     const focusIndex = useMemo(() => {
         for (let i = 0; i < _.size(messages); i++) {
             if (_.isEqual(focusStream, messages[i].stream)) {

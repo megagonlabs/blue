@@ -49,8 +49,12 @@ function SessionContainer({ width, height, sessionId }) {
         }))
     );
     const sessionProgress = _.get(progress, sessionId, {});
-    const sendMessage = useSocketStore((state) => state.sendMessage);
-    const observeSession = useSocketStore((state) => state.observeSession);
+    const { sendMessage, observeSession } = useSocketStore(
+        useShallow((state) => ({
+            sendMessage: state.sendMessage,
+            observeSession: state.observeSession,
+        }))
+    );
     const details = _.get(sessions, [sessionId, "details"], {});
     const sessionName = _.get(details, "name", sessionId);
     const { gridContainerId } = useGridContainerContext();
