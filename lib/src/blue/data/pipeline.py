@@ -13,7 +13,8 @@ from redis.commands.json.path import Path
 from blue.pubsub import Producer
 from blue.stream import Message, MessageType, ContentType, ControlCode
 from blue.connection import PooledConnectionFactory
-from blue.utils import uuid_utils
+from blue.utils import uuid_utils, log_utils
+
 
 ###############
 ### DataPipeline
@@ -58,6 +59,8 @@ class DataPipeline:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
 
@@ -73,10 +76,16 @@ class DataPipeline:
         for p in properties:
             self.properties[p] = properties[p]
 
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("pipeline", self.sid, -1)
+
     def get_stream(self):
         return self.producer.get_stream()
-
-
 
     ###### DATA/METADATA RELATED
     def __get_json_value(self, value):
@@ -123,16 +132,15 @@ class DataPipeline:
             "name": pydash.objects.get(metadata, "name", self.sid),
             "description": pydash.objects.get(metadata, "description", ""),
             "created_date": pydash.objects.get(metadata, "created_date", None),
-            "created_by": pydash.objects.get(metadata, "created_by", None)
+            "created_by": pydash.objects.get(metadata, "created_by", None),
         }
-    
+
     # TODO:
     def execute(self, plan, budget):
         return None
 
     ###### OPERATIONS
     def _start(self):
-        # logging.info('Starting pipeline {name}'.format(name=self.name))
         self._start_connection()
 
         # initialize pipeline metadata
@@ -141,12 +149,12 @@ class DataPipeline:
         # start  producer to emit pipeline events
         self._start_producer()
 
-        logging.info("Started pipeline {cid}".format(cid=self.cid))
+        self.logger.info("Started pipeline {cid}".format(cid=self.cid))
 
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
-        
+
     def _start_producer(self):
         # start, if not started
         if self.producer == None:

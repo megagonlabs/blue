@@ -12,10 +12,6 @@ from blue.stream import ControlCode
 from blue.utils import string_utils, json_utils, uuid_utils
 from blue.utils.service_utils import ServiceClient
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 ## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["USER"],"excludes":[]},"tags": ["TRIPLE"], "input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Examine the text below and identify a task plan  thatcan be fulfilled by various agents. Specify plan in JSON format, where each agent has attributes of name, description, input and output parameters with names and descriptions:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0}'
 interactive_planner_properties = {
@@ -42,15 +38,8 @@ PLAN:",
     "registry.name": "default",
     "search.threshold": 0.05,
     "search.limit": 10,
-    "listens": {
-        "DEFAULT": {
-            "includes": ["USER"],
-            "excludes": []
-        }
-    },
-    "tags": {
-        "DEFAULT": ["PLAN"]
-    }
+    "listens": {"DEFAULT": {"includes": ["USER"], "excludes": []}},
+    "tags": {"DEFAULT": ["PLAN"]},
 }
 
 
@@ -61,43 +50,13 @@ PLAN:",
         "detail": {
             "type": "VerticalLayout",
             "elements": [
-                {
-                    "type": "Label",
-                    "label": "From"
-                },
-                {
-                    "type": "HorizontalLayout",
-                    "elements": [
-                        {
-                            "type": "Control",
-                            "scope": "#/properties/from_agent"
-                        },
-                        {
-                            "type": "Control",
-                            "scope": "#/properties/from_output"
-                        }
-                    ]
-                },
-                {
-                    "type": "Label",
-                    "label": "To"
-                },
-                {
-                    "type": "HorizontalLayout",
-                    "elements": [
-                        {
-                            "type": "Control",
-                            "scope": "#/properties/to_agent"
-                        },
-                        {
-                            "type": "Control",
-                            "scope": "#/properties/to_input"
-                        }
-                    ]
-                }
-            ]
+                {"type": "Label", "label": "From"},
+                {"type": "HorizontalLayout", "elements": [{"type": "Control", "scope": "#/properties/from_agent"}, {"type": "Control", "scope": "#/properties/from_output"}]},
+                {"type": "Label", "label": "To"},
+                {"type": "HorizontalLayout", "elements": [{"type": "Control", "scope": "#/properties/to_agent"}, {"type": "Control", "scope": "#/properties/to_input"}]},
+            ],
         }
-    }
+    },
 }
 
 {
@@ -109,35 +68,16 @@ PLAN:",
             "items": {
                 "type": "object",
                 "properties": {
-                    "from_agent": {
-                        "type": "string",
-                        "enum": [
-                            "CandidateSearch"
-                        ]
-                    },
-                    "from_output": {
-                        "type": "string",
-                        "enum": [
-                            "keywords"
-                        ]
-                    },
-                    "to_agent": {
-                        "type": "string",
-                        "enum": [
-                            "CandidateSearch"
-                        ]
-                    },
-                    "to_input": {
-                        "type": "string",
-                        "enum": [
-                            "resumes"
-                        ]
-                    }
-                }
-            }
+                    "from_agent": {"type": "string", "enum": ["CandidateSearch"]},
+                    "from_output": {"type": "string", "enum": ["keywords"]},
+                    "to_agent": {"type": "string", "enum": ["CandidateSearch"]},
+                    "to_input": {"type": "string", "enum": ["resumes"]},
+                },
+            },
         }
-    }
+    },
 }
+
 
 class InteractivePlannerAgent(OpenAIAgent):
     def __init__(self, **kwargs):
@@ -152,12 +92,12 @@ class InteractivePlannerAgent(OpenAIAgent):
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
 
-        logging.info("Using agent registry:" + self.properties['registry.name'])
+        self.logger.info("Using agent registry:" + self.properties['registry.name'])
         self.registry = AgentRegistry(id=self.properties['registry.name'], prefix=prefix, properties=self.properties)
 
         agents = self.registry.get_agents()
-        logging.info('Registry contents:')
-        logging.info(json.dumps(agents, indent=4))
+        self.logger.info('Registry contents:')
+        self.logger.info(json.dumps(agents, indent=4))
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -174,18 +114,18 @@ class InteractivePlannerAgent(OpenAIAgent):
         # query agent registry
         results = self.registry.search_records(input_data, type='agent', approximate=True, page_size=properties["search.limit"])
 
-        logging.info(json.dumps(results, indent=4))
+        self.logger.info(json.dumps(results, indent=4))
         agents = set()
 
         # threshold
         threshold = properties["search.threshold"]
 
         # process results in order, to get a list of agents
-        prev_score = None 
+        prev_score = None
 
         for result in results:
             score = float(result['score'])
-            if prev_score == None or ( score / prev_score < (1 + threshold) ): 
+            if prev_score == None or (score / prev_score < (1 + threshold)):
                 prev_score = score
                 if result['type'] == "agent":
                     agents.add(result['name'])
@@ -219,23 +159,23 @@ class InteractivePlannerAgent(OpenAIAgent):
             agents_data[agent] = agent_data
 
         return {"agents": agents_data}
-    
+
     def extract_output_params(self, output_data, properties=None):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
         return {}
-    
+
     def process_output(self, output_data, properties=None):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
-        # logging.info(output_data)
+        # self.logger.info(output_data)
         # get gpt plan as json
         plan = json.loads(output_data)
-        logging.info('Initial Plan:')
-        logging.info(json.dumps(plan, indent=4))
-        logging.info('========================================================================================================')
+        self.logger.info('Initial Plan:')
+        self.logger.info(json.dumps(plan, indent=4))
+        self.logger.info('========================================================================================================')
 
         # represent plan as a form
         interactive_plan = self.create_interactive_plan(plan)
@@ -249,72 +189,25 @@ class InteractivePlannerAgent(OpenAIAgent):
                 "detail": {
                     "type": "VerticalLayout",
                     "elements": [
-                        {
-                            "type": "Label",
-                            "label": "From"
-                        },
-                        {
-                            "type": "HorizontalLayout",
-                            "elements": [
-                                {
-                                    "type": "Control",
-                                    "scope": "#/properties/from_agent"
-                                },
-                                {
-                                    "type": "Control",
-                                    "scope": "#/properties/from_agent_param"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "Label",
-                            "label": "To"
-                        },
-                        {
-                            "type": "HorizontalLayout",
-                            "elements": [
-                                {
-                                    "type": "Control",
-                                    "scope": "#/properties/to_agent"
-                                },
-                                {
-                                    "type": "Control",
-                                    "scope": "#/properties/to_agent_param"
-                                }
-                            ]
-                        }
-                    ]
+                        {"type": "Label", "label": "From"},
+                        {"type": "HorizontalLayout", "elements": [{"type": "Control", "scope": "#/properties/from_agent"}, {"type": "Control", "scope": "#/properties/from_agent_param"}]},
+                        {"type": "Label", "label": "To"},
+                        {"type": "HorizontalLayout", "elements": [{"type": "Control", "scope": "#/properties/to_agent"}, {"type": "Control", "scope": "#/properties/to_agent_param"}]},
+                    ],
                 }
-            }
+            },
         }
 
         plan_ui = {
             "type": "VerticalLayout",
             "elements": [
-                {
-                    "type": "Label",
-                    "label": "PROPOSED PLAN",
-                    "props": {
-                        "style": {
-                            "fontWeight": "bold"
-                        }
-                    }
-                },
+                {"type": "Label", "label": "PROPOSED PLAN", "props": {"style": {"fontWeight": "bold"}}},
                 {
                     "type": "Label",
                     "label": "Review the proposed plan below and if necessary make appropriate adjustments",
-                    "props": {
-                        "muted": True,
-                        "style": {
-                            "marginBottom": 15,
-                            "fontStyle": "italic"
-                        }
-                    }
+                    "props": {"muted": True, "style": {"marginBottom": 15, "fontStyle": "italic"}},
                 },
-                {
-                    "type": "VerticalLayout",
-                    "elements": [ steps_ui ]
-                },
+                {"type": "VerticalLayout", "elements": [steps_ui]},
                 {
                     "type": "Button",
                     "label": "Submit",
@@ -323,10 +216,9 @@ class InteractivePlannerAgent(OpenAIAgent):
                         "action": "DONE",
                         "large": True,
                     },
-                }
-            ]
+                },
+            ],
         }
-
 
         plan_schema_template = """
         {
@@ -390,42 +282,42 @@ class InteractivePlannerAgent(OpenAIAgent):
         from_agent_params = params
         to_agent_params = params
 
-
-        plan_schema = string_utils.safe_substitute(plan_schema_template, from_agent_list=from_agent_list, from_agent_params=from_agent_params, to_agent_list=to_agent_list, to_agent_params=to_agent_params)
-        logging.info(plan_schema)
+        plan_schema = string_utils.safe_substitute(
+            plan_schema_template, from_agent_list=from_agent_list, from_agent_params=from_agent_params, to_agent_list=to_agent_list, to_agent_params=to_agent_params
+        )
+        self.logger.info(plan_schema)
         plan_schema = json.loads(plan_schema)
 
         # inject plan/steps data
-        index = 0 
+        index = 0
         for step in plan:
             _from = step['from']
             from_split = _from.split(".")
-            from_agent =  from_split[0]
+            from_agent = from_split[0]
             from_agent_description = ""
             from_agent_param = from_split[1]
 
             _to = step['to']
             to_split = _to.split(".")
-            to_agent =  to_split[0]
+            to_agent = to_split[0]
             to_agent_description = ""
             to_agent_param = to_split[1]
 
             step_data = string_utils.safe_substitute(step_data_template, index=index, from_agent=from_agent, from_agent_param=from_agent_param, to_agent=to_agent, to_agent_param=to_agent_param)
-            logging.info(step_data)
+            self.logger.info(step_data)
             step_data = json.loads(step_data)
 
             plan_data.append(step_data)
 
             index = index + 1
 
-        interactive_plan= {
+        interactive_plan = {
             "schema": plan_schema,
-            "data": { "steps": plan_data },
+            "data": {"steps": plan_data},
             "uischema": plan_ui,
-            }
+        }
 
         return interactive_plan
-
 
     def standardize_plan(self, plan):
         # transform each step into a tuple [ "from_agent.from_agent_param", "to_agent.to_agent_param" ] of edges in DAG
@@ -435,7 +327,7 @@ class InteractivePlannerAgent(OpenAIAgent):
             from_agent_param = step["from_agent_param"]
             to_agent = step["to_agent"]
             to_agent_param = step["to_agent_param"]
-            edge = [ from_agent + "." + from_agent_param, to_agent + "." + to_agent_param ]
+            edge = [from_agent + "." + from_agent_param, to_agent + "." + to_agent_param]
             edges.append(edge)
 
         return edges
@@ -451,7 +343,7 @@ class InteractivePlannerAgent(OpenAIAgent):
                     plan_id = form_id = data["form_id"]
                     action = data["action"]
 
-                     # get form stream
+                    # get form stream
                     form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
 
                     # when the user clicked DONE
@@ -461,36 +353,29 @@ class InteractivePlannerAgent(OpenAIAgent):
 
                         # get context from data section
                         plan_context = {
-                            "scope": stream[:-7], # omit ":STREAM"
+                            "scope": stream[:-7],  # omit ":STREAM"
                             # "streams": {
                             #     "USER.TEXT": stream
                             # }
                         }
-                        logging.info(plan_data)
-                        logging.info(type(plan_data))
+                        self.logger.info(plan_data)
+                        self.logger.info(type(plan_data))
                         # standardize plan
                         plan_dag = self.standardize_plan(plan_data)
-                        logging.info(plan_dag)
+                        self.logger.info(plan_dag)
 
                         # get plan context
                         plan_context = worker.get_data(plan_id)
                         plan_context = plan_context['context']
 
-                        plan = {
-                            "id":  plan_id,
-                            "steps": plan_dag,
-                            "context": plan_context
-                        }
-                        
+                        plan = {"id": plan_id, "steps": plan_dag, "context": plan_context}
 
                         # close form
-                        args = {
-                            "form_id": form_id
-                        }
+                        args = {"form_id": form_id}
                         worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
 
                         # stream plan data
-                        logging.info(plan)
+                        self.logger.info(plan)
                         return plan
                     else:
                         path = data["path"]
@@ -504,12 +389,12 @@ class InteractivePlannerAgent(OpenAIAgent):
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
                                 },
-                                stream=form_data_stream
+                                stream=form_data_stream,
                             )
         else:
 
             if message.isEOS():
-                logging.info("MESSAGE EOS")
+                self.logger.info("MESSAGE EOS")
                 # get all data received from stream
                 stream = message.getStream()
                 stream_data = ""
@@ -518,23 +403,18 @@ class InteractivePlannerAgent(OpenAIAgent):
 
                 #### call api to compute, render interactive plan
                 input_data = stream_data[0]
-                logging.info(input_data)
+                self.logger.info(input_data)
 
                 session_data = self.session.get_all_data()
                 interactive_plan = self.execute_api_call(stream_data, additional_data=session_data)
 
-                # plan id and context 
+                # plan id and context
                 plan_id = uuid_utils.create_uuid()
-                plan_context = {
-                    "scope": stream[:-7], # omit ":STREAM"
-                    "streams": {
-                        "USER.TEXT": stream
-                    }
-                }
-                # save into data section 
+                plan_context = {"scope": stream[:-7], "streams": {"USER.TEXT": stream}}  # omit ":STREAM"
+                # save into data section
                 interactive_plan['data']['context'] = plan_context
                 # save into agent memory by id
-                worker.set_data(plan_id, { "context": plan_context })
+                worker.set_data(plan_id, {"context": plan_context})
 
                 # write ui
                 worker.write_control(ControlCode.CREATE_FORM, interactive_plan, output="FORM", id=plan_id)
@@ -547,31 +427,31 @@ class InteractivePlannerAgent(OpenAIAgent):
                 #     "steps": plan_dag,
                 #     "context": plan_context
                 # }
-                # logging.info(plan)
+                # self.logger.info(plan)
                 # return plan
-                
+
             elif message.isBOS():
-                logging.info("MESSAGE BOS")
+                self.logger.info("MESSAGE BOS")
                 stream = message.getStream()
                 # init stream to empty array
                 if worker:
-                    worker.set_data(stream,[])
+                    worker.set_data(stream, [])
                 pass
             elif message.isData():
-                logging.info("MESSAGE DATA")
+                self.logger.info("MESSAGE DATA")
                 # store data value
                 data = message.getData()
                 stream = message.getStream()
 
-                logging.info("=====")
-                logging.info(stream)
-                logging.info(data)
-                logging.info("=====")
+                self.logger.info("=====")
+                self.logger.info(stream)
+                self.logger.info(data)
+                self.logger.info("=====")
                 if worker:
                     worker.append_data(stream, data)
-            
+
             return None
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -585,8 +465,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # set logging
-    logging.getLogger().setLevel(args.loglevel.upper())
+    # logging
+    logging.getLogger().setLevel(logging.getLevelName(args.loglevel.upper()))
 
     # set properties
     properties = {}

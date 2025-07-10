@@ -16,6 +16,7 @@ from blue.stream import Message, MessageType, ContentType
 from blue.connection import PooledConnectionFactory
 from blue.utils import uuid_utils
 
+
 ###############
 ### Metric
 #
@@ -29,29 +30,30 @@ class Metric:
         self.children = None
 
     def setValue(self, value):
-        self.value = value 
+        self.value = value
 
     def getValue(self):
         return self.value
 
     def isVisible(self):
         return self.visibility
-    
+
     def getLabel(self):
         return self.label
-    
+
     def getID(self):
         return self.id
-    
+
     def getType(self):
         return self.type
 
     def toDict(self):
-        d = { "id": self.id,  "label": self.label, "type": self.type, "visibility": self.visibility }
-        
+        d = {"id": self.id, "label": self.label, "type": self.type, "visibility": self.visibility}
+
         d['value'] = self.value
 
-        return d 
+        return d
+
 
 ###############
 ### MetricGroup
@@ -74,17 +76,18 @@ class MetricGroup(Metric):
                 if index == len(cids) - 1:
                     return c.getValue()
             else:
-                return None 
+                return None
 
     def toDict(self):
         d = super().toDict()
 
         d['data'] = {}
-        
+
         for child_id in self.children:
             d['data'][child_id] = self.children[child_id].toDict()
 
         return d
+
 
 ###############
 ### Tracker
@@ -116,14 +119,14 @@ class Tracker:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
-        self.label = label 
+        self.label = label
 
         self.callback = callback
         self.timer = None
         self.state = "IDLE"
 
         # init data
-        self.data = None 
+        self.data = None
 
         # init outputs
         self.connection = None
@@ -258,7 +261,7 @@ class Tracker:
 
     def get_current_epoch(self):
         return int(time.time())
-    
+
     def getValue(self, path):
         if self.data:
             return self.data.getValue(path)
@@ -286,7 +289,7 @@ class Tracker:
         # state
         state_metric = Metric(id="status", label="Status", type="status", value=self.state)
         tracker_metadata_group.add(state_metric)
-       
+
         return self.data.toDict()
 
     def track(self):
@@ -315,7 +318,6 @@ class Tracker:
             self.callback(data, tracker=self, properties=self.properties)
 
 
-
 ###############
 ### IdleTracker
 #
@@ -338,21 +340,20 @@ class IdleTracker(Tracker):
         # add last active time
         last_active_metric = Metric(id="last_active", label="Last Active Time", type="time", value=self.consumer.last_processed)
         self.data.add(last_active_metric)
-       
-        return self.data.toDict()
 
+        return self.data.toDict()
 
 
 ######################
 ### PerformanceTracker
-#  
+#
 class PerformanceTracker(Tracker):
     def __init__(self, label=None, prefix=None, properties=None, inheritance=None, callback=None):
         super().__init__(id="PERF", label=label, prefix=prefix, properties=properties, inheritance=inheritance, callback=callback)
 
     def collect(self):
         super().collect()
-        
+
         ### Thread group
         thread_group = MetricGroup(id="threads_info", label="Threads Info")
         self.data.add(thread_group)
@@ -376,7 +377,7 @@ class PerformanceTracker(Tracker):
 
             is_daemon_metric = Metric(id="daemon", label="Daemon", type="tag", value=daemon)
             thread_metric_group.add(is_daemon_metric)
-            
+
             is_alive_metric = Metric(id="alive", label="Alive", type="alive", value=alive)
             thread_metric_group.add(is_alive_metric)
 
@@ -424,17 +425,16 @@ class SystemPerformanceTracker(Tracker):
 
         # memory
         virtual_memory = psutil.virtual_memory()
-        virtual_memory_total_metric =  Metric(id="virtual_memory_total", label="Virtual Memory (total)", type="number", value=virtual_memory.total)
+        virtual_memory_total_metric = Metric(id="virtual_memory_total", label="Virtual Memory (total)", type="number", value=virtual_memory.total)
         memory_group.add(virtual_memory_total_metric)
-        virtual_memory_available_metric =  Metric(id="virtual_memory_available", label="Virtual Memory (avail)", type="number", value=virtual_memory.available)
+        virtual_memory_available_metric = Metric(id="virtual_memory_available", label="Virtual Memory (avail)", type="number", value=virtual_memory.available)
         memory_group.add(virtual_memory_available_metric)
-        virtual_memory_used_metric =  Metric(id="virtual_memory_used", label="Virtual Memory (used)", type="number", value=virtual_memory.used, visibility=False)
+        virtual_memory_used_metric = Metric(id="virtual_memory_used", label="Virtual Memory (used)", type="number", value=virtual_memory.used, visibility=False)
         memory_group.add(virtual_memory_used_metric)
-        virtual_memory_free_metric =  Metric(id="virtual_memory_free", label="Virtual Memory (free)", type="number", value=virtual_memory.free, visibility=False)
+        virtual_memory_free_metric = Metric(id="virtual_memory_free", label="Virtual Memory (free)", type="number", value=virtual_memory.free, visibility=False)
         memory_group.add(virtual_memory_free_metric)
-        virtual_memory_percent_metric =  Metric(id="virtual_memory_percent", label="Virtual Memory (%)", type="series", value=virtual_memory.percent)
+        virtual_memory_percent_metric = Metric(id="virtual_memory_percent", label="Virtual Memory (%)", type="series", value=virtual_memory.percent)
         memory_group.add(virtual_memory_percent_metric)
-
 
         ### Process group
         processes_group = MetricGroup(id="processes_info", label="Processes Info")
@@ -466,7 +466,7 @@ class SystemPerformanceTracker(Tracker):
                 name_metric = Metric(id="name", label="Process Name", type="text", value=process.name())
                 process_metadata_group.add(name_metric)
                 # status
-                status_metric = Metric(id="status", label="Process Status", type="status", value= process.status())
+                status_metric = Metric(id="status", label="Process Status", type="status", value=process.status())
                 process_metadata_group.add(status_metric)
                 # started
                 started_metric = Metric(id="started", label="Started Time", type="time", value=int(process.create_time()), visibility=False)
@@ -489,15 +489,14 @@ class SystemPerformanceTracker(Tracker):
                 process_cpu_times_user_metric = Metric(id="cpu_times_user", label="CPU Time (user)", type="number", value=cpu_times.user, visibility=False)
                 process_cpu_group.add(process_cpu_times_user_metric)
                 process_cpu_times_system_metric = Metric(id="cpu_times_system", label="CPU Time (system)", type="number", value=cpu_times.system, visibility=False)
-                process_cpu_group.add(process_cpu_times_system_metric)       
-
+                process_cpu_group.add(process_cpu_times_system_metric)
 
                 ### memory group
                 process_memory_group = MetricGroup(id="memory", label="Memory Info", visibility=False)
                 process_group.add(process_memory_group)
 
                 # memory percent
-                process_memory_percent_metric =  Metric(id="memory_percent", label="Process Memory (%)", type="series", value=process.memory_percent(), visibility=False)
+                process_memory_percent_metric = Metric(id="memory_percent", label="Process Memory (%)", type="series", value=process.memory_percent(), visibility=False)
                 process_memory_group.add(process_memory_percent_metric)
 
                 memory_info = process.memory_info()
@@ -519,7 +518,7 @@ class SystemPerformanceTracker(Tracker):
                 # threads = process.threads()
                 # for thread in threads:
                 #     thread_info = {"id": thread.id, "user_time": thread.user_time, "system_time": thread.system_time}
-                    
+
             except:
                 continue
 

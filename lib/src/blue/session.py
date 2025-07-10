@@ -12,7 +12,7 @@ from redis.commands.json.path import Path
 from blue.stream import ControlCode
 from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
-from blue.utils import uuid_utils
+from blue.utils import uuid_utils, log_utils
 
 
 ###############
@@ -58,6 +58,8 @@ class Session:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
 
@@ -75,6 +77,14 @@ class Session:
 
     def get_stream(self):
         return self.producer.get_stream()
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("session", self.sid, -1)
 
     ###### AGENTS, NOTIFICATION
     def add_agent(self, agent):
@@ -127,11 +137,9 @@ class Session:
 
         # create data namespace to share data on stream
         data_success = self._init_stream_data_namespace(output_stream)
-        # logging.info("inited stream data namespace {} {}".format(output_stream, data_success))
 
         # create metadata namespace for stream, metadata_success = True, if not existing
         metadata_success = self._init_stream_metadata_namespace(output_stream, agent, tags)
-        # logging.info("inited stream metadata namespace {} {}".format(output_stream, metadata_success))
 
         # add to stream to notify others, unless it exists
         if metadata_success:
@@ -362,7 +370,6 @@ class Session:
 
     ###### OPERATIONS
     def _start(self):
-        # logging.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
 
         # initialize session metadata
@@ -373,8 +380,6 @@ class Session:
 
         # start  producer to emit session events
         self._start_producer()
-
-        # logging.info("Started session {cid}".format(cid=self.cid))
 
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)

@@ -3,10 +3,14 @@ import argparse
 import logging
 import json
 
+###### Blue
+from blue.utils import log_utils
+
+
 ###############
 ### ToolClient
 #
-class ToolClient():
+class ToolClient:
     def __init__(self, name, properties={}):
 
         self.name = name
@@ -20,10 +24,12 @@ class ToolClient():
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
 
-        # server protocol 
+        # server protocol
         self.properties['protocol'] = "default"
 
     def _update_properties(self, properties=None):
@@ -33,6 +39,14 @@ class ToolClient():
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("tool_client", self.name, -1)
 
     ###### connection
     def _start_connection(self):
@@ -48,17 +62,17 @@ class ToolClient():
 
     def _disconnect(self):
         return None
-    
+
     def _start(self):
-        # logging.info('Starting session {name}'.format(name=self.name))
+        # self.logger.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
-        
-        logging.info('Started server {name}'.format(name=self.name))
+
+        self.logger.info('Started server {name}'.format(name=self.name))
 
     def _stop(self):
         self._stop_connection()
 
-        logging.info('Stopped server {name}'.format(name=self.name))
+        self.logger.info('Stopped server {name}'.format(name=self.name))
 
     ######### server
     def fetch_metadata(self):

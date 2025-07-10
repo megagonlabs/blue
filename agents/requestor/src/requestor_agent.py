@@ -8,10 +8,6 @@ from blue.agent import Agent, AgentFactory
 from blue.agents.requestor import RequestorAgent
 from blue.session import Session
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -24,9 +20,9 @@ if __name__ == "__main__":
     parser.add_argument('--registry', type=str, default='default')
 
     args = parser.parse_args()
-   
-    # set logging
-    logging.getLogger().setLevel(args.loglevel.upper())
+
+    # logging
+    logging.getLogger().setLevel(logging.getLevelName(args.loglevel.upper()))
 
     # set properties
     properties = {}
@@ -34,10 +30,10 @@ if __name__ == "__main__":
     if p:
         # decode json
         properties = json.loads(p)
-    
+
     if args.serve:
         platform = args.platform
-        
+
         af = AgentFactory(_class=RequestorAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
@@ -52,7 +48,7 @@ if __name__ == "__main__":
             # create a new session
             session = Session()
             a = RequestorAgent(name=args.name, session=session, properties=properties)
-  
+
         # wait for session
         if session:
             session.wait()

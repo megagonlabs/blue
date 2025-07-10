@@ -17,11 +17,7 @@ import threading
 from blue.stream import Message, MessageType, ContentType
 from blue.connection import PooledConnectionFactory
 from blue.tracker import IdleTracker
-from blue.utils import uuid_utils
-
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+from blue.utils import uuid_utils, log_utils
 
 
 ###############
@@ -80,6 +76,8 @@ class Consumer:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
         self.properties['num_threads'] = 1
@@ -94,7 +92,14 @@ class Consumer:
         for p in properties:
             self.properties[p] = properties[p]
 
-
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("consumer", self.sid, -1)
+        self.logger.set_config_data("stream", self.stream, -1)
 
     ####### open connection, create group, start threads
     def _extract_epoch(self, id):
@@ -105,7 +110,7 @@ class Consumer:
         if properties is None:
             properties = self.properties
 
-        expiration = None 
+        expiration = None
         if "consumer.expiration" in properties:
             expiration = properties['consumer.expiration']
 
@@ -116,8 +121,8 @@ class Consumer:
 
             if last_active and current:
                 if last_active + expiration < current:
-                    logging.info("Expired Consumer: " + self.cid)
-                    self._stop() 
+                    self.logger.info("Expired Consumer: " + self.cid)
+                    self._stop()
 
     def _init_tracker(self):
         self._tracker = IdleTracker(self, properties=self.properties, callback=lambda *args, **kwargs,: self._idle_tracker_callback(*args, **kwargs))
@@ -135,7 +140,7 @@ class Consumer:
 
     def start(self):
 
-        # logging.info("Starting consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
+        # self.logger.info("Starting consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
         self.stop_signal = False
 
         self._start_connection()
@@ -147,17 +152,17 @@ class Consumer:
         # init tracker
         self._init_tracker()
 
-        # logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
+        # self.logger.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
 
     def stop(self):
         self._terminate_tracker()
 
-        self.stop_signal = True 
+        self.stop_signal = True
 
     def _stop(self):
         self._terminate_tracker()
 
-        self.stop_signal = True 
+        self.stop_signal = True
 
         if self.on_stop:
             self.on_stop(self.sid)
@@ -167,10 +172,9 @@ class Consumer:
             t.join()
 
     def _start_connection(self):
-       
+
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
-
 
     def _start_group(self):
         # create group if it doesn't exists, print group info
@@ -179,10 +183,10 @@ class Consumer:
         r = self.connection
 
         try:
-            # logging.info("Creating group {g}...".format(g=g))
+            # self.logger.info("Creating group {g}...".format(g=g))
             r.xgroup_create(name=s, groupname=g, id=0)
         except:
-            logging.info("Group {g} exists...".format(g=g))
+            self.logger.info("Group {g} exists...".format(g=g))
 
         # self._print_group_info()
 
@@ -191,10 +195,10 @@ class Consumer:
         g = self.cid
         r = self.connection
 
-        logging.info("Group info for stream {s}".format(s=s))
+        self.logger.info("Group info for stream {s}".format(s=s))
         res = r.xinfo_groups(name=s)
         for i in res:
-            logging.info(f"{s} -> group name: {i['name']} with {i['consumers']} consumers and {i['last-delivered-id']}" + f" as last read id")
+            self.logger.info(f"{s} -> group name: {i['name']} with {i['consumers']} consumers and {i['last-delivered-id']}" + f" as last read id")
 
     def get_stream(self):
         return self.stream
@@ -229,7 +233,7 @@ class Consumer:
         g = self.cid
         r = self.connection
 
-        # logging.info("[Thread {c}]: starting".format(c=c))
+        # self.logger.info("[Thread {c}]: starting".format(c=c))
         while True:
 
             if self.stop_signal:
@@ -247,7 +251,7 @@ class Consumer:
                 if id == "0-0":
                     pass
                 else:
-                    # logging.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
+                    # self.logger.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
 
                     # listen
                     message = Message.fromJSON(json.dumps(m_json))
@@ -256,7 +260,7 @@ class Consumer:
                     # await self.response_handler(message)
                     self.listener(message)
                     # last processed
-                    self.last_processed =  int(time.time()) # self._extract_epoch(id)
+                    self.last_processed = int(time.time())  # self._extract_epoch(id)
 
                     # ack
                     r.xack(s, g, id)
@@ -272,7 +276,7 @@ class Consumer:
                 id = d[0]
                 m_json = d[1]
 
-                # logging.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=m_json))
+                # self.logger.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=m_json))
 
                 # listen
                 message = Message.fromJSON(json.dumps(m_json))
@@ -295,7 +299,7 @@ class Consumer:
                 if message.isEOS():
                     self._stop()
 
-        # logging.info("[Thread {c}]: finished".format(c=c))
+        # self.logger.info("[Thread {c}]: finished".format(c=c))
 
     def _start_threads(self):
         # start threads
@@ -315,7 +319,6 @@ class Consumer:
         l = r.xread(streams={s: 0})
         for _, m in l:
             [r.xdel(s, i[0]) for i in m]
-
 
 
 ###############
@@ -363,6 +366,8 @@ class Producer:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
 
@@ -378,18 +383,25 @@ class Producer:
         for p in properties:
             self.properties[p] = properties[p]
 
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("producer", self.sid, -1)
+
     ####### open connection, create group, start threads
     def start(self):
-        # logging.info("Starting producer {p}".format(p=self.sid))
+        # self.logger.info("Starting producer {p}".format(p=self.sid))
         self._start_connection()
 
         self._start_stream()
-        # logging.info("Started producer {p}".format(p=self.sid))
+        # self.logger.info("Started producer {p}".format(p=self.sid))
 
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
-
 
     def _start_stream(self):
         # start stream by adding BOS
@@ -440,9 +452,9 @@ class Producer:
         self._write_message_to_stream(json.loads(message.toJSON()))
 
     def _write_message_to_stream(self, json_message):
-        # logging.info("json_message: " + json_message)
+        # self.logger.info("json_message: " + json_message)
         self.connection.xadd(self.cid, json_message)
-        # logging.info("Streamed into {s} message {m}".format(s=self.cid, m=str(json_message)))
+        # self.logger.info("Streamed into {s} message {m}".format(s=self.cid, m=str(json_message)))
 
     def read_all(self):
         sl = self.connection.xlen(self.cid)
