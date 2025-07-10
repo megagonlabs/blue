@@ -10,24 +10,24 @@ import {
     Size,
     Tag,
 } from "@blueprintjs/core";
-import { faSquareM } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faFish } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const uiSchemaJson = {
-    type: "Markdown",
-    scope: "#/properties/markdown",
+    type: "Mermaid",
+    scope: "#/properties/mermaid-spec",
     props: { style: {} },
 };
 const dataJson = {
-    markdown: "markdown content",
+    "mermaid-spec": "graph TD\nA-->B;\nB-->C;\n",
 };
-export default function MarkdownDoc() {
+export default function MermaidDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
                 <EntityTitle
-                    title="Markdown"
+                    title="Mermaid"
                     heading={H1}
-                    icon={<FAIcon icon={faSquareM} size={30} />}
+                    icon={<FAIcon icon={faFish} size={30} />}
                 />
             </div>
             <H2>Example</H2>

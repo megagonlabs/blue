@@ -14,6 +14,7 @@ import {
 import {
     faBookOpenCover,
     faBoxTaped,
+    faFish,
     faInputNumeric,
     faInputText,
     faList,
@@ -46,6 +47,7 @@ import IntegerDoc from "./IntegerDoc";
 import LabelDoc from "./LabelDoc";
 import LayoutDoc from "./LayoutDoc";
 import MarkdownDoc from "./MarkdownDoc";
+import MermaidDoc from "./MermaidDoc";
 import NumberDoc from "./NumberDoc";
 import StringDoc from "./StringDoc";
 import TableDoc from "./TableDoc";
@@ -75,11 +77,8 @@ const DOC_MENU = [
     { text: "String", icon: faInputText },
     { text: "Table", icon: faTable },
     { text: "Tabs", icon: faPause, iconClass: "fa-rotate-90" },
-    {
-        text: "Vega",
-        icon: faPresentationScreen,
-        label: "Vega-Lite",
-    },
+    { text: "Vega", icon: faPresentationScreen, label: "Vega-Lite" },
+    { text: "Mermaid", icon: faFish, label: "Diagram and chart" },
 ];
 const DOCS = {
     basics: <BasicsDoc />,
@@ -98,6 +97,7 @@ const DOCS = {
     table: <TableDoc />,
     tabs: <TabsDoc />,
     vega: <VegaDoc />,
+    mermaid: <MermaidDoc />,
     examples: <ExamplesDoc />,
 };
 function DocContainer({ width, height }) {
