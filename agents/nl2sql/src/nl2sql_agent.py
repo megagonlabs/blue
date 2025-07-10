@@ -21,8 +21,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    for i in range(10):
-        print('qwer' * 100 + str(i))
+    # logging
+    logging.getLogger().setLevel(logging.getLevelName(args.loglevel.upper()))
 
     # set properties
     properties = {}
@@ -36,7 +36,6 @@ if __name__ == "__main__":
 
         af = AgentFactory(_class=NL2SQLAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
-        af.logger.setLevel(logging.getLevelName(args.loglevel.upper()))
     else:
         a = None
         session = None

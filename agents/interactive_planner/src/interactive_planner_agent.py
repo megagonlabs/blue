@@ -465,6 +465,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # logging
+    logging.getLogger().setLevel(logging.getLevelName(args.loglevel.upper()))
+
     # set properties
     properties = {}
     p = args.properties
@@ -477,7 +480,6 @@ if __name__ == "__main__":
 
         af = AgentFactory(_class=InteractivePlannerAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
-        af.logger.setLevel(logging.getLevelName(args.loglevel.upper()))
     else:
         a = None
         session = None
