@@ -26,7 +26,7 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
     # Option 2: Otherwise, we create a service client here
     # Create service client for OpenAI calls, use input properties of the function
     service_client = ServiceClient(name="nl2llm_operator_service_client", properties=properties)
-    return [service_client.execute_api_call(query, properties=service_client.properties, additional_data={'context': context, 'attr_names': attr_names})]
+    return [service_client.execute_api_call(query, properties=service_client.properties, additional_data={})]
 
 
 def nl2llm_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -76,7 +76,7 @@ Output:
         "openai.stream": False,
         "openai.max_tokens": 4096,
         "openai.temperature": 0,
-        # io related properties (used by requestor operator)
+        # io related properties
         "input_json": "[{\"role\": \"user\"}]",
         "input_context": "$[0]",
         "input_context_field": "content",
@@ -146,9 +146,14 @@ if __name__ == "__main__":
     properties = nl2llm_operator.properties
     print(f"=== NL2LLM PROPERTIES ===")
     print(properties)
-    properties['service_url'] = 'ws://<your_service_url>:8001'  # please change this to your service url
+    properties['service_url'] = 'ws://localhost:8001'  # update this to your service url
 
     # call the function
+    # Option 1: directly call the nl2llm_operator_function
+    result = nl2llm_operator_function(input_data, params, properties)
+    print("=== NL2LLM RESULT (Option 1)===")
+    print(result)
+    # Option 2: use the function method
     result = nl2llm_operator.function(input_data, params, properties)
-    print("=== NL2LLM RESULT ===")
+    print("=== NL2LLM RESULT (Option 2)===")
     print(result)
