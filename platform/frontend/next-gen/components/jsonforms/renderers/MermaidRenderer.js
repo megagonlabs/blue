@@ -1,5 +1,6 @@
 import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
+import _ from "lodash";
 import MermaidDiagram from "../MermaidDiagram";
 const MermaidRenderer = ({ uischema, data }) => {
     const style = _.get(uischema, "props.style", {});
