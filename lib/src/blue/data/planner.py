@@ -5,12 +5,13 @@ import uuid
 ###### Blue
 from blue.connection import PooledConnectionFactory
 
+
 ###############
 ### DataPlanner
 #
-class DataPlanner():
+class DataPlanner:
     def __init__(self, name="DATA_PLANNER", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
-        
+
         self.name = name
         if id:
             self.id = id
@@ -36,8 +37,8 @@ class DataPlanner():
 
         self._initialize(properties=properties)
 
-        self._start()   
-        
+        self._start()
+
     ###### initialization
     def _initialize(self, properties=None):
         self._initialize_properties()
@@ -60,7 +61,7 @@ class DataPlanner():
 
     def plan(self, input_data, task, context):
         return None
-    
+
     def optimize(self, plan, budget):
         return None
 
@@ -68,8 +69,6 @@ class DataPlanner():
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
-        
+
     def _start(self):
         self._start_connection()
-
-        logging.info('Started data planner {name}'.format(name=self.name))

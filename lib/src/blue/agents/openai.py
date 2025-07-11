@@ -9,12 +9,6 @@ from blue.tools.registry import ToolRegistry
 
 import json
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
-)
-
 
 #########################
 ### RequestorAgent.OpenAIAgent
@@ -133,7 +127,7 @@ class OpenAIAgent(RequestorAgent):
                 if tools:
                     matched_tools.extend(tools)
 
-            logging.info(matched_tools)
+            self.logger.info(matched_tools)
             if matched_tools:
                 for t in matched_tools:
                     tool_name = t['name']
@@ -198,10 +192,10 @@ class OpenAIAgent(RequestorAgent):
                         # extract server and function from canonical
                         server_name, function_name = self._extract_canonical(canonical_name)
                         # execute tool
-                        logging.info("Executing tool: " + function_name)
-                        logging.info("Arguments: " + json.dumps(args))
+                        self.logger.info("Executing tool: " + function_name)
+                        self.logger.info("Arguments: " + json.dumps(args))
                         result = self.registry.execute_tool(function_name, server_name, None, args)
-                        logging.info("Result: " + str(result))
+                        self.logger.info("Result: " + str(result))
                         # append result to message
                         message["messages"].append(
                             {

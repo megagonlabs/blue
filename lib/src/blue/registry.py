@@ -16,7 +16,7 @@ import numpy as np
 
 ###### Blue
 from blue.connection import PooledConnectionFactory
-from blue.utils import json_utils, uuid_utils
+from blue.utils import json_utils, uuid_utils, log_utils
 
 
 ###############
@@ -67,6 +67,8 @@ class Registry:
         self.embeddings_model = None
         self.vector_dimensions = None
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
 
@@ -84,6 +86,14 @@ class Registry:
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("registry", self.sid, -1)
 
     ###### database, data, index
     def _start_connection(self):
@@ -140,10 +150,10 @@ class Registry:
 
         try:
             # check if index exists
-            logging.info(self.connection.ft(index_name).info())
-            logging.info('Search index ' + index_name + ' already exists.')
+            self.logger.info(self.connection.ft(index_name).info())
+            self.logger.info('Search index ' + index_name + ' already exists.')
         except:
-            logging.info('Creating search index...' + index_name)
+            self.logger.info('Creating search index...' + index_name)
 
             # schema
             schema = self._build_index_schema()
@@ -155,7 +165,7 @@ class Registry:
             self.connection.ft(index_name).create_index(fields=schema, definition=definition)
 
             # report index info
-            logging.info(self.connection.ft(index_name).info())
+            self.logger.info(self.connection.ft(index_name).info())
 
     def _build_index_schema(self):
 
@@ -201,7 +211,7 @@ class Registry:
         res = pipe.execute()
 
         # report index info
-        logging.info(self.connection.ft(index_name).info())
+        self.logger.info(self.connection.ft(index_name).info())
 
     def _set_index_record(self, record, recursive=False, pipe=None):
 
@@ -331,8 +341,8 @@ class Registry:
 
         query_params = {"kw": keywords, "v": self._compute_embedding_vector(keywords)}
 
-        logging.info('searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid))
-        logging.info('using search query: ' + q)
+        self.logger.info('searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid))
+        self.logger.info('using search query: ' + q)
         results = self.connection.ft(index_name).search(query, query_params).docs
 
         # field', 'id', 'name', 'payload', 'score', 'type
@@ -343,14 +353,14 @@ class Registry:
 
         # do paging
         page_results = results[page * page_size : (page + 1) * page_size]
-        logging.info('results: ' + str(page_results))
+        self.logger.info('results: ' + str(page_results))
         return page_results
 
     ###### embeddings
     def _init_search_embeddings_model(self):
 
         embeddings_model = self.properties['embeddings_model']
-        logging.info('Loading embeddings model: ' + embeddings_model)
+        self.logger.info('Loading embeddings model: ' + embeddings_model)
         self.embeddings_model = SentenceTransformer(embeddings_model)
 
         sentence = ['sample']
@@ -631,7 +641,7 @@ class Registry:
 
     ######
     def _start(self):
-        # logging.info('Starting session {name}'.format(name=self.name))
+        # self.logger.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
 
         # initialize registry data
@@ -640,7 +650,7 @@ class Registry:
         # defer building search index on registry until first search
         # self._init_search_index()
 
-        logging.info('Started registry {name}'.format(name=self.name))
+        self.logger.info('Started registry {name}'.format(name=self.name))
 
     ###### save/load
     def dumps(self):

@@ -9,36 +9,18 @@ from blue.plan import Plan
 from blue.utils import string_utils, uuid_utils
 
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
-
 ##### Helper functions
 def build_vis_form(vis):
-    vis_ui = { 
-        "type": "VerticalLayout",
-        "elements": [
-            {
-                "type": "Vega",
-                "scope": "#/properties/vis"
-            }
-        ]
-    }
+    vis_ui = {"type": "VerticalLayout", "elements": [{"type": "Vega", "scope": "#/properties/vis"}]}
 
     vis_schema = {}
 
-    vis_data = {
-        "vis": vis
-    }
+    vis_data = {"vis": vis}
 
-    vis_form = {
-        "schema": vis_schema,
-        "uischema": vis_ui,
-        "data": vis_data
-    }
+    vis_form = {"schema": vis_schema, "uischema": vis_ui, "data": vis_data}
 
     return vis_form
+
 
 ##########################
 ### Agent.VisualizerAgent
@@ -49,24 +31,21 @@ class VisualizerAgent(Agent):
             kwargs["name"] = "VISUALIZER"
         super().__init__(**kwargs)
 
-
     def _initialize_properties(self):
         super()._initialize_properties()
 
     def write_to_new_stream(self, worker, content, output, id=None, tags=None, scope="worker"):
-        
+
         # create a unique id
         if id is None:
             id = uuid_utils.create_uuid()
 
         if worker:
-            output_stream = worker.write_data(
-                content, output=output, id=id, tags=tags, scope=scope
-            )
+            output_stream = worker.write_data(content, output=output, id=id, tags=tags, scope=scope)
             worker.write_eos(output=output, id=id, scope=scope)
 
         return output_stream
-    
+
     def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
 
         if worker == None:
@@ -76,7 +55,7 @@ class VisualizerAgent(Agent):
             progress_id = worker.sid
 
         # progress
-        worker.write_progress(progress_id=progress_id, label='Issuing question:' + question, value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Issuing question:' + question, value=self.current_step / self.num_steps)
 
         # plan
         p = Plan(scope=worker.prefix)
@@ -85,7 +64,7 @@ class VisualizerAgent(Agent):
         # set plan
         p.connect_input_to_agent(from_input=name, to_agent="NL2SQL")
         p.connect_agent_to_agent(from_agent="NL2SQL", to_agent=self.name, to_agent_input=to_param_prefix + name)
-        
+
         # submit plan
         p.submit(worker)
 
@@ -98,7 +77,7 @@ class VisualizerAgent(Agent):
             progress_id = worker.sid
 
         # progress
-        worker.write_progress(progress_id=progress_id, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Issuing query:' + query, value=self.current_step / self.num_steps)
 
         # plan
         p = Plan(scope=worker.prefix)
@@ -107,7 +86,7 @@ class VisualizerAgent(Agent):
         # set plan
         p.connect_input_to_agent(from_input=name, to_agent="QUERYEXECUTOR")
         p.connect_agent_to_agent(from_agent="QUERYEXECUTOR", to_agent=self.name, to_agent_input=to_param_prefix + name)
-        
+
         # submit plan
         p.submit(worker)
 
@@ -119,7 +98,7 @@ class VisualizerAgent(Agent):
             progress_id = worker.sid
 
         # progress
-        worker.write_progress(progress_id=progress_id, label='Visualizing :' + str(query_results), value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Visualizing :' + str(query_results), value=self.current_step / self.num_steps)
 
         # plan
         p = Plan(scope=worker.prefix)
@@ -128,11 +107,10 @@ class VisualizerAgent(Agent):
         # set plan
         p.connect_input_to_agent(from_input=name, to_agent="OPENAI___VISUALIZER")
         p.connect_agent_to_agent(from_agent="OPENAI___VISUALIZER", to_agent=self.name, to_agent_input=to_param_prefix + name)
-        
-        # submit plan
-        p.submit(worker)      
 
-    
+        # submit plan
+        p.submit(worker)
+
     def render_vis(self, progress_id=None, template=None, properties=None, worker=None):
 
         if worker == None:
@@ -144,7 +122,7 @@ class VisualizerAgent(Agent):
         if properties is None:
             properties = self.properties
         # progress
-        worker.write_progress(progress_id=progress_id, label='Rendering visualization...', value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Rendering visualization...', value=self.current_step / self.num_steps)
 
         session_data = worker.get_all_session_data()
 
@@ -157,22 +135,19 @@ class VisualizerAgent(Agent):
         if type(template) is dict:
             template = json.dumps(template)
 
-        vis_json = string_utils.safe_substitute(template, **self.properties, **self.results,  **session_data)
+        vis_json = string_utils.safe_substitute(template, **self.properties, **self.results, **session_data)
 
         vis = json.loads(vis_json)
         vis_form = build_vis_form(vis)
 
         # write vis
-        worker.write_control(
-            ControlCode.CREATE_FORM, vis_form, output="VIS"
-        )
+        worker.write_control(ControlCode.CREATE_FORM, vis_form, output="VIS")
 
         # progress, done
         worker.write_progress(progress_id=progress_id, label='Done...', value=1.0)
 
-
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
-    
+
         ##### Upon USER input text
         if input == "DEFAULT":
             if message.isEOS():
@@ -184,7 +159,6 @@ class VisualizerAgent(Agent):
                 stream_data = worker.get_data(stream)
                 input_data = " ".join(stream_data)
 
-                
                 if worker:
                     session_data = worker.get_all_session_data()
 
@@ -195,7 +169,7 @@ class VisualizerAgent(Agent):
                     self.results = {}
                     self.todos = set()
 
-                    self.num_steps = 1  
+                    self.num_steps = 1
                     self.current_step = 0
 
                     if 'questions' in self.properties:
@@ -219,7 +193,7 @@ class VisualizerAgent(Agent):
                             if type(q) == dict:
                                 q = json.dumps(q)
                             else:
-                                q = str(q) 
+                                q = str(q)
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(question_name)
                             self.issue_sql_query(query, name=question_name, worker=worker, progress_id=self.progress_id)
@@ -247,9 +221,9 @@ class VisualizerAgent(Agent):
         elif input.find("QUERY_RESULTS_") == 0:
             if message.isData():
                 stream = message.getStream()
-                
-                # get query 
-                query = input[len("QUERY_RESULTS_"):]
+
+                # get query
+                query = input[len("QUERY_RESULTS_") :]
 
                 data = message.getData()
 
@@ -267,10 +241,10 @@ class VisualizerAgent(Agent):
                     if 'question' in data and data['question']:
                         q = data['question']
 
-                    worker.write_progress(progress_id=self.progress_id, label='Received query results: ' + q, value=self.current_step/self.num_steps)
+                    worker.write_progress(progress_id=self.progress_id, label='Received query results: ' + q, value=self.current_step / self.num_steps)
 
                     # for auto-template create a vis for each question/query
-                    auto_template = False 
+                    auto_template = False
 
                     if "auto_template" in properties:
                         auto_template = properties["auto_template"]
@@ -285,13 +259,13 @@ class VisualizerAgent(Agent):
                             else:
                                 self.render_vis(properties=properties, worker=worker, progress_id=self.progress_id)
                 else:
-                    logging.info("nothing found")
+                    self.logger.info("nothing found")
         elif input.find("QUESTION_RESULTS_") == 0:
             if message.isData():
                 stream = message.getStream()
-                
-                # get question 
-                question = input[len("QUESTION_RESULTS_"):]
+
+                # get question
+                question = input[len("QUESTION_RESULTS_") :]
 
                 data = message.getData()
 
@@ -304,14 +278,14 @@ class VisualizerAgent(Agent):
                     # progress
                     self.current_step = len(self.results)
                     q = ""
-                    
+
                     if 'question' in data and data['question']:
                         q = data['question']
 
-                    worker.write_progress(progress_id=self.progress_id, label='Received question results: ' + q, value=self.current_step/self.num_steps)
+                    worker.write_progress(progress_id=self.progress_id, label='Received question results: ' + q, value=self.current_step / self.num_steps)
 
                     # for auto-template create a vis for each question/query
-                    auto_template = False 
+                    auto_template = False
 
                     if "auto_template" in properties:
                         auto_template = properties["auto_template"]
@@ -326,14 +300,14 @@ class VisualizerAgent(Agent):
                             else:
                                 self.render_vis(properties=properties, worker=worker)
                 else:
-                    logging.info("nothing found")
+                    self.logger.info("nothing found")
 
         elif input.find("VIS_RESULTS_") == 0:
             if message.isData():
                 stream = message.getStream()
-                
-                # get q 
-                q = input[len("VIS_RESULTS_"):]
+
+                # get q
+                q = input[len("VIS_RESULTS_") :]
 
                 template = message.getData()
 

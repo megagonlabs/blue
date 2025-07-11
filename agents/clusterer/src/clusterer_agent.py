@@ -23,10 +23,6 @@ from blue.stream import ControlCode
 ###### Agent Specific
 import ui_builders
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 #########################
 ### Agent.ClustererAgent
@@ -46,9 +42,7 @@ class ClustererAgent(Agent):
             id = uuid_utils.create_uuid()
 
         if worker:
-            output_stream = worker.write_data(
-                content, output=output, id=id, tags=tags, scope=scope
-            )
+            output_stream = worker.write_data(content, output=output, id=id, tags=tags, scope=scope)
             worker.write_eos(output=output, id=id, scope=scope)
 
         return output_stream
@@ -64,11 +58,11 @@ class ClustererAgent(Agent):
         p.define_input(name, value=query)
         # set plan
         p.connect_input_to_agent(from_input=name, to_agent="QUERYEXECUTOR")
-        p.connect_agent_to_agent(from_agent="QUERYEXECUTOR", to_agent=self.name, to_agent_input=to_param_prefix + name)  
-        
+        p.connect_agent_to_agent(from_agent="QUERYEXECUTOR", to_agent=self.name, to_agent_input=to_param_prefix + name)
+
         # submit plan
         p.submit(worker)
-    
+
     def issue_agent_call(self, value, worker, agent, output, input, id=None):
 
         # plan
@@ -78,10 +72,10 @@ class ClustererAgent(Agent):
         # set plan
         p.connect_input_to_agent(from_input=input, to_agent=agent)
         p.connect_agent_to_agent(from_agent=agent, to_agent=self.name, to_agent_input=output)
-        
+
         # submit plan
         p.submit(worker)
-    
+
     # Show table of clusters and distinctive features to user
     def display_cluster_summaries(self, worker, analysis):
         values = []
@@ -94,69 +88,52 @@ class ClustererAgent(Agent):
         template = {
             "vega-spec": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                "data": {
-                    "values": values
-                },
-                "transform": [
-                    {"window": [{"op": "row_number", "as": "row_num"}]},
-                    {"fold": ["Cluster Name", "Cluster Size", "Distinctive Feature", "Feature Presence Relative to Mean"]}
-                ],
+                "data": {"values": values},
+                "transform": [{"window": [{"op": "row_number", "as": "row_num"}]}, {"fold": ["Cluster Name", "Cluster Size", "Distinctive Feature", "Feature Presence Relative to Mean"]}],
                 "mark": "text",
                 "encoding": {
                     "y": {"field": "row_num", "type": "ordinal", "axis": None},
                     "text": {"field": "value", "type": "nominal"},
-                    "x": {"field": "key", "type": "nominal", "axis": {"orient": "top", "labelAngle": 0, "title": None, "domain": False, "ticks": False}, "scale": {"padding": 15}}
-                }, "config": {"view": {"stroke": None}}}
+                    "x": {"field": "key", "type": "nominal", "axis": {"orient": "top", "labelAngle": 0, "title": None, "domain": False, "ticks": False}, "scale": {"padding": 15}},
+                },
+                "config": {"view": {"stroke": None}},
+            }
         }
 
         vis_form = ui_builders.build_vis_form(template)
 
         # write vis
-        worker.write_control(
-            ControlCode.CREATE_FORM, vis_form, output="VIS"
-        )
+        worker.write_control(ControlCode.CREATE_FORM, vis_form, output="VIS")
 
     # Show visualization of clusters in 2D scatterplot
-    def create_visualization(self, worker, df, label_column):   
+    def create_visualization(self, worker, df, label_column):
         # embedded_data = TSNE(n_components=2, random_state=self.properties['random_seed']).fit_transform(self.cluster_df)
         embedded_data = umap.UMAP(random_state=self.properties['cluster_config']['random_seed']).fit_transform(self.cluster_df)[:, :2]
         labels = df[label_column].values
 
-        values = [{"x": float(x),"y": float(y),"cluster": str(label)} for (x, y), label in zip(embedded_data, labels)]
+        values = [{"x": float(x), "y": float(y), "cluster": str(label)} for (x, y), label in zip(embedded_data, labels)]
         template = {
-            "vega-spec": {"$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                "data": {
-                    "values": values
-                },
+            "vega-spec": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "data": {"values": values},
                 "mark": {"type": "point", "size": 3},
                 "encoding": {
-                    "x": {
-                    "field": "x",
-                    "type": "quantitative",
-                    "scale": {"zero": False}
-                    },
-                    "y": {
-                    "field": "y",
-                    "type": "quantitative",
-                    "scale": {"zero": False}
-                    },
+                    "x": {"field": "x", "type": "quantitative", "scale": {"zero": False}},
+                    "y": {"field": "y", "type": "quantitative", "scale": {"zero": False}},
                     "color": {"field": "cluster", "type": "nominal"},
-                    "shape": {"field": "cluster", "type": "nominal"}
-                }}
+                    "shape": {"field": "cluster", "type": "nominal"},
+                },
+            }
         }
-        
+
         vis_form = ui_builders.build_vis_form(template)
 
         # write vis
-        worker.write_control(
-            ControlCode.CREATE_FORM, vis_form, output="VIS"
-        )
+        worker.write_control(ControlCode.CREATE_FORM, vis_form, output="VIS")
 
     # Create dict {cluster_label: {cluster_size, distinctive_features}}
     def cluster_analysis(self, df, label_column, exclude_cols=[]):
-        feature_cols = [col for col in df.columns 
-                   if col not in [label_column] + exclude_cols 
-                   and df[col].dtype != 'object']
+        feature_cols = [col for col in df.columns if col not in [label_column] + exclude_cols and df[col].dtype != 'object']
         clusters = sorted(df[label_column].unique())
         results = {}
 
@@ -164,30 +141,30 @@ class ClustererAgent(Agent):
         cluster_means = df.groupby(label_column)[feature_cols].mean()
         overall_means = df[feature_cols].mean()
         normalized_diff = (cluster_means - overall_means) / overall_means
-        
+
         for cluster in clusters:
             if type(cluster) != type(''):
                 cluster = int(cluster)
             results[cluster] = {}
 
-            cluster_indicator = (df[label_column] == cluster)
+            cluster_indicator = df[label_column] == cluster
             results[cluster]['cluster_size'] = int(cluster_indicator.sum())
 
             cluster_data = normalized_diff.loc[cluster].sort_values(ascending=False)
             top_features = {str(idx): f'{val:+.2%}' for idx, val in cluster_data.head(10).items()}
             results[cluster]['distinctive_features'] = top_features
-        
+
         return results
-  
+
     # Creates copy of DF with one-hot-encoded and scaled cols, omitting all categories that don't meet count cutoff
     def preprocess_for_clustering(self, df, min_category_fraction=0.001, exclude_columns=[]):
         df_processed = df.copy()
-        
+
         categorical_columns = df.select_dtypes(include=['object', 'category']).columns.tolist()
         categorical_columns = [col for col in categorical_columns if col not in exclude_columns]
         numerical_columns = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
         numerical_columns = [col for col in numerical_columns if col not in categorical_columns and col not in exclude_columns]
-        
+
         # Handle null values
         # Fill numerical nulls with median
         for col in numerical_columns:
@@ -198,15 +175,11 @@ class ClustererAgent(Agent):
         for col in categorical_columns:
             if df_processed[col].isnull().any():
                 df_processed[col] = df_processed[col].fillna('Missing')
-        
+
         # One hot encode columns
         encoded_columns = []
-        for col in categorical_columns:        
-            encoded = pd.get_dummies(
-                df_processed[col],
-                prefix=col,
-                drop_first=False
-            )
+        for col in categorical_columns:
+            encoded = pd.get_dummies(df_processed[col], prefix=col, drop_first=False)
             encoded_columns += list(encoded.columns)
             df_processed = pd.concat([df_processed, encoded], axis=1)
         # Remove original categorical columns
@@ -215,28 +188,28 @@ class ClustererAgent(Agent):
         # Remove categories that don't meet cutoff
         too_small_categories = []
         for col in encoded_columns:
-            if df_processed[col].sum()/len(df_processed) <= min_category_fraction:
+            if df_processed[col].sum() / len(df_processed) <= min_category_fraction:
                 too_small_categories.append(col)
         df_processed.drop(too_small_categories, axis=1, inplace=True)
-        
+
         # Scale numerical columns
         if numerical_columns:
             for col in numerical_columns:
                 df_processed[col] = (df_processed[col] - df_processed[col].min()) / (df_processed[col].max() - df_processed[col].min())
-        
+
         return df_processed.groupby(self.id_column).max().reset_index()
 
     # Create embeddings for clustering
     def get_embeddings_df(self, df):
-        logging.info('Loading embedding model')
+        self.logger.info('Loading embedding model')
         encoder = SentenceTransformer(self.properties['embeddings_config']['encoder_name'], trust_remote_code=True)
 
-        logging.info('Generating embeddings')
+        self.logger.info('Generating embeddings')
         increment = 10
         data = df[self.properties['embeddings_config']['embeding_cols']].values
         doc_embeddings = encoder.encode(data[:increment])
-        for i in range(increment, len(data)+increment-1, increment):
-            new_emb = encoder.encode(data[i:i+increment])
+        for i in range(increment, len(data) + increment - 1, increment):
+            new_emb = encoder.encode(data[i : i + increment])
             if len(new_emb.shape) == 2:
                 doc_embeddings = np.append(doc_embeddings, new_emb, axis=0)
         cluster_df = pd.DataFrame(doc_embeddings)
@@ -268,7 +241,7 @@ class ClustererAgent(Agent):
             cluster_df = self.get_embeddings_df(df)
         else:
             if len(self.properties['cluster_config']['exclude_columns']) > 0:
-                cluster_df = df.drop(self.properties['cluster_config']['exclude_columns']+[self.id_column], axis=1)
+                cluster_df = df.drop(self.properties['cluster_config']['exclude_columns'] + [self.id_column], axis=1)
             else:
                 cluster_df = df.drop(self.id_column, axis=1)
         self.cluster_df = cluster_df
@@ -278,27 +251,27 @@ class ClustererAgent(Agent):
             cluster_descriptions = {}
             cluster_labels = []
             for num_clusters in self.properties['cluster_config']['cluster_size_options']:
-                model = KMeans(n_clusters = num_clusters, random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
+                model = KMeans(n_clusters=num_clusters, random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
                 df['cluster_labels'] = model.labels_
                 df['cluster_labels'] = df['cluster_labels'].map(int)
 
                 analysis = self.cluster_analysis(df, 'cluster_labels', exclude_cols=exclude_columns)
-                cluster_descriptions['Num Clusters = '+str(num_clusters)] = analysis
-                cluster_labels.append(df['cluster_labels'].values)    
-            
+                cluster_descriptions['Num Clusters = ' + str(num_clusters)] = analysis
+                cluster_labels.append(df['cluster_labels'].values)
+
             self.cluster_labels = cluster_labels
             self.issue_agent_call(cluster_descriptions, worker, 'OPENAI___CLUSTER_LABELER_MULTI', "LABELER_RESULTS", "AUTO_CLUSTER_LABELS")
         else:
             # Simply cluster number of clusters specified
             if type(self.properties['cluster_config']['num_clusters']) == type(1):
-                model = KMeans(n_clusters = self.properties['cluster_config']['num_clusters'], random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
+                model = KMeans(n_clusters=self.properties['cluster_config']['num_clusters'], random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
                 df['cluster_labels'] = model.labels_
             # Rank cluster options by silhouette score
-            else: 
+            else:
                 highest_score = -1
                 best_labels = None
                 for num_clusters in self.properties['cluster_config']['cluster_size_options']:
-                    model = KMeans(n_clusters = num_clusters, random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
+                    model = KMeans(n_clusters=num_clusters, random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
                     score = silhouette_score(cluster_df, model.labels_).mean()
                     if score >= highest_score:
                         highest_score = score
@@ -313,7 +286,13 @@ class ClustererAgent(Agent):
                 self.save_results(df, worker, analysis, 'cluster_labels')
             # Get cluster descriptions but not labels
             elif not self.properties['create_cluster_labels'] and self.properties['create_cluster_descriptions']:
-                self.issue_agent_call(f"{self.properties['summarization_context']} Here is the cluster data: {json.dumps(analysis)}", worker, 'OPENAI___CLUSTER_SUMMARIZER', "SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
+                self.issue_agent_call(
+                    f"{self.properties['summarization_context']} Here is the cluster data: {json.dumps(analysis)}",
+                    worker,
+                    'OPENAI___CLUSTER_SUMMARIZER',
+                    "SUMMARIZER_RESULTS",
+                    "CLUSTER_SUMMARIES",
+                )
             # Get cluster labels from LLM
             else:
                 self.issue_agent_call(analysis, worker, 'OPENAI___CLUSTER_LABELER', "LABELER_RESULTS", "CLUSTER_LABELS")
@@ -344,7 +323,7 @@ class ClustererAgent(Agent):
 
         ##### Upon USER input text
         if input == "DEFAULT":
-            logging.info('Default response found')
+            self.logger.info('Default response found')
             if message.isEOS():
                 # get all data received from user stream
                 stream = message.getStream()
@@ -389,13 +368,13 @@ class ClustererAgent(Agent):
                     # Perform clustering on query results
                     self.run_clustering(worker, self.results)
                 else:
-                    logging.info("nothing found")
+                    self.logger.info("nothing found")
 
         elif input == "LABELER_RESULTS":
             if message.isData():
                 stream = message.getStream()
                 data = message.getData()
-                logging.info(data)
+                self.logger.info(data)
 
                 # Parse response for cluster label mapping
                 match = re.search(r'\{.*\}', data, re.DOTALL).group()
@@ -411,12 +390,18 @@ class ClustererAgent(Agent):
 
                 # Get cluster descriptions
                 if self.properties['create_cluster_descriptions']:
-                    self.issue_agent_call(f"{self.properties['summarization_context']} Here is the cluster data: {json.dumps(analysis)}", worker, 'OPENAI___CLUSTER_SUMMARIZER', "SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
+                    self.issue_agent_call(
+                        f"{self.properties['summarization_context']} Here is the cluster data: {json.dumps(analysis)}",
+                        worker,
+                        'OPENAI___CLUSTER_SUMMARIZER',
+                        "SUMMARIZER_RESULTS",
+                        "CLUSTER_SUMMARIES",
+                    )
                 else:
                     self.save_results(self.df, worker, analysis, 'cluster_labels_names')
             else:
-                logging.info('OpenAI response not found')
-        
+                self.logger.info('OpenAI response not found')
+
         elif input == "SUMMARIZER_RESULTS":
             if message.isData():
                 stream = message.getStream()
@@ -433,11 +418,12 @@ class ClustererAgent(Agent):
                     label_column = 'cluster_labels'
 
                 for cluster_name in analysis.keys():
-                    analysis[cluster_name]['description'] = mapping[str(cluster_name)]         
+                    analysis[cluster_name]['description'] = mapping[str(cluster_name)]
                 self.save_results(self.df, worker, analysis, label_column)
 
             else:
-                logging.info('Summarizer response not found')
+                self.logger.info('Summarizer response not found')
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -451,8 +437,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # set logging
-    logging.getLogger().setLevel(args.loglevel.upper())
+    # logging
+    logging.getLogger().setLevel(logging.getLevelName(args.loglevel.upper()))
 
     # set properties
     properties = {}
@@ -478,15 +464,11 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(cid=args.session)
-            a = ClustererAgent(
-                name=args.name, session=session, properties=properties
-            )
+            a = ClustererAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
             session = Session()
-            a = ClustererAgent(
-                name=args.name, session=session, properties=properties
-            )
+            a = ClustererAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:

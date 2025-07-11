@@ -13,7 +13,7 @@ from blue.connection import PooledConnectionFactory
 from blue.pubsub import Producer
 from blue.session import Session
 from blue.tracker import PerformanceTracker, Metric, MetricGroup
-from blue.utils import uuid_utils
+from blue.utils import uuid_utils, log_utils
 from blue.scheduler import Scheduler
 
 
@@ -58,6 +58,8 @@ class Platform:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
 
@@ -76,6 +78,14 @@ class Platform:
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("platform", self.sid, -1)
 
     ###### SESSION
     def _init_session_cleanup_scheduler(self, callback=None):
@@ -219,7 +229,7 @@ class Platform:
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties)
+            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, owner=self.sid)
             producer.start()
             self.producer = producer
 
@@ -240,7 +250,7 @@ class Platform:
         self._tracker.terminate()
 
     def _start(self):
-        # logging.info('Starting session {name}'.format(name=self.sid))
+        # self.logger.info('Starting session {name}'.format(name=self.sid))
         self._start_connection()
 
         # initialize platform metadata
@@ -252,7 +262,7 @@ class Platform:
         # start platform communication stream
         self._start_producer()
 
-        logging.info('Started platform {name}'.format(name=self.sid))
+        self.logger.info('Started platform {name}'.format(name=self.sid))
 
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)

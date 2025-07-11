@@ -8,10 +8,6 @@ from blue.agents.openai import OpenAIAgent
 from blue.stream import Message
 from blue.data.registry import DataRegistry
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 ##########################
 ### OpenAIAgent.NL2SQLAgent
@@ -69,7 +65,7 @@ Output:
         "nl2q_source_database": None,
         "nl2q_discovery": False,
         "nl2q_discovery_similarity_threshold": 0.2,
-        "nl2q_discovery_source_protocols": ["postgres","mysql"],
+        "nl2q_discovery_source_protocols": ["postgres", "mysql"],
         "nl2q_execute": True,
         "nl2q_case_insensitive": True,
         "nl2q_valid_query_prefixes": ["SELECT"],
@@ -78,33 +74,16 @@ Output:
         "nl2q_context": [],
         "nl2q_output_filters": ["all"],
         "nl2q_output_max_results": None,
-        "output_transformations": [
-            {
-                "transformation": "replace",
-                "from": "```",
-                "to": ""
-            },
-            {
-                "transformation": "replace",
-                "from": "json",
-                "to": ""
-            }
-        ],
+        "output_transformations": [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}],
         "output_strip": True,
         "output_cast": "json",
-        "listens": {
-            "DEFAULT": {
-                "includes": ["USER"],
-                "excludes": []
-            }
-        }
+        "listens": {"DEFAULT": {"includes": ["USER"], "excludes": []}},
     }
-    
+
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "NL2SQL"
         super().__init__(**kwargs)
-
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -124,13 +103,11 @@ Output:
 
         self._init_schemas()
 
-
     def _init_registry(self):
         # create instance of data registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
-        
 
     def _init_source(self):
         # initialiaze, optional settings
@@ -139,7 +116,7 @@ Output:
         self.selected_source_protocol = None
         self.selected_database = None
         self.selected_collection = None
-        
+
         # select source, if set
         if "nl2q_source" in self.properties and self.properties["nl2q_source"]:
             self.selected_source = self.properties["nl2q_source"]
@@ -152,7 +129,7 @@ Output:
                     protocol = connection_properties["protocol"]
                     if protocol:
                         self.selected_source_protocol = protocol
-                        
+
             # select database, if set
             self.selected_database = None
             if "nl2q_source_database" in self.properties and self.properties["nl2q_source_database"]:
@@ -167,11 +144,10 @@ Output:
             source_properties = self.registry.get_source_properties(self.selected_source)
             self.selected_source_protocol = source_properties['connection']['protocol']
 
-     
     def _init_schemas(self):
         # preset schema if any selected
         self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
-            
+
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
         if source:
             source_properties = self.registry.get_source_properties(source)
@@ -200,7 +176,7 @@ Output:
             else:
                 # get databases
                 databases = self.registry.get_source_databases(source=source)
-                
+
                 if databases is None:
                     database = []
                 # set schemas for each database
@@ -220,7 +196,7 @@ Output:
 
         source = None
         database = None
-        collection = None 
+        collection = None
 
         if scope:
             sa = scope.split("/")
@@ -235,7 +211,7 @@ Output:
             if len(sa) > 6:
                 collection = sa[6]
                 if collection == '':
-                    collection = None 
+                    collection = None
 
         return source, database, collection
 
@@ -253,8 +229,8 @@ Output:
 
         # progressively get more pages within similarity threshold
         while True:
-            results = self.registry.search_records(question, scope=scope, approximate=True, page=page, page_size=5, page_limit=10) 
-            
+            results = self.registry.search_records(question, scope=scope, approximate=True, page=page, page_size=5, page_limit=10)
+
             if len(results) == 0:
                 break
             for result in results:
@@ -267,7 +243,7 @@ Output:
                 break
             else:
                 page = page + 1
-            
+
         # process matches
         for match in matches:
 
@@ -276,7 +252,7 @@ Output:
             s = match["scope"]
 
             source, database, collection = self._parse_data_scope(s)
-           
+
             if t == "source":
                 source = n
             elif t == "database":
@@ -288,7 +264,6 @@ Output:
 
         return schemas
 
-    
     def _format_schema(self, schema):
         res = []
 
@@ -305,12 +280,9 @@ Output:
                 else:
                     col_entry = {"name": col_name, "type": col_info}
                 columns.append(col_entry)
-                
-            res.append({
-                "table_name": table_name,
-                "columns": columns
-            })
-            
+
+            res.append({"table_name": table_name, "columns": columns})
+
         return res
 
     def extract_input_params(self, input_data, properties=None):
@@ -324,11 +296,11 @@ Output:
 
         if "nl2q_discovery" in self.properties:
             if self.properties["nl2q_discovery"]:
-                # set scope, if selected 
+                # set scope, if selected
                 scope = None
                 if self.selected_source:
                     scope = ""
-                    scope = scope +  "/" + self.selected_source
+                    scope = scope + "/" + self.selected_source
                     if self.selected_database:
                         scope = scope + "/" + self.selected_database
                         if self.selected_collection:
@@ -341,10 +313,7 @@ Output:
                 schemas = self.schemas
 
         # source metadata
-        sources = [{
-            'source': key,
-            'schema': self._format_schema(schema)
-        } for key, schema in schemas.items()]
+        sources = [{'source': key, 'schema': self._format_schema(schema)} for key, schema in schemas.items()]
 
         sources = json.dumps(sources, indent=2)
 
@@ -355,7 +324,7 @@ Output:
             'force_query_prefixes': ', '.join(properties['nl2q_force_query_prefixes']),
             'protocol': self.selected_source_protocol if self.selected_source_protocol is not None else 'postgres',
             'additional_requirements': '\n- '.join(properties['nl2q_additional_requirements']),
-            'context': '\n- '.join(properties['nl2q_context'])
+            'context': '\n- '.join(properties['nl2q_context']),
         }
 
         return params
@@ -376,20 +345,13 @@ Output:
         # max results
         if "nl2q_output_max_results" in self.properties and self.properties['nl2q_output_max_results']:
             if isinstance(result, list):
-                result = result[:self.properties['nl2q_output_max_results']]
+                result = result[: self.properties['nl2q_output_max_results']]
 
         message = None
         if 'all' in output_filters:
-            message = {
-                'question': question,
-                'source': source,
-                'query': query,
-                'result': result,
-                'error': error,
-                'count': count
-            }
+            message = {'question': question, 'source': source, 'query': query, 'result': result, 'error': error, 'count': count}
             return message
-            
+
         elif len(output_filters) == 1:
             if 'question' in output_filters:
                 message = question
@@ -417,10 +379,9 @@ Output:
                 message['error'] = error
             if 'count' in output_filters:
                 message['count'] = count
-        
+
         return message
 
-            
     def process_output(self, output_data, properties=None):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
@@ -439,53 +400,44 @@ Output:
             # validate query predicate
             if not any(query.upper().startswith(prefix.upper()) for prefix in properties['nl2q_valid_query_prefixes']):
                 raise ValueError(f'Invalid query prefix: {query}')
-            
+
             # extract source, database, collection
             source, database, collection = self._parse_data_scope(key)
-            
+
             result = None
 
             # execute query, if configured
             if "nl2q_execute" in self.properties and self.properties['nl2q_execute']:
-                 # connect
+                # connect
                 source_connection = self.registry.connect_source(source)
-            
+
                 # execute
-                logging.info("source: " + source)
-                logging.info("database: " + database)
-                logging.info("collection: " + collection)
-                logging.info("executing query: " + query)
+                self.logger.info("source: " + source)
+                self.logger.info("database: " + database)
+                self.logger.info("collection: " + collection)
+                self.logger.info("executing query: " + query)
                 result = source_connection.execute_query(query, database=database, collection=collection)
-                logging.info(result)
+                self.logger.info(result)
 
                 count = len(result) if isinstance(result, list) else 0
-    
+
         except Exception as e:
             error = str(e)
 
-       
         # output
-        output = {
-            'question': question,
-            'source': key,
-            'query': query,
-            'result': result,
-            'error': error,
-            'count': count  
-        }
-        logging.info(output)
-        
-        x = self._apply_filter(output)
-        logging.info(str(x))
-        return x
+        output = {'question': question, 'source': key, 'query': query, 'result': result, 'error': error, 'count': count}
+        self.logger.info(output)
 
+        x = self._apply_filter(output)
+        self.logger.info(str(x))
+        return x
 
 
 ##########################
 ### NL2SQLAgent.Nl2CypherAgent
 #
 class Nl2CypherAgent(NL2SQLAgent):
-    
+
     PROMPT = """
 Your task is to translate a natural language question into a Cypher query based on a list of provided data sources.
 For each source you will be provided with the graph schema that specifies the entities, relations and properties.
@@ -530,7 +482,7 @@ Output:
         "nl2q_execute": True,
         "nl2q_case_insensitive": True,
         "nl2q_valid_query_prefixes": ["MATCH"],
-        "nl2q_force_query_prefixes": ["MATCH"]
+        "nl2q_force_query_prefixes": ["MATCH"],
     }
 
     def __init__(self, **kwargs):
@@ -546,7 +498,7 @@ Output:
             self.properties[key] = Nl2CypherAgent.PROPERTIES[key]
 
     def _format_schema(self, schema):
-        logging.info(f"Formatting schema: {schema}")
+        self.logger.info(f"Formatting schema: {schema}")
         return schema
 
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
@@ -555,10 +507,7 @@ Output:
             relations = self.registry.get_source_database_collection_relations(source, database, collection)
             if entities:
                 key = f'/source/{source}/database/{database}/collection/{collection}'
-                schemas[key] = {
-                    'entities': entities,
-                    'relations': relations
-                }
+                schemas[key] = {'entities': entities, 'relations': relations}
         else:
             super()._set_schemas(schemas, source, database, collection)
 
@@ -605,7 +554,7 @@ Output:
         "nl2q_discovery_source_protocols": ["mongodb"],
         "nl2q_execute": True,
         "nl2q_valid_query_prefixes": ["{"],
-        "nl2q_force_query_prefixes": ["{"]
+        "nl2q_force_query_prefixes": ["{"],
     }
 
     def __init__(self, **kwargs):
@@ -621,7 +570,7 @@ Output:
             self.properties[key] = NL2MongoQL.PROPERTIES[key]
 
     def _format_schema(self, schema):
-        logging.info(f"Formatting schema: {schema}")
+        self.logger.info(f"Formatting schema: {schema}")
         return schema
 
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
@@ -630,9 +579,6 @@ Output:
             relations = self.registry.get_source_database_collection_relations(source, database, collection)
             if entities:
                 key = f'/source/{source}/database/{database}/collection/{collection}'
-                schemas[key] = {
-                    'entities': entities,
-                    'relations': relations
-                }
+                schemas[key] = {'entities': entities, 'relations': relations}
         else:
             super()._set_schemas(schemas, source, database, collection)

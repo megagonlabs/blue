@@ -18,12 +18,9 @@ from blue.data.schema import DataSchema
 from blue.utils import json_utils
 from blue.utils.service_utils import ServiceClient
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 ###############
 ### OpenAISource
+
 
 class OpenAISource(DataSource, ServiceClient):
     PROMPT = """
@@ -58,7 +55,6 @@ Output:
         "openai.stream": False,
         "openai.max_tokens": 4096,
         "openai.temperature": 0,
-
         # io related properties (used by requestor operator)
         "input_json": "[{\"role\": \"user\"}]",
         "input_context": "$[0]",
@@ -66,25 +62,12 @@ Output:
         "input_field": "messages",
         "input_template": PROMPT,
         "output_path": "$.choices[0].message.content",
-
         # service related properties
         "service_prefix": "openai",
-
         # output transformations
-        "output_transformations": [
-            {
-                "transformation": "replace",
-                "from": "```",
-                "to": ""
-            },
-            {
-                "transformation": "replace",
-                "from": "json",
-                "to": ""
-            }
-        ],
+        "output_transformations": [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}],
         "output_strip": True,
-        "output_cast": "json"
+        "output_cast": "json",
     }
 
     def __init__(self, name, properties={}):
@@ -94,7 +77,7 @@ Output:
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # source protocol 
+        # source protocol
         ## if the platform only support protocal (the following line needs to be removed after github issue #945)
         self.properties['protocol'] = "openai"
 
@@ -110,7 +93,7 @@ Output:
     def _connect(self, **connection):
         self.host = connection.get('host')
         self.port = connection.get('port')
-        # logging.debug(f"OpenAI source connected to {self.host}:{self.port}")
+        # self.logger.debug(f"OpenAI source connected to {self.host}:{self.port}")
         return {}
 
     def _disconnect(self):
@@ -143,16 +126,14 @@ Output:
 
     def fetch_database_collection_schema(self, database, collection):
         return {}
-    
+
     def get_service_address(self, properties=None):
         service_address = f"ws://{self.host}:{self.port}"
         return service_address
-    
+
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
-        """Execute a natural language query against OpenAI service synchronously.
-        """
-        
+        """Execute a natural language query against OpenAI service synchronously."""
+
         # Execute API Call
         return self.execute_api_call(query, properties=self.properties, additional_data=optional_properties)
-

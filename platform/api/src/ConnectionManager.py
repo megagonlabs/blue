@@ -80,14 +80,14 @@ class ConnectionManager:
 
         self.tickets: dict = {}
 
-    async def connect(self, websocket: WebSocket, ticket, debug_mode):
+    async def connect(self, websocket: WebSocket, ticket):
         await websocket.accept()
         # validate ticket
         set_on = pydash.objects.get(self.tickets, [ticket, 'set_on'], None)
         single_use = pydash.objects.get(self.tickets, [ticket, 'single_use'], True)
         if (not pydash.is_none(set_on) and time.time() - set_on < 5 * 60) or (not single_use) or (DEVELOPMENT):
             connection_id = uuid_utils.create_uuid()
-            pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'debug_mode': debug_mode, 'user': pydash.objects.get(self.tickets, ticket, {})})
+            pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'user': pydash.objects.get(self.tickets, ticket, {})})
             await self.send_message_to(
                 websocket,
                 json.dumps({"type": "CONNECTED", "id": pydash.objects.get(self.tickets, [ticket, 'uid'], connection_id), 'connection_id': connection_id}),
@@ -98,7 +98,16 @@ class ConnectionManager:
         if single_use:
             pydash.objects.unset(self.tickets, ticket)
 
-    def observe_session(self, connection_id: str, session_sid: str):
+    def set_connection_session_attributes(self, connection_id: str, session_sid: str, data: dict):
+        key = pydash.objects.get(data, 'key', None)
+        value = pydash.objects.get(data, 'value', None)
+        re_observe = pydash.objects.get(data, 'reObserve', False)
+        if not pydash.is_empty(key):
+            pydash.objects.set_(self.active_connections, [connection_id, session_sid, key], value)
+            if re_observe:
+                self.observe_session(connection_id, session_sid, re_observe)
+
+    def observe_session(self, connection_id: str, session_sid: str, re_observe: bool = False):
         session = Session(sid=session_sid, prefix=prefix, properties=PROPERTIES)
         agent_prefix = session.cid + ":" + "AGENT"
         ticket = self.get_ticket(single_use=False)
@@ -127,11 +136,31 @@ class ConnectionManager:
                                 },
                                 "session_id": session_sid,
                                 "connection_id": connection_id,
-                                "debug_mode": pydash.objects.get(self.active_connections, [connection_id, 'debug_mode'], False),
+                                "debug_mode": pydash.objects.get(self.active_connections, [connection_id, session_sid, 'debug_mode'], False),
                             },
                         ),
                         "user": user_agent,
                     },
+                )
+            elif re_observe:
+                pydash.objects.set_(
+                    self.session_to_client,
+                    [session_sid, connection_id, 'observer'],
+                    ObserverAgent(
+                        session=session,
+                        prefix=agent_prefix,
+                        properties={
+                            **PROPERTIES,
+                            "output": {
+                                'type': "websocket",
+                                "mode": "streaming",
+                                "websocket": f"ws://localhost:5050{PLATFORM_PREFIX}/sessions/ws?ticket={ticket}",
+                            },
+                            "session_id": session_sid,
+                            "connection_id": connection_id,
+                            "debug_mode": pydash.objects.get(self.active_connections, [connection_id, session_sid, 'debug_mode'], False),
+                        },
+                    ),
                 )
 
     def user_session_message(self, connection_id: str, session_id: str, message: str):

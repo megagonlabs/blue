@@ -2,10 +2,12 @@
 This utils to used to convert string type representation to actual Python type for Pydantic.
 The current implementation depends on manual mapping of string type representation to actual Python type.
 """
+
 from typing import Any, List, Dict, Union, Optional, Type
 from collections import deque
 from pydantic import BaseModel, ValidationError, create_model
 import logging
+
 
 def string_to_python_type(type_str: str) -> Any:
     """
@@ -13,19 +15,13 @@ def string_to_python_type(type_str: str) -> Any:
     """
     if not type_str:
         return Any
-    
+
     # Normalize type string for Python 3.9+ compatibility
     type_str = (
-        type_str.strip()
-        .replace('List[', 'list[')
-        .replace('Dict[', 'dict[')
-        .replace('Tuple[', 'tuple[')
-        .replace('Set[', 'set[')
-        .replace('FrozenSet[', 'frozenset[')
-        .replace('Deque[', 'deque[')
+        type_str.strip().replace('List[', 'list[').replace('Dict[', 'dict[').replace('Tuple[', 'tuple[').replace('Set[', 'set[').replace('FrozenSet[', 'frozenset[').replace('Deque[', 'deque[')
     )
     type_str = type_str.lower()
-    
+
     # Handle complex types with type hints first
     if type_str.startswith("list["):
         inner_type_str = type_str[5:-1].strip()
@@ -65,7 +61,7 @@ def string_to_python_type(type_str: str) -> Any:
             type_names = []
             current = ""
             bracket_count = 0
-            
+
             for char in inner_types_str:
                 if char == '[':
                     bracket_count += 1
@@ -76,12 +72,12 @@ def string_to_python_type(type_str: str) -> Any:
                     current = ""
                     continue
                 current += char
-            
+
             if current.strip():
                 type_names.append(current.strip())
         else:
             type_names = [t.strip() for t in type_str.split("|")]
-        
+
         types = [string_to_python_type(t) for t in type_names]
         if type(None) in types:
             non_none_types = [t for t in types if t is not type(None)]
@@ -94,7 +90,7 @@ def string_to_python_type(type_str: str) -> Any:
         inner_type_str = type_str[9:-1].strip()
         inner_type = string_to_python_type(inner_type_str)
         return Optional[inner_type]
-    
+
     # Basic types - only use lowercase/built-in
     type_mapping = {
         "str": str,
@@ -108,12 +104,13 @@ def string_to_python_type(type_str: str) -> Any:
         "none": type(None),
         "any": Any,
     }
-    
+
     # Check simple types
     if type_str in type_mapping:
         return type_mapping[type_str]
-    
+
     return Any
+
 
 def create_pydantic_model(parameters: Dict[str, Any]) -> Type[BaseModel]:
     """
@@ -127,14 +124,15 @@ def create_pydantic_model(parameters: Dict[str, Any]) -> Type[BaseModel]:
             python_type = string_to_python_type(param_type)
         else:
             python_type = Any
-        
+
         if required:
             fields[param_name] = (python_type, ...)  # ... means required
         else:
             fields[param_name] = (python_type, None)  # None means optional
-    
+
     model_class = create_model('ParameterModel', **fields)
     return model_class
+
 
 def validate_parameter_type(value: Any, expected_type: str) -> bool:
     """
@@ -157,4 +155,4 @@ def validate_parameter_type(value: Any, expected_type: str) -> bool:
     except Exception as e:
         # System failure: something is wrong with the validation system itself, how to handle this depends on the use case
         logging.error(f"System error during parameter type validation: {e}")
-        raise RuntimeError(f"Parameter type validation system error: {e}") from e 
+        raise RuntimeError(f"Parameter type validation system error: {e}") from e

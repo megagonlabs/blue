@@ -10,7 +10,6 @@ import { useEffect, useRef } from "react";
 const { NEXT_PUBLIC_WS_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function SocketHandler({ children }) {
     const user = useAuthStore((state) => state.user);
-    const debugMode = _.get(user, "settings.debug_mode", false);
     const socket = useSocketStore((state) => state.socket);
     const setState = useSocketStore((state) => state.setState);
     const reconnectAttempts = useRef(0);
@@ -35,7 +34,7 @@ export default function SocketHandler({ children }) {
             try {
                 const newSocket = new WebSocket(
                     `${NEXT_PUBLIC_WS_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}/sessions/ws?${new URLSearchParams(
-                        { ticket: response.data.ticket, debug_mode: debugMode }
+                        { ticket: response.data.ticket }
                     ).toString()}`
                 );
                 newSocket.onopen = () => {
@@ -120,12 +119,12 @@ export default function SocketHandler({ children }) {
     };
     useEffect(() => {
         if (_.isNull(user)) return;
-        connectWebSocket(debugMode);
+        connectWebSocket();
         return () => {
             clearTimeout(reconnectTimeout.current);
             resetBackoff();
             closeSocket();
         };
-    }, [user, debugMode]);
+    }, [user]);
     return children;
 }

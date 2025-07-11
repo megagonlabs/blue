@@ -3,12 +3,15 @@ import argparse
 import logging
 import json
 
+###### Blue
 from blue.tools.tool import Tool
+from blue.utils import log_utils
+
 
 ###############
 ### ToolServer
 #
-class ToolServer():
+class ToolServer:
     def __init__(self, name, properties={}):
 
         self.name = name
@@ -22,10 +25,12 @@ class ToolServer():
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
     def _initialize_properties(self):
         self.properties = {}
 
-        # server protocol 
+        # server protocol
         self.properties['protocol'] = "default"
 
     def _update_properties(self, properties=None):
@@ -35,6 +40,14 @@ class ToolServer():
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data("level", "%(levelname)s", -1)
+        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
+        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data("tool_server", self.name, -1)
 
     ###### connection
     def _start_connection(self):
@@ -50,20 +63,20 @@ class ToolServer():
 
     def _disconnect(self):
         return None
-    
+
     def _start(self):
-        # logging.info('Starting session {name}'.format(name=self.name))
+        # self.logger.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
-        
+
         # initialize tools
         self.initialize_tools()
 
-        logging.info('Started server {name}'.format(name=self.name))
+        self.logger.info('Started server {name}'.format(name=self.name))
 
     def _stop(self):
         self._stop_connection()
 
-        logging.info('Stopped server {name}'.format(name=self.name))
+        self.logger.info('Stopped server {name}'.format(name=self.name))
 
     # override, depending on server type
     def start(self):
@@ -71,13 +84,12 @@ class ToolServer():
 
     # tools
     def initialize_tools(self):
-        pass 
+        pass
 
     # override
     def add_tool(self, tool):
-        pass 
+        pass
 
     # override
     def list_tools(self):
         return []
-
