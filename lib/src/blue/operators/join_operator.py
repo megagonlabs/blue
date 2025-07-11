@@ -1,336 +1,472 @@
-###### Parsers, Formats, Utils
-import logging
-from typing import List, Dict, Any, Optional, Union
+###### Formats
+from typing import List, Dict, Any, Callable, Tuple, Set, NamedTuple
 
 ###### Blue
-from blue.operators.operator import Operator
-
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 
 ###############
-### Join Operator Core Function
+### Join Operator
 
-def _join_operator_core(**kwargs):
-    """
-    Core join operator function that joins two JSON array data sources,
-    following pandas DataFrame join design.
-    
-    Args:
-        input_data: List of exactly 2 data sources, each containing JSON array of records
-        left_on: Field name(s) from left data source to join on (str or list of str)
-        right_on: Field name(s) from right data source to join on (str or list of str)
-        how: Type of join: 'inner', 'left', 'right', 'outer'
-        left_suffix: Suffix to add to left data source field names to avoid conflicts
-        right_suffix: Suffix to add to right data source field names to avoid conflicts
-        
-    Returns:
-        Joined JSON array
-    """
-    # Extract parameters
-    input_data = kwargs.get('input_data', [])
-    left_on = kwargs.get('left_on', [])
-    right_on = kwargs.get('right_on', [])
-    how = kwargs.get('how', 'inner')
-    left_suffix = kwargs.get('left_suffix', '_left')
-    right_suffix = kwargs.get('right_suffix', '_right')
-    
-    # Validate input
-    if not input_data or len(input_data) != 2:
-        return []
-    
-    left_data = input_data[0]
-    right_data = input_data[1]
-    
-    # Convert single field names to lists for consistency
-    if isinstance(left_on, str):
-        left_on = [left_on]
-    if isinstance(right_on, str):
-        right_on = [right_on]
-    
-    # Validate field lists have same length
-    if len(left_on) != len(right_on):
-        return []
-    
-    # If no join fields specified, return empty result
-    if len(left_on) == 0:
-        return []
-    
-    # Process the join
-    return _perform_join(left_data, right_data, left_on, right_on, how, left_suffix, right_suffix)
 
-###############
-### Join Operator Function with Metadata
+def join_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+    join_on = params.get('join_on', [])
+    join_type = params.get('join_type', 'inner')
+    join_suffix = params.get('join_suffix', [])
+    keep_keys = params.get('keep_keys', 'left')
 
-def join_operator_validator(params: Dict[str, Any]) -> bool:
-    """Validate join operator parameters with type checking and join-specific logic."""
-    # Call the default parameter validation for type/required checks
-    from blue.operators.operator import Operator
-    
-    if not Operator.validate_parameters(params, join_operator_function.parameters):
+    # validation check regarding input data and parameters
+    if not input_data or len(input_data) < 2:
+        return []
+    if len(join_on) != len(input_data):
+        return []
+    # default suffix is _ds{i} for each data source, in future we can add prefix if needed
+    if not join_suffix:
+        join_suffix = [f"_ds{i}" for i in range(len(input_data))]
+    if len(join_suffix) != len(input_data):
+        return []
+    if len(join_suffix) != len(set(join_suffix)):  # suffix must be unique
+        return []
+
+    # perform n-way join with metadata tracking
+    result, schema_info = _perform_n_way_join_with_metadata(input_data, join_on, join_type, join_suffix, keep_keys)
+
+    return [result]
+
+
+def join_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    try:
+        if not default_operator_validator(params, properties):
+            return False
+    except Exception:
         return False
-    
-    # Additional join-specific validation
-    input_data = params['input_data']
-    if len(input_data) != 2:
+
+    join_on = params.get('join_on', [])
+    join_suffix = params.get('join_suffix', [])
+    keep_keys = params.get('keep_keys', 'left')
+
+    if not isinstance(join_on, list) or len(join_on) < 2:
         return False
-    
-    left_on = params['left_on']
-    right_on = params['right_on']
-    
-    # Convert to list if string for consistent processing
-    if isinstance(left_on, str):
-        left_on = [left_on]
-    if isinstance(right_on, str):
-        right_on = [right_on]
-    
-    # Validate join field requirements
-    if len(left_on) != len(right_on):
+
+    for field_list in join_on:
+        if not isinstance(field_list, list) or not field_list:
+            return False
+        for field in field_list:
+            if not isinstance(field, str):
+                return False
+
+    if join_suffix:
+        if not isinstance(join_suffix, list):
+            return False
+        if len(join_suffix) != len(join_on):
+            return False
+
+    if keep_keys not in ['left', 'both']:
         return False
-    if len(left_on) == 0:
+
+    join_type = params.get('join_type', 'inner')
+    if join_type not in ['inner', 'left', 'right', 'outer']:
         return False
-    
-    # Validate join type
-    how = params.get('how', 'inner')
-    supported_join_types = ['inner', 'left', 'right', 'outer']
-    if how not in supported_join_types:
-        return False
-    
     return True
 
-def join_operator_explainer(output: Any, params: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain join operator results."""
-    return {
-        "operation": "join",
-        "how": params.get('how', 'inner'),
-        "left_on": params.get('left_on', []),
-        "right_on": params.get('right_on', []),
-        "left_suffix": params.get('left_suffix', '_left'),
-        "right_suffix": params.get('right_suffix', '_right'),
-        "input_records": sum(len(data) for data in params.get('input_data', [])) if params.get('input_data') else 0,
-        "output_records": len(output) if isinstance(output, list) else 0,
-        "parameters": params
+
+def join_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
+    return default_operator_explainer(output, input_data, params)
+
+
+class JoinOperator(Operator):
+    """
+    Join operator performs N-way join on JSON array datas.
+    """
+
+    name = "join"
+    description = "Joins multiple JSON array data sources using N-way join operations"
+    default_parameters = {
+        "join_on": {"type": "list[list[str]]", "description": "List of join key lists for each data source", "required": True},
+        "join_type": {"type": "str", "description": "Type of join: 'inner', 'left', 'right', 'outer'", "required": False, "default": "inner"},
+        "join_suffix": {"type": "list[str]", "description": "Suffixes for non-key fields", "required": False, "default": []},
+        "keep_keys": {"type": "str", "description": "'left' to keep left keys only, 'both' to keep both", "required": False, "default": "left"},
     }
 
-# Create the join operator function with metadata
-join_operator_function = _join_operator_core
-join_operator_function.name = "join"
-join_operator_function.description = "Joins two JSON array data sources, following pandas DataFrame join design"
-join_operator_function.parameters = {
-    "left_on": {
-        "type": "str|list[str]",
-        "description": "Field name(s) from left data source to join on",
-        "required": True
-    },
-    "right_on": {
-        "type": "str|list[str]",
-        "description": "Field name(s) from right data source to join on",
-        "required": True
-    },
-    "how": {
-        "type": "str",
-        "description": "Type of join: 'inner', 'left', 'right', 'outer'",
-        "required": False,
-        "default": "inner"
-    },
-    "left_suffix": {
-        "type": "str",
-        "description": "Suffix to add to left data source field names to avoid conflicts",
-        "required": False,
-        "default": "_left"
-    },
-    "right_suffix": {
-        "type": "str",
-        "description": "Suffix to add to right data source field names to avoid conflicts",
-        "required": False,
-        "default": "_right"
-    }
-}
-join_operator_function.validator = join_operator_validator
-join_operator_function.explainer = join_operator_explainer
+    def __init__(self, name: str = "join", description: str = None, properties: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None):
+        if description is None:
+            description = self.description
+
+        if properties is None:
+            properties = {}
+        if "parameters" not in properties:
+            properties["parameters"] = self.default_parameters
+        if function is None:
+            function = join_operator_function
+        if validator is None:
+            validator = join_operator_validator
+        if explainer is None:
+            explainer = join_operator_explainer
+
+        super().__init__(
+            name=name,
+            description=description,
+            properties=properties,
+            function=function,
+            validator=validator,
+            explainer=explainer,
+        )
+
 
 ###############
-### Helper Functions
+### Helper Functions of Join Operator
+class FieldMetadata(NamedTuple):
+    """Metadata for tracking field provenance"""
 
-def _perform_join(left_data: List[Dict[str, Any]], right_data: List[Dict[str, Any]], 
-                 left_on: List[str], right_on: List[str], how: str, 
-                 left_suffix: str, right_suffix: str) -> List[Dict[str, Any]]:
+    original_name: str
+    data_source: int
+    suffix: str
+    is_join_key: bool
+    join_key_index: int = -1
+    is_original: bool = True
+
+
+def _perform_n_way_join_with_metadata(data_sources, join_fields, join_type, suffixes, keep_keys):
+    """Perform N-way join with metadata tracking using uniform format"""
+    if len(data_sources) < 2:
+        return [], {}
+
+    if len(data_sources) == 2:
+        return _perform_2_way_join_with_metadata(data_sources[0], data_sources[1], join_fields[0], join_fields[1], join_type, suffixes[0], suffixes[1], keep_keys)
+
+    # Perform first 2-way join
+    intermediate_result, intermediate_schema = _perform_2_way_join_with_metadata(
+        data_sources[0], data_sources[1], join_fields[0], join_fields[1], join_type, suffixes[0], suffixes[1], keep_keys
+    )
+
+    if not intermediate_result:
+        return [], {}
+
+    # Convert intermediate result to uniform format
+    intermediate_uniform = (intermediate_result, intermediate_schema)
+
+    # Prepare for next recursion
+    remaining_data_sources = [intermediate_uniform] + data_sources[2:]
+    remaining_join_fields = [intermediate_schema.get('join_keys', [])] + join_fields[2:]
+    # For intermediate results, we don't need to assign a new suffix since it already has provenance. We'll use a placeholder that will be ignored in the 2-way join
+    remaining_suffixes = ['_intermediate'] + suffixes[2:]
+
+    return _perform_n_way_join_with_metadata(remaining_data_sources, remaining_join_fields, join_type, remaining_suffixes, keep_keys)
+
+
+def _perform_2_way_join_with_metadata(left_data, right_data, left_fields, right_fields, join_type, left_suffix, right_suffix, keep_keys):
     """
-    Perform the actual join operation.
-    
-    Args:
-        left_data: Left data source
-        right_data: Right data source
-        left_on: Field names from left data source
-        right_on: Field names from right data source
-        how: Type of join
-        left_suffix: Suffix for left field names
-        right_suffix: Suffix for right field names
-        
-    Returns:
-        Joined data
+    Perform 2-way join with metadata tracking using uniform format
     """
-    # Build index for right data
-    right_index = {}
-    for record in right_data:
-        # Create composite key from all join fields
-        key_values = []
-        for field in right_on:
-            if field in record:
-                key_values.append(record[field])
-            else:
-                key_values.append(None)
-        key = tuple(key_values)
-        
-        if key not in right_index:
-            right_index[key] = []
-        right_index[key].append(record)
-    
-    # Perform join based on type
-    if how == 'inner':
-        return _inner_join(left_data, right_data, left_on, right_on, right_index, left_suffix, right_suffix)
-    elif how == 'left':
-        return _left_join(left_data, right_data, left_on, right_on, right_index, left_suffix, right_suffix)
-    elif how == 'right':
-        return _right_join(left_data, right_data, left_on, right_on, right_index, left_suffix, right_suffix)
-    elif how == 'outer':
-        return _outer_join(left_data, right_data, left_on, right_on, right_index, left_suffix, right_suffix)
+    # Handle uniform format for left data
+    if isinstance(left_data, tuple) and len(left_data) == 2:
+        left_records, left_schema = left_data
+        left_suffix = left_schema.get('suffixes', [left_suffix])[0]
+        left_provenance = left_schema.get('field_provenance', {})
     else:
-        return []
+        left_records = left_data
+        left_schema = None
+        left_provenance = {}
 
-def _get_join_key(record: Dict[str, Any], fields: List[str]) -> tuple:
-    """Get composite join key from record."""
-    key_values = []
-    for field in fields:
-        if field in record:
-            key_values.append(record[field])
-        else:
-            key_values.append(None)
-    return tuple(key_values)
+    # Handle uniform format for right data
+    if isinstance(right_data, tuple) and len(right_data) == 2:
+        right_records, right_schema = right_data
+        right_suffix = right_schema.get('suffixes', [right_suffix])[0]
+        right_provenance = right_schema.get('field_provenance', {})
+    else:
+        right_records = right_data
+        right_schema = None
+        right_provenance = {}
 
-def _inner_join(left_data: List[Dict[str, Any]], right_data: List[Dict[str, Any]], 
-               left_on: List[str], right_on: List[str], right_index: Dict[tuple, List[Dict[str, Any]]], 
-               left_suffix: str, right_suffix: str) -> List[Dict[str, Any]]:
-    """Perform inner join."""
-    result = []
-    
-    for left_record in left_data:
-        left_key = _get_join_key(left_record, left_on)
-        if left_key in right_index:
-            for right_record in right_index[left_key]:
-                merged_record = _merge_records(left_record, right_record, left_suffix, right_suffix)
-                result.append(merged_record)
-    
-    return result
+    # First, determine the output schema
+    schema_info = _determine_output_schema_with_provenance(left_records, right_records, left_fields, right_fields, left_suffix, right_suffix, keep_keys, left_provenance, right_provenance)
 
-def _left_join(left_data: List[Dict[str, Any]], right_data: List[Dict[str, Any]], 
-              left_on: List[str], right_on: List[str], right_index: Dict[tuple, List[Dict[str, Any]]], 
-              left_suffix: str, right_suffix: str) -> List[Dict[str, Any]]:
-    """Perform left join."""
-    result = []
-    
-    for left_record in left_data:
-        left_key = _get_join_key(left_record, left_on)
-        if left_key in right_index:
-            for right_record in right_index[left_key]:
-                merged_record = _merge_records(left_record, right_record, left_suffix, right_suffix)
-                result.append(merged_record)
-        else:
-            # No match found, include left record with null right fields
-            merged_record = _merge_records(left_record, {}, left_suffix, right_suffix)
-            result.append(merged_record)
-    
-    return result
+    # Build right index for joining
+    right_index = {}
+    for record in right_records:
+        key = _get_join_key(record, right_fields)
+        right_index.setdefault(key, []).append(record)
 
-def _right_join(left_data: List[Dict[str, Any]], right_data: List[Dict[str, Any]], 
-               left_on: List[str], right_on: List[str], right_index: Dict[tuple, List[Dict[str, Any]]], 
-               left_suffix: str, right_suffix: str) -> List[Dict[str, Any]]:
-    """Perform right join."""
-    result = []
-    
-    # Track matched right records
-    matched_right_keys = set()
-    
-    # First, do inner join
-    for left_record in left_data:
-        left_key = _get_join_key(left_record, left_on)
-        if left_key in right_index:
-            matched_right_keys.add(left_key)
-            for right_record in right_index[left_key]:
-                merged_record = _merge_records(left_record, right_record, left_suffix, right_suffix)
-                result.append(merged_record)
-    
-    # Then add right records that don't have matches
-    for right_record in right_data:
-        right_key = _get_join_key(right_record, right_on)
-        if right_key not in matched_right_keys:
-            # No match found, include right record with null left fields
-            merged_record = _merge_records({}, right_record, left_suffix, right_suffix)
-            result.append(merged_record)
-    
-    return result
+    if join_type == 'inner':
+        result = _inner_join_with_schema(left_records, right_records, left_fields, right_fields, right_index, schema_info, keep_keys)
+    elif join_type == 'left':
+        result = _left_join_with_schema(left_records, right_records, left_fields, right_fields, right_index, schema_info, keep_keys)
+    elif join_type == 'right':
+        result = _right_join_with_schema(left_records, right_records, left_fields, right_fields, right_index, schema_info, keep_keys)
+    elif join_type == 'outer':
+        result = _outer_join_with_schema(left_records, right_records, left_fields, right_fields, right_index, schema_info, keep_keys)
+    else:
+        result = []
 
-def _outer_join(left_data: List[Dict[str, Any]], right_data: List[Dict[str, Any]], 
-               left_on: List[str], right_on: List[str], right_index: Dict[tuple, List[Dict[str, Any]]], 
-               left_suffix: str, right_suffix: str) -> List[Dict[str, Any]]:
-    """Perform outer join."""
-    result = []
-    
-    # Track matched keys
-    matched_left_keys = set()
-    matched_right_keys = set()
-    
-    # Do inner join first
-    for left_record in left_data:
-        left_key = _get_join_key(left_record, left_on)
-        if left_key in right_index:
-            matched_left_keys.add(left_key)
-            matched_right_keys.add(left_key)
-            for right_record in right_index[left_key]:
-                merged_record = _merge_records(left_record, right_record, left_suffix, right_suffix)
-                result.append(merged_record)
-    
-    # Add unmatched left records
-    for left_record in left_data:
-        left_key = _get_join_key(left_record, left_on)
-        if left_key not in matched_left_keys:
-            merged_record = _merge_records(left_record, {}, left_suffix, right_suffix)
-            result.append(merged_record)
-    
-    # Add unmatched right records
-    for right_record in right_data:
-        right_key = _get_join_key(right_record, right_on)
-        if right_key not in matched_right_keys:
-            merged_record = _merge_records({}, right_record, left_suffix, right_suffix)
-            result.append(merged_record)
-    
-    return result
+    # Determine the join keys for the merged data based on the actual output schema
+    join_keys = _determine_join_keys_from_schema(schema_info, left_fields, keep_keys)
 
-def _merge_records(left_record: Dict[str, Any], right_record: Dict[str, Any], 
-                  left_suffix: str, right_suffix: str) -> Dict[str, Any]:
+    # Update schema info with join keys
+    schema_info['join_keys'] = join_keys
+    schema_info['suffixes'] = [left_suffix, right_suffix]
+
+    return result, schema_info
+
+
+def _determine_output_schema_with_provenance(left_data, right_data, left_fields, right_fields, left_suffix, right_suffix, keep_keys, left_provenance, right_provenance):
     """
-    Merge two records with suffix handling.
-    
-    Args:
-        left_record: Record from left data source
-        right_record: Record from right data source
-        left_suffix: Suffix for left field names
-        right_suffix: Suffix for right field names
-        
-    Returns:
-        Merged record
+    Determine the output schema with proper field mapping and suffixing using existing provenance
+    Core logic:
+    1. Each field gets suffix ONLY if it appears more than once in final schema
+    2. keep_keys='both': all fields kept
+    3. keep_keys='left': right join keys dropped
     """
-    merged_record = {}
-    
-    # Add left record fields with suffix
-    for field, value in left_record.items():
-        field_name = f"{field}{left_suffix}"
-        merged_record[field_name] = value
-    
-    # Add right record fields with suffix
-    for field, value in right_record.items():
-        field_name = f"{field}{right_suffix}"
-        merged_record[field_name] = value
-    
-    return merged_record
+    left_all_fields = set()
+    right_all_fields = set()
+    for record in left_data:
+        left_all_fields.update(record.keys())
+    for record in right_data:
+        right_all_fields.update(record.keys())
+
+    # Step 1: Collect all fields that will be in final schema
+    final_fields = set()
+    # Add all left fields
+    for field in left_all_fields:
+        final_fields.add(field)
+    # Add right fields based on keep_keys
+    if keep_keys == 'both':
+        for field in right_all_fields:
+            final_fields.add(field)
+    else:
+        for field in right_all_fields:
+            if field not in right_fields:
+                final_fields.add(field)
+
+    # Step 2: Determine which fields need suffixes
+    field_conflicts = set()
+    if keep_keys == 'both':
+        # For keep_keys='both', suffix fields that appear in both input sources
+        field_conflicts.update(left_all_fields.intersection(right_all_fields))
+    else:  # keep_keys == 'left'
+        field_conflicts.update(left_all_fields.intersection(right_all_fields).difference(right_fields))
+
+    # Step 3: Build output schema
+    output_fields = {}
+    field_provenance = {}
+    join_key_map = []
+
+    # Handle left fields
+    for field in left_all_fields:
+        if field in left_fields:
+            # Join key from left
+            if field in field_conflicts:
+                # Use original data source suffix for field naming
+                if field in left_provenance:
+                    field_name = f"{field}{left_provenance[field]}"
+                else:
+                    field_name = f"{field}{left_suffix}"
+                is_original = False
+            else:
+                field_name = field
+                is_original = True
+            output_fields[field_name] = FieldMetadata(original_name=field, data_source=0, suffix=left_suffix, is_join_key=True, join_key_index=left_fields.index(field), is_original=is_original)
+            # Use existing provenance if available, otherwise use left_suffix
+            if field in left_provenance:
+                field_provenance[field_name] = left_provenance[field]
+            else:
+                field_provenance[field_name] = left_suffix
+            join_key_map.append(field_name)
+        else:
+            # Non-join field from left
+            if field in field_conflicts:
+                # Use original data source suffix for field naming
+                if field in left_provenance:
+                    field_name = f"{field}{left_provenance[field]}"
+                else:
+                    field_name = f"{field}{left_suffix}"
+                is_original = False
+            else:
+                field_name = field
+                is_original = True
+            output_fields[field_name] = FieldMetadata(original_name=field, data_source=0, suffix=left_suffix, is_join_key=False, is_original=is_original)
+            # Use existing provenance if available, otherwise use left_suffix
+            if field in left_provenance:
+                field_provenance[field_name] = left_provenance[field]
+            else:
+                field_provenance[field_name] = left_suffix
+
+    # Handle right fields
+    for field in right_all_fields:
+        if field in right_fields:
+            # Join key from right
+            if keep_keys == 'both':
+                if field in field_conflicts:
+                    # Use original data source suffix for field naming
+                    if field in right_provenance:
+                        field_name = f"{field}{right_provenance[field]}"
+                    else:
+                        field_name = f"{field}{right_suffix}"
+                    is_original = False
+                else:
+                    field_name = field
+                    is_original = True
+                output_fields[field_name] = FieldMetadata(
+                    original_name=field, data_source=1, suffix=right_suffix, is_join_key=True, join_key_index=right_fields.index(field), is_original=is_original
+                )
+                # Use existing provenance if available, otherwise use right_suffix
+                if field in right_provenance:
+                    field_provenance[field_name] = right_provenance[field]
+                else:
+                    field_provenance[field_name] = right_suffix
+            # For keep_keys='left', right join keys are dropped
+        else:
+            # Non-join field from right
+            if field in field_conflicts:
+                # Use original data source suffix for field naming
+                if field in right_provenance:
+                    field_name = f"{field}{right_provenance[field]}"
+                else:
+                    field_name = f"{field}{right_suffix}"
+                is_original = False
+            else:
+                field_name = field
+                is_original = True
+            output_fields[field_name] = FieldMetadata(original_name=field, data_source=1, suffix=right_suffix, is_join_key=False, is_original=is_original)
+            # Use existing provenance if available, otherwise use right_suffix
+            if field in right_provenance:
+                field_provenance[field_name] = right_provenance[field]
+            else:
+                field_provenance[field_name] = right_suffix
+
+    return {'output_fields': output_fields, 'field_provenance': field_provenance, 'left_suffix': left_suffix, 'right_suffix': right_suffix, 'join_keys': join_key_map}
+
+
+def _get_join_key(record, fields):
+    return tuple(record.get(field) for field in fields)
+
+
+def _merge_records_with_schema(left, right, schema_info, keep_keys):
+    """
+    Merge records according to the determined schema
+    """
+    merged = {}
+    output_fields = schema_info['output_fields']
+
+    for output_field, metadata in output_fields.items():
+        if metadata.data_source == 0:  # Left dataset
+            value = left.get(metadata.original_name)
+        else:  # Right dataset
+            value = right.get(metadata.original_name)
+
+        merged[output_field] = value
+
+    return merged
+
+
+def _inner_join_with_schema(left_data, right_data, left_on, right_on, right_index, schema_info, keep_keys):
+    result = []
+    for left_record in left_data:
+        key = _get_join_key(left_record, left_on)
+        if key in right_index:
+            for right_record in right_index[key]:
+                result.append(_merge_records_with_schema(left_record, right_record, schema_info, keep_keys))
+    return result
+
+
+def _left_join_with_schema(left_data, right_data, left_on, right_on, right_index, schema_info, keep_keys):
+    result = []
+    for left_record in left_data:
+        key = _get_join_key(left_record, left_on)
+        if key in right_index:
+            for right_record in right_index[key]:
+                result.append(_merge_records_with_schema(left_record, right_record, schema_info, keep_keys))
+        else:
+            result.append(_merge_records_with_schema(left_record, {}, schema_info, keep_keys))
+    return result
+
+
+def _right_join_with_schema(left_data, right_data, left_on, right_on, right_index, schema_info, keep_keys):
+    result = []
+    matched = set()
+    for left_record in left_data:
+        key = _get_join_key(left_record, left_on)
+        if key in right_index:
+            matched.add(key)
+            for right_record in right_index[key]:
+                result.append(_merge_records_with_schema(left_record, right_record, schema_info, keep_keys))
+
+    for right_record in right_data:
+        key = _get_join_key(right_record, right_on)
+        if key not in matched:
+            result.append(_merge_records_with_schema({}, right_record, schema_info, keep_keys))
+    return result
+
+
+def _outer_join_with_schema(left_data, right_data, left_on, right_on, right_index, schema_info, keep_keys):
+    result = []
+    matched_left = set()
+    matched_right = set()
+
+    for left_record in left_data:
+        key = _get_join_key(left_record, left_on)
+        if key in right_index:
+            matched_left.add(key)
+            matched_right.add(key)
+            for right_record in right_index[key]:
+                result.append(_merge_records_with_schema(left_record, right_record, schema_info, keep_keys))
+
+    for left_record in left_data:
+        key = _get_join_key(left_record, left_on)
+        if key not in matched_left:
+            result.append(_merge_records_with_schema(left_record, {}, schema_info, keep_keys))
+
+    for right_record in right_data:
+        key = _get_join_key(right_record, right_on)
+        if key not in matched_right:
+            result.append(_merge_records_with_schema({}, right_record, schema_info, keep_keys))
+
+    return result
+
+
+def _determine_join_keys_from_schema(schema_info, left_fields, keep_keys):
+    """Determine join keys based on the actual output schema"""
+    output_fields = schema_info['output_fields']
+    join_keys = []
+
+    for left_key in left_fields:
+        # Find the corresponding output field name for this join key
+        found = False
+        for output_field, metadata in output_fields.items():
+            if metadata.original_name == left_key and metadata.is_join_key:  # Any join key from any data source
+                join_keys.append(output_field)
+                found = True
+                break
+
+        # If not found in output fields, use the original name
+        if not found:
+            join_keys.append(left_key)
+
+    return join_keys
+
+
+if __name__ == "__main__":
+    ## calling example
+
+    input_data = [
+        [{"job_id": 1, "name": "name A", "salary": 100000}, {"job_id": 2, "name": "name B", "location": "state B", "salary": 200000}],
+        [{"job_id": 2, "location": "city B"}, {"job_id": 3, "location": "city C"}],
+        [{"id": 1, "title": "title A"}, {"id": 4, "title": "title D"}, {"id": 2, "title": "title B"}],
+    ]
+
+    # #### using tool class
+    # params = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "both"}
+    # join_operator = JoinOperator()
+    # result = join_operator.execute(input_data, params)  # this assume the Tool class define the execute method
+
+    #### using function directly
+
+    ## test keep_keys = "left"
+    params = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "left"}
+    result = join_operator_function(input_data, params)
+    print("=== JOIN RESULT ===")
+    print(result)
+
+    ## test keep_keys = "both"
+    params = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "both"}
+    result = join_operator_function(input_data, params)
+    print("=== JOIN RESULT ===")
+    print(result)
