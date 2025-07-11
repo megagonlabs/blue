@@ -43,7 +43,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 ###### Blue
 from blue.platform import Platform
-from blue.operator import OperatorRegistry
+from blue.operators.registry import OperatorRegistry
 
 ###### Properties
 from settings import ACL, PROPERTIES
