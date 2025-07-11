@@ -159,7 +159,7 @@ class DataPipeline:
         # start, if not started
         if self.producer == None:
 
-            producer = Producer(sid="PIPELINE", prefix=self.cid, properties=self.properties)
+            producer = Producer(sid="PIPELINE", prefix=self.cid, properties=self.properties, owner=self.sid)
             producer.start()
             self.producer = producer
 

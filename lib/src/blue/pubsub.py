@@ -14,7 +14,7 @@ from redis.commands.json.path import Path
 import threading
 
 ###### Blue
-from blue.stream import Message, MessageType, ContentType
+from blue.stream import Message, MessageType, ContentType, Stream
 from blue.connection import PooledConnectionFactory
 from blue.tracker import IdleTracker
 from blue.utils import uuid_utils, log_utils
@@ -24,10 +24,9 @@ from blue.utils import uuid_utils, log_utils
 ### Consumer
 #
 class Consumer:
-    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, listener=None, properties={}, on_stop=None):
+    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, owner=None, listener=None, properties=None, on_stop=None):
 
-        self.stream = stream
-
+        self.stream_cid = stream
         self.name = name
         if id:
             self.id = id
@@ -51,7 +50,13 @@ class Consumer:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
+        self.owner = owner
+
+        if properties is None:
+            properties = {}
         self._initialize(properties=properties)
+
+        self.stream = Stream(self.stream_cid, properties=self.properties)
 
         if listener is None:
             listener = lambda message: print("{message}".format(message=message))
@@ -99,7 +104,7 @@ class Consumer:
         self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
         self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
         self.logger.set_config_data("consumer", self.sid, -1)
-        self.logger.set_config_data("stream", self.stream, -1)
+        self.logger.set_config_data("stream", self.stream_cid, -1)
 
     ####### open connection, create group, start threads
     def _extract_epoch(self, id):
@@ -140,7 +145,7 @@ class Consumer:
 
     def start(self):
 
-        # self.logger.info("Starting consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
+        # self.logger.info("Starting consumer {c} for stream {s}".format(c=self.sid,s=self.stream_cid))
         self.stop_signal = False
 
         self._start_connection()
@@ -152,7 +157,7 @@ class Consumer:
         # init tracker
         self._init_tracker()
 
-        # self.logger.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
+        # self.logger.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream_cid))
 
     def stop(self):
         self._terminate_tracker()
@@ -178,7 +183,7 @@ class Consumer:
 
     def _start_group(self):
         # create group if it doesn't exists, print group info
-        s = self.stream
+        s = self.stream_cid
         g = self.cid
         r = self.connection
 
@@ -191,7 +196,7 @@ class Consumer:
         # self._print_group_info()
 
     def _print_group_info(self):
-        s = self.stream
+        s = self.stream_cid
         g = self.cid
         r = self.connection
 
@@ -201,7 +206,7 @@ class Consumer:
             self.logger.info(f"{s} -> group name: {i['name']} with {i['consumers']} consumers and {i['last-delivered-id']}" + f" as last read id")
 
     def get_stream(self):
-        return self.stream
+        return self.stream_cid
 
     def get_group(self):
         return self.cid
@@ -229,7 +234,7 @@ class Consumer:
 
     # async def _consume_stream(self, c):
     def _consume_stream(self, c):
-        s = self.stream
+        s = self.stream_cid
         g = self.cid
         r = self.connection
 
@@ -259,8 +264,14 @@ class Consumer:
                     message.setStream(s)
                     # await self.response_handler(message)
                     self.listener(message)
+
                     # last processed
                     self.last_processed = int(time.time())  # self._extract_epoch(id)
+
+                    # update stream metadata
+                    if self.owner:
+                        metadata = {'message': id, 'time': self.last_processed}
+                        self.stream.set_metadata('consumers.' + self.owner, metadata)
 
                     # ack
                     r.xack(s, g, id)
@@ -284,8 +295,14 @@ class Consumer:
                 message.setStream(s)
                 # await self.response_handler(message)
                 self.listener(message)
+
                 # last processed
                 self.last_processed = int(time.time())  # self._extract_epoch(id)
+
+                # update stream metadata
+                if self.owner:
+                    metadata = {'message': id, 'time': self.last_processed}
+                    self.stream.set_metadata('consumers.' + self.owner, metadata)
 
                 # occasionally throw exception (for testing failed threads)
                 # if random.random() > 0.5:
@@ -313,7 +330,7 @@ class Consumer:
             self.threads.append(t)
 
     def _delete_stream(self):
-        s = self.stream
+        s = self.stream_cid
         r = self.connection
 
         l = r.xread(streams={s: 0})
@@ -333,7 +350,8 @@ class Producer:
         cid=None,
         prefix=None,
         suffix=None,
-        properties={},
+        owner=None,
+        properties=None,
     ):
 
         self.name = name
@@ -359,7 +377,13 @@ class Producer:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
+        self.owner = owner
+
+        if properties is None:
+            properties = {}
         self._initialize(properties=properties)
+
+        self.stream = Stream(self.cid, properties=self.properties)
 
     ###### INITIALIZATION
     def _initialize(self, properties=None):
@@ -453,8 +477,13 @@ class Producer:
 
     def _write_message_to_stream(self, json_message):
         # self.logger.info("json_message: " + json_message)
-        self.connection.xadd(self.cid, json_message)
+        id = self.connection.xadd(self.cid, json_message)
         # self.logger.info("Streamed into {s} message {m}".format(s=self.cid, m=str(json_message)))
+
+        # update stream metadata
+        if self.owner:
+            metadata = {'message': id, 'time': int(time.time())}
+            self.stream.set_metadata('producers.' + self.owner, metadata)
 
     def read_all(self):
         sl = self.connection.xlen(self.cid)
