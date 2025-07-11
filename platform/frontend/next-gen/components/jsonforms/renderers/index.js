@@ -9,6 +9,7 @@ import IntegerRenderer, { IntegerTester } from "./IntegerRenderer";
 import LabelRenderer, { LabelTester } from "./LabelRenderer";
 import LayoutRenderer, { LayoutTester } from "./LayoutRenderer";
 import MarkdownRenderer, { MarkdownTester } from "./MarkdownRenderer";
+import MermaidRenderer, { MermaidTester } from "./MermaidRenderer";
 import NumberRenderer, { NumberTester } from "./NumberRenderer";
 import StringRenderer, { StringTester } from "./StringRenderer";
 import TableRenderer, { TableTester } from "./TableRenderer";
@@ -32,5 +33,6 @@ export const JSONFORMS_RENDERERS = [
     { tester: TableTester, renderer: TableRenderer },
     { tester: TabsTester, renderer: TabsRenderer },
     { tester: VegaTester, renderer: VegaRenderer },
+    { tester: MermaidTester, renderer: MermaidRenderer },
     { tester: UnknownTester, renderer: UnknownRenderer },
 ];
