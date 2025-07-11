@@ -229,7 +229,7 @@ class Platform:
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties)
+            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, owner=self.sid)
             producer.start()
             self.producer = producer
 

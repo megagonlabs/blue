@@ -134,21 +134,15 @@ class Session:
         return list(agents.values())
 
     def notify(self, agent, output_stream, tags):
-
-        # create data namespace to share data on stream
-        data_success = self._init_stream_data_namespace(output_stream)
-
-        # create metadata namespace for stream, metadata_success = True, if not existing
-        metadata_success = self._init_stream_metadata_namespace(output_stream, agent, tags)
+        self._update_stream_metadata(output_stream, agent, tags)
 
         # add to stream to notify others, unless it exists
-        if metadata_success:
-            args = {}
-            args["session"] = self.cid
-            args["agent"] = agent.cid
-            args["stream"] = output_stream
-            args["tags"] = tags
-            self.producer.write_control(ControlCode.ADD_STREAM, args)
+        args = {}
+        args["session"] = self.cid
+        args["agent"] = agent.cid
+        args["stream"] = output_stream
+        args["tags"] = tags
+        self.producer.write_control(ControlCode.ADD_STREAM, args)
 
     ###### DATA/METADATA RELATED
     def __get_json_value(self, value):
@@ -310,26 +304,25 @@ class Session:
     def _get_stream_metadata_namespace(self, stream):
         return stream + ":METADATA"
 
-    def _init_stream_metadata_namespace(self, stream, agent, tags):
-        # create metadata namespaces for stream
+    def _update_stream_metadata(self, stream, agent, tags):
         metadata_tags = {}
         for tag in tags:
             metadata_tags.update({tag: True})
-        metadata = {'created_by': agent.name, 'id': agent.id, 'tags': metadata_tags}
-        return self.connection.json().set(self._get_stream_metadata_namespace(stream), "$", metadata, nx=True)
+
+        self.logger.info(self._get_stream_metadata_namespace(stream))
+        self.logger.info(
+            self.connection.json().get(
+                self._get_stream_metadata_namespace(stream),
+                Path("$"),
+            )
+        )
+        self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'created_by', agent.name)
+        self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'id', agent.id)
+        self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'tags', metadata_tags)
 
     ## session stream data
     def _get_stream_data_namespace(self, stream):
         return stream + ":DATA"
-
-    def _init_stream_data_namespace(self, stream):
-        # create namespaces for stream-specific data
-        return self.connection.json().set(
-            self._get_stream_data_namespace(stream),
-            "$",
-            {},
-            nx=True,
-        )
 
     def set_stream_data(self, stream, key, value):
         self.connection.json().set(
@@ -389,7 +382,7 @@ class Session:
         # start, if not started
         if self.producer == None:
 
-            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties)
+            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, owner=self.sid)
             producer.start()
             self.producer = producer
 
