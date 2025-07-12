@@ -82,9 +82,10 @@ class Platform:
     def _initialize_logger(self):
         self.logger = log_utils.CustomLogger()
         # customize log
-        self.logger.set_config_data("level", "%(levelname)s", -1)
-        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
-        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
         self.logger.set_config_data("platform", self.sid, -1)
 
     ###### SESSION
