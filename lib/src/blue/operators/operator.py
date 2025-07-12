@@ -1,8 +1,4 @@
 ###### Parsers, Formats, Utils
-import pandas as pd
-import numpy as np
-import json
-import copy
 import logging
 from typing import List, Dict, Any, Callable, Union, Optional
 from dataclasses import dataclass
@@ -11,10 +7,15 @@ from pydantic import BaseModel, ValidationError
 ###### Blue
 from blue.tools.tool import Tool
 from blue.utils import json_utils
-from blue.utils.py_type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
+from blue.utils.type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
 
 ###############
 ### Operator
+
+
+def default_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+    """Default function for operator. It should be overridden by each operator."""
+    return []
 
 
 def default_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
