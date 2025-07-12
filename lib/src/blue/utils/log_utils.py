@@ -1,6 +1,7 @@
 ###### Parsers, Formats, Utils
 import logging
 import inspect
+import logging, json, re
 from inspect import getframeinfo, stack
 
 
@@ -42,6 +43,35 @@ def caller_reader(f, depth=3):
         return f(self, *args)
 
     return wrapper
+
+
+class CustomJsonFormatter(logging.Formatter):
+    def __init__(self, data_config, output_format, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.data_config = data_config
+        self.output_format = output_format
+
+    def format(self, record):
+        log_entry = {}
+        log_entry['output_format'] = self.output_format
+        for item in self.data_config:
+            field_name = item['name']
+            format_spec = item['format']
+            if field_name == 'time' and '%(asctime)s' in format_spec:
+                log_entry[field_name] = self.formatTime(record, self.datefmt)
+            elif field_name == 'message' and '%(message)s' in format_spec:
+                log_entry[field_name] = record.getMessage()
+            else:
+                match = re.match(r'%\((.*?)\)s', format_spec)
+                attr_name = match.group(1) if match else field_name
+                value = getattr(record, attr_name, None)
+                if value is not None:
+                    log_entry[field_name] = value
+        if record.exc_info:
+            log_entry['exception'] = self.formatException(record.exc_info)
+        if record.stack_info:
+            log_entry['stack_trace'] = self.formatStack(record.stack_info)
+        return json.dumps(log_entry)
 
 
 ##########################
@@ -155,13 +185,17 @@ class CustomLogger:
             self.root_logger.handlers.clear()
         self.handler = logging.StreamHandler()
         if self.config['output']['format'] == "json":
-            formatter = logging.Formatter("{" + ",".join(['"' + d['name'] + '"' + ":" + '"' + d['format'] + '"' for d in self.config['data']]) + "}", **self.config['options'])
+            formatter = CustomJsonFormatter(self.config['data'], self.config['output']['format'], **self.config['options'])
         else:
-            formatter = logging.Formatter(" ".join(["[" + d['name'] + "=" + d['format'] + "]" for d in self.config['data']]), **self.config['options'])
+            formatter_str_parts = []
+            for d in self.config['data']:
+                formatter_str_parts.append(f"[{d['name']}={d['format']}]")
+            formatter = logging.Formatter(" ".join(formatter_str_parts), **self.config['options'])
+
         self.handler.setFormatter(formatter)
         self.handler.addFilter(self.filter)
         self.root_logger.addHandler(self.handler)
-        self.logger = logging.LoggerAdapter(self.root_logger)
+        self.logger = logging.LoggerAdapter(self.root_logger, {})
 
 
 # cl = CustomLogger()
