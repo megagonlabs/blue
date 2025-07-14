@@ -156,7 +156,13 @@ export default function MessageViewer({ sessionId, message }) {
                 {stream.complete && (
                     <tfoot>
                         <tr>
-                            <td colSpan={4}>
+                            <td
+                                colSpan={4}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                }}
+                            >
                                 EOS
                                 <FAIcon
                                     style={{

@@ -29,6 +29,7 @@ import {
     faList,
     faMessages,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { ReactFlowProvider } from "@xyflow/react";
 import { Allotment } from "allotment";
 import axios from "axios";
 import classNames from "classnames";
@@ -39,6 +40,7 @@ import { useShallow } from "zustand/react/shallow";
 import AgentLogs from "../../platforms/AgentLogs";
 import SessionAgents from "../details/SessionAgents";
 import MessageViewer from "./MessageViewer";
+import StreamFlows from "./StreamFlows";
 const FOLDER_CLOSED_ICON = (
     <FAIcon icon={faFolder} style={{ marginRight: 7 }} />
 );
@@ -426,6 +428,11 @@ function DebuggerContainer({ width, height, sessionId }) {
                                 callback={callback}
                             />
                         )}
+                        {_.isEqual(visibleSection, "stream_flows") && (
+                            <ReactFlowProvider>
+                                <StreamFlows sessionId={sessionId} />
+                            </ReactFlowProvider>
+                        )}
                         {_.isEqual(visibleSection, "messages") &&
                             (_.isEqual(viewType, "list") ? (
                                 <AutoSizer>
@@ -586,7 +593,10 @@ function DebuggerContainer({ width, height, sessionId }) {
                             ))}
                     </div>
                 </Allotment.Pane>
-                <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
+                <Allotment.Pane
+                    minSize={MIN_ALLOTMENT_PANE_SIZE}
+                    visible={!_.isEqual(visibleSection, "stream_flows")}
+                >
                     {_.isEqual(visibleSection, "agents") && (
                         <AgentLogs
                             containerId={containerId}
