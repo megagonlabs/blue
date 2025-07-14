@@ -26,7 +26,11 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
     # Option 2: Otherwise, we create a service client here
     # Create service client for OpenAI calls, use input properties of the function
     service_client = ServiceClient(name="nl2llm_operator_service_client", properties=properties)
-    return [service_client.execute_api_call(query, properties=service_client.properties, additional_data={})]
+
+    # Create input_data as a dictionary with all the values needed for template substitution
+    input_data = {'input': query, 'context': context, 'attr_names': attr_names}
+
+    return [service_client.execute_api_call(input_data, properties=service_client.properties)]
 
 
 def nl2llm_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -136,13 +140,14 @@ if __name__ == "__main__":
     params = {
         "query": "What are the top 5 programming languages in 2024?",
         "context": "Focus on popularity and job market demand",
-        "attr_names": ["language", "popularity_rank", "description"],
+        # "attr_names": ["language", "popularity_rank", "description"],
+        "attr_names": ["language", "year"],
     }
     print(f"=== NL2LLM PARAMETERS ===")
     print(params)
 
     # just used to get the default properties
-    nl2llm_operator = NL2LLMOperator(properties=params)
+    nl2llm_operator = NL2LLMOperator()
     properties = nl2llm_operator.properties
     print(f"=== NL2LLM PROPERTIES ===")
     print(properties)
