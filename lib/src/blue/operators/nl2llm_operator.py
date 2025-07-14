@@ -30,7 +30,7 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
     # Create input_data as a dictionary with all the values needed for template substitution
     input_data = {'input': query, 'context': context, 'attr_names': attr_names}
 
-    return [service_client.execute_api_call(input_data, properties=service_client.properties)]
+    return [service_client.execute_api_call(input_data)]
 
 
 def nl2llm_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -159,6 +159,7 @@ if __name__ == "__main__":
     print("=== NL2LLM RESULT (Option 1)===")
     print(result)
     # Option 2: use the function method
+    params['attr_names'] = ["language", "popularity_rank", "description", "latest_release_date"]
     result = nl2llm_operator.function(input_data, params, properties)
     print("=== NL2LLM RESULT (Option 2)===")
     print(result)
