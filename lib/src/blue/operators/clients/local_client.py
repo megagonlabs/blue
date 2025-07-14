@@ -5,18 +5,18 @@ import json
 import copy
 
 ###### Server specific libs
-import ray
+
 
 ###### Blue
 from blue.operators.client import OperatorClient
-from blue.tools.clients.ray_client import RayToolClient
+from blue.tools.clients.local_client import LocalToolClient
 from blue.utils import json_utils
 
 
 ###############
-### RayOperatorClient
+### LocalOperatorClient
 #
-class RayOperatorClient(RayToolClient, OperatorClient):
+class LocalOperatorClient(LocalToolClient, OperatorClient):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
 

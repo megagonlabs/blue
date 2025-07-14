@@ -6,6 +6,8 @@ from blue.tools.tool import Tool
 from blue.utils import tool_utils
 
 
+###############
+### Ray Tools Registry
 tools_dict = {}
 
 

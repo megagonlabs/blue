@@ -13,12 +13,13 @@ from blue.tools.client import ToolClient
 ###############
 ### OperatorClient
 
+
 class OperatorClient(ToolClient):
     """
     Base client for operators following the same pattern as ToolClient.
     Handles validation, execution, and result formatting for operators.
     """
-    
+
     def __init__(self, name: str = "OperatorClient", properties: Dict[str, Any] = None):
         super().__init__(name, properties=properties or {})
 
@@ -26,25 +27,14 @@ class OperatorClient(ToolClient):
 
     ######### server
     def fetch_metadata(self):
-        return {}
+        return self.fetch_metadata()
 
     ######### operator
     def fetch_operators(self):
-        return []
+        return self.fetch_tools()
 
     def fetch_operator_metadata(self, operator):
-        return {}
+        return self.fetch_tool_metadata(operator)
 
     def execute_operator(self, operator, args=None, kwargs=None):
-        if args is None:
-            args = []
-        if kwargs is None:
-            kwargs = {}
-            
-        return {
-            "operator": operator,
-            "parameters": kwargs,
-            "result": [],
-            "error": "No implementation provided",
-            "explain": {"error": "No implementation provided"}
-        }
+        return self.execute_tool(operator, args=args, kwargs=kwargs)

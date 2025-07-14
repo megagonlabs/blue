@@ -5,18 +5,17 @@ import json
 import copy
 
 ###### Server specific libs
-import ray
 
 ###### Blue
 from blue.operators.client import OperatorClient
-from blue.tools.clients.ray_client import RayToolClient
+from blue.tools.clients.mcp_client import MCPToolClient
 from blue.utils import json_utils
 
 
 ###############
-### RayOperatorClient
+### MCPOperatorClient
 #
-class RayOperatorClient(RayToolClient, OperatorClient):
+class MCPOperatorClient(MCPToolClient, OperatorClient):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
 
