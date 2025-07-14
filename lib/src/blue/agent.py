@@ -191,9 +191,10 @@ class Worker:
     def _initialize_logger(self):
         self.logger = log_utils.CustomLogger()
         # customize log
-        self.logger.set_config_data("level", "%(levelname)s", -1)
-        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
-        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
         agent_sid = "<NOT_SET>"
         if self.agent:
             agent_sid = self.agent.sid
@@ -670,9 +671,10 @@ class Agent:
     def _initialize_logger(self):
         self.logger = log_utils.CustomLogger()
         # customize log
-        self.logger.set_config_data("level", "%(levelname)s", -1)
-        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
-        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
         self.logger.set_config_data("agent", self.sid, -1)
         session_sid = "<NOT_SET>"
         self.logger.set_config_data("session", session_sid, -1)
@@ -1073,9 +1075,10 @@ class AgentFactory:
     def _initialize_logger(self):
         self.logger = log_utils.CustomLogger()
         # customize log
-        self.logger.set_config_data("level", "%(levelname)s", -1)
-        self.logger.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
-        self.logger.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
         self.logger.set_config_data("agent_factory", self.sid, -1)
 
     ###### database, data

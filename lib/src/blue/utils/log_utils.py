@@ -1,5 +1,48 @@
 ###### Parsers, Formats, Utils
+import logging
+import inspect
 import logging, json, re
+from inspect import getframeinfo, stack
+
+
+##########################
+### CustomFilter
+#
+class CustomFilter(logging.Filter):
+    call_stack = ''
+
+    def filter(self, record):
+        record.call_stack = self.call_stack
+        return True
+
+
+def extract_call_stack(s, depth=3):
+    call_stack = ""
+    d = 0
+    for i in range(len(s)):
+        frame_info = getframeinfo(s[i][0])
+        filename = frame_info.filename.split("/")[-1]
+        lineno = frame_info.lineno
+        # skip log_utils
+        if filename == "log_utils.py":
+            continue
+        else:
+            if d > 0:
+                call_stack += "\u2190"
+            call_stack += filename + ":" + str(lineno)
+            d += 1
+            if d >= depth:
+                break
+    return call_stack
+
+
+def caller_reader(f, depth=3):
+    def wrapper(self, *args):
+        s = stack()
+        self.filter.call_stack = extract_call_stack(s, depth=depth)
+        return f(self, *args)
+
+    return wrapper
 
 
 class CustomJsonFormatter(logging.Formatter):
@@ -41,14 +84,21 @@ class CustomLogger:
             self._init_default_config()
         else:
             self.config = config
+        self.filter = CustomFilter()
         self._initialized = False
-        self._initialize()
+        # self._initialize()
 
     def _init_default_config(self):
         self.config = {}
         self.config['options'] = {"datefmt": "%Y-%m-%d %H:%M:%S"}
         self.config['output'] = {"format": "json"}
-        self.config['data'] = [{"name": "time", "format": "%(asctime)s"}, {"name": "message", "format": "%(message)s"}]
+        self.config['data'] = [
+            {"name": "time", "format": "%(asctime)s"},
+            {"name": "level", "format": "%(levelname)s"},
+            {"name": "process", "format": "%(process)d:%(threadName)s:%(thread)d"},
+            {"name": "stack", "format": "%(filename)s:%(lineno)d"},
+            {"name": "message", "format": "%(message)s"},
+        ]
 
     def set_config_option(self, key, value):
         self.config['options'][key] = value
@@ -67,9 +117,29 @@ class CustomLogger:
         self._initialized = False
 
     def set_config_data(self, key, format, index=None):
+        exists = False
+        existing_index = -1
+        existing_config = None
+        for i, c in enumerate(self.config['data']):
+            if c['name'] == key:
+                exists = True
+                existing_index = i
+                existing_config = c
+                break
+
         if index is None:
-            index = len(self.config['data'])
-        self.config['data'].insert(index, {"name": key, "format": format})
+            if exists:
+                # replace in place
+                existing_config['format'] = format
+            else:
+                index = len(self.config['data'])
+                self.config['data'].insert(index, {"name": key, "format": format})
+        else:
+            if exists:
+                # delete first
+                del self.config['data'][existing_index]
+            self.config['data'].insert(index, {"name": key, "format": format})
+
         self._initialized = False
 
     def del_config_data(self, key):
@@ -101,6 +171,10 @@ class CustomLogger:
     def fatal(self, message, *args, **kwargs):
         self.log(logging.FATAL, message, *args, **kwargs)
 
+    def critical(self, message, *args, **kwargs):
+        self.log(logging.CRITICAL, message, *args, **kwargs)
+
+    @caller_reader
     def log(self, level, message, *args, **kwargs):
         if not self._initialized:
             self._initialize()
@@ -108,7 +182,7 @@ class CustomLogger:
 
     def _initialize(self):
         if self.root_logger.hasHandlers():
-            self.root_logger.removeHandler(self.root_logger.handlers[0])
+            self.root_logger.handlers.clear()
         self.handler = logging.StreamHandler()
         if self.config['output']['format'] == "json":
             formatter = CustomJsonFormatter(self.config['data'], self.config['output']['format'], **self.config['options'])
@@ -119,14 +193,13 @@ class CustomLogger:
             formatter = logging.Formatter(" ".join(formatter_str_parts), **self.config['options'])
 
         self.handler.setFormatter(formatter)
+        self.handler.addFilter(self.filter)
         self.root_logger.addHandler(self.handler)
         self.logger = logging.LoggerAdapter(self.root_logger, {})
 
 
 # cl = CustomLogger()
-# cl.set_config_data("level", "%(levelname)s", -1)
-# cl.set_config_data("process", "%(process)d:%(threadName)s:%(thread)d", -1)
-# cl.set_config_data("code", "%(filename)s:%(lineno)d", -1)
+
 # cl.set_config_data("session", "SESSION:123", -1)
 
 # cl.info("hello")
