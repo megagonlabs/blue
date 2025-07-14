@@ -522,7 +522,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                                 content={
                                                                     <div
                                                                         style={{
-                                                                            width: 300,
+                                                                            maxWidth: 300,
                                                                             wordBreak:
                                                                                 "break-all",
                                                                         }}
