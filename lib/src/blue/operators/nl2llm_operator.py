@@ -28,7 +28,7 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
     service_client = ServiceClient(name="nl2llm_operator_service_client", properties=properties)
 
     # Create input_data as a dictionary with all the values needed for template substitution
-    input_data = {'input': query, 'context': context, 'attr_names': attr_names}
+    input_data = {'query': query, 'context': context, 'attr_names': attr_names}
 
     return [service_client.execute_api_call(input_data)]
 
@@ -62,7 +62,7 @@ Here are the requirements:
 - The response should be well-formatted and easy to parse
 - Output the JSON directly. Do not generate explanation or other additional output.
 
-Query: ${input}
+Query: ${query}
 
 Attr_names:
 ${attr_names}
