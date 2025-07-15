@@ -40,6 +40,7 @@
         "copy-to-clipboard": "^3.3.3",
         "css-element-queries": "^1.2.3",
         "css-to-react-native": "^3.2.0",
+        "dagre": "^0.8.5",
         "date-fns": "^4.1.0",
         "eslint-plugin-deprecation": "^3.0.0",
         "firebase": "^11.6.0",
