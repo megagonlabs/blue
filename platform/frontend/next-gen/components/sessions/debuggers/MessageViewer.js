@@ -8,6 +8,7 @@ import {
     Classes,
     Colors,
     Divider,
+    H5,
     HTMLTable,
     Intent,
     Size,
@@ -32,6 +33,10 @@ export default function MessageViewer({ sessionId, message }) {
     const tags = _.entries(_.get(message, "metadata.tags", {}))
         .filter((tag) => tag[1])
         .map((tag) => tag[0]);
+    const consumers = _.keys(_.get(message, "metadata.consumers", {})).filter(
+        (key) => !_.startsWith(key, "OBSERVER:")
+    );
+    const producers = _.keys(_.get(message, "metadata.producers", {}));
     return (
         <div
             className="full-parent-dimension"
@@ -177,6 +182,26 @@ export default function MessageViewer({ sessionId, message }) {
                     </tfoot>
                 )}
             </HTMLTable>
+            {!_.isEmpty(consumers) && (
+                <div style={{ marginTop: 15 }}>
+                    <H5>Consumers</H5>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        {consumers.map((key) => (
+                            <Tag minimal>{key}</Tag>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {!_.isEmpty(producers) && (
+                <div style={{ marginTop: 15 }}>
+                    <H5>Producers</H5>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        {producers.map((key) => (
+                            <Tag minimal>{key}</Tag>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
