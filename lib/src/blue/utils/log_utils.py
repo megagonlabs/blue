@@ -67,6 +67,9 @@ class CustomJsonFormatter(logging.Formatter):
                 value = getattr(record, attr_name, None)
                 if value is not None:
                     log_entry[field_name] = value
+                else:
+                    # format is value
+                    log_entry[field_name] = format_spec
         if record.exc_info:
             log_entry['exception'] = self.formatException(record.exc_info)
         if record.stack_info:
