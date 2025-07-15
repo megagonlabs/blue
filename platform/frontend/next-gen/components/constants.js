@@ -24,6 +24,10 @@ export const USER_ROLES_LOOKUP = {
         demo: { text: "Demo" },
     },
     TABLE_CELL_HEIGHT = 40,
+    REACT_FLOW_NODE = {
+        padding: 10,
+        transitionNodePadding: 5,
+    },
     END_OF_EVENT_SIGNAL = "END_OF_EVENT_SIGNAL",
     ENTITY_NAME_SEPARATOR = "___",
     MAIN_INFO_STYLES = {
