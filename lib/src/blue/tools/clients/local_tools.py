@@ -5,6 +5,8 @@ from typing import List
 from blue.tools.tool import Tool
 from blue.utils import tool_utils
 
+###############
+### Local Tools Registry
 tools_dict = {}
 
 

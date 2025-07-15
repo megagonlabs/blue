@@ -89,7 +89,7 @@ class ServiceClient:
         if 'input_template' in properties and properties['input_template'] is not None:
             input_template = properties['input_template']
             input_params = self.extract_input_params(input_data, properties=properties)
-            input_data = string_utils.safe_substitute(input_template, **properties, **input_params, **additional_data, input=input_data)
+            input_data = string_utils.safe_substitute(input_template, **properties, **input_params, **additional_data, **input_data)
 
         # set input text to message
         input_object = input_data
@@ -174,6 +174,10 @@ class ServiceClient:
         return output_data
 
     def execute_api_call(self, input, properties=None, additional_data=None):
+        """Execute an API call to the service"""
+        if isinstance(input, str):
+            input = {"input": input}  # make sure your template use ${input} for this str
+
         # create message from input
         message = self.create_message(input, properties=properties, additional_data=additional_data)
 

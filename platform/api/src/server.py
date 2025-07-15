@@ -44,7 +44,7 @@ from blue.platform import Platform
 from blue.agents.registry import AgentRegistry
 from blue.data.registry import DataRegistry
 from blue.model import ModelRegistry
-from blue.operator import OperatorRegistry
+from blue.operators.registry import OperatorRegistry
 from blue.tools.registry import ToolRegistry
 from blue.tracker import SystemPerformanceTracker
 
@@ -56,6 +56,7 @@ data_registry_id = PROPERTIES["data_registry.name"]
 model_registry_id = PROPERTIES["model_registry.name"]
 operator_registry_id = PROPERTIES["operator_registry.name"]
 tool_registry_id = PROPERTIES["tool_registry.name"]
+
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ####### Version
