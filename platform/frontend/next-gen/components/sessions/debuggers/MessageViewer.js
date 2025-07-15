@@ -157,14 +157,21 @@ export default function MessageViewer({ sessionId, message }) {
                     <tfoot>
                         <tr>
                             <td colSpan={4}>
-                                EOS
-                                <FAIcon
+                                <div
                                     style={{
-                                        marginLeft: 10,
-                                        color: Colors.GREEN3,
+                                        display: "flex",
+                                        alignItems: "center",
                                     }}
-                                    icon={faCheckCircle}
-                                />
+                                >
+                                    EOS
+                                    <FAIcon
+                                        style={{
+                                            marginLeft: 10,
+                                            color: Colors.GREEN3,
+                                        }}
+                                        icon={faCheckCircle}
+                                    />
+                                </div>
                             </td>
                         </tr>
                     </tfoot>

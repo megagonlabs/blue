@@ -3,6 +3,7 @@ import logging
 import inspect
 import logging, json, re
 from inspect import getframeinfo, stack
+from blue.utils import string_utils
 
 
 ##########################
@@ -45,6 +46,11 @@ def caller_reader(f, depth=3):
     return wrapper
 
 
+def replace_template(match):
+    key = str(match.group(1))
+    return "${" + key + "}"
+
+
 class CustomJsonFormatter(logging.Formatter):
     def __init__(self, data_config, output_format, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -62,11 +68,9 @@ class CustomJsonFormatter(logging.Formatter):
             elif field_name == 'message' and '%(message)s' in format_spec:
                 log_entry[field_name] = record.getMessage()
             else:
-                match = re.match(r'%\((.*?)\)s', format_spec)
-                attr_name = match.group(1) if match else field_name
-                value = getattr(record, attr_name, None)
-                if value is not None:
-                    log_entry[field_name] = value
+                template = re.sub(r"%\((.*?)\).?", replace_template, format_spec)
+                value = string_utils.safe_substitute(template, **record.__dict__)
+                log_entry[field_name] = value
         if record.exc_info:
             log_entry['exception'] = self.formatException(record.exc_info)
         if record.stack_info:
