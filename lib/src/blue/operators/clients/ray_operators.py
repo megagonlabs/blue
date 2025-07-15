@@ -25,6 +25,8 @@ join_operator = Operator(
     explainer=join_operator_explainer,
 )
 
+operators_dict[join_operator.name] = join_operator
+
 nl2sql_operator = Operator(
     name=nl2sql_operator_function.name,
     description=f"{nl2sql_operator_function.description} (Ray)",
@@ -35,6 +37,8 @@ nl2sql_operator = Operator(
     explainer=nl2sql_operator_explainer,
 )
 
+operators_dict[nl2sql_operator.name] = nl2sql_operator
+
 nl2llm_operator = Operator(
     name=nl2llm_operator_function.name,
     description=f"{nl2llm_operator_function.description} (Ray)",
@@ -44,3 +48,5 @@ nl2llm_operator = Operator(
     validator=nl2llm_operator_validator,
     explainer=nl2llm_operator_explainer,
 )
+
+operators_dict[nl2llm_operator.name] = nl2llm_operator
