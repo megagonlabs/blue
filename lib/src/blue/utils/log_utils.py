@@ -71,14 +71,6 @@ class CustomJsonFormatter(logging.Formatter):
                 template = re.sub(r"%\((.*?)\).?", replace_template, format_spec)
                 value = string_utils.safe_substitute(template, **record.__dict__)
                 log_entry[field_name] = value
-                # match = re.match(r'%\((.*?)\)s', format_spec)
-                # attr_name = match.group(1) if match else field_name
-                # value = getattr(record, attr_name, None)
-                # if value is not None:
-                #     log_entry[field_name] = value
-                # else:
-                #     # format is value
-                #     log_entry[field_name] = format_spec
         if record.exc_info:
             log_entry['exception'] = self.formatException(record.exc_info)
         if record.stack_info:
