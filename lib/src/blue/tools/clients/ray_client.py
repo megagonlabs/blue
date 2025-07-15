@@ -59,8 +59,7 @@ class RayToolClient(ToolClient):
 
     ######### tool
     def fetch_tools(self):
-        tools = ["add", "multiply"]
-        return tools
+        return list[tools_dict.keys()]
 
     def fetch_tool_metadata(self, tool):
         metadata = {}

@@ -1,0 +1,418 @@
+###### Formats
+import json
+from typing import List, Dict, Any, Callable, Optional
+
+###### External
+import psycopg2
+import mysql.connector
+
+###### Blue
+from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
+from blue.utils.service_utils import ServiceClient
+from blue.data.schema import DataSchema
+
+###############
+### NL2SQL Operator
+
+
+def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    question = params.get('question', '')
+    protocol = params.get('protocol', 'postgres')
+    database = params.get('database', '')
+    collection = params.get('collection', '')
+    force_query_prefixes = params.get('force_query_prefixes', 'SELECT')
+    case_insensitive = params.get('case_insensitive', True)
+    additional_requirements = params.get('additional_requirements', '')
+    context = params.get('context', '')
+    schema = params.get('schema', '')
+
+    if not question or not question.strip():
+        return []
+
+    # protocol, database, collection are required
+    if not protocol or not database or not collection:
+        raise ValueError("Protocol, database, and collection are required")
+
+    if not schema:
+        schema = _fetch_database_schema(protocol, database, collection, properties)
+    execute_query = properties.get('execute_query', True) if properties else True
+    validate_query_prefixes = properties.get('validate_query_prefixes', ['SELECT']) if properties else ['SELECT']
+    if protocol not in ['postgres', 'mysql']:
+        raise ValueError(f"Unsupported protocol: {protocol}. Supported protocols are: postgres, mysql")
+
+    service_client = ServiceClient(name="nl2sql_operator_service_client", properties=properties)
+    # Convert schema to JSON string if it's a dictionary
+    if isinstance(schema, dict):
+        schema_str = json.dumps(schema, indent=2)
+    else:
+        schema_str = str(schema)
+
+    service_input_data = {
+        'question': question,
+        'schema': schema_str,
+        'protocol': protocol,
+        'sensitivity': 'insensitive' if case_insensitive else 'sensitive',
+        'force_query_prefixes': force_query_prefixes,
+        'additional_requirements': additional_requirements,
+        'context': context,
+    }
+    sql_result = service_client.execute_api_call(service_input_data)
+
+    # Parse the result to get the query
+    if isinstance(sql_result, str):
+        try:
+            sql_data = json.loads(sql_result)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON response from LLM: {str(e)}")
+    elif isinstance(sql_result, dict):
+        sql_data = sql_result
+    else:
+        raise ValueError("Invalid response from LLM: " + str(sql_result))
+
+    generated_query = sql_data.get('query', '')
+    if not generated_query:
+        raise ValueError("No query found in LLM response")
+
+    # Validate query prefix
+    if not any(generated_query.upper().startswith(prefix.upper()) for prefix in validate_query_prefixes):
+        raise ValueError(f'Invalid query prefix: {generated_query}')
+
+    # If execution is enabled, execute the generated SQL
+    if execute_query and generated_query:
+        # Execute query directly using connection parameters
+        connection_params = properties.get('connection', {})
+        if connection_params:
+            try:
+                if protocol == 'postgres':
+
+                    conn = psycopg2.connect(
+                        host=connection_params.get('host'),
+                        port=connection_params.get('port'),
+                        database=database,
+                        user=connection_params.get('user'),
+                        password=connection_params.get('password'),
+                    )
+                    cursor = conn.cursor()
+                    cursor.execute(generated_query)
+                    data = cursor.fetchall()
+
+                    # Transform to JSON format
+                    columns = [desc[0] for desc in cursor.description]
+                    result = [dict(zip(columns, row)) for row in data]
+                    count = len(result)
+
+                    cursor.close()
+                    conn.close()
+
+                elif protocol == 'mysql':
+                    conn = mysql.connector.connect(
+                        host=connection_params.get('host'),
+                        port=connection_params.get('port'),
+                        database=database,
+                        user=connection_params.get('user'),
+                        password=connection_params.get('password'),
+                    )
+                    cursor = conn.cursor(buffered=True)
+                    cursor.execute(generated_query)
+                    data = cursor.fetchall()
+
+                    # Transform to JSON format
+                    columns = [desc[0] for desc in cursor.description]
+                    result = [dict(zip(columns, row)) for row in data]
+                    count = len(result)
+
+                    cursor.close()
+                    conn.close()
+                else:
+                    raise ValueError(f"Unsupported protocol: {protocol}")
+            except Exception as e:
+                raise ValueError(f"Error executing query: {str(e)}")
+        else:
+            raise ValueError("No connection parameters provided for query execution")
+        return result
+    # if execution is disabled, return the sql query only
+    return [[{"sql": generated_query}]]
+
+
+def nl2sql_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate nl2sql operator parameters."""
+    return default_operator_validator(params, properties)
+
+
+def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
+    """Explain nl2sql operator output. Currently only returns parameters and output"""
+    nl2sql_explanation = {
+        'output': output,
+        "parameters": params,
+    }
+    return nl2sql_explanation
+
+
+class NL2SQLOperator(Operator, ServiceClient):
+    PROMPT = """
+Your task is to translate a natural language question into a SQL query based on the provided database schema.
+
+Here are the requirements:
+- The output should be a JSON object with the following fields:
+  - "question": the original natural language question
+  - "query": the SQL query that is translated from the natural language question
+- The SQL query should be compatible with the provided schema.
+- The SQL query should be compatible with the syntax of the corresponding database's protocol.
+- For enum fields, do not use LOWER(), ILIKE, or other string functions. Compare enum fields using exact equality.
+- Always do case-${sensitivity} matching for string comparison.
+- The query should start with any of the following prefixes: ${force_query_prefixes}
+- When interpreting the "question" use additional context provided, if available.
+- Output the JSON directly. Do not generate explanation or other additional output.
+${additional_requirements}
+
+Database Protocol: 
+```
+${protocol}
+```
+
+Database Schema:
+```
+${schema}
+```
+
+Context: ${context}
+
+Question: ${question}
+
+Output:
+"""
+
+    PROPERTIES = {
+        # nl2sql related
+        "execute_query": True,
+        # "force_query_prefixes": "SELECT",
+        "validate_query_prefixes": ["SELECT"],
+        # service utils related
+        "openai.api": "ChatCompletion",
+        "openai.model": "gpt-4o",
+        "openai.stream": False,
+        "openai.max_tokens": 512,
+        "openai.temperature": 0,
+        "input_json": "[{\"role\": \"user\"}]",
+        "input_context": "$[0]",
+        "input_context_field": "content",
+        "input_field": "messages",
+        "input_template": PROMPT,
+        "output_path": "$.choices[0].message.content",
+        "service_prefix": "openai",
+        "output_transformations": [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}],
+        "output_strip": True,
+        "output_cast": "json",
+        # connection
+        "connection": {"host": "localhost", "port": 5432, "protocol": "postgres", "user": "postgres", "password": "postgres"},
+    }
+
+    name = "nl2sql"
+    description = "Translates natural language questions into SQL queries using LLM models"
+    default_parameters = {
+        "question": {"type": "str", "description": "Natural language question to translate to SQL", "required": True},
+        "protocol": {"type": "str", "description": "Database protocol (postgres or mysql)", "required": True, "default": "postgres"},
+        "database": {"type": "str", "description": "Database name", "required": True, "default": ""},
+        "collection": {"type": "str", "description": "Collection/schema name", "required": True, "default": ""},
+        "case_insensitive": {"type": "bool", "description": "Case insensitive string matching", "required": False, "default": True},
+        "additional_requirements": {"type": "str", "description": "Additional requirements for SQL generation", "required": False, "default": ""},
+        "context": {"type": "str", "description": "Optional context for domain knowledge", "required": False, "default": ""},
+        "schema": {"type": "str", "description": "JSON string of database schema (optional - will be fetched automatically if not provided)", "required": False, "default": ""},
+    }
+
+    def __init__(self, name: str = "nl2sql", description: str = None, properties: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None):
+        if description is None:
+            description = self.description
+
+        if properties is None:
+            properties = {}
+        if "parameters" not in properties:
+            properties["parameters"] = self.default_parameters
+        if function is None:
+            function = nl2sql_operator_function
+        if validator is None:
+            validator = nl2sql_operator_validator
+        if explainer is None:
+            explainer = nl2sql_operator_explainer
+
+        super().__init__(
+            name=name,
+            description=description,
+            properties=properties,
+            function=function,
+            validator=validator,
+            explainer=explainer,
+        )
+
+    def _initialize_properties(self):
+        super()._initialize_properties()  # get default properties for Operator
+        self.properties.update(self.PROPERTIES)  # update with NL2SQL specific properties
+
+    def extract_input_params(self, input_data, properties=None):
+        """Extract input parameters for template substitution"""
+        # For NL2SQL, input_data is a dictionary containing all the template variables
+        if isinstance(input_data, dict):
+            return input_data
+        return {}
+
+
+###############
+### Helper Functions of NL2SQL Operator
+def _fetch_database_schema(protocol: str, database: str, collection: str, properties: Dict[str, Any]) -> str:
+    """Fetch database schema directly from the database."""
+    connection_params = properties.get('connection', {})
+    if not connection_params:
+        raise ValueError("No connection parameters provided for schema fetching")
+
+    try:
+        if protocol == 'postgres':
+            return _fetch_postgres_schema(database, collection, connection_params)
+        elif protocol == 'mysql':
+            return _fetch_mysql_schema(database, collection, connection_params)
+        else:
+            raise ValueError(f"Unsupported protocol for schema fetching: {protocol}")
+    except Exception as e:
+        raise ValueError(f"Error fetching schema: {str(e)}")
+
+
+def _fetch_postgres_schema(database: str, collection: str, connection_params: Dict[str, Any]) -> str:
+    """Fetch PostgreSQL schema."""
+    # Connect to the database
+    conn = psycopg2.connect(
+        host=connection_params.get('host'),
+        port=connection_params.get('port'),
+        database=database,
+        user=connection_params.get('user'),
+        password=connection_params.get('password'),
+    )
+
+    try:
+        cursor = conn.cursor()
+
+        # fallback to use the "public" schema in PostgreSQL if collection is not provided
+        schema_name = collection if collection else 'public'
+
+        # Get enum types
+        enum_query = """
+        SELECT
+          n.nspname AS schema,
+          t.typname AS type_name,
+          e.enumlabel AS enum_value
+        FROM
+          pg_type t
+        JOIN
+          pg_enum e ON t.oid = e.enumtypid
+        JOIN
+          pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+        WHERE
+          n.nspname NOT IN ('pg_catalog', 'information_schema')
+        ORDER BY
+          t.typname, e.enumsortorder;
+        """
+        cursor.execute(enum_query)
+        enum_data = cursor.fetchall()
+
+        # Build enum types dictionary
+        enum_types = {}
+        for schema, type_name, enum_value in enum_data:
+            if type_name not in enum_types:
+                enum_types[type_name] = []
+            enum_types[type_name].append(enum_value)
+
+        # Get columns (same as original)
+        query = """
+        SELECT table_name, column_name, data_type, udt_name
+        FROM information_schema.columns
+        WHERE table_schema = %s
+        """
+        cursor.execute(query, (schema_name,))
+        data = cursor.fetchall()
+
+        # Use DataSchema like the original
+        schema = DataSchema()
+
+        for table_name, column_name, data_type, udt_name in data:
+            if not schema.has_entity(table_name):
+                schema.add_entity(table_name)
+
+            if enum_types and udt_name in enum_types:
+                schema.add_entity_property(table_name, column_name, {"type": data_type, "enum": enum_types[udt_name]})
+            else:
+                schema.add_entity_property(table_name, column_name, data_type)
+
+        return schema.to_json()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def _fetch_mysql_schema(database: str, collection: str, connection_params: Dict[str, Any]) -> str:
+    """Fetch MySQL schema."""
+    # Connect to the database
+    conn = mysql.connector.connect(
+        host=connection_params.get('host'),
+        port=connection_params.get('port'),
+        database=database,
+        user=connection_params.get('user'),
+        password=connection_params.get('password'),
+    )
+
+    try:
+        cursor = conn.cursor(buffered=True)
+
+        # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
+        query = "SELECT table_name, column_name, data_type from information_schema.columns WHERE table_schema = '{}'".format(database)
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        # Use DataSchema like the original
+        schema = DataSchema()
+
+        for table_name, column_name, data_type in data:
+            if not schema.has_entity(table_name):
+                schema.add_entity(table_name)
+            schema.add_entity_property(table_name, column_name, data_type)
+
+        return schema.to_json()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+if __name__ == "__main__":
+    ## calling example
+
+    input_data = [[]]
+    params = {
+        "question": "what is the most frequently advertised manager role in jurong?",
+        # "question": "what are the top 10 project manager jobs in jurong with a minimum salary of 4000?",
+        "protocol": "postgres",
+        "database": "postgres",
+        "collection": "public",
+        "case_insensitive": True,
+        "additional_requirements": "",
+        "context": "This is a job database with information about job postings, skills, companies, and salaries",
+        # schema will be fetched automatically if not provided
+    }
+
+    print(f"=== NL2SQL PARAMETERS ===")
+    print(params)
+
+    # just used to get the default properties
+    nl2sql_operator = NL2SQLOperator()
+    properties = nl2sql_operator.properties
+    print(f"=== NL2SQL PROPERTIES ===")
+    properties['service_url'] = 'ws://localhost:8001'  # update this to your service url
+    print(properties)
+
+    # call the function
+    # Option 1: directly call the nl2sql_operator_function
+    result = nl2sql_operator_function(input_data, params, properties)
+    print("=== NL2SQL RESULT (Option 1)===")
+    print(result)
+    # Option 2: use the function method
+    result = nl2sql_operator.function(input_data, params, properties)
+    print("=== NL2SQL RESULT (Option 2)===")
+    print(result)
