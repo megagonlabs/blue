@@ -30,11 +30,6 @@ class OperatorSchema(BaseModel):
     icon: Union[str, dict, None] = None
 
 
-class ParameterSchema(BaseModel):
-    name: str
-    description: Union[str, None] = None
-
-
 JSONObject = Dict[str, Any]
 JSONArray = List[Any]
 JSONStructure = Union[JSONArray, JSONObject, Any]
@@ -59,14 +54,14 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 operator_registry = OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{operator_registry_id}", dependencies=[Depends(account_id_header)])
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{operator_registry_id}/operators", dependencies=[Depends(account_id_header)])
 
 # set logging
 logging.getLogger().setLevel("INFO")
 
 
-write_all_roles = ACL.get_implicit_users_for_permission('operator_registry', 'write_all')
-write_own_roles = ACL.get_implicit_users_for_permission('operator_registry', 'write_own')
+write_all_roles = ACL.get_implicit_users_for_permission('tool_registry', 'write_all')
+write_own_roles = ACL.get_implicit_users_for_permission('tool_registry', 'write_own')
 
 
 def server_acl_enforce(request: Request, server: dict, write=False, throw=True):
