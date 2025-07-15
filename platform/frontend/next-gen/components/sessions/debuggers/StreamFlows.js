@@ -22,23 +22,21 @@ import TransitionNode from "./react-flow/TransitionNode";
 const NODE_TYPES = {
     stream: StreamNode,
     agent: AgentNode,
-    transitionNode: TransitionNode,
+    transition: TransitionNode,
 };
 const getNodeDimension = (node) => {
     const label = _.get(node, "data.label", "");
     const nodeType = _.get(node, "type", null);
+    const nodePadding = REACT_FLOW_NODE["padding"] * 2;
     if (_.includes(["agent", "stream"], nodeType)) {
-        const padding = REACT_FLOW_NODE["padding"] * 2;
         return {
-            nodeWidth: Math.min(400, 9 * _.size(label) + padding),
-            nodeHeight: 48 + padding,
+            nodeWidth: Math.min(400, 9 * _.size(label) + nodePadding),
+            nodeHeight: 48 + nodePadding,
         };
-    } else if (_.isEqual(nodeType, "transitionNode")) {
-        const transitionNodePadding =
-            REACT_FLOW_NODE["transitionNodePadding"] * 2;
+    } else if (_.isEqual(nodeType, "transition")) {
         return {
-            nodeWidth: 7.5 * _.size(label) + 12 + transitionNodePadding,
-            nodeHeight: 20 + transitionNodePadding,
+            nodeWidth: 7.5 * _.size(label) + 12 + 10,
+            nodeHeight: 20 + 10,
         };
     }
 };
@@ -113,13 +111,7 @@ export default function StreamFlows({ sessionId }) {
                     nodes.push({
                         id: consumerNodeId,
                         type: "agent",
-                        data: {
-                            label: agent,
-                            consumer: true,
-                            timestamp,
-                            metadata,
-                            contentType,
-                        },
+                        data: { label: agent, consumer: true },
                     });
                     seenNodeIds.add(consumerNodeId);
                 }
@@ -130,7 +122,7 @@ export default function StreamFlows({ sessionId }) {
                     nodes.push({
                         id: transitionNodeId,
                         data: { label: "consumed by" },
-                        type: "transitionNode",
+                        type: "transition",
                     });
                     edges.push({
                         id: `edge_${streamNodeId}_${transitionNodeId}`,
@@ -162,13 +154,7 @@ export default function StreamFlows({ sessionId }) {
                     nodes.push({
                         id: producerNodeId,
                         type: "agent",
-                        data: {
-                            label: agent,
-                            producer: true,
-                            timestamp,
-                            metadata,
-                            contentType,
-                        },
+                        data: { label: agent, producer: true },
                     });
                     seenNodeIds.add(producerNodeId);
                 }
@@ -179,7 +165,7 @@ export default function StreamFlows({ sessionId }) {
                     nodes.push({
                         id: transitionNodeId,
                         data: { label: "produced" },
-                        type: "transitionNode",
+                        type: "transition",
                     });
                     edges.push({
                         id: `edge_${producerNodeId}_${transitionNodeId}`,
