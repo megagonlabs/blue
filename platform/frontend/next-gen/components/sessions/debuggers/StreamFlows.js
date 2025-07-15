@@ -1,5 +1,5 @@
-import { REACT_FLOW_NODE } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
+import { getReactFlowLayoutedElements } from "@/components/helper";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
@@ -8,76 +8,73 @@ import {
     Card,
     Tooltip,
 } from "@blueprintjs/core";
-import { faExpand } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faArrowsMaximize } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Background, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import dagre from "dagre";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/react/shallow";
 import AgentNode from "./react-flow/AgentNode";
 import StreamNode from "./react-flow/StreamNode";
-import TransitionNode from "./react-flow/TransitionNode";
+import TagNode from "./react-flow/TagNode";
 const NODE_TYPES = {
     stream: StreamNode,
     agent: AgentNode,
-    transition: TransitionNode,
-};
-const getNodeDimension = (node) => {
-    const label = _.get(node, "data.label", "");
-    const nodeType = _.get(node, "type", null);
-    const nodePadding = REACT_FLOW_NODE["padding"] * 2;
-    if (_.includes(["agent", "stream"], nodeType)) {
-        return {
-            nodeWidth: Math.min(400, 9 * _.size(label) + nodePadding),
-            nodeHeight: 48 + nodePadding,
-        };
-    } else if (_.isEqual(nodeType, "transition")) {
-        return {
-            nodeWidth: 7.5 * _.size(label) + 12 + 10,
-            nodeHeight: 20 + 10,
-        };
-    }
-};
-const getLayoutedElements = (nodes, edges, direction = "LR") => {
-    const dagreGraph = new dagre.graphlib.Graph();
-    dagreGraph.setDefaultEdgeLabel(() => ({}));
-    const isHorizontal = _.isEqual(direction, "LR");
-    dagreGraph.setGraph({ rankdir: direction });
-    for (let i = 0; i < _.size(nodes); i++) {
-        const node = nodes[i];
-        const { nodeWidth, nodeHeight } = getNodeDimension(node);
-        dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-        _.set(nodes, [i, "style", "width"], nodeWidth);
-        _.set(nodes, [i, "style", "height"], nodeHeight);
-    }
-    edges.forEach((edge) => {
-        dagreGraph.setEdge(edge.source, edge.target);
-    });
-    dagre.layout(dagreGraph);
-    const newNodes = nodes.map((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
-        const { nodeWidth, nodeHeight } = getNodeDimension(node);
-        const newNode = {
-            ...node,
-            targetPosition: isHorizontal ? "left" : "top",
-            sourcePosition: isHorizontal ? "right" : "bottom",
-            // we are shifting the dagre node position (anchor=center center) to the top left
-            // so it matches the React Flow node anchor point (top left).
-            position: {
-                x: nodeWithPosition.x - nodeWidth / 2,
-                y: nodeWithPosition.y - nodeHeight / 2,
-            },
-        };
-        return newNode;
-    });
-    return { nodes: newNodes, edges };
+    tag: TagNode,
 };
 export default function StreamFlows({ sessionId }) {
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
-    const { fitView } = useReactFlow();
+    const { fitView, getNodes, getEdges } = useReactFlow();
+    const [measuredDimensions, setMeasuredDimensions] = useState({});
+    const nodesWithKnownDimensions = _.keys(measuredDimensions);
+    const handleNodeDimensionsChange = useCallback((nodeId, width, height) => {
+        setMeasuredDimensions((prev) => ({
+            ...prev,
+            [nodeId]: { width, height },
+        }));
+    }, []);
+    useEffect(() => {
+        const allCurrentNodes = getNodes();
+        const allNodesMeasured = allCurrentNodes.every((node) => {
+            return !!measuredDimensions[node.id];
+        });
+        if (allNodesMeasured && !_.isEmpty(allCurrentNodes)) {
+            const nodesToLayout = allCurrentNodes.map((node) => {
+                if (measuredDimensions[node.id]) {
+                    return {
+                        ...node,
+                        width: measuredDimensions[node.id].width,
+                        height: measuredDimensions[node.id].height,
+                    };
+                }
+            });
+            const { nodes: layoutedNodes } = getReactFlowLayoutedElements(
+                nodesToLayout,
+                getEdges(),
+                "LR"
+            );
+            setNodes(layoutedNodes);
+        }
+    }, [
+        nodesWithKnownDimensions.length,
+        getNodes,
+        getEdges,
+        setNodes,
+        measuredDimensions,
+    ]);
+    const nodesWithHandlers = useMemo(() => {
+        return nodes.map((node) => {
+            return {
+                ...node,
+                data: {
+                    ...node.data,
+                    onDimensionsChange: handleNodeDimensionsChange,
+                },
+            };
+        });
+    }, [nodes, handleNodeDimensionsChange]);
     const { session } = useSessionStore(
         useShallow((state) => ({
             session: _.get(state, ["sessions", sessionId], {}),
@@ -89,6 +86,7 @@ export default function StreamFlows({ sessionId }) {
         const edges = [];
         const seenNodeIds = new Set();
         const seenEdges = new Set();
+        const nodeIndex = {};
         for (let i = 0; i < _.size(messages); i++) {
             const { stream, timestamp, metadata, contentType } = messages[i];
             const streamNodeId = `stream_${stream}`;
@@ -96,9 +94,16 @@ export default function StreamFlows({ sessionId }) {
                 nodes.push({
                     id: streamNodeId,
                     type: "stream",
-                    data: { label: stream, timestamp, metadata, contentType },
+                    data: {
+                        label: stream,
+                        timestamp,
+                        metadata,
+                        contentType,
+                        sessionId,
+                    },
                 });
                 seenNodeIds.add(streamNodeId);
+                nodeIndex[streamNodeId] = _.size(nodes) - 1;
             }
             // consumers
             const consumers = _.keys(
@@ -106,23 +111,30 @@ export default function StreamFlows({ sessionId }) {
             ).filter((key) => !_.startsWith(key, "OBSERVER:"));
             for (let j = 0; j < _.size(consumers); j++) {
                 const agent = consumers[j];
-                const consumerNodeId = `consumer_${agent}`;
-                if (!seenNodeIds.has(consumerNodeId)) {
+                const agentNodeId = `agent_${agent}`;
+                if (!seenNodeIds.has(agentNodeId)) {
                     nodes.push({
-                        id: consumerNodeId,
+                        id: agentNodeId,
                         type: "agent",
                         data: { label: agent, consumer: true },
                     });
-                    seenNodeIds.add(consumerNodeId);
+                    seenNodeIds.add(agentNodeId);
+                    nodeIndex[agentNodeId] = _.size(nodes) - 1;
+                } else {
+                    _.set(
+                        nodes,
+                        [nodeIndex[agentNodeId], "data", "consumer"],
+                        true
+                    );
                 }
                 // create edge: stream -> consumer
-                const edge = `edge_${streamNodeId}_${consumerNodeId}`;
+                const edge = `edge_${streamNodeId}_${agentNodeId}`;
                 if (!seenEdges.has(edge)) {
                     const transitionNodeId = uuidv4();
                     nodes.push({
                         id: transitionNodeId,
                         data: { label: "consumed by" },
-                        type: "transition",
+                        type: "tag",
                     });
                     edges.push({
                         id: `edge_${streamNodeId}_${transitionNodeId}`,
@@ -133,9 +145,9 @@ export default function StreamFlows({ sessionId }) {
                         style: { strokeWidth: 2 },
                     });
                     edges.push({
-                        id: `edge_${transitionNodeId}_${consumerNodeId}`,
+                        id: `edge_${transitionNodeId}_${agentNodeId}`,
                         source: transitionNodeId,
-                        target: consumerNodeId,
+                        target: agentNodeId,
                         animated: true,
                         type: "smoothstep",
                         style: { strokeWidth: 2 },
@@ -149,27 +161,34 @@ export default function StreamFlows({ sessionId }) {
             );
             for (let j = 0; j < _.size(producers); j++) {
                 const agent = producers[j];
-                const producerNodeId = `producer_${agent}`;
-                if (!seenNodeIds.has(producerNodeId)) {
+                const agentNodeId = `agent_${agent}`;
+                if (!seenNodeIds.has(agentNodeId)) {
                     nodes.push({
-                        id: producerNodeId,
+                        id: agentNodeId,
                         type: "agent",
                         data: { label: agent, producer: true },
                     });
-                    seenNodeIds.add(producerNodeId);
+                    seenNodeIds.add(agentNodeId);
+                    nodeIndex[agentNodeId] = _.size(nodes) - 1;
+                } else {
+                    _.set(
+                        nodes,
+                        [nodeIndex[agentNodeId], "data", "producer"],
+                        true
+                    );
                 }
                 // create edge: producer -> stream
-                const edge = `edge_${producerNodeId}_${streamNodeId}`;
+                const edge = `edge_${agentNodeId}_${streamNodeId}`;
                 if (!seenEdges.has(edge)) {
                     const transitionNodeId = uuidv4();
                     nodes.push({
                         id: transitionNodeId,
                         data: { label: "produced" },
-                        type: "transition",
+                        type: "tag",
                     });
                     edges.push({
-                        id: `edge_${producerNodeId}_${transitionNodeId}`,
-                        source: producerNodeId,
+                        id: `edge_${agentNodeId}_${transitionNodeId}`,
+                        source: agentNodeId,
                         target: transitionNodeId,
                         animated: true,
                         type: "smoothstep",
@@ -188,7 +207,7 @@ export default function StreamFlows({ sessionId }) {
             }
         }
         const { nodes: layoutedNodes, edges: layoutedEdges } =
-            getLayoutedElements(nodes, edges);
+            getReactFlowLayoutedElements(nodes, edges);
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
     }, [messages]);
@@ -200,7 +219,7 @@ export default function StreamFlows({ sessionId }) {
                 nodesDraggable={false}
                 nodesConnectable={false}
                 nodesFocusable={false}
-                nodes={nodes}
+                nodes={nodesWithHandlers}
                 edges={edges}
                 nodeTypes={NODE_TYPES}
             >
@@ -213,7 +232,7 @@ export default function StreamFlows({ sessionId }) {
                                     onClick={() => {
                                         fitView({ duration: 300 });
                                     }}
-                                    icon={<FAIcon icon={faExpand} />}
+                                    icon={<FAIcon icon={faArrowsMaximize} />}
                                 />
                             </Tooltip>
                         </ButtonGroup>

@@ -1,16 +1,19 @@
-import { REACT_FLOW_NODE } from "@/components/constants";
+import { useSessionStore } from "@/stores/session-store";
 import { Classes, Intent, Tag, Tooltip } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
-export default function StreamNode({ data }) {
+import _ from "lodash";
+import { useShallow } from "zustand/react/shallow";
+import BaseNode from "./BaseNode";
+export default function StreamNode({ id, data }) {
+    const { session } = useSessionStore(
+        useShallow((state) => ({
+            session: _.get(state, ["sessions", data.sessionId], {}),
+        }))
+    );
+    const stream = _.get(session, ["streams", data.label], null);
+    const streamData = _.get(stream, "data", []);
     return (
-        <div
-            className="custom-card interactive-card-border"
-            style={{
-                padding: REACT_FLOW_NODE["padding"],
-                fontFamily: "monospace, monospace",
-                maxWidth: 400,
-            }}
-        >
+        <BaseNode id={id} data={data}>
             <Tag intent={Intent.PRIMARY} minimal style={{ marginBottom: 10 }}>
                 Stream
             </Tag>
@@ -28,8 +31,22 @@ export default function StreamNode({ data }) {
                     </div>
                 </Tooltip>
             </div>
+            <div
+                style={{
+                    marginTop: 10,
+                    display: "flex",
+                    gap: 10,
+                    flexDirection: "column",
+                }}
+            >
+                {streamData.map((data, index) => (
+                    <div key={index} className="multiline-ellipsis-5">
+                        {JSON.stringify(data.content)}
+                    </div>
+                ))}
+            </div>
             <Handle type="target" position={Position.Left} />
             <Handle type="source" position={Position.Right} />
-        </div>
+        </BaseNode>
     );
 }

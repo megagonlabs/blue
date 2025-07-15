@@ -7,6 +7,7 @@ import {
     ButtonVariant,
     Classes,
     Colors,
+    CompoundTag,
     Divider,
     H5,
     HTMLTable,
@@ -187,7 +188,13 @@ export default function MessageViewer({ sessionId, message }) {
                     <H5>Consumers</H5>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                         {consumers.map((key) => (
-                            <Tag minimal>{key}</Tag>
+                            <CompoundTag
+                                minimal
+                                key={key}
+                                leftContent={_.split(key, ":")[0]}
+                            >
+                                {_.split(key, ":")[1]}
+                            </CompoundTag>
                         ))}
                     </div>
                 </div>
@@ -197,7 +204,13 @@ export default function MessageViewer({ sessionId, message }) {
                     <H5>Producers</H5>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                         {producers.map((key) => (
-                            <Tag minimal>{key}</Tag>
+                            <CompoundTag
+                                minimal
+                                key={key}
+                                leftContent={_.split(key, ":")[0]}
+                            >
+                                {_.split(key, ":")[1]}
+                            </CompoundTag>
                         ))}
                     </div>
                 </div>

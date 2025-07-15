@@ -3,6 +3,7 @@ import {
     faExclamation,
     faPenSwirl,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import dagre from "dagre";
 import _ from "lodash";
 import EntityDisplayName from "./registries/EntityDisplayName";
 import RegistryEntityIcon from "./registries/RegistryEntityIcon";
@@ -117,6 +118,50 @@ module.exports = {
         peek() {
             return this.items[this.front];
         }
+    },
+    getReactFlowLayoutedElements: (nodes, edges, direction = "LR") => {
+        const dagreGraph = new dagre.graphlib.Graph();
+        dagreGraph.setDefaultEdgeLabel(() => ({}));
+        dagreGraph.setGraph({
+            rankdir: direction,
+            compound: true,
+            marginx: 20,
+            marginy: 20,
+        });
+        for (let i = 0; i < _.size(nodes); i++) {
+            const node = nodes[i];
+            if (!node.width || !node.height) {
+                dagreGraph.setNode(node.id, { width: 1, height: 1 });
+            } else {
+                dagreGraph.setNode(node.id, {
+                    width: node.width,
+                    height: node.height,
+                });
+            }
+            if (node.parentId) {
+                dagreGraph.setParent(node.id, node.parentId);
+            }
+        }
+        for (let i = 0; i < _.size(edges); i++) {
+            const edge = edges[i];
+            dagreGraph.setEdge(edge.source, edge.target);
+        }
+        dagre.layout(dagreGraph);
+        const newNodes = nodes.map((node) => {
+            const graphNode = dagreGraph.node(node.id);
+            const { width, height, x, y } = graphNode;
+            const newNode = {
+                ...node,
+                position: {
+                    x: x - width / 2,
+                    y: y - height / 2,
+                },
+                width,
+                height,
+            };
+            return newNode;
+        });
+        return { nodes: newNodes, edges };
     },
     insertBetween: (list, element) => {
         let array = _.cloneDeep(list);

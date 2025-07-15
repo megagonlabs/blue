@@ -1,17 +1,12 @@
-import { REACT_FLOW_NODE } from "@/components/constants";
 import { Classes, Intent, Tag, Tooltip } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
 import _ from "lodash";
-export default function AgentNode({ data, selected }) {
+import BaseNode from "./BaseNode";
+export default function AgentNode({ id, data }) {
+    const consumer = _.get(data, "consumer", false);
+    const producer = _.get(data, "producer", false);
     return (
-        <div
-            className="custom-card interactive-card-border"
-            style={{
-                padding: REACT_FLOW_NODE["padding"],
-                fontFamily: "monospace, monospace",
-                maxWidth: 400,
-            }}
-        >
+        <BaseNode id={id} data={data}>
             <Tag intent={Intent.PRIMARY} minimal style={{ marginBottom: 10 }}>
                 Agent
             </Tag>
@@ -29,12 +24,13 @@ export default function AgentNode({ data, selected }) {
                     </div>
                 </Tooltip>
             </div>
-            {_.get(data, "producer", false) && (
-                <Handle type="source" position={Position.Right} />
+
+            {consumer && (
+                <Handle id="consumer" type="target" position={Position.Left} />
             )}
-            {_.get(data, "consumer", false) && (
-                <Handle type="target" position={Position.Left} />
+            {producer && (
+                <Handle id="producer" type="source" position={Position.Right} />
             )}
-        </div>
+        </BaseNode>
     );
 }
