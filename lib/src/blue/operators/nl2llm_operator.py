@@ -28,9 +28,9 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
     service_client = ServiceClient(name="nl2llm_operator_service_client", properties=properties)
 
     # Create input_data as a dictionary with all the values needed for template substitution
-    input_data = {'query': query, 'context': context, 'attr_names': attr_names}
+    service_input_data = {'query': query, 'context': context, 'attr_names': attr_names}
 
-    return [service_client.execute_api_call(input_data)]
+    return [service_client.execute_api_call(service_input_data)]
 
 
 def nl2llm_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
