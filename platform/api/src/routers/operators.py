@@ -60,8 +60,8 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{operator_registry_id}/op
 logging.getLogger().setLevel("INFO")
 
 
-write_all_roles = ACL.get_implicit_users_for_permission('tool_registry', 'write_all')
-write_own_roles = ACL.get_implicit_users_for_permission('tool_registry', 'write_own')
+write_all_roles = ACL.get_implicit_users_for_permission('operator_registry', 'write_all')
+write_own_roles = ACL.get_implicit_users_for_permission('operator_registry', 'write_own')
 
 
 def server_acl_enforce(request: Request, server: dict, write=False, throw=True):
