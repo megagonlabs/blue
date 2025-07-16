@@ -6,9 +6,13 @@ import {
     ButtonGroup,
     ButtonVariant,
     Card,
+    NonIdealState,
     Tooltip,
 } from "@blueprintjs/core";
-import { faArrowsMaximize } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faArrowsMaximize,
+    faCompassDrafting,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Background, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import _ from "lodash";
@@ -35,6 +39,7 @@ export default function StreamFlows({ sessionId }) {
             [nodeId]: { width, height },
         }));
     }, []);
+    const [layoutInitialized, setLayoutInitialized] = useState(false);
     useEffect(() => {
         const allCurrentNodes = getNodes();
         const allNodesMeasured = allCurrentNodes.every((node) => {
@@ -56,12 +61,15 @@ export default function StreamFlows({ sessionId }) {
                 "LR"
             );
             setNodes(layoutedNodes);
+            setLayoutInitialized(true);
+            fitView();
         }
     }, [
         nodesWithKnownDimensions.length,
         getNodes,
         getEdges,
         setNodes,
+        layoutInitialized,
         measuredDimensions,
     ]);
     const nodesWithHandlers = useMemo(() => {
@@ -210,15 +218,32 @@ export default function StreamFlows({ sessionId }) {
             getReactFlowLayoutedElements(nodes, edges);
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
+        setLayoutInitialized(false);
     }, [messages]);
     return (
-        <div className="full-parent-dimension">
+        <div
+            className="full-parent-dimension"
+            style={{ overflow: !layoutInitialized && "hidden" }}
+        >
+            {!layoutInitialized && (
+                <NonIdealState
+                    title="Rendering"
+                    icon={
+                        <FAIcon
+                            size={50}
+                            className="fa-fade"
+                            icon={faCompassDrafting}
+                        />
+                    }
+                />
+            )}
             <ReactFlow
                 elevateEdgesOnSelect
                 fitView
                 nodesDraggable={false}
                 nodesConnectable={false}
                 nodesFocusable={false}
+                edgesFocusable={false}
                 nodes={nodesWithHandlers}
                 edges={edges}
                 nodeTypes={NODE_TYPES}

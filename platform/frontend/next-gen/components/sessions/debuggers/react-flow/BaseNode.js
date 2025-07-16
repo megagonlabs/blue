@@ -20,10 +20,12 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
                         height !== currentDimensions.height
                     ) {
                         setCurrentDimensions({ width, height });
-                        updateNodeInternals(id);
-                        if (data.onDimensionsChange) {
-                            data.onDimensionsChange(id, width, height);
-                        }
+                        setTimeout(() => {
+                            updateNodeInternals(id);
+                            if (data.onDimensionsChange) {
+                                data.onDimensionsChange(id, width, height);
+                            }
+                        }, 0);
                     }
                 }
             }

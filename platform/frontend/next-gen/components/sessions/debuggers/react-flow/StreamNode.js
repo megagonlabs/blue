@@ -21,7 +21,12 @@ export default function StreamNode({ id, data }) {
                 <Tooltip
                     className="full-parent-width"
                     content={
-                        <div style={{ maxWidth: 300, wordBreak: "break-all" }}>
+                        <div
+                            style={{
+                                maxWidth: 300,
+                                wordBreak: "break-all",
+                            }}
+                        >
                             {data.label}
                         </div>
                     }
@@ -31,14 +36,7 @@ export default function StreamNode({ id, data }) {
                     </div>
                 </Tooltip>
             </div>
-            <div
-                style={{
-                    marginTop: 10,
-                    display: "flex",
-                    gap: 10,
-                    flexDirection: "column",
-                }}
-            >
+            <div style={{ marginTop: 10 }}>
                 {streamData.map((data, index) => (
                     <div key={index} className="multiline-ellipsis-5">
                         {JSON.stringify(data.content)}

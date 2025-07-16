@@ -24,7 +24,6 @@ export default function AgentNode({ id, data }) {
                     </div>
                 </Tooltip>
             </div>
-
             {consumer && (
                 <Handle id="consumer" type="target" position={Position.Left} />
             )}
