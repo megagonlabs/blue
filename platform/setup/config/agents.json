@@ -1269,6 +1269,12 @@
     "properties": {
       "display_name": "OpenAI Query Explainer Agent",
       "openai.model": "gpt-4o-mini",
+      "instructions": [
+      "Use the count field in the JSON to describe how many matches were found.",
+      "Tailor your response accordingly: say 'no match', 'a few matches', or 'many matches' based on the value.",
+      "Do not include the raw JSON result in your explanation.",
+      "Explain in natural, friendly, and concise language."
+      ],
       "tags": {
         "DEFAULT": [
           "EXPLANATION",
@@ -1283,7 +1289,7 @@
           ]
         }
       },
-      "input_template": "Given a question expressed in natural language and its corresponding sql query, along with the result of the query as below in JSON, explain the results. Return only result in natural language\n ${input}"
+      "input_template": "Instructions:\n${instructions}\n\nTask:\nGiven a natural language question, its SQL query, and the query result in JSON, explain the results in plain English.\n\n${input}"
     },
     "icon": null
   },
