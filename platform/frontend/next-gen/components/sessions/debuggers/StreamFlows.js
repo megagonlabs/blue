@@ -229,11 +229,11 @@ export default function StreamFlows({ sessionId }) {
         >
             {!layoutInitialized && (
                 <NonIdealState
-                    title="Rendering"
+                    title={_.isEmpty(nodes) ? "No Data" : "Rendering"}
                     icon={
                         <FAIcon
                             size={50}
-                            className="fa-fade"
+                            className={!_.isEmpty(nodes) && "fa-fade"}
                             icon={faCompassDrafting}
                         />
                     }
