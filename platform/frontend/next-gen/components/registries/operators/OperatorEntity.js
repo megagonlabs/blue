@@ -25,27 +25,18 @@ import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
 import MainPropertyBlock from "../MainPropertyBlock";
-import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_OPERATOR_REGISTRY_NAME } = allEnv();
-export default function OperatorEntity({
-    entity,
-    setShowIconEditor,
-    icon,
-    setIcon,
-}) {
-    const { name, type } = entity;
+export default function OperatorEntity({ entity, backCrumb }) {
+    const { name, scope, type } = entity;
     const [operator, setOperator] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedOperator, setEditedOperator] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
-    const [template, setTemplate] = useState(null);
-    const { removeContainer, setContainerHeader, addContainer } = useGridStore(
+    const { setContainerHeader } = useGridStore(
         useShallow((state) => ({
-            removeContainer: state.removeContainer,
-            addContainer: state.addContainer,
             setContainerHeader: state.setContainerHeader,
         }))
     );
@@ -61,7 +52,14 @@ export default function OperatorEntity({
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
-    const url = `/registry/${NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/${type}/${name}`;
+    const path = [scope.substring(1), type, name]
+        .filter((str) => !_.isEmpty(str))
+        .join("/");
+    const url = _.replace(
+        `/registry/${NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/${path}`,
+        "/server/",
+        "/operators/"
+    );
     useEffect(() => {
         setContainerHeader({
             id: gridContainerId,
@@ -69,6 +67,12 @@ export default function OperatorEntity({
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
     }, [operator, setContainerHeader, gridContainerId]);
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+        });
+    };
     useEffect(() => {
         setLoading(true);
         axios
@@ -77,7 +81,6 @@ export default function OperatorEntity({
                 const result = _.get(response, "data.result", null);
                 setOperator(result);
                 setEditedOperator(result);
-                setTemplate(result);
                 setMainProperties(
                     getEntityMainProperties(_.get(result, "properties", {}))
                 );
@@ -86,16 +89,12 @@ export default function OperatorEntity({
                 setLoading(false);
             });
     }, [entity, url]);
-    useEffect(() => {
-        updateOperator({ path: "icon", value: icon });
-    }, [icon]);
     const handleDiscard = () => {
         setEditedOperator(operator);
         setMainProperties(
             getEntityMainProperties(_.get(operator, "properties", {}))
         );
         setIsEditing(false);
-        setIcon(_.get(operator, "icon", null));
     };
     const handleSave = () => {
         setLoading(true);
@@ -122,7 +121,6 @@ export default function OperatorEntity({
                         const newOperator = { ...editedOperator, properties };
                         setOperator(newOperator);
                         setEditedOperator(newOperator);
-                        setTemplate(newOperator);
                         setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
@@ -134,14 +132,7 @@ export default function OperatorEntity({
         setLoading(true);
         axios.delete(url).finally(() => {
             setLoading(false);
-            removeContainer(gridContainerId);
-        });
-    };
-    const onDuplicate = () => {
-        addContainer({
-            content: (
-                <RegistryEntityContainer entity={template} duplicate={true} />
-            ),
+            backCrumb();
         });
     };
     return (
@@ -169,7 +160,7 @@ export default function OperatorEntity({
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
-                            onDuplicate={onDuplicate}
+                            onSynchronize={onSynchronize}
                         />
                     </div>
                 )}
@@ -180,20 +171,11 @@ export default function OperatorEntity({
                         "custom-card",
                         { [Classes.SKELETON]: loading }
                     )}
-                    onClick={() => {
-                        if (_.isFunction(setShowIconEditor)) {
-                            setShowIconEditor(isEditing);
-                        }
-                    }}
                     style={{
                         ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                         position: "absolute",
                         left: 20,
                         top: 20,
-                        cursor:
-                            isEditing && _.isFunction(setIcon)
-                                ? "pointer"
-                                : null,
                     }}
                 >
                     <RegistryEntityIcon

@@ -59,7 +59,9 @@ function OperatorList({ width, height }) {
     const callback = (entity) => {
         setShowNewEntity(false);
         addContainer({
-            content: <RegistryEntityContainer entity={entity} />,
+            content: (
+                <RegistryEntityContainer entity={entity} registry="operator" />
+            ),
         });
     };
     const elementRef = useRef(null);
@@ -98,7 +100,11 @@ function OperatorList({ width, height }) {
                         maxWidth: "calc(100% - 40px)",
                     }}
                 >
-                    <NewEntity callback={callback} type="operator" />
+                    <NewEntity
+                        callback={callback}
+                        type="server"
+                        registry="operator"
+                    />
                 </div>
             </Overlay2>
             <div
@@ -187,7 +193,10 @@ function OperatorList({ width, height }) {
                             {search ? (
                                 <SearchResultCard entity={operator} />
                             ) : (
-                                <RegistryEntityCard entity={operator} />
+                                <RegistryEntityCard
+                                    entity={operator}
+                                    registry="operator"
+                                />
                             )}
                         </div>
                     ))}
@@ -198,7 +207,7 @@ function OperatorList({ width, height }) {
                         size={Size.LARGE}
                         fill
                         variant={ButtonVariant.MINIMAL}
-                        text="Add operator"
+                        text="Add server"
                         icon={<FAIcon icon={faPlus} />}
                     />
                 </div>

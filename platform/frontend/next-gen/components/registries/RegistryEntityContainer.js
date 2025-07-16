@@ -22,7 +22,13 @@ import OperatorEntity from "./operators/OperatorEntity";
 import OutputEntity from "./outputs/OutputEntity";
 import ServerEntity from "./tools/ServerEntity";
 import ToolEntity from "./tools/ToolEntity";
-function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
+function RegistryEntityContainer({
+    width,
+    height,
+    entity,
+    registry,
+    duplicate = false,
+}) {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [duplicated, setDuplicated] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
@@ -153,6 +159,7 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
                     <NewEntity
                         duplicateEntity={entity}
                         callback={onDuplicate}
+                        registry={registry}
                     />
                 ) : (
                     <>
@@ -227,10 +234,8 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
                             )}
                             {_.isEqual(type, "operator") && (
                                 <OperatorEntity
-                                    icon={icon}
-                                    setIcon={setIcon}
-                                    setShowIconEditor={setShowIconEditor}
                                     entity={current}
+                                    backCrumb={backCrumb}
                                 />
                             )}
                             {_.isEqual(type, "model") && (
@@ -243,6 +248,7 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
                             )}
                             {_.isEqual(type, "server") && (
                                 <ServerEntity
+                                    registry={registry}
                                     entity={current}
                                     addCrumb={addCrumb}
                                     backCrumb={backCrumb}

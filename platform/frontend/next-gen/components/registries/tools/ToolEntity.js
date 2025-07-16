@@ -1,8 +1,10 @@
 import {
+    ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
@@ -10,15 +12,18 @@ import {
     shallowDiff,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import { Classes, Colors, EditableText } from "@blueprintjs/core";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
+import EntityDisplayName from "../EntityDisplayName";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_TOOL_REGISTRY_NAME } = allEnv();
@@ -29,6 +34,12 @@ export default function ToolEntity({ entity, backCrumb }) {
     const [editedTool, setEditedTool] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
+    const { gridContainerId } = useGridContainerContext();
+    const { setContainerHeader } = useGridStore(
+        useShallow((state) => ({
+            setContainerHeader: state.setContainerHeader,
+        }))
+    );
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -49,6 +60,13 @@ export default function ToolEntity({ entity, backCrumb }) {
         "/server/",
         "/tools/"
     );
+    useEffect(() => {
+        setContainerHeader({
+            id: gridContainerId,
+            title: <EntityDisplayName entity={tool} />,
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+        });
+    }, [tool, setContainerHeader, gridContainerId]);
     const onSynchronize = () => {
         setLoading(true);
         axios.put(`${url}/sync`).finally(() => {
@@ -73,6 +91,9 @@ export default function ToolEntity({ entity, backCrumb }) {
     }, [entity, url]);
     const handleDiscard = () => {
         setEditedTool(tool);
+        setMainProperties(
+            getEntityMainProperties(_.get(tool, "properties", {}))
+        );
         setIsEditing(false);
     };
     const handleSave = () => {

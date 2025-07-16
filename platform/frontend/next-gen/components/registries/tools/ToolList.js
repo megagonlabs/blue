@@ -58,7 +58,9 @@ function ToolList({ width, height }) {
     const callback = (entity) => {
         setShowNewEntity(false);
         addContainer({
-            content: <RegistryEntityContainer entity={entity} />,
+            content: (
+                <RegistryEntityContainer entity={entity} registry="tool" />
+            ),
         });
     };
     const elementRef = useRef(null);
@@ -97,7 +99,11 @@ function ToolList({ width, height }) {
                         maxWidth: "calc(100% - 40px)",
                     }}
                 >
-                    <NewEntity callback={callback} type="server" />
+                    <NewEntity
+                        callback={callback}
+                        type="server"
+                        registry="tool"
+                    />
                 </div>
             </Overlay2>
             <div
@@ -186,7 +192,10 @@ function ToolList({ width, height }) {
                             {search ? (
                                 <SearchResultCard entity={server} />
                             ) : (
-                                <RegistryEntityCard entity={server} />
+                                <RegistryEntityCard
+                                    entity={server}
+                                    registry="tool"
+                                />
                             )}
                         </div>
                     ))}

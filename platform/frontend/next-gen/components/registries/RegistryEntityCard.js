@@ -27,7 +27,7 @@ import HorizontalScrollable from "../HorizontalScrollable";
 import EntityDisplayName from "./EntityDisplayName";
 import RegistryEntityContainer from "./RegistryEntityContainer";
 import RegistryEntityIcon from "./RegistryEntityIcon";
-export default function RegistryEntityCard({ entity }) {
+export default function RegistryEntityCard({ entity, registry }) {
     const type = _.get(entity, "type", null);
     const categories = _.get(entity, "properties.categories", []);
     const containerStatus = _.get(entity, "container.status", "not exist");
@@ -67,7 +67,10 @@ export default function RegistryEntityCard({ entity }) {
                     onClick={() => {
                         addContainer({
                             content: (
-                                <RegistryEntityContainer entity={entity} />
+                                <RegistryEntityContainer
+                                    entity={entity}
+                                    registry={registry}
+                                />
                             ),
                         });
                     }}
@@ -107,7 +110,12 @@ export default function RegistryEntityCard({ entity }) {
             onDoubleClick={() => {
                 replaceContainer({
                     id: gridContainerId,
-                    content: <RegistryEntityContainer entity={entity} />,
+                    content: (
+                        <RegistryEntityContainer
+                            entity={entity}
+                            registry={registry}
+                        />
+                    ),
                 });
             }}
         >

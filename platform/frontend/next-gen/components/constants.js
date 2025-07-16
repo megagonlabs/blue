@@ -15,7 +15,15 @@ import {
     faServer,
     faToolbox,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { allEnv } from "next-runtime-env";
 import { FAIcon } from "./FAIcon";
+const {
+    NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+    NEXT_PUBLIC_DATA_REGISTRY_NAME,
+    NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
+    NEXT_PUBLIC_MODEL_REGISTRY_NAME,
+    NEXT_PUBLIC_TOOL_REGISTRY_NAME,
+} = allEnv();
 export const USER_ROLES_LOOKUP = {
         administrator: { text: "Administrator" },
         member: { text: "Member" },
@@ -35,6 +43,20 @@ export const USER_ROLES_LOOKUP = {
         maxWidth: "100%",
     },
     IGNORED_AGENT_TYPES = ["USER", "OBSERVER"],
+    ENTITY_REGISTRY_LOOKUP = {
+        agent: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+        agent_group: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+        input: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+        output: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+        source: NEXT_PUBLIC_DATA_REGISTRY_NAME,
+        operator: NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
+        model: NEXT_PUBLIC_MODEL_REGISTRY_NAME,
+        server: {
+            tool: NEXT_PUBLIC_TOOL_REGISTRY_NAME,
+            operator: NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
+        },
+        tool: NEXT_PUBLIC_TOOL_REGISTRY_NAME,
+    },
     ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, permissionKey: "agent_registry" },
         data: { icon: faServer },
@@ -82,7 +104,13 @@ export const USER_ROLES_LOOKUP = {
         "tags",
         "categories",
     ],
-    ENTITY_TYPE_CONVERSION = { source: "data", server: "tools" },
+    ENTITY_TYPE_CONVERSION = {
+        source: "data",
+        server: {
+            tool: "tools",
+            operator: "operators",
+        },
+    },
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES = {
         height: 40,
         width: 40,

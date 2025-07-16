@@ -11,10 +11,10 @@ import {
 import { faGrid2Plus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
 import {
     ENTITY_NAME_SEPARATOR,
+    ENTITY_REGISTRY_LOOKUP,
     ENTITY_TYPE_CONVERSION,
     HEX_TRANSPARENCY,
 } from "../constants";
@@ -29,14 +29,13 @@ import { AppToaster } from "../toaster";
 import EntityDescription from "./attributes/EntityDescription";
 import EntityProperties from "./attributes/EntityProperties";
 import MainPropertyBlock from "./MainPropertyBlock";
-const {
-    NEXT_PUBLIC_AGENT_REGISTRY_NAME,
-    NEXT_PUBLIC_DATA_REGISTRY_NAME,
-    NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
-    NEXT_PUBLIC_MODEL_REGISTRY_NAME,
-    NEXT_PUBLIC_TOOL_REGISTRY_NAME,
-} = allEnv();
-export default function NewEntity({ type, callback, parent, duplicateEntity }) {
+export default function NewEntity({
+    type,
+    callback,
+    parent,
+    duplicateEntity,
+    registry,
+}) {
     const [newEntity, setNewEntity] = useState({ type, description: "" });
     const calculatedType = !_.isEmpty(duplicateEntity)
         ? duplicateEntity.type
@@ -70,27 +69,26 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
             }
             fullName += newEntity.name;
         }
-        const REGISTRY_NAME_LOOKUP = {
-            agent: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
-            agent_group: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
-            input: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
-            output: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
-            source: NEXT_PUBLIC_DATA_REGISTRY_NAME,
-            operator: NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
-            model: NEXT_PUBLIC_MODEL_REGISTRY_NAME,
-            server: NEXT_PUBLIC_TOOL_REGISTRY_NAME,
-            tool: NEXT_PUBLIC_TOOL_REGISTRY_NAME,
-        };
-        let url = `/registry/${REGISTRY_NAME_LOOKUP[calculatedType]}`;
-        const convertedType = _.get(
+        let url = `/registry/${ENTITY_REGISTRY_LOOKUP[calculatedType]}`;
+        let convertedType = _.get(
             ENTITY_TYPE_CONVERSION,
             calculatedType,
             calculatedType
         );
+        if (_.isEqual(calculatedType, "server")) {
+            url = `/registry/${ENTITY_REGISTRY_LOOKUP[calculatedType][registry]}`;
+            convertedType = _.get(
+                ENTITY_TYPE_CONVERSION,
+                [calculatedType, registry],
+                calculatedType
+            );
+        }
         if (_.includes(["input", "output"], calculatedType)) {
             url += `/agent/${prefix}/${convertedType}/${fullName}`;
         } else if (_.isEqual(calculatedType, "tool")) {
             url += `/tools/${prefix}/${convertedType}/${fullName}`;
+        } else if (_.isEqual(calculatedType, "operator")) {
+            url += `/operators/${prefix}/${convertedType}/${fullName}`;
         } else {
             url += `/${convertedType}/${fullName}`;
         }
@@ -122,7 +120,13 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
                             if (
                                 !_.isEmpty(parent) &&
                                 _.includes(
-                                    ["agent", "input", "output", "tool"],
+                                    [
+                                        "agent",
+                                        "input",
+                                        "output",
+                                        "tool",
+                                        "operator",
+                                    ],
                                     calculatedType
                                 )
                             ) {

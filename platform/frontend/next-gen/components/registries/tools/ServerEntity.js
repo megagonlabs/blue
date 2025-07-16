@@ -1,5 +1,6 @@
 import { FAIcon } from "@/components/FAIcon";
 import {
+    ENTITY_REGISTRY_LOOKUP,
     ENTITY_TYPE_CONVERSION,
     ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
@@ -28,7 +29,6 @@ import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
-import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import EntityActions from "../EntityActions";
@@ -39,9 +39,9 @@ import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
-const { NEXT_PUBLIC_TOOL_REGISTRY_NAME } = allEnv();
 export default function ServerEntity({
     entity,
+    registry,
     addCrumb,
     backCrumb,
     setShowNewEntity,
@@ -73,9 +73,9 @@ export default function ServerEntity({
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
-    const url = `/registry/${NEXT_PUBLIC_TOOL_REGISTRY_NAME}/${_.get(
+    const url = `/registry/${ENTITY_REGISTRY_LOOKUP[type][registry]}/${_.get(
         ENTITY_TYPE_CONVERSION,
-        type,
+        [type, registry],
         type
     )}/${name}`;
     useEffect(() => {
@@ -158,10 +158,15 @@ export default function ServerEntity({
     const onDuplicate = () => {
         addContainer({
             content: (
-                <RegistryEntityContainer entity={template} duplicate={true} />
+                <RegistryEntityContainer
+                    entity={template}
+                    duplicate={true}
+                    registry={registry}
+                />
             ),
         });
     };
+    const NESTED_ENTITY_LOOKUP = { tool: "tool", operator: "operator" };
     return (
         <div>
             <div
@@ -274,19 +279,31 @@ export default function ServerEntity({
                     <EntityTitle
                         icon={
                             <FAIcon
-                                icon={ENTITY_TYPE_LOOKUP["tool"].icon}
+                                icon={
+                                    ENTITY_TYPE_LOOKUP[
+                                        NESTED_ENTITY_LOOKUP[registry]
+                                    ].icon
+                                }
                                 size={25}
                             />
                         }
                         heading={H3}
-                        title="Tools"
+                        title={`${_.capitalize(
+                            NESTED_ENTITY_LOOKUP[registry]
+                        )}s`}
                     />
                 </div>
                 <div className="responsive-grid-container">
                     <Leaves
                         loading={loading}
                         addCrumb={addCrumb}
-                        list={_.values(_.get(server, "contents.tool", {}))}
+                        list={_.values(
+                            _.get(
+                                server,
+                                `contents.${NESTED_ENTITY_LOOKUP[registry]}`,
+                                {}
+                            )
+                        )}
                     />
                     {!isEditing && (
                         <Button
@@ -294,10 +311,12 @@ export default function ServerEntity({
                             variant={ButtonVariant.MINIMAL}
                             icon={<FAIcon icon={faPlus} />}
                             fill
-                            text="Add tool"
+                            text={`Add ${NESTED_ENTITY_LOOKUP[registry]}`}
                             onClick={() => {
                                 setShowNewEntity(true);
-                                setNewEntityType("tool");
+                                setNewEntityType(
+                                    NESTED_ENTITY_LOOKUP[registry]
+                                );
                             }}
                         />
                     )}
