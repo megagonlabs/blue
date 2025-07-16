@@ -1275,6 +1275,7 @@
       "Do not include the raw JSON result in your explanation.",
       "Explain in natural, friendly, and concise language."
       ],
+      "explanation_context": "",
       "tags": {
         "DEFAULT": [
           "EXPLANATION",
@@ -1289,7 +1290,7 @@
           ]
         }
       },
-      "input_template": "Instructions:\n${instructions}\n\nTask:\nGiven a natural language question, its SQL query, and the query result in JSON, explain the results in plain English.\n\n${input}"
+      "input_template": "Instructions:\n${instructions}\n\nContext:\n${explanation_context}\n\nTask:\nGiven a natural language question, its SQL query, and the query result in JSON, explain the results in plain English.\n\n${input}"
     },
     "icon": null
   },
