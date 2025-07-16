@@ -86,7 +86,7 @@ export default function EntityActions({
     }, [permissions, onDuplicate]);
     const canSyncData =
         _.includes(
-            ["source", "database", "collection", "server", "tool"],
+            ["source", "database", "collection", "server", "tool", "operator"],
             type
         ) && _.isFunction(onSynchronize);
     const canPullImage =
