@@ -59,7 +59,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
         _.set(temp, path, value);
         setNewEntity(temp);
     };
-    const onSave = () => {
+    const handleSave = () => {
         setLoading(true);
         let fullName = newEntity.name;
         const prefix = _.get(parent, "name", "");
@@ -122,7 +122,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
                             if (
                                 !_.isEmpty(parent) &&
                                 _.includes(
-                                    ["agent", "input", "output"],
+                                    ["agent", "input", "output", "tool"],
                                     calculatedType
                                 )
                             ) {
@@ -171,7 +171,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
                 >
                     <Button
                         disabled={_.isEmpty(newEntity.name)}
-                        onClick={onSave}
+                        onClick={handleSave}
                         icon={<FAIcon icon={faGrid2Plus} />}
                         size={Size.LARGE}
                         intent={Intent.SUCCESS}

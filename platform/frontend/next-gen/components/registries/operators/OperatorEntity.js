@@ -88,7 +88,7 @@ export default function OperatorEntity({
     }, [entity, url]);
     useEffect(() => {
         updateOperator({ path: "icon", value: icon });
-    }, [icon, updateOperator]);
+    }, [icon]);
     const handleDiscard = () => {
         setEditedOperator(operator);
         setMainProperties(
