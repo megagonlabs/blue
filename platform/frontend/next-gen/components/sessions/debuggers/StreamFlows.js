@@ -61,8 +61,8 @@ export default function StreamFlows({ sessionId }) {
                 "LR"
             );
             setNodes(layoutedNodes);
+            fitView();
             setTimeout(() => {
-                fitView();
                 setLayoutInitialized(true);
             }, 300);
         }
