@@ -86,7 +86,7 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
                     existingNode,
                     "secondaryLabel",
                     <Tag minimal intent={Intent.PRIMARY}>
-                        {messageMap[id].contentType}
+                        {_.get(messageMap, [id, "contentType"], "-")}
                     </Tag>
                 );
             }
@@ -271,9 +271,9 @@ function DebuggerContainer({ width, height, sessionId }) {
         let streams = [];
         let messageMap = {};
         for (let i = 0; i < _.size(messages); i++) {
-            const stream = messages[i].stream;
+            const { stream, contentType } = messages[i];
             streams.push(stream);
-            messageMap[stream] = { contentType: messages[i].contentType };
+            messageMap[stream] = { contentType };
         }
         setTreeContents(
             parseRedisStreamKeysToTree(streams, treeContents, messageMap)
