@@ -14,6 +14,7 @@ operators_dict = {}
 from blue.operators.join_operator import JoinOperator
 from blue.operators.nl2llm_operator import NL2LLMOperator
 from blue.operators.nl2sql_operator import NL2SQLOperator
+from blue.operators.data_discover_operator import DataDiscoverOperator
 
 join_operator = JoinOperator()
 operators_dict[join_operator.name] = join_operator
@@ -23,3 +24,6 @@ operators_dict[nl2llm_operator.name] = nl2llm_operator
 
 nl2sql_operator = NL2SQLOperator()
 operators_dict[nl2sql_operator.name] = nl2sql_operator
+
+data_discover_operator = DataDiscoverOperator()
+operators_dict[data_discover_operator.name] = data_discover_operator
