@@ -115,11 +115,11 @@ class CoordinatorAgent(Agent):
         else:
             to_output = t
 
-        self.logger.info("TRANSFORM DATA:")
-        self.logger.info(from_agent + "." + from_agent_param)
-        self.logger.info(to_agent + "." + to_agent_param)
-        self.logger.info("BUDGET:")
-        self.logger.info(json.dumps(budget, indent=3))
+        # self.logger.info("TRANSFORM DATA:")
+        # self.logger.info(from_agent + "." + from_agent_param)
+        # self.logger.info(to_agent + "." + to_agent_param)
+        # self.logger.info("BUDGET:")
+        # self.logger.info(json.dumps(budget, indent=3))
 
         context = {}
         # TODO: get registry info on from_agent, from_agent_param
