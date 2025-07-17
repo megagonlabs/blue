@@ -13,6 +13,9 @@ from blue.tools.clients.local_client import LocalToolClient
 from blue.tools.clients.ray_client import RayToolClient
 from blue.tools.clients.mcp_client import MCPToolClient
 
+###### Local, Ray Tools
+from blue.tools.clients import local_tools, ray_tools
+
 
 ###############
 ### ToolRegistry
@@ -116,9 +119,9 @@ class ToolRegistry(Registry):
                 protocol = connection_properties["protocol"]
                 if protocol:
                     if protocol == "local":
-                        connection = LocalToolClient(server, properties=properties)
+                        connection = LocalToolClient(server, tools=local_tools.tools_dict, properties=properties)
                     elif protocol == "ray":
-                        connection = RayToolClient(server, properties=properties)
+                        connection = RayToolClient(server, tools=ray_tools.tools_dict, properties=properties)
                     elif protocol == "mcp":
                         connection = MCPToolClient(server, properties=properties)
 
@@ -130,7 +133,7 @@ class ToolRegistry(Registry):
             return connection.execute_tool(tool, args, kwargs)
         else:
             return None
-        
+
     def sync_all(self, recursive=False):
         # TODO
         pass
@@ -215,5 +218,5 @@ class ToolRegistry(Registry):
             if 'name' in metadata:
                 del metadata['name']
             properties['metadata'] = metadata
-           
+
             self.update_server_tool(server, tool, description=description, properties=properties, rebuild=rebuild)

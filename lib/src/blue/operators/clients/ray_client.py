@@ -17,8 +17,8 @@ from blue.utils import json_utils
 ### RayOperatorClient
 #
 class RayOperatorClient(RayToolClient, OperatorClient):
-    def __init__(self, name, properties={}):
-        super().__init__(name, properties=properties)
+    def __init__(self, name, operators={}, properties={}):
+        super().__init__(name, tools=operators, properties=properties)
 
     ######### operator
     def fetch_operators(self):

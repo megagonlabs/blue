@@ -11,16 +11,15 @@ from blue.tools.client import ToolClient
 from blue.tools.tool import Tool
 from blue.utils import json_utils
 
-###### Local Tools
-from blue.tools.clients.local_tools import tools_dict
-
 
 ###############
 ### LocalToolClient
 #
 class LocalToolClient(ToolClient):
-    def __init__(self, name, properties={}):
+    def __init__(self, name, tools={}, properties={}):
         super().__init__(name, properties=properties)
+
+        self.tools = tools
 
     ###### initialization
     def _initialize_properties(self):
@@ -48,14 +47,14 @@ class LocalToolClient(ToolClient):
 
     ######### tool
     def fetch_tools(self):
-        tools = list[tools_dict.keys()]
+        tools = list[self.tools.keys()]
         return tools
 
     def fetch_tool_metadata(self, tool):
         metadata = {}
 
-        if tool in tools_dict:
-            tool_obj = tools_dict[tool]
+        if tool in self.tools:
+            tool_obj = self.tools[tool]
             p = {}
             p = json_utils.merge_json(p, tool_obj.properties)
             p = json_utils.merge_json(p, {"parameters": tool_obj.parameters})
@@ -69,8 +68,8 @@ class LocalToolClient(ToolClient):
 
         result = None
 
-        if tool in tools_dict:
-            tool_obj = tools_dict[tool]
+        if tool in self.tools:
+            tool_obj = self.tools[tool]
 
             valid = tool_obj.validator(kwargs)
             if valid:

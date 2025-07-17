@@ -13,16 +13,15 @@ from blue.tools.client import ToolClient
 from blue.tools.tool import Tool
 from blue.utils import json_utils
 
-###### Ray Tools
-from blue.tools.clients.ray_tools import tools_dict
-
 
 ###############
 ### RayToolClient
 #
 class RayToolClient(ToolClient):
-    def __init__(self, name, properties={}):
+    def __init__(self, name, tools={}, properties={}):
         super().__init__(name, properties=properties)
+
+        self.tools = tools
 
     ###### initialization
     def _initialize_properties(self):
@@ -59,13 +58,13 @@ class RayToolClient(ToolClient):
 
     ######### tool
     def fetch_tools(self):
-        return list[tools_dict.keys()]
+        return list[self.tools.keys()]
 
     def fetch_tool_metadata(self, tool):
         metadata = {}
 
-        if tool in tools_dict:
-            tool_obj = tools_dict[tool]
+        if tool in self.tools:
+            tool_obj = self.tools[tool]
             p = {}
             p = json_utils.merge_json(p, tool_obj.properties)
             p = json_utils.merge_json(p, {"parameters": tool_obj.parameters})
@@ -79,8 +78,8 @@ class RayToolClient(ToolClient):
 
         result_ref = None
 
-        if tool in tools_dict:
-            tool_obj = tools_dict[tool]
+        if tool in self.tools:
+            tool_obj = self.tools[tool]
 
             valid = tool_obj.validator(kwargs)
             if valid:
