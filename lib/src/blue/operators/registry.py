@@ -48,7 +48,7 @@ class OperatorRegistry(ToolRegistry):
         return super().filter_record_contents(server, 'server', '/', filter_type='operator')
 
     def get_server_tools(self, server):
-        return self.get_server_tools(server)
+        return self.get_server_operators(server)
 
     def get_server_operator(self, server, operator):
         return super().filter_record_contents(server, 'server', '/', filter_type='operator', filter_name=operator, single=True)
