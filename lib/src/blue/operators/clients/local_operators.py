@@ -8,4 +8,4 @@ from blue.utils import tool_utils
 
 ###############
 ### Local Operators Registry
-operators_dict = tools_dict = {}
+operators_dict = {}

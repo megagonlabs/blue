@@ -6,7 +6,7 @@ from pydantic import BaseModel, ValidationError
 
 ###### Blue
 from blue.tools.tool import Tool
-from blue.utils import json_utils
+from blue.utils import json_utils, tool_utils
 from blue.utils.type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
 
 ###############
@@ -114,6 +114,7 @@ class Operator(Tool):
         self.name = name
         self.description = description
         self.properties = properties
+        self.function = function
         self.validator = validator
         self.explainer = explainer
 
@@ -122,6 +123,7 @@ class Operator(Tool):
             self.properties = {}
         if "parameters" not in self.properties:
             self.properties["parameters"] = {}
+
         ## Currently disable the default function to switch to function based operator design
         # if function is None:
         # self.function = self._execute_operator_logic  # this is the function that each operator should override
@@ -132,14 +134,18 @@ class Operator(Tool):
 
         self._initialize(properties=properties)
 
+        parameters = {}
+        merged_parameters = json_utils.merge_json(parameters, tool_utils.extract_signature(self.function, mcp_format=True)['parameters'])
+        merged_parameters = json_utils.merge_json(merged_parameters, self.properties["parameters"])
+
         super().__init__(
             name=name,
             description=description,
             properties=self.properties,
-            function=function,
-            parameters=self.properties.get("parameters", {}),
-            validator=validator,
-            explainer=explainer,
+            function=self.function,
+            parameters=merged_parameters,
+            validator=self.validator,
+            explainer=self.explainer,
         )
 
     def _initialize(self, properties=None):
