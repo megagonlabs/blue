@@ -5,8 +5,8 @@ import {
     Button,
     ButtonGroup,
     ButtonVariant,
-    Card,
     Colors,
+    Intent,
     Size,
     Tag,
     Tooltip,
@@ -29,26 +29,33 @@ export default function Dock() {
         return null;
     }
     return (
-        <Card
-            className="border-radius-10"
+        <div
+            className="full-parent-width border-bottom"
             style={{
-                position: "absolute",
-                padding: 10,
-                top: 105,
-                left: 20,
-                width: 65,
-                height: Math.min(400, 40 * _.size(sortedLayout)) + 50,
-                maxHeight: "calc(100% - 210px)",
+                height: Math.min(400, 40 * _.size(sortedLayout)) + 41,
                 overflow: "hidden",
+                position: "relative",
+                padding: "10px 0px",
             }}
         >
-            <Tag style={{ textAlign: "center", marginBottom: 10 }} minimal fill>
+            <Tag
+                intent={Intent.PRIMARY}
+                style={{
+                    top: 0,
+                    left: 0,
+                    width: 65,
+                    position: "absolute",
+                    textAlign: "center",
+                }}
+                minimal
+                fill
+            >
                 Dock
             </Tag>
-            <div style={{ height: "calc(100% - 30px)" }}>
+            <div style={{ height: "calc(100% - 20px)", marginTop: 20 }}>
                 <VerticalScrollable
                     backgroundColor={
-                        darkMode ? Colors.DARK_GRAY2 : Colors.WHITE
+                        darkMode ? Colors.DARK_GRAY1 : Colors.LIGHT_GRAY5
                     }
                 >
                     <ButtonGroup
@@ -59,6 +66,7 @@ export default function Dock() {
                     >
                         {sortedLayout.map((element) => (
                             <Tooltip
+                                key={element.i}
                                 placement="right"
                                 content={_.get(
                                     containers,
@@ -90,6 +98,6 @@ export default function Dock() {
                     </ButtonGroup>
                 </VerticalScrollable>
             </div>
-        </Card>
+        </div>
     );
 }

@@ -29,7 +29,7 @@ function VerticalScrollable({
             setShowBottom(_.ceil(scrollTop + clientHeight) < scrollHeight);
             setShowTop(scrollTop > 0);
         }
-    }, []);
+    }, [children]);
     useEffect(() => {
         const container = containerRef.current;
         if (container) {
