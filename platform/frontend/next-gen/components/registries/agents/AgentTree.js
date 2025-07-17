@@ -41,13 +41,13 @@ export default function AgentTree({ entity }) {
     const [loading, setLoading] = useState(false);
     const [selectedAvailable, setSelectedAvailable] = useState(new Set());
     const [selectedAdded, setSelectedAdded] = useState(new Set());
-    const onDeselectAvailable = (agent) => {
+    const onDeselectAvailable = (agents) => {
         let newSelected = _.cloneDeep(selectedAvailable);
         let availableNodes = _.cloneDeep(available);
         function removeSecondaryLabel(nodes) {
             for (let i = 0; i < _.size(nodes); i++) {
                 const node = nodes[i];
-                if (_.isEqual(node.id, agent)) {
+                if (_.includes(agents, node.id)) {
                     node.secondaryLabel = null;
                 }
                 if (!_.isEmpty(node.childNodes)) {
@@ -57,16 +57,18 @@ export default function AgentTree({ entity }) {
             return nodes;
         }
         setAvailable(removeSecondaryLabel(availableNodes));
-        newSelected.delete(agent);
+        for (let i = 0; i < _.size(agents); i++) {
+            newSelected.delete(agents[i]);
+        }
         setSelectedAvailable(newSelected);
     };
-    const onDeselectAdded = (agent) => {
+    const onDeselectAdded = (agents) => {
         let newSelected = _.cloneDeep(selectedAdded);
         let addedNodes = _.cloneDeep(added);
         function removeSecondaryLabel(nodes) {
             for (let i = 0; i < _.size(nodes); i++) {
                 const node = nodes[i];
-                if (_.isEqual(node.id, agent)) {
+                if (_.includes(agents, node.id)) {
                     node.secondaryLabel = null;
                 }
                 if (!_.isEmpty(node.childNodes)) {
@@ -76,12 +78,12 @@ export default function AgentTree({ entity }) {
             return nodes;
         }
         setAdded(removeSecondaryLabel(addedNodes));
-        newSelected.delete(agent);
+        for (let i = 0; i < _.size(agents); i++) {
+            newSelected.delete(agents[i]);
+        }
         setSelectedAdded(newSelected);
     };
     const onDeselectAll = () => {
-        setSelectedAvailable(new Set());
-        setSelectedAdded(new Set());
         let availableNodes = _.cloneDeep(available);
         function removeSecondaryLabel(nodes) {
             for (let i = 0; i < _.size(nodes); i++) {
@@ -233,10 +235,11 @@ export default function AgentTree({ entity }) {
         }
         settlePromises(promises, ({ results }) => {
             let newAdded = _.cloneDeep(added);
+            let result = [];
             for (let i = 0; i < _.size(results); i++) {
                 if (_.isEqual(results[i].status, "fulfilled")) {
                     const agent = { name: results[i].value };
-                    onDeselectAvailable(agent.name);
+                    result.push(agent.name);
                     newAdded.push({
                         id: agent.name,
                         icon: (
@@ -259,6 +262,7 @@ export default function AgentTree({ entity }) {
                     });
                 }
             }
+            onDeselectAvailable(result);
             setAdded(newAdded);
             setLoading(false);
         });
@@ -286,12 +290,14 @@ export default function AgentTree({ entity }) {
         }
         settlePromises(promises, ({ results }) => {
             let newAdded = _.cloneDeep(added);
+            let result = [];
             for (let i = 0; i < _.size(results); i++) {
                 if (_.isEqual(results[i].status, "fulfilled")) {
-                    onDeselectAdded(results[i].value);
+                    result.push(results[i].value);
                     _.pullAllBy(newAdded, [{ id: results[i].value }], "id");
                 }
             }
+            onDeselectAdded(result);
             setAdded(newAdded);
             setLoading(false);
         });
@@ -318,6 +324,7 @@ export default function AgentTree({ entity }) {
                 </Card>
                 <ControlGroup vertical style={{ width: 125 }}>
                     <Button
+                        disabled={_.isEmpty(selectedAvailable)}
                         size={Size.LARGE}
                         intent={Intent.SUCCESS}
                         text="Add"
@@ -332,6 +339,7 @@ export default function AgentTree({ entity }) {
                         onClick={onDeselectAll}
                     />
                     <Button
+                        disabled={_.isEmpty(selectedAdded)}
                         size={Size.LARGE}
                         intent={Intent.DANGER}
                         text="Remove"
