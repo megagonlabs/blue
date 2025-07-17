@@ -1,3 +1,4 @@
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import { showAxiosErrorToast } from "@/components/helper";
 import { AppToaster } from "@/components/toaster";
@@ -71,8 +72,9 @@ export default function SessionConfigurations() {
                 setSaving(false);
             });
     };
+    const { gridContainerId } = useGridContainerContext();
     return (
-        <div className="setting-container-section-1 scroll-margin-20">
+        <div id={`container-${gridContainerId}-section-0`}>
             <EntityTitle
                 icon={<FAIcon icon={faInboxFull} size={20} />}
                 heading={H3}

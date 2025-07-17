@@ -64,14 +64,14 @@ export default function SocketHandler({ children }) {
                                 useSessionStore.getState();
                             addNewSession(data["session"]);
                         }
-                    } catch (e) {
+                    } catch (error) {
                         // debug
                         AppToaster.show({
                             intent: Intent.DANGER,
-                            message: e,
+                            message: error,
                         });
                         console.log(event.data);
-                        console.error(e);
+                        console.error(error);
                     }
                 };
                 newSocket.onclose = () => {

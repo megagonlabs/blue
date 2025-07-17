@@ -41,6 +41,7 @@ import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
 import Authentication from "./Authentication";
 import { ENTITY_TYPE_LOOKUP } from "./constants";
+import Dock from "./Dock";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import PlatformAgents from "./platforms/PlatformAgents";
@@ -317,7 +318,8 @@ export default function Blue({ children }) {
                                                 </motion.div>
                                             )}
                                             <VerticalScrollable
-                                                show={isExpanded}
+                                                showTopIndicator={false}
+                                                showBottomIndicator={isExpanded}
                                                 transitionDuration={150}
                                                 backgroundColor={
                                                     darkMode
@@ -617,6 +619,7 @@ export default function Blue({ children }) {
                                 )}
                             </ExpandingBox>
                         </div>
+                        <Dock />
                         <Alert
                             isOpen={userProfileError}
                             intent={Intent.DANGER}

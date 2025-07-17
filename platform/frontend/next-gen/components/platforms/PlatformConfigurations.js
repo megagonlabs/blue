@@ -1,3 +1,4 @@
+import { scrollToTarget } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { usePlatformStore } from "@/stores/platform-store";
 import {
@@ -12,7 +13,6 @@ import {
     faIdCardClip,
     faInboxFull,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import _ from "lodash";
 import { useState } from "react";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
@@ -56,26 +56,17 @@ function PlatformConfigurations({ width, height }) {
                                 icon={<FAIcon icon={section.icon} />}
                                 text={section.text}
                                 onClick={() => {
-                                    const element = _.first(
-                                        document.querySelectorAll(
-                                            `.container-${gridContainerId} .setting-container-section-${
-                                                index + 1
-                                            }`
-                                        )
-                                    );
-                                    if (element) {
-                                        element.scrollIntoView({
-                                            block: "nearest",
-                                            inline: "nearest",
-                                        });
-                                    }
+                                    const containerId = `container-${gridContainerId}`;
+                                    const targetId = `container-${gridContainerId}-section-${index}`;
+                                    scrollToTarget(containerId, targetId);
                                 }}
                             />
                         ))}
                     </ButtonGroup>
                 </div>
                 <div
-                    className={`full-parent-dimension container-${gridContainerId}`}
+                    className="full-parent-dimension"
+                    id={`container-${gridContainerId}`}
                     style={{
                         backgroundColor: darkMode ? Colors.BLACK : null,
                         padding: 20,
