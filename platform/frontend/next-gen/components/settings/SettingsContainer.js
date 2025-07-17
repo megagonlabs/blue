@@ -1,3 +1,4 @@
+import { scrollToTarget } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import {
     Alignment,
@@ -18,7 +19,6 @@ import {
     faPaintRoller,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
-import _ from "lodash";
 import { useShallow } from "zustand/react/shallow";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
@@ -80,26 +80,17 @@ function SettingsContainer({ width, height }) {
                                 icon={<FAIcon icon={section.icon} />}
                                 text={section.text}
                                 onClick={() => {
-                                    const element = _.first(
-                                        document.querySelectorAll(
-                                            `.container-${gridContainerId} .setting-container-section-${
-                                                index + 1
-                                            }`
-                                        )
-                                    );
-                                    if (element) {
-                                        element.scrollIntoView({
-                                            block: "nearest",
-                                            inline: "nearest",
-                                        });
-                                    }
+                                    const containerId = `container-${gridContainerId}`;
+                                    const targetId = `container-${gridContainerId}-section-${index}`;
+                                    scrollToTarget(containerId, targetId);
                                 }}
                             />
                         ))}
                     </ButtonGroup>
                 </div>
                 <div
-                    className={`full-parent-dimension container-${gridContainerId}`}
+                    className="full-parent-dimension"
+                    id={`container-${gridContainerId}`}
                     style={{
                         backgroundColor: darkMode ? Colors.BLACK : null,
                         padding: 20,
@@ -107,7 +98,7 @@ function SettingsContainer({ width, height }) {
                         overflowX: "hidden",
                     }}
                 >
-                    <div className="setting-container-section-1 scroll-margin-20">
+                    <div id={`container-${gridContainerId}-section-0`}>
                         <EntityTitle
                             icon={<FAIcon icon={faPaintRoller} size={20} />}
                             heading={H3}
@@ -177,7 +168,7 @@ function SettingsContainer({ width, height }) {
                         </div>
                     </div>
                     <div
-                        className="setting-container-section-2 scroll-margin-20"
+                        id={`container-${gridContainerId}-section-1`}
                         style={{ marginTop: 20 }}
                     >
                         <EntityTitle

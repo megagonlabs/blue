@@ -98,9 +98,6 @@
             (var(--blue-column-gap) / var(--blue-columns))
     );
 }
-.scroll-margin-20 {
-    scroll-margin: 20px;
-}
 .center-center {
     position: absolute;
     top: 50%;

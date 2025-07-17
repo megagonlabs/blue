@@ -18,7 +18,7 @@ function HorizontalScrollable({ width, height, children, backgroundColor }) {
             setShowLeft(scrollLeft > 0);
             setShowRight(_.ceil(scrollLeft + clientWidth) < scrollWidth);
         }
-    }, []);
+    }, [children]);
     useEffect(() => {
         const container = containerRef.current;
         if (container) {

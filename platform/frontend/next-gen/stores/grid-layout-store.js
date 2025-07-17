@@ -1,3 +1,4 @@
+import { scrollToTarget } from "@/components/helper";
 import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
@@ -68,7 +69,7 @@ export const useGridStore = create((set, get) => ({
         set({ layout });
     },
     addContainer: ({ title, content, icon, uniqueId = null }) => {
-        const id = uuidv4();
+        let id = uuidv4();
         const { layoutData } = get();
         let exist = false;
         for (let i = 0; i < _.size(layoutData); i++) {
@@ -77,6 +78,7 @@ export const useGridStore = create((set, get) => ({
                 _.isEqual(uniqueId, layoutData[i].uniqueId)
             ) {
                 exist = true;
+                id = layoutData[i].id;
             }
         }
         if (!exist) {
@@ -92,5 +94,10 @@ export const useGridStore = create((set, get) => ({
                 layoutData: [...state.layoutData, { id, uniqueId }],
             }));
         }
+        setTimeout(() => {
+            const containerId = "react-grid-scrollable-container";
+            const targetId = `grid-container-${id}`;
+            scrollToTarget(containerId, targetId);
+        }, 0);
     },
 }));

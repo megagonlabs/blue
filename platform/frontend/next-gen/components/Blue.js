@@ -41,6 +41,7 @@ import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
 import Authentication from "./Authentication";
 import { ENTITY_TYPE_LOOKUP } from "./constants";
+import Dock from "./Dock";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import PlatformAgents from "./platforms/PlatformAgents";
@@ -56,6 +57,7 @@ import ToolList from "./registries/tools/ToolList";
 import ApplicationContainer from "./sessions/ApplicationContainer";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
+import TopSessions from "./TopSessions";
 import VerticalScrollable from "./VerticalScrollable";
 const { NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 const AGENT_GROUP_ICON = _.get(ENTITY_TYPE_LOOKUP, "agent_group.icon", null);
@@ -151,7 +153,11 @@ export default function Blue({ children }) {
     useEffect(() => {
         addApplicationContainer();
     }, []);
-    const createNewSession = useSessionStore((state) => state.createNewSession);
+    const { createNewSession } = useSessionStore(
+        useShallow((state) => ({
+            createNewSession: state.createNewSession,
+        }))
+    );
     const userProfileError =
         !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null));
     const PLATFORM_SECTION_MENU_ITEMS = {
@@ -317,7 +323,8 @@ export default function Blue({ children }) {
                                                 </motion.div>
                                             )}
                                             <VerticalScrollable
-                                                show={isExpanded}
+                                                showTopIndicator={false}
+                                                showBottomIndicator={isExpanded}
                                                 transitionDuration={150}
                                                 backgroundColor={
                                                     darkMode
@@ -616,6 +623,32 @@ export default function Blue({ children }) {
                                     </Card>
                                 )}
                             </ExpandingBox>
+                        </div>
+                        <div
+                            className="scrollbar-none"
+                            style={{
+                                position: "absolute",
+                                top: 85,
+                                left: 20,
+                                width: 67,
+                                height: "calc(100% - 170px)",
+                                overflowY: "auto",
+                            }}
+                        >
+                            <VerticalScrollable
+                                caretPaddingBottom={20}
+                                caretPaddingTop={20}
+                                backgroundColor={
+                                    darkMode
+                                        ? Colors.DARK_GRAY1
+                                        : Colors.LIGHT_GRAY5
+                                }
+                            >
+                                <div style={{ padding: "20px 1px" }}>
+                                    <TopSessions />
+                                    <Dock />
+                                </div>
+                            </VerticalScrollable>
                         </div>
                         <Alert
                             isOpen={userProfileError}

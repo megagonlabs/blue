@@ -1,5 +1,8 @@
 import { Alignment } from "@blueprintjs/core";
-import { faCaretDown } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faCaretDown,
+    faCaretUp,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FAIcon } from "./FAIcon";
@@ -9,19 +12,24 @@ function VerticalScrollable({
     height,
     children,
     backgroundColor,
-    show = true,
+    showTopIndicator = true,
+    showBottomIndicator = true,
     transitionDuration = 0,
+    caretPaddingBottom = 0,
+    caretPaddingTop = 0,
 }) {
     const containerRef = useRef(null);
     const timeoutIdRef = useRef(null);
+    const [showTop, setShowTop] = useState(false);
     const [showBottom, setShowBottom] = useState(false);
     const checkScroll = useCallback(() => {
         if (containerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } =
                 containerRef.current;
             setShowBottom(_.ceil(scrollTop + clientHeight) < scrollHeight);
+            setShowTop(scrollTop > 0);
         }
-    }, []);
+    }, [children]);
     useEffect(() => {
         const container = containerRef.current;
         if (container) {
@@ -35,17 +43,28 @@ function VerticalScrollable({
             };
         }
     }, [checkScroll]);
-    const [visible, setVisible] = useState(false);
+    const [visibleBottom, setVisibleBottom] = useState(false);
+    const [visibleTop, setVisibleTop] = useState(false);
     useEffect(() => {
-        if (show) {
+        if (showBottomIndicator) {
             timeoutIdRef.current = setTimeout(() => {
-                setVisible(true);
+                setVisibleBottom(true);
             }, transitionDuration);
         } else {
             clearTimeout(timeoutIdRef.current);
-            setVisible(false);
+            setVisibleBottom(false);
         }
-    }, [show]);
+    }, [showBottomIndicator]);
+    useEffect(() => {
+        if (showTopIndicator) {
+            timeoutIdRef.current = setTimeout(() => {
+                setVisibleTop(true);
+            }, transitionDuration);
+        } else {
+            clearTimeout(timeoutIdRef.current);
+            setVisibleTop(false);
+        }
+    }, [showTopIndicator]);
     return (
         <div style={{ position: "relative", width, height }}>
             <div
@@ -59,20 +78,43 @@ function VerticalScrollable({
             >
                 {children}
             </div>
-            {showBottom && visible && (
+            {showTop && visibleTop && (
+                <div
+                    className="full-parent-width"
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        paddingTop: caretPaddingTop,
+                        left: 0,
+                        zIndex: 6,
+                        height: 40 + caretPaddingTop,
+                        width,
+                        textAlign: Alignment.CENTER,
+                        background: `linear-gradient(to bottom, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
+                        display: "flex",
+                        justifyContent: "flex-start",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
+                    <FAIcon icon={faCaretUp} />
+                </div>
+            )}
+            {showBottom && visibleBottom && (
                 <div
                     className="full-parent-width"
                     style={{
                         position: "absolute",
                         bottom: 0,
+                        paddingBottom: caretPaddingBottom,
                         left: 0,
-                        zIndex: 1,
-                        height: 40,
+                        zIndex: 6,
+                        height: 40 + caretPaddingBottom,
                         width,
                         textAlign: Alignment.CENTER,
                         background: `linear-gradient(to top, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
                         display: "flex",
-                        justifyContent: "end",
+                        justifyContent: "flex-end",
                         flexDirection: "column",
                         alignItems: "center",
                     }}

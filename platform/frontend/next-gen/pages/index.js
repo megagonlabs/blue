@@ -75,6 +75,7 @@ export default function Home() {
     return (
         <div
             ref={gridRef}
+            id="react-grid-scrollable-container"
             className="full-parent-dimension"
             style={{ overflowY: "auto" }}
         >
@@ -92,7 +93,8 @@ export default function Home() {
                 {layout.map((element) => (
                     <div
                         key={element.i}
-                        className="grid-container-boundary padding-0 overflow-hidden border-radius-10 custom-card"
+                        id={`grid-container-${element.i}`}
+                        className="grid-container-boundary padding-0 overflow-hidden border-radius-10 custom-card "
                         style={{ zIndex: 3 }}
                     >
                         <div

@@ -5,6 +5,7 @@ import {
     TABLE_CELL_HEIGHT,
     USER_ROLES_LOOKUP,
 } from "@/components/constants";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import { settlePromises, showAxiosErrorToast } from "@/components/helper";
 import UserAvatar from "@/components/sessions/UserAvatar";
@@ -304,11 +305,9 @@ export default function AuthenticationConfigurations() {
                 setAdding(false);
             });
     };
+    const { gridContainerId } = useGridContainerContext();
     return (
-        <div
-            ref={elementRef}
-            className="setting-container-section-2 scroll-margin-20"
-        >
+        <div ref={elementRef} id={`container-${gridContainerId}-section-1`}>
             <EntityTitle
                 icon={<FAIcon icon={faIdCardClip} size={20} />}
                 heading={H3}

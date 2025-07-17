@@ -119,6 +119,30 @@ module.exports = {
             return this.items[this.front];
         }
     },
+    scrollToTarget: (containerId, targetId) => {
+        try {
+            const scrollableContainer = document.getElementById(containerId);
+            const targetElement = scrollableContainer.querySelector(
+                `#${targetId}`
+            );
+            const scrollMargin = 20;
+            if (scrollableContainer && targetElement) {
+                const targetRect = targetElement.getBoundingClientRect();
+                const scrollableRect =
+                    scrollableContainer.getBoundingClientRect();
+                const targetRelativeTop = targetRect.top - scrollableRect.top;
+                let finalScrollPosition =
+                    scrollableContainer.scrollTop +
+                    targetRelativeTop -
+                    scrollMargin;
+
+                finalScrollPosition = Math.max(0, finalScrollPosition);
+                setTimeout(() => {
+                    scrollableContainer.scrollTop = finalScrollPosition;
+                }, 0);
+            }
+        } catch (error) {}
+    },
     getReactFlowLayoutedElements: (nodes, edges, direction = "LR") => {
         const dagreGraph = new dagre.graphlib.Graph();
         dagreGraph.setDefaultEdgeLabel(() => ({}));
