@@ -47,7 +47,6 @@ export default function Dock() {
                     position: "absolute",
                     textAlign: "center",
                 }}
-                minimal
                 fill
             >
                 Dock

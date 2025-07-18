@@ -18,9 +18,10 @@ class CustomFilter(logging.Filter):
 
 
 def extract_call_stack(s, depth=3):
-    call_stack = ""
-    d = 0
+    call_stack = []
     for i in range(len(s)):
+        if len(call_stack) >= depth:
+            break
         frame_info = getframeinfo(s[i][0])
         filename = frame_info.filename.split("/")[-1]
         lineno = frame_info.lineno
@@ -28,13 +29,9 @@ def extract_call_stack(s, depth=3):
         if filename == "log_utils.py":
             continue
         else:
-            if d > 0:
-                call_stack += "\u2190"
-            call_stack += filename + ":" + str(lineno)
-            d += 1
-            if d >= depth:
-                break
-    return call_stack
+            call_stack.append(filename + ":" + str(lineno))
+
+    return " \u2190 ".join(call_stack)
 
 
 def caller_reader(f, depth=3):

@@ -599,6 +599,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                 >
                     {_.isEqual(visibleSection, "agents") && (
                         <AgentLogs
+                            sessionId={sessionId}
                             containerId={containerId}
                             setContainerId={setContainerId}
                         />

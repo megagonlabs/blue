@@ -87,7 +87,6 @@ export default function TopSessions() {
                     position: "absolute",
                     textAlign: "center",
                 }}
-                minimal
                 fill
             >
                 Sessions
