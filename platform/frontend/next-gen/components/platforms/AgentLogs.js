@@ -11,7 +11,6 @@ import {
     Colors,
     Intent,
     Size,
-    Tag,
     Tooltip,
 } from "@blueprintjs/core";
 import {
@@ -23,21 +22,28 @@ import {
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useRef, useState } from "react";
+import ContainerLogViewer from "./ContainerLogViewer";
 const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function AgentLogs({
     containerId,
     setContainerId,
     setShow,
+    sessionId = null,
     leftBoundary = false,
 }) {
     const [isLive, setIsLive] = useState(false);
     const [logs, setLogs] = useState([]);
     const containerRef = useRef(null);
     useEffect(() => {
+        containerId =
+            "0009a2602b17dc44fbd8739b58485418efc6e0e5f9fff92b9091651422d8a2f5";
         if (_.isEmpty(containerId)) return;
         setLogs([]);
+        const encodedJson = encodeURIComponent(
+            JSON.stringify({ session: sessionId })
+        );
         const eventSource = new EventSource(
-            `${NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}/containers/agents/container/${containerId}`,
+            `${NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}/containers/agents/container/${containerId}?filter=${encodedJson}`,
             { withCredentials: true }
         );
         eventSource.addEventListener("open", () => setIsLive(true));
@@ -62,24 +68,14 @@ export default function AgentLogs({
             } else {
                 setLogs((current) => {
                     const timestamp = new Date(line.slice(0, 30));
-                    const timestampEpoch = timestamp.getTime();
-                    const newLineEntry = {
-                        timestampEpoch,
-                        line: (
-                            <div>
-                                <Tag
-                                    minimal
-                                    style={{ fontWeight: 600, borderRadius: 0 }}
-                                >
-                                    {timestamp.toLocaleString()}
-                                </Tag>
-                                {line.substring(30)}
-                            </div>
-                        ),
+                    const entry = {
+                        epoch: timestamp.getTime(),
+                        localeString: timestamp.toLocaleString(),
+                        logMessage: _.trim(line.substring(30)),
                     };
                     return _.uniqBy(
-                        _.sortBy([...current, newLineEntry], "timestampEpoch"),
-                        "timestampEpoch"
+                        _.sortBy([...current, entry], "epoch"),
+                        "epoch"
                     );
                 });
             }
@@ -87,7 +83,7 @@ export default function AgentLogs({
         return () => {
             eventSource.close();
         };
-    }, [containerId]);
+    }, [containerId, sessionId]);
     const elementRef = useRef(null);
     return (
         <div className="full-parent-dimension">
@@ -167,10 +163,13 @@ export default function AgentLogs({
                     maxHeight: "calc(100% - 61px)",
                     overflowY: "auto",
                     padding: 20,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
                 }}
             >
-                {logs.map(({ line, timestampEpoch }) => (
-                    <div key={timestampEpoch}>{line}</div>
+                {[...logs, ...logs].map((log, index) => (
+                    <ContainerLogViewer key={index} log={log} />
                 ))}
             </div>
         </div>

@@ -43,8 +43,9 @@ export const useGridStore = create((set, get) => ({
         const { layout } = _.cloneDeep(get());
         try {
             const gridHeight = _.get(grid, "current.clientHeight", null);
-            let calculatedHeight = _.floor(
-                ((gridHeight - 40 + 20) / 170) * ratio
+            let calculatedHeight = Math.max(
+                _.ceil(((gridHeight - 40 + 20) / 170) * ratio),
+                3
             );
             if (!_.isInteger(calculatedHeight)) {
                 calculatedHeight = 3;

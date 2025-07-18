@@ -23,11 +23,12 @@ import logging
 import docker
 
 ##### Typing
-from typing import Union, Any, Dict, List
+from typing import Union, Any, Dict, List, Optional
 
 ###### FastAPI, Web, Auth
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import Query
 
 
 ###### Schema
@@ -419,7 +420,12 @@ def shutdown_service_container(request: Request, service_name):
 
 
 @router.get('/agents/container/{container_id}')
-async def stream_log(container_id):
+async def stream_log(container_id: str, filter: Optional[str] = Query(None)):
+    filter_data = {}
+    try:
+        filter_data = json.loads(filter)
+    except Exception:
+        return StreamingResponse(f"event: error\ndata: Invalid JSON: {filter}\n\n", media_type="text/event-stream")
     client = docker.from_env()
     swarm_mode = pydash.is_equal(PROPERTIES["platform.deploy.target"], "swarm")
     try:
@@ -455,7 +461,16 @@ async def stream_log(container_id):
                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
                 break
             if not queue.empty():
-                data = {'epoch': time.time(), 'line': await queue.get()}
+                line = await queue.get()
+                try:
+                    json_line = json.loads(line[30:])
+                    if pydash.objects.get(json_line, 'output_format', None) == 'json':
+                        if pydash.objects.has(json_line, 'session') and pydash.objects.has(filter_data, 'session'):
+                            if json_line['session'] != filter_data['session']:
+                                continue
+                except (ValueError, TypeError, OverflowError, json.decoder.JSONDecodeError):
+                    pass
+                data = {'epoch': time.time(), 'line': line}
                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
             await asyncio.sleep(0)
         log_thread.join(timeout=1)
