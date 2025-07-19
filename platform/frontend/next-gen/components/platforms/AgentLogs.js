@@ -35,8 +35,6 @@ export default function AgentLogs({
     const [logs, setLogs] = useState([]);
     const containerRef = useRef(null);
     useEffect(() => {
-        containerId =
-            "0009a2602b17dc44fbd8739b58485418efc6e0e5f9fff92b9091651422d8a2f5";
         if (_.isEmpty(containerId)) return;
         setLogs([]);
         const encodedJson = encodeURIComponent(
