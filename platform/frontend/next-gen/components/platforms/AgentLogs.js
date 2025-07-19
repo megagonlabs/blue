@@ -168,7 +168,7 @@ export default function AgentLogs({
                     gap: 10,
                 }}
             >
-                {[...logs, ...logs].map((log, index) => (
+                {logs.map((log, index) => (
                     <ContainerLogViewer key={index} log={log} />
                 ))}
             </div>
