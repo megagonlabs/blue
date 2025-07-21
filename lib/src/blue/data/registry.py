@@ -266,6 +266,16 @@ class DataRegistry(Registry):
                 description = metadata['description']
             self.update_source(source, description=description, properties=properties, rebuild=rebuild)
 
+            # collect and store source-level stats only if available (optional)
+            try:
+                if hasattr(source_connection, "fetch_source_stats"):
+                    source_stats = source_connection.fetch_source_stats()
+                    self.set_source_property(source, "stats", source_stats, rebuild=rebuild)
+            except Exception as e:
+                logging.warning(f"Failed to collect source-level stats for {source}: {e}")
+
+
+            
             # fetch databases
             fetched_dbs = source_connection.fetch_databases()
             fetched_dbs_set = set(fetched_dbs)
@@ -326,6 +336,14 @@ class DataRegistry(Registry):
                 description = metadata['description']
             self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
 
+            try:
+                if hasattr(source_connection, "fetch_database_stats"):
+                    db_stats = source_connection.fetch_database_stats(database)
+                    self.set_source_database_property(source, database, "stats", db_stats, rebuild=rebuild)
+            except Exception as e:
+                logging.warning(f"Failed to fetch stats for database {database}: {e}")
+
+            
             # fetch collections
             fetched_collections = source_connection.fetch_database_collections(database)
             fetched_collections_set = set(fetched_collections)
@@ -389,6 +407,13 @@ class DataRegistry(Registry):
 
             #### fetch collection schema
             schema = source_connection.fetch_database_collection_schema(database, collection)
+
+            try:
+                if hasattr(source_connection, "fetch_collection_stats"):
+                    collection_stats = source_connection.fetch_collection_stats(database, collection, schema)
+                    self.set_source_database_collection_property(source, database, collection, "stats", collection_stats, rebuild=rebuild)
+            except Exception as e:
+                logging.warning(f"Failed to fetch collection stats for {collection}: {e}")
 
             entities = schema['entities']
             relations = schema['relations']

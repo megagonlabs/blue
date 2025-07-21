@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import json
 import copy
+import logging
 
 
 ###### Source specific libs
@@ -189,3 +190,196 @@ class PostgresDBSource(DataSource):
         self._db_disconnect(db_connection)
 
         return result
+
+    ######### stats
+
+    def fetch_source_stats(self):
+            
+        stats = {}
+
+        try:
+            with self.connection.cursor() as cur:
+                cur.execute("SELECT version()")
+                stats["version"] = cur.fetchone()[0]
+
+                # Get list of databases
+                cur.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
+                databases = [row[0] for row in cur.fetchall()]
+                stats["database_count"] = len(databases)
+                stats["database_names"] = databases
+                
+                cur.execute("""
+                    SELECT now() - pg_postmaster_start_time() AS uptime;
+                """)
+                stats["uptime"] = str(cur.fetchone()[0])
+
+        except Exception as e:
+            logging.warning(f"Failed to collect source-level stats: {e}")
+            stats["error"] = str(e)
+
+        return stats
+
+    def fetch_database_stats(self, database):
+            
+        conn = self._db_connect(database)
+        cur = conn.cursor()
+        
+        stats = {}
+        try:
+            # Size of database in bytes
+            cur.execute("SELECT pg_database_size(%s);", (database,))
+            size = cur.fetchone()
+            stats["size_bytes"] = size[0] if size else None
+
+            cur.execute("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public';
+            """)
+
+            tables = [row[0] for row in cur.fetchall()]
+
+            cur.execute("""
+            SELECT COUNT(*) 
+            FROM information_schema.tables 
+            WHERE table_schema NOT IN ('pg_catalog', 'information_schema') 
+            AND table_type = 'BASE TABLE';
+            """)
+            
+            stats["table_count"] = cur.fetchone()[0]
+            stats['tables'] = tables
+
+        except Exception as e:
+            logging.warning(f"Error fetching database stats for {database}: {e}")
+        finally:
+            cur.close()
+
+        return stats
+
+    def fetch_collection_stats(self, database, collection_name, schema_json=None):
+            
+        if isinstance(schema_json, str):
+            schema_json = json.loads(schema_json)
+
+        stats = {}
+        
+        for entity, meta in schema_json.get("entities", {}).items():
+        
+            ent_stats = {}
+            ent_stats["stats"] = self.fetch_entity_stats(database, collection_name, entity)
+
+            props = meta.get("properties", {})
+            
+            ent_stats["properties"] = {}
+            for prop in props:
+                ent_stats["properties"][prop] = self.fetch_property_stats(database, entity, prop)
+
+            stats[entity] = ent_stats
+
+        return stats
+
+
+    def fetch_entity_stats(self, database, collection, entity):
+        
+        conn = self._db_connect(database)
+        cursor = conn.cursor()
+
+        stats = {}
+
+        try:
+            query = f'SELECT COUNT(*) FROM "{entity}";'
+            cursor.execute(query)
+            stats["row_count"] = cursor.fetchone()[0]
+
+        except psycopg2.Error as e:
+            logging.warning(f"Failed to get row count for {entity}: {e}")
+            stats["row_count"] = None
+
+        finally:
+            self._db_disconnect(conn)
+
+        return stats
+
+    def fetch_property_stats(self, database, collection, property_name):
+    
+        conn = self._db_connect(database)
+        cursor = conn.cursor()
+
+        schema = "public"
+        table = collection
+        column = f'"{property_name}"'  
+        
+        try:
+            cursor.execute("""
+                SELECT data_type
+                FROM information_schema.columns
+                WHERE table_schema = %s AND table_name = %s AND column_name = %s;
+            """, (schema, table, property_name))
+            type_result = cursor.fetchone()
+            column_type = type_result[0] if type_result else None
+
+            # Set flags for whether to compute min/max
+            include_min_max = column_type in (
+            'integer', 'bigint', 'smallint', 'numeric', 'real', 'double precision',
+            'date', 'timestamp without time zone', 'timestamp with time zone',
+            'boolean', 'enum'
+            )
+
+            # Build query dynamically
+            query = f"""
+                SELECT
+                COUNT({column}) AS non_null_count,
+                COUNT(DISTINCT {column}) AS distinct_count,
+                COUNT(*) FILTER (WHERE {column} IS NULL) AS null_count,
+                ARRAY(
+                    SELECT DISTINCT {column}
+                    FROM {table}
+                    WHERE {column} IS NOT NULL
+                    LIMIT 10
+                )::text[] AS sample_values
+            """
+
+            if include_min_max:
+                query += f""",
+                    MIN({column})::text AS min_value,
+                    MAX({column})::text AS max_value
+                """
+            else:
+                query += ", NULL AS min_value, NULL AS max_value"
+
+            query += f" FROM {table};"
+
+            cursor.execute(query)
+            row = cursor.fetchone()
+            
+            stats = {
+                "count": row[0],
+                "distinct_count": row[1],
+                "null_count": row[2],
+                "sample_values": row[3],
+                "min": row[4],
+                "max": row[5],
+            }
+
+            # Additional query for most_common_vals from pg_stats
+            cursor.execute("""
+                SELECT most_common_vals
+                FROM pg_stats
+                WHERE schemaname = %s AND tablename = %s AND attname = %s;
+            """, (schema, table, property_name))
+
+            mc_row = cursor.fetchone()
+            
+            if mc_row and mc_row[0]:
+                stats["most_common_vals"] = mc_row[0]
+            else:
+                stats["most_common_vals"] = []
+                
+            return stats
+
+        except Exception as e:
+            logging.warning(f"Failed to fetch property stats for {collection}.{property_name}: {str(e)}")
+            return {}
+        finally:
+            self._db_disconnect(conn)
+         
