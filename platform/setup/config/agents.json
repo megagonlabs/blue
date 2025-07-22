@@ -1256,7 +1256,8 @@
             "USER"
           ]
         }
-      }
+      },
+      "output_cast": "json"
     },
     "icon": null
   },
