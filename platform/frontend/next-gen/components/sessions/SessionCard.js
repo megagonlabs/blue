@@ -7,8 +7,8 @@ import {
     ButtonGroup,
     ButtonVariant,
     Callout,
-    Card,
     Classes,
+    Colors,
     hideContextMenu,
     Intent,
     Menu,
@@ -146,10 +146,17 @@ export default function SessionCard({ sessionId }) {
             });
     };
     return (
-        <Card
+        <div
             onContextMenu={handleContextMenu}
             className="full-parent-dimension session-list-card interactive-card-border"
-            style={{ position: "relative", cursor: "context-menu" }}
+            style={{
+                padding: 20,
+                position: "relative",
+                cursor: "context-menu",
+                backgroundColor: darkMode
+                    ? Colors.DARK_GRAY1
+                    : Colors.LIGHT_GRAY5,
+            }}
             onDoubleClick={() => {
                 replaceContainer({
                     id: gridContainerId,
@@ -250,6 +257,6 @@ export default function SessionCard({ sessionId }) {
                 sessionId={sessionId}
                 style={{ marginTop: 10 }}
             />
-        </Card>
+        </div>
     );
 }

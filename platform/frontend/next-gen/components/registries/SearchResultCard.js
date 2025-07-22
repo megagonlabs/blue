@@ -1,8 +1,8 @@
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
-    Card,
     Classes,
+    Colors,
     hideContextMenu,
     Menu,
     MenuItem,
@@ -64,7 +64,7 @@ export default function SearchResultCard({ entity }) {
         [handleClose, menu, darkMode]
     );
     return (
-        <Card
+        <div
             onDoubleClick={() => {
                 replaceContainer({
                     id: gridContainerId,
@@ -76,6 +76,9 @@ export default function SearchResultCard({ entity }) {
                 padding: 20,
                 position: "relative",
                 cursor: "context-menu",
+                backgroundColor: darkMode
+                    ? Colors.DARK_GRAY1
+                    : Colors.LIGHT_GRAY5,
             }}
             onContextMenu={handleContextMenu}
         >
@@ -115,6 +118,6 @@ export default function SearchResultCard({ entity }) {
                     {entity.scope}
                 </div>
             )}
-        </Card>
+        </div>
     );
 }
