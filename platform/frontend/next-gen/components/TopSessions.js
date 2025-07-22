@@ -79,6 +79,7 @@ export default function TopSessions() {
             }}
         >
             <Tag
+                minimal
                 intent={Intent.PRIMARY}
                 style={{
                     top: 0,

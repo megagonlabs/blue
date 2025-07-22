@@ -39,6 +39,7 @@ export default function Dock() {
             }}
         >
             <Tag
+                minimal
                 intent={Intent.PRIMARY}
                 style={{
                     top: 0,

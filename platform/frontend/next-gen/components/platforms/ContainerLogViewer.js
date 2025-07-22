@@ -14,7 +14,7 @@ export default function ContainerLogViewer({ log }) {
                 );
                 let result = [];
                 for (let i = 0; i < _.size(keys); i++) {
-                    result.push(<Tag>{keys[i]}</Tag>);
+                    result.push(<Tag minimal>{keys[i]}</Tag>);
                     result.push(jsonLogMessage[keys[i]]);
                 }
                 setLogElements(result);
@@ -32,7 +32,9 @@ export default function ContainerLogViewer({ log }) {
                 alignItems: "center",
             }}
         >
-            <Tag intent={Intent.PRIMARY}>{localeString}</Tag>
+            <Tag minimal intent={Intent.PRIMARY}>
+                {localeString}
+            </Tag>
             {logElements.map((e) => e)}
         </div>
     );
