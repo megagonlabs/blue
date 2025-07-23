@@ -180,6 +180,11 @@ class Operator(Tool):
         # Hyperparameter definitions
         self.properties["hyperparameters"] = {}
 
+    def _get_properties(self, properties=None):
+        if properties is None:
+            properties = {}
+        return json_utils.merge_json(self.properties, properties)
+
     def _update_properties(self, properties=None):
         if properties is None:
             return
@@ -188,10 +193,25 @@ class Operator(Tool):
         for p in properties:
             self.properties[p] = properties[p]
 
-    def get_properties(self, properties=None):
-        if properties is None:
-            properties = {}
-        return json_utils.merge_json(self.properties, properties)
+    def _get_parameters(self):
+        return self.properties["parameters"]
+
+    def _update_parameters(self, parameters=None):
+        if parameters is None:
+            return
+        # override
+        for p in parameters:
+            self.properties["parameters"][p] = parameters[p]
+
+    def _get_hyperparameters(self):
+        return self.properties["hyperparameters"]
+
+    def _update_hyperparameters(self, hyperparameters=None):
+        if hyperparameters is None:
+            return
+        # override
+        for p in hyperparameters:
+            self.properties["hyperparameters"][p] = hyperparameters[p]
 
     ######### Seperation functions to let LLM or other caller know if it's an operator or a tool
     @classmethod
