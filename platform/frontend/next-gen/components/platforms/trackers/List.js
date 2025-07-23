@@ -1,14 +1,6 @@
 import { FAIcon } from "@/components/FAIcon";
 import { useAppStore } from "@/stores/app-store";
-import {
-    Card,
-    Classes,
-    Colors,
-    Divider,
-    H6,
-    Popover,
-    Tag,
-} from "@blueprintjs/core";
+import { Classes, Colors, Divider, H6, Popover, Tag } from "@blueprintjs/core";
 import { faList } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 export default function List({ label, object }) {
@@ -84,12 +76,9 @@ export default function List({ label, object }) {
                 </div>
             }
         >
-            <Card
-                style={{
-                    cursor: "pointer",
-                    padding: darkMode ? 1 : 0,
-                    overflow: "hidden",
-                }}
+            <div
+                className="custom-card"
+                style={{ cursor: "pointer", overflow: "hidden" }}
             >
                 <div
                     style={{ padding: "10px 10px 5px" }}
@@ -103,12 +92,12 @@ export default function List({ label, object }) {
                         padding: "5px 10px 10px",
                         backgroundColor: darkMode
                             ? Colors.DARK_GRAY3
-                            : Colors.LIGHT_GRAY5,
+                            : Colors.LIGHT_GRAY4,
                     }}
                 >
                     <FAIcon icon={faList} />
                 </div>
-            </Card>
+            </div>
         </Popover>
     );
 }

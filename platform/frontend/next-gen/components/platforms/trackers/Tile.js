@@ -1,17 +1,12 @@
 import Timestamp from "@/components/Timestamp";
 import { useAppStore } from "@/stores/app-store";
-import { Card, Classes, Colors } from "@blueprintjs/core";
+import { Classes, Colors } from "@blueprintjs/core";
 import _ from "lodash";
 export default function Tile({ type, label, object }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const { value } = object;
     return (
-        <Card
-            style={{
-                padding: darkMode ? 1 : 0,
-                overflow: "hidden",
-            }}
-        >
+        <div className="custom-card" style={{ overflow: "hidden" }}>
             <div
                 style={{ padding: "10px 10px 5px" }}
                 className={Classes.TEXT_MUTED}
@@ -24,7 +19,7 @@ export default function Tile({ type, label, object }) {
                     padding: "5px 10px 10px",
                     backgroundColor: darkMode
                         ? Colors.DARK_GRAY3
-                        : Colors.LIGHT_GRAY5,
+                        : Colors.LIGHT_GRAY4,
                 }}
             >
                 {_.isEqual(type, "time") ? (
@@ -33,6 +28,6 @@ export default function Tile({ type, label, object }) {
                     value
                 )}
             </div>
-        </Card>
+        </div>
     );
 }

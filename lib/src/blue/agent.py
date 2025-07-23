@@ -391,7 +391,7 @@ class Worker:
 
         # start consumer only first on initial given input_stream
         self._start_consumer()
-        self.logger.info("Started agent worker {name}".format(name=self.sid))
+        self.logger.info("Started agent worker {name} for stream {stream}".format(name=self.sid, stream="none" if self.input_stream is None else self.input_stream))
 
     def _start_consumer(self):
         # start a consumer to listen to stream
@@ -687,6 +687,11 @@ class Agent:
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT'
     def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None, properties=None):
+
+        # check if listening already
+        if input_stream and input_stream in self.workers:
+            return self.workers[input_stream]
+
         # listen
         if processor == None:
             processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
@@ -718,13 +723,13 @@ class Agent:
             on_stop=lambda sid: self.on_worker_stop_handler(sid),
         )
 
-        self.workers[worker.sid] = worker
+        self.workers[input_stream] = worker
 
         return worker
 
-    def on_worker_stop_handler(self, worker_sid):
-        if worker_sid in self.workers:
-            del self.workers[worker_sid]
+    def on_worker_stop_handler(self, worker_input_stream):
+        if worker_input_stream in self.workers:
+            del self.workers[worker_input_stream]
 
     ###### default processor, override
     def default_processor(
@@ -748,6 +753,7 @@ class Agent:
         properties=None,
         worker=None,
     ):
+
         # self.logger.info("instruction processor")
         # self.logger.info(message)
         # self.logger.info(input)
@@ -757,6 +763,7 @@ class Agent:
         if message.getCode() == ControlCode.EXECUTE_AGENT:
             agent = message.getArg("agent")
             if agent == self.name:
+
                 context = message.getAgentContext()
 
                 # get additional properties
@@ -986,17 +993,17 @@ class Agent:
         self.leave_session()
 
         # send stop to each worker
-        for worker_id in self.workers:
-            worker = self.workers[worker_id]
+        for worker_input_stream in self.workers:
+            worker = self.workers[worker_input_stream]
             worker.stop()
 
-        for worker_id in self.workers:
-            del self.workers[worker_id]
+        for worker_input_stream in self.workers:
+            del self.workers[worker_input_stream]
 
     def wait(self):
         # send wait to each worker
-        for worker_id in self.workers:
-            worker = self.workers[worker_id]
+        for worker_input_stream in self.workers:
+            worker = self.workers[worker_input_stream]
             worker.wait()
 
 
