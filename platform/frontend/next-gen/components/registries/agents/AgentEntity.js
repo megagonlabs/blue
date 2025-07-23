@@ -126,41 +126,6 @@ export default function AgentEntity({
             })
             .then(() => {
                 let updated = _.cloneDeep(mainProperties);
-                if (_.has(mainProperties, "listens")) {
-                    let result = {};
-                    for (let i = 0; i < _.size(mainProperties.listens); i++) {
-                        const key = _.trim(mainProperties.listens[i].key);
-                        if (!_.isEmpty(key)) {
-                            _.set(result, mainProperties.listens[i].key, {
-                                includes: _.get(
-                                    mainProperties.listens,
-                                    [i, "includes"],
-                                    []
-                                ),
-                                excludes: _.get(
-                                    mainProperties.listens,
-                                    [i, "excludes"],
-                                    []
-                                ),
-                            });
-                        }
-                    }
-                    _.set(updated, "listens", result);
-                }
-                if (_.has(mainProperties, "tags")) {
-                    let result = {};
-                    for (let i = 0; i < _.size(mainProperties.tags); i++) {
-                        const key = _.trim(mainProperties.tags[i].key);
-                        if (!_.isEmpty(key)) {
-                            _.set(
-                                result,
-                                mainProperties.tags[i].key,
-                                _.get(mainProperties.tags, [i, "tags"], [])
-                            );
-                        }
-                    }
-                    _.set(updated, "tags", result);
-                }
                 const properties = { ...editedAgent.properties, ...updated };
                 const diffs = shallowDiff(agent.properties, properties);
                 const promises = getUpdatePropertyPromises({
@@ -324,14 +289,12 @@ export default function AgentEntity({
                 </div>
             </div>
             <div style={{ marginTop: 20 }}>
-                <div>
-                    <AgentMainProperties
-                        updateMainProperties={updateMainProperties}
-                        isEditing={isEditing}
-                        properties={mainProperties}
-                        loading={loading}
-                    />
-                </div>
+                <AgentMainProperties
+                    updateMainProperties={updateMainProperties}
+                    isEditing={isEditing}
+                    properties={mainProperties}
+                    loading={loading}
+                />
                 <div style={{ marginTop: 20 }}>
                     <EntityDescription
                         isEditing={isEditing}

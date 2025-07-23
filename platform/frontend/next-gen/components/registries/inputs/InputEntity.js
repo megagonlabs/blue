@@ -21,6 +21,7 @@ import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
+import InputListens from "./InputListens";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
 export default function InputEntity({ entity, backCrumb }) {
     const { name, scope, type } = entity;
@@ -63,6 +64,9 @@ export default function InputEntity({ entity, backCrumb }) {
     }, [entity]);
     const handleDiscard = () => {
         setEditedInput(input);
+        setMainProperties(
+            getEntityMainProperties(_.get(input, "properties", {}))
+        );
         setIsEditing(false);
     };
     const handleSave = () => {
@@ -197,6 +201,14 @@ export default function InputEntity({ entity, backCrumb }) {
                     isEditing={isEditing}
                     updateEntity={updateInput}
                     entity={editedInput}
+                    loading={loading}
+                />
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <InputListens
+                    updateMainProperties={updateMainProperties}
+                    isEditing={isEditing}
+                    properties={mainProperties}
                     loading={loading}
                 />
             </div>

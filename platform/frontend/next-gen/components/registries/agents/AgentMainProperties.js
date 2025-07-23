@@ -1,3 +1,4 @@
+import { ENTER_KEY_ICON, TAG_REMOVE_ICON } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import { useAppStore } from "@/stores/app-store";
 import {
@@ -18,22 +19,12 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faArrowTurnDownLeft,
     faMemo,
     faPlus,
     faTrash,
-    faXmark,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useCallback, useMemo, useState } from "react";
-const TAG_REMOVE_ICON = <FAIcon icon={faXmark} style={{ cursor: "pointer" }} />;
-const ENTER_KEY_ICON = (
-    <Button
-        className="pointer-events-none"
-        variant={ButtonVariant.MINIMAL}
-        icon={<FAIcon icon={faArrowTurnDownLeft} />}
-    />
-);
 function Categories({ properties, loading, isEditing, updateMainProperties }) {
     const categories = useMemo(() => {
         return _.isArray(properties.categories) ? properties.categories : [];
@@ -592,32 +583,12 @@ export default function AgentMainProperties({
                     title="Main"
                 />
             </div>
-            <div className="split-pane-container">
-                <div className="pane-item">
-                    <InputListeners
-                        updateMainProperties={updateMainProperties}
-                        isEditing={isEditing}
-                        properties={properties}
-                        loading={loading}
-                    />
-                </div>
-                <div className="pane-item">
-                    <OutputTags
-                        updateMainProperties={updateMainProperties}
-                        isEditing={isEditing}
-                        properties={properties}
-                        loading={loading}
-                    />
-                </div>
-            </div>
-            <div style={{ marginTop: 10 }}>
-                <Categories
-                    updateMainProperties={updateMainProperties}
-                    isEditing={isEditing}
-                    properties={properties}
-                    loading={loading}
-                />
-            </div>
+            <Categories
+                updateMainProperties={updateMainProperties}
+                isEditing={isEditing}
+                properties={properties}
+                loading={loading}
+            />
         </div>
     );
 }
