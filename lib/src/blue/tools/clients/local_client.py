@@ -47,7 +47,7 @@ class LocalToolClient(ToolClient):
 
     ######### tool
     def fetch_tools(self):
-        tools = list[self.tools.keys()]
+        tools = list(self.tools.keys())
         return tools
 
     def fetch_tool_metadata(self, tool):
