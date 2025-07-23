@@ -13,7 +13,7 @@ from blue.utils.type_utils import string_to_python_type, create_pydantic_model, 
 ### Operator
 
 
-def default_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+def default_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Default function for operator. It should be overridden by each operator."""
     return []
 
