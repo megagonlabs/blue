@@ -123,6 +123,8 @@ class Operator(Tool):
             self.properties = {}
         if "parameters" not in self.properties:
             self.properties["parameters"] = {}
+        if "hyperparameters" not in self.properties:
+            self.properties["hyperparameters"] = {}
 
         ## Currently disable the default function to switch to function based operator design
         # if function is None:
@@ -174,6 +176,9 @@ class Operator(Tool):
 
         # Parameter definitions
         self.properties["parameters"] = {}
+
+        # Hyperparameter definitions
+        self.properties["hyperparameters"] = {}
 
     def _update_properties(self, properties=None):
         if properties is None:
