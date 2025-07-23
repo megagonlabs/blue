@@ -21,6 +21,8 @@ from blue.utils import uuid_utils, log_utils
 class Session:
     def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         self.connection = None
+
+        #########
         self.name = name
         if id:
             self.id = id
@@ -310,13 +312,6 @@ class Session:
         for tag in tags:
             metadata_tags.update({tag: True})
 
-        self.logger.info(self._get_stream_metadata_namespace(stream))
-        self.logger.info(
-            self.connection.json().get(
-                self._get_stream_metadata_namespace(stream),
-                Path("$"),
-            )
-        )
         self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'created_by', agent.name)
         self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'id', agent.id)
         self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'tags', metadata_tags)
