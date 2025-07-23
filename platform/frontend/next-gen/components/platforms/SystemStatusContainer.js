@@ -43,6 +43,7 @@ const TrackerCard = memo(function TrackerCard({ data, index, style }) {
     );
     const tracker = trackers[index];
     const contents = _.get(trackerData, [tracker, "data"], EMPTY_ARRAY);
+    const darkMode = useAppStore((state) => state.dark_mode);
     useEffect(() => {
         if (cardRef.current) {
             const newHeight = cardRef.current.getBoundingClientRect().height;
@@ -60,7 +61,17 @@ const TrackerCard = memo(function TrackerCard({ data, index, style }) {
                 paddingBottom: _.isEqual(index, _.size(trackers) - 1) ? 20 : 0,
             }}
         >
-            <div ref={cardRef} className="custom-card" style={{ padding: 20 }}>
+            <div
+                ref={cardRef}
+                className="interactive-card-border "
+                style={{
+                    borderRadius: 2,
+                    padding: 20,
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY1
+                        : Colors.LIGHT_GRAY5,
+                }}
+            >
                 {contents.map((element, index) => (
                     <div key={index}>{element}</div>
                 ))}
