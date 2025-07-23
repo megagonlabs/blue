@@ -1043,6 +1043,7 @@
       "display_name": "Dialogue Manager Agent - Example",
       "intent_classifier_agent": "OPENAI___INTENT_CLASSIFIER",
       "intent_rewriter_agent": "OPENAI___INTENT_REWRITER",
+      "conversation_memory": true,
       "tags": {}
     },
     "icon": null
