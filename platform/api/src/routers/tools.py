@@ -260,6 +260,8 @@ def sync_server(request: Request, server_name, recursive: bool = False):
     server = tool_registry.get_server(server_name)
     server_acl_enforce(request, server, write=True)
     tool_registry.sync_server(server_name, recursive=recursive, rebuild=True)
+    # save
+    tool_registry.dump("/blue_data/config/" + tool_registry_id + ".tools.json")
     return JSONResponse(content={"message": "Success"})
 
 
@@ -268,4 +270,6 @@ def sync_server_tool(request: Request, server_name, tool_name, recursive: bool =
     server = tool_registry.get_server(server_name)
     server_acl_enforce(request, server, write=True)
     tool_registry.sync_server_tool(server_name, tool_name, recursive=recursive, rebuild=True)
+    # save
+    tool_registry.dump("/blue_data/config/" + tool_registry_id + ".tools.json")
     return JSONResponse(content={"message": "Success"})
