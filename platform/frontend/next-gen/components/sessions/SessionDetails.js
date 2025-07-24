@@ -9,9 +9,9 @@ import {
     faCircleA,
     faCog,
     faDatabase,
-    faMoneyBillsSimple,
     faSquareInfo,
     faUserGroup,
+    faWallet,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useState } from "react";
@@ -63,7 +63,7 @@ export default function SessionDetails({ sessionId }) {
                             setFocusTab("budget");
                         }}
                         active={_.isEqual(focusTab, "budget")}
-                        icon={<FAIcon icon={faMoneyBillsSimple} />}
+                        icon={<FAIcon icon={faWallet} />}
                     />
                     <Button
                         text="Data"

@@ -20,7 +20,7 @@ import {
     Utils,
 } from "@blueprintjs/table";
 import {
-    faLayerGroup,
+    faBellConcierge,
     faRefresh,
     faStop,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -247,7 +247,7 @@ function PlatformServices({ width, height }) {
                 {_.isEmpty(list) ? (
                     <NonIdealState
                         title="No Service"
-                        icon={<FAIcon icon={faLayerGroup} size={50} />}
+                        icon={<FAIcon icon={faBellConcierge} size={50} />}
                     />
                 ) : (
                     <Table2

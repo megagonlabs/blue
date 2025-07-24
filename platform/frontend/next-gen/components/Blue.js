@@ -20,11 +20,11 @@ import {
 } from "@blueprintjs/core";
 import { Omnibar } from "@blueprintjs/select";
 import {
+    faBellConcierge,
     faCircleA,
     faCircleDot,
     faInboxFull,
     faInboxOut,
-    faLayerGroup,
     faMagnifyingGlass,
     faPencilRuler,
     faScrewdriverWrench,
@@ -188,7 +188,7 @@ export default function Blue({ children }) {
         services: {
             title: "Platform Services",
             text: "Services",
-            icon: faLayerGroup,
+            icon: faBellConcierge,
             content: <PlatformServices />,
             visible: permissions.canReadPlatformServices,
         },
