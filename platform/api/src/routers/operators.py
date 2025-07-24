@@ -260,6 +260,8 @@ def sync_server(request: Request, server_name, recursive: bool = False):
     server = operator_registry.get_server(server_name)
     server_acl_enforce(request, server, write=True)
     operator_registry.sync_server(server_name, recursive=recursive, rebuild=True)
+    # save
+    operator_registry.dump("/blue_data/config/" + operator_registry_id + ".operators.json")
     return JSONResponse(content={"message": "Success"})
 
 
@@ -268,4 +270,6 @@ def sync_server_operator(request: Request, server_name, operator_name, recursive
     server = operator_registry.get_server(server_name)
     server_acl_enforce(request, server, write=True)
     operator_registry.sync_server_operator(server_name, operator_name, recursive=recursive, rebuild=True)
+    # save
+    operator_registry.dump("/blue_data/config/" + operator_registry_id + ".operators.json")
     return JSONResponse(content={"message": "Success"})
