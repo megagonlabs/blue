@@ -26,7 +26,7 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faMessage, faTrash } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faComment, faTrash } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
@@ -176,7 +176,7 @@ export default function WorkspaceMessage({
                             size={Size.LARGE}
                             icon={
                                 <FAIcon
-                                    icon={faMessage}
+                                    icon={faComment}
                                     style={{ marginRight: 10 }}
                                 />
                             }

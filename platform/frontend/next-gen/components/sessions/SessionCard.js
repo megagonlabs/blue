@@ -19,7 +19,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faBrowsers,
-    faMessages,
+    faComments,
     faThumbTack,
     faThumbTackSlash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -65,7 +65,7 @@ export default function SessionCard({ sessionId }) {
                     text="Open in new window"
                     onClick={() => {
                         addContainer({
-                            icon: faMessages,
+                            icon: faComments,
                             title: <SessionDisplayName sessionId={sessionId} />,
                             content: <SessionContainer sessionId={sessionId} />,
                         });
@@ -160,7 +160,7 @@ export default function SessionCard({ sessionId }) {
             onDoubleClick={() => {
                 replaceContainer({
                     id: gridContainerId,
-                    icon: faMessages,
+                    icon: faComments,
                     title: <SessionDisplayName sessionId={sessionId} />,
                     content: <SessionContainer sessionId={sessionId} />,
                 });

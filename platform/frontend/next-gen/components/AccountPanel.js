@@ -18,7 +18,7 @@ import {
     faArrowRightFromBracket,
     faBarcode,
     faBrowsers,
-    faCog,
+    faSlidersSimple,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
@@ -140,14 +140,14 @@ export default function AccountPanel({ isExpanded }) {
                     <Button
                         onClick={() =>
                             addContainer({
-                                icon: faCog,
+                                icon: faSlidersSimple,
                                 title: "Account Settings",
                                 content: <SettingsContainer />,
                                 uniqueId: "SettingsContainer",
                             })
                         }
                         variant={ButtonVariant.OUTLINED}
-                        icon={<FAIcon icon={faCog} />}
+                        icon={<FAIcon icon={faSlidersSimple} />}
                         text="Settings"
                         size={Size.LARGE}
                     />

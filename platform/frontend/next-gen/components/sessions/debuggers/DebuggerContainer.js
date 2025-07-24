@@ -22,12 +22,12 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleA,
+    faComments,
     faDiagramSuccessor,
     faFolder,
     faFolderOpen,
     faFolderTree,
     faList,
-    faMessages,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Allotment } from "allotment";
@@ -363,7 +363,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                         visibleSection,
                                         "messages"
                                     )}
-                                    icon={<FAIcon icon={faMessages} />}
+                                    icon={<FAIcon icon={faComments} />}
                                 />
                             </Tooltip>
                             <Tooltip content="Agents" placement="bottom">

@@ -13,13 +13,13 @@ import {
 } from "@blueprintjs/core";
 import {
     faBookOpenCover,
-    faBoxTaped,
     faFish,
     faInputNumeric,
     faInputText,
-    faList,
     faListDropdown,
+    faListUl,
     faObjectGroup,
+    faPalletBoxes,
     faParagraph,
     faPause,
     faPlay,
@@ -61,7 +61,7 @@ const DOC_MENU = [
     },
     {
         text: "Array",
-        icon: faList,
+        icon: faListUl,
         label: "Inlined UI schema",
     },
     { text: "Boolean", icon: faSquareCheck },
@@ -152,7 +152,7 @@ function DocContainer({ width, height }) {
                             )}
                             onClick={() => setFocusTab(_.lowerCase("examples"))}
                             text="Examples"
-                            icon={<FAIcon icon={faBoxTaped} />}
+                            icon={<FAIcon icon={faPalletBoxes} />}
                         />
                     </ButtonGroup>
                 </div>
