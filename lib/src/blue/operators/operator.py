@@ -1,6 +1,6 @@
 ###### Parsers, Formats, Utils
 import logging
-from typing import List, Dict, Any, Callable, Union, Optional
+from typing import List, Dict, Any, Callable, Union, Optional, Any
 from dataclasses import dataclass
 from pydantic import BaseModel, ValidationError
 import copy
@@ -102,69 +102,15 @@ class Operator(Tool):
         validator: Callable = None,
         explainer: Callable = None,
     ):
-        """
-        Initialize an Operator.
-        Args:
-            name: Name of the operator
-            description: Description of what the operator does
-            properties: properties for the operator, should include a key "parameters" with parameter definitions
-            function: Function to execute the operator
-            validator: Function to validate input parameters
-            explainer: Function to explain output and potential errors
-        """
-        self.name = name
-        self.description = description
-        self.properties = properties
-        self.function = function
-        self.validator = validator
-        self.explainer = explainer
+        super().__init__(name, description, function, properties=properties, validator=validator, explainer=explainer)
 
-        # Initialize properties, parameters, validator, and explainer
-        if properties is None:
-            self.properties = {}
-        if "parameters" not in self.properties:
-            self.properties["parameters"] = {}
-        if "hyperparameters" not in self.properties:
-            self.properties["hyperparameters"] = {}
-
-        ## Currently disable the default function to switch to function based operator design
-        # if function is None:
-        # self.function = self._execute_operator_logic  # this is the function that each operator should override
         if validator is None:
             self.validator = default_operator_validator
         if explainer is None:
             self.explainer = default_operator_explainer
 
-        self._initialize(properties=properties)
-
-        # construct signature, first by automatically extracting, then by adding parameter metadata
-        self.signature = tool_utils.extract_signature(self.function, mcp_format=True)
-        # expand params with parameter metadata, in function signature parameters
-        if 'params' in self.signature['parameters']:
-            params = self.signature['parameters']['params']
-            params['properties'] = copy.deepcopy(self.properties["parameters"])
-            for p in params['properties']:
-                param = params['properties'][p]
-                param['type'] = tool_utils.convert_type_string_to_mcp(param['type'])
-
-        super().__init__(
-            name=name,
-            description=description,
-            properties=self.properties,
-            function=self.function,
-            signature=self.signature,
-            validator=self.validator,
-            explainer=self.explainer,
-        )
-
-    def _initialize(self, properties=None):
-        """Initialize the Operator following the same pattern as Agent."""
-        self._initialize_properties()
-        self._update_properties(properties=properties)
-
     def _initialize_properties(self):
-        """Initialize default properties for operators."""
-        self.properties = {}
+        super()._initialize_properties()
 
         # Tool type
         self.properties["tool_type"] = "operator"
@@ -187,18 +133,16 @@ class Operator(Tool):
         # Hyperparameter definitions
         self.properties["hyperparameters"] = {}
 
-    def _get_properties(self, properties=None):
-        if properties is None:
-            properties = {}
-        return json_utils.merge_json(self.properties, properties)
+    def _extract_signature(self, mcp_format=True):
+        super()._extract_signature(mcp_format=mcp_format)
 
-    def _update_properties(self, properties=None):
-        if properties is None:
-            return
-
-        # override
-        for p in properties:
-            self.properties[p] = properties[p]
+        # expand params with parameter metadata, in function signature parameters
+        if 'params' in self.signature['parameters']:
+            params = self.signature['parameters']['params']
+            params['properties'] = copy.deepcopy(self.properties["parameters"])
+            for p in params['properties']:
+                param = params['properties'][p]
+                param['type'] = tool_utils.convert_type_string_to_mcp(param['type'])
 
     def _get_parameters(self):
         return self.properties["parameters"]
@@ -220,20 +164,20 @@ class Operator(Tool):
         for p in hyperparameters:
             self.properties["hyperparameters"][p] = hyperparameters[p]
 
-    ######### Seperation functions to let LLM or other caller know if it's an operator or a tool
+    ######### Seperation functions to let LLM or other caller know if it's an operator or a function
     @classmethod
-    def is_operator(cls, tool_or_operator) -> bool:
+    def is_operator(cls, function_or_operator) -> bool:
         """Check if a tool/operator is actually an operator."""
-        if hasattr(tool_or_operator, 'properties'):
-            return tool_or_operator.properties.get("tool_type") == "operator"
+        if hasattr(function_or_operator, 'properties'):
+            return function_or_operator.properties.get("tool_type") == "operator"
         return False
 
     @classmethod
-    def get_tool_type(cls, tool_or_operator) -> str:
-        """Get the type of a tool/operator."""
-        if cls.is_operator(tool_or_operator):
+    def get_tool_type(cls, function_or_operator) -> str:
+        """Get the type of a function/operator."""
+        if cls.is_operator(function_or_operator):
             return "operator"
-        return "tool"
+        return "function"
 
     ######### class-method-based operator execution flow as optional version besides function based operator design
     # def execute_operator(self, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any] = {}) -> Dict[str, Any]:

@@ -17,6 +17,7 @@ from mcp.server.fastmcp import FastMCP
 ###### Blue
 from blue.tools.server import ToolServer
 
+
 #####
 class MCPToolServer(ToolServer):
     def __init__(self, name, properties={}):
@@ -36,23 +37,21 @@ class MCPToolServer(ToolServer):
     ##### connections
     def _connect(self, host="0.0.0.0", port=8123, protocol="mcp"):
         return FastMCP(name=self.name, json_response=False, stateless_http=False)
-    
+
     def _start_connection(self):
         connection = self.properties['connection']
         self.connection = self._connect(**connection)
 
-    def start(self):  
+    def start(self):
         uvicorn.run(self.connection.streamable_http_app, host=self.properties['connection']['host'], port=self.properties['connection']['port'])
 
     ##### tools
     # override
     def initialize_tools(self):
-        pass 
+        pass
 
     def add_tool(self, tool):
         self.connection.add_tool(tool.function, tool.name, tool.description)
-        
+
     def list_tools(self):
         return asyncio.run(self.connection.list_tools())
-
- 
