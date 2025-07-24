@@ -3,7 +3,7 @@ import { Classes, Colors } from "@blueprintjs/core";
 import classNames from "classnames";
 import _ from "lodash";
 import EntityDisplayName from "./EntityDisplayName";
-export default function Leaves({ list, addCrumb, loading }) {
+export default function Leaves({ list, addCrumb, loading, isEditing }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     return (
         <div
@@ -19,7 +19,9 @@ export default function Leaves({ list, addCrumb, loading }) {
                         onClick={() => {
                             addCrumb(element);
                         }}
-                        className="grid-item"
+                        className={classNames("grid-item", {
+                            "pointer-events-none": isEditing,
+                        })}
                         key={index}
                         style={{
                             cursor: "pointer",
@@ -34,7 +36,11 @@ export default function Leaves({ list, addCrumb, loading }) {
                             className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             style={{
                                 fontWeight: 600,
-                                color: darkMode ? Colors.BLUE5 : Colors.BLUE2,
+                                color: isEditing
+                                    ? null
+                                    : darkMode
+                                    ? Colors.BLUE5
+                                    : Colors.BLUE2,
                             }}
                         >
                             <EntityDisplayName entity={element} />

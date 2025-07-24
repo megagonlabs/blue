@@ -295,6 +295,7 @@ export default function ServerEntity({
                 </div>
                 <div className="responsive-grid-container">
                     <Leaves
+                        isEditing={isEditing}
                         loading={loading}
                         addCrumb={addCrumb}
                         list={_.values(

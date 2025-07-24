@@ -301,6 +301,7 @@ export default function SourceEntity({
                     }}
                 >
                     <Leaves
+                        isEditing={isEditing}
                         loading={loading}
                         addCrumb={addCrumb}
                         list={_.values(_.get(source, "contents.database", {}))}

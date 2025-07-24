@@ -319,6 +319,7 @@ export default function AgentGroupEntity({
                 </div>
                 <div className="responsive-grid-container">
                     <Leaves
+                        isEditing={isEditing}
                         loading={loading}
                         addCrumb={addCrumb}
                         list={_.values(_.get(agentGroup, "contents.agent", {}))}

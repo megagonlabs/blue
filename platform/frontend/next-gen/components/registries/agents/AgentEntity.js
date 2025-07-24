@@ -341,6 +341,7 @@ export default function AgentEntity({
                                     }}
                                 >
                                     <Leaves
+                                        isEditing={isEditing}
                                         loading={loading}
                                         addCrumb={addCrumb}
                                         list={_.values(
@@ -386,6 +387,7 @@ export default function AgentEntity({
                                     }}
                                 >
                                     <Leaves
+                                        isEditing={isEditing}
                                         loading={loading}
                                         addCrumb={addCrumb}
                                         list={_.values(
@@ -425,6 +427,7 @@ export default function AgentEntity({
                             </div>
                             <div className="responsive-grid-container">
                                 <Leaves
+                                    isEditing={isEditing}
                                     loading={loading}
                                     addCrumb={addCrumb}
                                     list={_.values(

@@ -188,6 +188,7 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
                     }}
                 >
                     <Leaves
+                        isEditing={isEditing}
                         loading={loading}
                         addCrumb={addCrumb}
                         list={_.values(
