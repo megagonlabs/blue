@@ -3,6 +3,7 @@ import logging
 from typing import List, Dict, Any, Callable, Union, Optional
 from dataclasses import dataclass
 from pydantic import BaseModel, ValidationError
+import copy
 
 ###### Blue
 from blue.tools.tool import Tool
@@ -136,16 +137,22 @@ class Operator(Tool):
 
         self._initialize(properties=properties)
 
-        parameters = {}
-        merged_parameters = json_utils.merge_json(parameters, tool_utils.extract_signature(self.function, mcp_format=True)['parameters'])
-        merged_parameters = json_utils.merge_json(merged_parameters, self.properties["parameters"])
+        # construct signature, first by automatically extracting, then by adding parameter metadata
+        self.signature = tool_utils.extract_signature(self.function, mcp_format=True)
+        # expand params with parameter metadata, in function signature parameters
+        if 'params' in self.signature['parameters']:
+            params = self.signature['parameters']['params']
+            params['properties'] = copy.deepcopy(self.properties["parameters"])
+            for p in params['properties']:
+                param = params['properties'][p]
+                param['type'] = tool_utils.convert_type_string_to_mcp(param['type'])
 
         super().__init__(
             name=name,
             description=description,
             properties=self.properties,
             function=self.function,
-            parameters=merged_parameters,
+            signature=self.signature,
             validator=self.validator,
             explainer=self.explainer,
         )
