@@ -68,7 +68,7 @@ class OpenAIAgent(RequestorAgent):
         openai_schema["function"] = {"name": canonical_name, "description": tool_schema["description"], "parameters": {"type": "object", "properties": {}, "required": []}}
 
         # iterate over all parameters
-        for p, values in tool_schema['properties']['parameters'].items():
+        for p, values in tool_schema['properties']['signature']['parameters'].items():
             openai_schema["function"]["parameters"]["properties"][p] = {"type": values["type"]}
             if "items" in values:
                 openai_schema["function"]["parameters"]["properties"][p]["items"] = values["items"]
@@ -187,14 +187,14 @@ class OpenAIAgent(RequestorAgent):
                     message["messages"].append({"role": "assistant", "content": None, "tool_calls": response_message['tool_calls']})
                     for call in response_message['tool_calls']:
                         canonical_name = call["function"]["name"]
-                        args = json.loads(call["function"]["arguments"] or "{}")
+                        kwargs = json.loads(call["function"]["arguments"] or "{}")
 
                         # extract server and function from canonical
                         server_name, function_name = self._extract_canonical(canonical_name)
                         # execute tool
                         self.logger.info("Executing tool: " + function_name)
-                        self.logger.info("Arguments: " + json.dumps(args))
-                        result = self.registry.execute_tool(function_name, server_name, None, args)
+                        self.logger.info("Arguments: " + json.dumps(kwargs))
+                        result = self.registry.execute_tool(function_name, server_name, None, kwargs)
                         self.logger.info("Result: " + str(result))
                         # append result to message
                         message["messages"].append(
