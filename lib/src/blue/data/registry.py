@@ -252,7 +252,7 @@ class DataRegistry(Registry):
         # TODO
         pass
 
-    def sync_source(self, source, recursive=False, rebuild=False):
+    def sync_source(self, source, recursive=False, rebuild=False, collect_stats=False):
         source_connection = self.connect_source(source)
         if source_connection:
             # fetch source metadata
@@ -266,16 +266,12 @@ class DataRegistry(Registry):
                 description = metadata['description']
             self.update_source(source, description=description, properties=properties, rebuild=rebuild)
 
-            # collect and store source-level stats only if available (optional)
-            try:
-                if hasattr(source_connection, "fetch_source_stats"):
-                    source_stats = source_connection.fetch_source_stats()
+            if collect_stats:    
+                source_stats = source_connection.fetch_source_stats()
+                if source_stats:
                     self.set_source_property(source, "stats", source_stats, rebuild=rebuild)
-            except Exception as e:
-                logging.warning(f"Failed to collect source-level stats for {source}: {e}")
-
-
-            
+                
+           
             # fetch databases
             fetched_dbs = source_connection.fetch_databases()
             fetched_dbs_set = set(fetched_dbs)

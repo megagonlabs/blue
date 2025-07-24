@@ -232,12 +232,18 @@ class PostgresDBSource(DataSource):
             stats["size_bytes"] = size[0] if size else None
 
             cur.execute("""
-            SELECT table_name
+            SELECT table_schema, table_name
             FROM information_schema.tables
-            WHERE table_schema = 'public';
+            WHERE table_schema NOT IN ('pg_catalog', 'information_schema');
             """)
 
-            tables = [row[0] for row in cur.fetchall()]
+            rows = cur.fetchall()
+
+            # Save both schema and table in stats
+            stats['tables'] = [
+                {'schema': schema, 'table': table}
+                for schema, table in rows
+            ]
 
             cur.execute("""
             SELECT COUNT(*) 
@@ -247,8 +253,7 @@ class PostgresDBSource(DataSource):
             """)
             
             stats["table_count"] = cur.fetchone()[0]
-            stats['tables'] = tables
-
+            
         except Exception as e:
             logging.warning(f"Error fetching database stats for {database}: {e}")
         finally:
@@ -256,7 +261,7 @@ class PostgresDBSource(DataSource):
 
         return stats
 
-    def fetch_collection_stats(self, database, collection_name, schema_json=None):
+    def fetch_collection_stats(self, database, collection_name, schema_json=None, sample_limit=10):
             
         if isinstance(schema_json, str):
             schema_json = json.loads(schema_json)
@@ -272,7 +277,7 @@ class PostgresDBSource(DataSource):
             
             ent_stats["properties"] = {}
             for prop in props:
-                ent_stats["properties"][prop] = self.fetch_property_stats(database, entity, prop)
+                ent_stats["properties"][prop] = self.fetch_property_stats(database, collection_name, entity, prop, sample_limit=sample_limit)
 
             stats[entity] = ent_stats
 
@@ -287,12 +292,12 @@ class PostgresDBSource(DataSource):
         stats = {}
 
         try:
-            query = f'SELECT COUNT(*) FROM "{entity}";'
+            query = f'SELECT COUNT(*) FROM "{collection}"."{entity}";'
             cursor.execute(query)
             stats["row_count"] = cursor.fetchone()[0]
 
         except psycopg2.Error as e:
-            logging.warning(f"Failed to get row count for {entity}: {e}")
+            logging.warning(f"Failed to get row count for {collection}.{entity}: {e}")
             stats["row_count"] = None
 
         finally:
@@ -300,13 +305,13 @@ class PostgresDBSource(DataSource):
 
         return stats
 
-    def fetch_property_stats(self, database, collection, property_name):
+    def fetch_property_stats(self, database, collection, table, property_name, sample_limit=10):
     
         conn = self._db_connect(database)
         cursor = conn.cursor()
 
-        schema = "public"
-        table = collection
+        schema = collection 
+  
         column = f'"{property_name}"'  
         
         try:
@@ -335,7 +340,7 @@ class PostgresDBSource(DataSource):
                     SELECT DISTINCT {column}
                     FROM {table}
                     WHERE {column} IS NOT NULL
-                    LIMIT 10
+                    LIMIT {sample_limit}
                 )::text[] AS sample_values
             """
 
@@ -378,7 +383,7 @@ class PostgresDBSource(DataSource):
             return stats
 
         except Exception as e:
-            logging.warning(f"Failed to fetch property stats for {collection}.{property_name}: {str(e)}")
+            logging.warning(f"Failed to fetch property stats for {collection}.{table}.{property_name}: {str(e)}")
             return {}
         finally:
             self._db_disconnect(conn)
