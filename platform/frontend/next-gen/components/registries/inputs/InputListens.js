@@ -79,8 +79,8 @@ export default function InputListens({
             </div>
             {!isEditing && _.isEmpty(listens) && "-"}
             <div className="split-pane-container">
-                {["includes", "excludes"].map((type) => (
-                    <div className="pane-item">
+                {["includes", "excludes"].map((type, index) => (
+                    <div className="pane-item" key={index}>
                         <H5>{_.capitalize(type)}</H5>
                         <div
                             className={loading ? Classes.SKELETON : null}
