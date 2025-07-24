@@ -23,7 +23,7 @@ add_tool = Tool(
     description="adds numbers and returns the addition as a result",
     properties={},
     function=add,
-    parameters=tool_utils.extract_signature(add, mcp_format=True)['parameters'],
+    signature=tool_utils.extract_signature(add, mcp_format=True),
     validator=lambda params: 'numbers' in params and type(params['numbers']) == list and all([type(number) in [int, float] for number in params['numbers']]),
     explainer=lambda output, params: {"output": output, "params": params},
 )
@@ -43,7 +43,7 @@ multiply_tool = Tool(
     description="multiplies numbers and returns the multiplication ion as a result",
     properties={},
     function=multiply,
-    parameters=tool_utils.extract_signature(multiply, mcp_format=True)['parameters'],
+    signature=tool_utils.extract_signature(multiply, mcp_format=True),
     validator=lambda params: 'numbers' in params and type(params['numbers']) == list and all([type(number) in [int, float] for number in params['numbers']]),
     explainer=lambda output, params: {"output": output, "params": params},
 )

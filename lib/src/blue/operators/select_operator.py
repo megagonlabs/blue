@@ -8,7 +8,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 ### Select Operator (Filtering)
 
 
-def select_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+def select_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Filter records based on a single condition (record-wise filtering)."""
     # Extract parameters
     operand_key = params.get('operand_key')

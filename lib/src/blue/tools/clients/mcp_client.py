@@ -19,7 +19,6 @@ from mcp.client.streamable_http import streamablehttp_client
 from blue.tools.client import ToolClient
 
 
-
 ###############
 ### MCPToolClient
 #
@@ -31,7 +30,7 @@ class MCPToolClient(ToolClient):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # server protocol 
+        # server protocol
         self.properties['protocol'] = "mcp"
 
     ###### connection
@@ -46,22 +45,22 @@ class MCPToolClient(ToolClient):
         # mcp server url
         host = c['host']
         port = c['port']
-        self.server_url = "http://" + host + ":" + str(port) + "/mcp" 
+        self.server_url = "http://" + host + ":" + str(port) + "/mcp"
 
     async def _create_session(self):
         # Initialize session and client objects
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
 
-        self._streams_context = streamablehttp_client(  
+        self._streams_context = streamablehttp_client(
             url=self.server_url,
             headers={},
         )
 
-        read_stream, write_stream, _ = await self._streams_context.__aenter__()  
+        read_stream, write_stream, _ = await self._streams_context.__aenter__()
 
-        self._session_context = ClientSession(read_stream, write_stream) 
-        self.session: ClientSession = await self._session_context.__aenter__()  
+        self._session_context = ClientSession(read_stream, write_stream)
+        self.session: ClientSession = await self._session_context.__aenter__()
 
         await self.session.initialize()
 
@@ -91,7 +90,7 @@ class MCPToolClient(ToolClient):
 
     def list_tools(self, filter_tools=None, detailed=True):
         return asyncio.run(self._list_tools(filter_tools=filter_tools, detailed=detailed))
-    
+
     async def _list_tools(self, filter_tools=None, detailed=True):
         await self._create_session()
 
@@ -103,9 +102,17 @@ class MCPToolClient(ToolClient):
                     tool = {}
                     tool['name'] = t.name
                     tool['description'] = t.description
-                    parameters = {}
-                    properties = { "parameters": parameters }
+
+                    properties = {}
                     tool['properties'] = properties
+
+                    signature = {}
+                    properties['signature'] = signature
+
+                    parameters = {}
+                    signature['parameters'] = parameters
+                    returns = {'type': 'unknown'}
+                    signature['returns'] = returns
 
                     # process tool schema
                     schema = t.inputSchema
@@ -136,7 +143,7 @@ class MCPToolClient(ToolClient):
         finally:
             await self._release_session()
         return tools
-    
+
     ######### execute tool
     def execute_tool(self, tool, args, kwargs):
         return asyncio.run(self._execute_tool(tool, args, kwargs))
@@ -144,7 +151,7 @@ class MCPToolClient(ToolClient):
     async def _execute_tool(self, tool, args, kwargs):
         if tool is None:
             raise Exception("No tool provided")
-        
+
         await self._create_session()
 
         result = []
@@ -162,4 +169,3 @@ class MCPToolClient(ToolClient):
             return []
 
         return result
-

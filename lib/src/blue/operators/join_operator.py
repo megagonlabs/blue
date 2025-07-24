@@ -8,7 +8,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 ### Join Operator
 
 
-def join_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+def join_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     join_on = params.get('join_on', [])
     join_type = params.get('join_type', 'inner')
     join_suffix = params.get('join_suffix', [])

@@ -8,7 +8,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 ### Project Operator (Projection)
 
 
-def project_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+def project_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Project records to keep only specified keys and optionally rename them (key-wise projection)."""
     # Extract parameters
     kept_keys = params.get('kept_keys', [])
