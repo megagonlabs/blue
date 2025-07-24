@@ -21,6 +21,7 @@ import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
+import OutputTags from "./OutputTags";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
 export default function OutputEntity({ entity, backCrumb }) {
     const { name, scope, type } = entity;
@@ -63,6 +64,9 @@ export default function OutputEntity({ entity, backCrumb }) {
     }, [entity, url]);
     const handleDiscard = () => {
         setEditedOutput(output);
+        setMainProperties(
+            getEntityMainProperties(_.get(output, "properties", {}))
+        );
         setIsEditing(false);
     };
     const handleSave = () => {
@@ -197,6 +201,14 @@ export default function OutputEntity({ entity, backCrumb }) {
                     isEditing={isEditing}
                     updateEntity={updateOutput}
                     entity={editedOutput}
+                    loading={loading}
+                />
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <OutputTags
+                    updateMainProperties={updateMainProperties}
+                    isEditing={isEditing}
+                    properties={mainProperties}
                     loading={loading}
                 />
             </div>

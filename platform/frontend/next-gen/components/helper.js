@@ -198,31 +198,7 @@ module.exports = {
         return base64ToWebsafe(btoa(payload));
     },
     getEntityMainProperties: (properties) => {
-        let filtered = _.cloneDeep(
-            _.pick(properties, ENTITY_MAIN_INFO_PROPERTY_KEYS)
-        );
-        if (_.has(filtered, "listens")) {
-            _.set(
-                filtered,
-                "listens",
-                _.entries(_.get(filtered, "listens", {})).map((listen) => ({
-                    key: listen[0],
-                    includes: _.get(listen, "1.includes", []),
-                    excludes: _.get(listen, "1.excludes", []),
-                }))
-            );
-        }
-        if (_.has(filtered, "tags")) {
-            _.set(
-                filtered,
-                "tags",
-                _.entries(_.get(filtered, "tags", {})).map((tag) => ({
-                    key: tag[0],
-                    tags: _.get(tag, "1", []),
-                }))
-            );
-        }
-        return filtered;
+        return _.cloneDeep(_.pick(properties, ENTITY_MAIN_INFO_PROPERTY_KEYS));
     },
     shallowDiff: (base, compared) => {
         let updated = [],

@@ -1,8 +1,9 @@
-import { Colors, Intent } from "@blueprintjs/core";
+import { Button, ButtonVariant, Colors, Intent } from "@blueprintjs/core";
 import { faCheck } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowRightFromArc,
     faArrowRightToArc,
+    faArrowTurnDownLeft,
     faCircleA,
     faCircleNodes,
     faCube,
@@ -14,6 +15,7 @@ import {
     faScrewdriver,
     faServer,
     faToolbox,
+    faXmark,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { allEnv } from "next-runtime-env";
 import { FAIcon } from "./FAIcon";
@@ -73,6 +75,14 @@ export const USER_ROLES_LOOKUP = {
         server: { icon: faToolbox, permissionKey: "tool_registry" },
         tool: { icon: faScrewdriver, permissionKey: "tool_registry" },
     },
+    TAG_REMOVE_ICON = <FAIcon icon={faXmark} style={{ cursor: "pointer" }} />,
+    ENTER_KEY_ICON = (
+        <Button
+            className="pointer-events-none"
+            variant={ButtonVariant.MINIMAL}
+            icon={<FAIcon icon={faArrowTurnDownLeft} />}
+        />
+    ),
     DOCKER_CONTAINER_STATUS_LOOKUP = {
         created: { style: { color: Colors.ORANGE3 }, intent: Intent.WARNING },
         running: { style: { color: Colors.GREEN3 }, intent: Intent.SUCCESS },
