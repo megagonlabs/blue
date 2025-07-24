@@ -1,1 +1,408 @@
-[{"name":"blue_local","type":"server","scope":"/","description":"Operator server to execute local operators as part of blue distribution","created_by":null,"properties":{"connection":{"host":"localhost","port":0,"protocol":"local","user":"","password":""},"metadata":{}},"icon":null,"contents":{}},{"name":"blue_ray","type":"server","scope":"/","description":"Operator server to execute remote operators as part of blue distribution, on a ray cluster","created_by":null,"properties":{"connection":{"host":"blue_server_ray","port":10001,"protocol":"ray","user":"","password":""},"metadata":{}},"icon":null,"contents":{}}]
+[
+    {
+        "name": "blue_local",
+        "type": "server",
+        "scope": "/",
+        "description": "Operator server to execute local operators as part of blue distribution",
+        "created_by": null,
+        "properties": {
+            "connection": {
+                "host": "localhost",
+                "port": 0,
+                "protocol": "local",
+                "user": "",
+                "password": ""
+            },
+            "metadata": {}
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "blue_ray",
+        "type": "server",
+        "scope": "/",
+        "description": "Operator server to execute remote operators as part of blue distribution, on a ray cluster",
+        "created_by": null,
+        "properties": {
+            "connection": {
+                "host": "blue_server_ray",
+                "port": 10001,
+                "protocol": "ray",
+                "user": "",
+                "password": ""
+            },
+            "metadata": {}
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "data_discover",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Discovers data sources using the data registry with semantic search capabilities",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "platform.name": "default",
+            "data_registry.name": "default",
+            "parameters": {
+                "search_query": {
+                    "type": "str",
+                    "description": "Text to search for in source names and descriptions",
+                    "required": true,
+                    "default": ""
+                },
+                "approximate": {
+                    "type": "bool",
+                    "description": "Whether to use approximate (vector) search",
+                    "required": true,
+                    "default": true
+                },
+                "hybrid": {
+                    "type": "bool",
+                    "description": "Whether to use hybrid search (text + vector)",
+                    "required": false,
+                    "default": false
+                },
+                "page": {
+                    "type": "int",
+                    "description": "Page number for pagination",
+                    "required": false,
+                    "default": 0
+                },
+                "page_size": {
+                    "type": "int",
+                    "description": "Number of results per page (default: 10, max: 100)",
+                    "required": false,
+                    "default": 10
+                },
+                "include_metadata": {
+                    "type": "bool",
+                    "description": "Whether to include metadata in results (description and properties always included)",
+                    "required": false,
+                    "default": false
+                },
+                "threshold": {
+                    "type": "float",
+                    "description": "Similarity threshold for filtering results (0.0-1.0, lower = more similar, only applies to approximate/hybrid search)",
+                    "required": false,
+                    "default": 0.5
+                },
+                "progressive_pagination": {
+                    "type": "bool",
+                    "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)",
+                    "required": false,
+                    "default": false
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "nl2llm",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Processes natural language query using LLM models and returns structured data",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 4096,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "Your task is to process a natural language query and return the results in JSON format.\n\nThe response should be a valid JSON array containing the requested information.\n\nHere are the requirements:\n- There might be optional context provided for domain knowledge. Use it to assist the query if provided and not empty.\n- There might be specificed attr_names, which are the attributes of the objects in the output.\n- The output should be a JSON array of objects. Each element is a JSON object with proper attribute value pairs.\n- Each object should contain the requested information in a structured format\n- When interpreting the query, use additional context provided if provided and not empty.\n- Please try to return non-empty output. If the query is not clear, please use your best judgement to return a non-empty output.\n- The response should be well-formatted and easy to parse\n- Output the JSON directly. Do not generate explanation or other additional output.\n\nQuery: ${query}\n\nAttr_names:\n${attr_names}\n\nContext:\n${context}\n\nOutput:\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "json",
+            "parameters": {
+                "query": {
+                    "type": "str",
+                    "description": "Natural language query to process",
+                    "required": true
+                },
+                "context": {
+                    "type": "str",
+                    "description": "Optional context to provide domain knowledge",
+                    "required": false,
+                    "default": ""
+                },
+                "attr_names": {
+                    "type": "list[str]",
+                    "description": "Optional list of attribute names for the output objects",
+                    "required": false,
+                    "default": []
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "nl2sql",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Translates natural language questions into SQL queries using LLM models",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "execute_query": true,
+            "validate_query_prefixes": [
+                "SELECT"
+            ],
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 512,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "Your task is to translate a natural language question into a SQL query based on the provided database schema.\n\nHere are the requirements:\n- The output should be a JSON object with the following fields:\n  - \"question\": the original natural language question\n  - \"query\": the SQL query that is translated from the natural language question\n- The SQL query should be compatible with the provided schema.\n- The SQL query should be compatible with the syntax of the corresponding database's protocol.\n- For enum fields, do not use LOWER(), ILIKE, or other string functions. Compare enum fields using exact equality.\n- Always do case-${sensitivity} matching for string comparison.\n- The query should start with any of the following prefixes: ${force_query_prefixes}\n- When interpreting the \"question\" use additional context provided, if available.\n- Output the JSON directly. Do not generate explanation or other additional output.\n${additional_requirements}\n\nDatabase Protocol: \n```\n${protocol}\n```\n\nDatabase Schema:\n```\n${schema}\n```\n\nContext: ${context}\n\nQuestion: ${question}\n\nOutput:\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "json",
+            "connection": {
+                "host": "localhost",
+                "port": 5432,
+                "protocol": "postgres",
+                "user": "postgres",
+                "password": "postgres"
+            },
+            "parameters": {
+                "question": {
+                    "type": "str",
+                    "description": "Natural language question to translate to SQL",
+                    "required": true
+                },
+                "protocol": {
+                    "type": "str",
+                    "description": "Database protocol (postgres or mysql)",
+                    "required": true,
+                    "default": "postgres"
+                },
+                "database": {
+                    "type": "str",
+                    "description": "Database name",
+                    "required": true,
+                    "default": ""
+                },
+                "collection": {
+                    "type": "str",
+                    "description": "Collection/schema name",
+                    "required": true,
+                    "default": ""
+                },
+                "case_insensitive": {
+                    "type": "bool",
+                    "description": "Case insensitive string matching",
+                    "required": false,
+                    "default": true
+                },
+                "additional_requirements": {
+                    "type": "str",
+                    "description": "Additional requirements for SQL generation",
+                    "required": false,
+                    "default": ""
+                },
+                "context": {
+                    "type": "str",
+                    "description": "Optional context for domain knowledge",
+                    "required": false,
+                    "default": ""
+                },
+                "schema": {
+                    "type": "str",
+                    "description": "JSON string of database schema (optional - will be fetched automatically if not provided)",
+                    "required": false,
+                    "default": ""
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "join",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Joins multiple JSON arrays of records based on specified join conditions, similar to SQL JOIN operations",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "join_type": {
+                    "type": "str",
+                    "description": "Type of join: 'inner', 'left', 'right', 'full'",
+                    "required": true
+                },
+                "left_key": {
+                    "type": "str",
+                    "description": "Key field from left dataset for joining",
+                    "required": true
+                },
+                "right_key": {
+                    "type": "str",
+                    "description": "Key field from right dataset for joining",
+                    "required": true
+                },
+                "left_suffix": {
+                    "type": "str",
+                    "description": "Suffix for left dataset columns in case of conflicts",
+                    "required": false,
+                    "default": "_left"
+                },
+                "right_suffix": {
+                    "type": "str",
+                    "description": "Suffix for right dataset columns in case of conflicts",
+                    "required": false,
+                    "default": "_right"
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "select",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given an input data, filter data elements based on a specified condition by type-aware comparison (record-wise)",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "operand_key": {
+                    "type": "str",
+                    "description": "The key to check in each record",
+                    "required": true
+                },
+                "operand": {
+                    "type": "str",
+                    "description": "Comparison operator: =, !=, >, >=, <, <=",
+                    "required": true
+                },
+                "operand_val": {
+                    "type": "Any",
+                    "description": "Value to compare with",
+                    "required": true
+                },
+                "approximate_match": {
+                    "type": "bool",
+                    "description": "Use epsilon tolerance for numeric comparison",
+                    "required": false,
+                    "default": false
+                },
+                "eps": {
+                    "type": "float",
+                    "description": "Epsilon tolerance for approximate numeric comparison",
+                    "required": false,
+                    "default": 1e-9
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "project",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given an input data, return only a set of attributes for each data element (key-wise)",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "kept_keys": {
+                    "type": "list[str]",
+                    "description": "List of keys to keep in each record",
+                    "required": true
+                },
+                "key_mapping": {
+                    "type": "dict[str, str]",
+                    "description": "Dictionary mapping old key names to new key names",
+                    "required": false,
+                    "default": {}
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    }
+]

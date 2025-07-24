@@ -47,7 +47,7 @@ class LocalToolClient(ToolClient):
 
     ######### tool
     def fetch_tools(self):
-        tools = list[self.tools.keys()]
+        tools = list(self.tools.keys())
         return tools
 
     def fetch_tool_metadata(self, tool):
@@ -57,8 +57,8 @@ class LocalToolClient(ToolClient):
             tool_obj = self.tools[tool]
             p = {}
             p = json_utils.merge_json(p, tool_obj.properties)
-            p = json_utils.merge_json(p, {"parameters": tool_obj.parameters})
-            metadata = {"name": tool_obj.name, "description": tool_obj.description, "properties": {"parameters": p}}
+            p = json_utils.merge_json(p, {"signature": tool_obj.signature})
+            metadata = {"name": tool_obj.name, "description": tool_obj.description, "properties": p}
         return metadata
 
     ######### execute tool

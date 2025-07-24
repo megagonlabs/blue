@@ -51,11 +51,13 @@ def extract_signature(f, mcp_format=False):
 def convert_type_string_to_mcp(type_str):
     if type_str == "":
         return {"type": "unknown"}
-    if type_str == "int" or type_str == "float":
+    if type_str.lower() == "int" or type_str.lower() == "float":
         return {"type": "number"}
-    elif type_str == "str":
+    elif type_str.lower() == "str":
         return {"type": "string"}
-    elif type_str.find("List") == 0:
+    elif type_str.lower().find("list") == 0:
         return {"type": "array", "items": convert_type_string_to_mcp(type_str[len("List") + 1 : -1])}
+    elif type_str.lower().find("dict") == 0:
+        return {"type": "object", "properties": {}}
     else:
         return {"type": "unknown"}

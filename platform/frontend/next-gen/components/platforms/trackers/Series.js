@@ -1,7 +1,7 @@
 import { EMPTY_OBJECT } from "@/components/constants";
 import { useRefDimensions } from "@/components/hooks/useRefDimensions";
 import { useSystemStatusStore } from "@/stores/system-status-store";
-import { Card, Colors } from "@blueprintjs/core";
+import { Colors } from "@blueprintjs/core";
 import _ from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { VegaLite } from "react-vega";
@@ -174,10 +174,10 @@ export default function Series({ tracker, graphKey }) {
         };
     }, [width]);
     return (
-        <Card
+        <div
             ref={cardRef}
             style={{ padding: 10, minHeight: 124 }}
-            className="full-parent-width"
+            className="full-parent-width custom-card"
         >
             <VegaLite
                 data={{ values: data }}
@@ -185,6 +185,6 @@ export default function Series({ tracker, graphKey }) {
                 className="full-parent-width"
                 actions={false}
             />
-        </Card>
+        </div>
     );
 }

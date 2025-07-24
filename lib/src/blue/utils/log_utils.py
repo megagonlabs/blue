@@ -31,7 +31,7 @@ def extract_call_stack(s, depth=3):
         else:
             call_stack.append(filename + ":" + str(lineno))
 
-    return " \u2190 ".join(call_stack)
+    return ";".join(call_stack)
 
 
 def caller_reader(f, depth=3):

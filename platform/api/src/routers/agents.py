@@ -418,6 +418,8 @@ def add_agent_output(request: Request, agent_name, param_name, parameter: Parame
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
     agent_registry.add_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
 
 

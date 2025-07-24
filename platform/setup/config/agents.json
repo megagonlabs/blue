@@ -1042,6 +1042,8 @@
       },
       "display_name": "Dialogue Manager Agent - Example",
       "intent_classifier_agent": "OPENAI___INTENT_CLASSIFIER",
+      "intent_rewriter_agent": "OPENAI___INTENT_REWRITER",
+      "conversation_memory": true,
       "tags": {}
     },
     "icon": null
@@ -1256,9 +1258,36 @@
             "USER"
           ]
         }
-      }
+      },
+      "output_cast": "json"
     },
     "icon": null
+  },
+  {
+    "name": "OPENAI___INTENT_REWRITER", 
+    "type": "agent", 
+    "scope": "/agent/OPENAI", 
+    "description": "Rewrites conversation history extracting and summarizing user intent", 
+    "created_by": null, 
+    "properties": {
+      "input_template": "Summarize the following USER-ASSISTANT conversation into a single, concise sentence describing the user's intended task. The summary should reflect the user's goal or intent, in an instruction style. Do not introduce new information. Only include what is stated or clearly implied. Respond only with JSON in the following format, nothing else. JSON response format: {\"rewrite\": \"<your_rewrite>\"}. Input: ${input}", 
+      "display_name": "OPENAI Intent Rewriter Agent", 
+      "listens": {
+        "DEFAULT": {
+          "includes": [], 
+          "excludes": [
+            "USER"
+          ]
+        }
+      }, 
+      "tags": {
+        "DEFAULT": [
+          "EXTRACTIONS", 
+          "HIDDEN"
+          ]
+        }
+      }, 
+      "icon": null
   },
   {
     "name": "OPENAI___QUERY_EXPLAINER",
@@ -1634,6 +1663,15 @@
     "description": "",
     "created_by": null,
     "properties": {},
+    "icon": null
+  },
+  {
+    "name": "OPENAI___INTENT_REWRITER", 
+    "type": "agent", 
+    "scope": "/agent_group/dialogue_manager_demo", 
+    "description": "Rewrites conversation history by extracting and summarizing user intent", 
+    "created_by": null, 
+    "properties": {}, 
     "icon": null
   },
   {

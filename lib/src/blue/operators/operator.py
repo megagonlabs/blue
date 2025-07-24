@@ -3,6 +3,7 @@ import logging
 from typing import List, Dict, Any, Callable, Union, Optional
 from dataclasses import dataclass
 from pydantic import BaseModel, ValidationError
+import copy
 
 ###### Blue
 from blue.tools.tool import Tool
@@ -13,7 +14,7 @@ from blue.utils.type_utils import string_to_python_type, create_pydantic_model, 
 ### Operator
 
 
-def default_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+def default_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Default function for operator. It should be overridden by each operator."""
     return []
 
@@ -123,6 +124,8 @@ class Operator(Tool):
             self.properties = {}
         if "parameters" not in self.properties:
             self.properties["parameters"] = {}
+        if "hyperparameters" not in self.properties:
+            self.properties["hyperparameters"] = {}
 
         ## Currently disable the default function to switch to function based operator design
         # if function is None:
@@ -134,16 +137,22 @@ class Operator(Tool):
 
         self._initialize(properties=properties)
 
-        parameters = {}
-        merged_parameters = json_utils.merge_json(parameters, tool_utils.extract_signature(self.function, mcp_format=True)['parameters'])
-        merged_parameters = json_utils.merge_json(merged_parameters, self.properties["parameters"])
+        # construct signature, first by automatically extracting, then by adding parameter metadata
+        self.signature = tool_utils.extract_signature(self.function, mcp_format=True)
+        # expand params with parameter metadata, in function signature parameters
+        if 'params' in self.signature['parameters']:
+            params = self.signature['parameters']['params']
+            params['properties'] = copy.deepcopy(self.properties["parameters"])
+            for p in params['properties']:
+                param = params['properties'][p]
+                param['type'] = tool_utils.convert_type_string_to_mcp(param['type'])
 
         super().__init__(
             name=name,
             description=description,
             properties=self.properties,
             function=self.function,
-            parameters=merged_parameters,
+            signature=self.signature,
             validator=self.validator,
             explainer=self.explainer,
         )
@@ -175,6 +184,14 @@ class Operator(Tool):
         # Parameter definitions
         self.properties["parameters"] = {}
 
+        # Hyperparameter definitions
+        self.properties["hyperparameters"] = {}
+
+    def _get_properties(self, properties=None):
+        if properties is None:
+            properties = {}
+        return json_utils.merge_json(self.properties, properties)
+
     def _update_properties(self, properties=None):
         if properties is None:
             return
@@ -183,10 +200,25 @@ class Operator(Tool):
         for p in properties:
             self.properties[p] = properties[p]
 
-    def get_properties(self, properties=None):
-        if properties is None:
-            properties = {}
-        return json_utils.merge_json(self.properties, properties)
+    def _get_parameters(self):
+        return self.properties["parameters"]
+
+    def _update_parameters(self, parameters=None):
+        if parameters is None:
+            return
+        # override
+        for p in parameters:
+            self.properties["parameters"][p] = parameters[p]
+
+    def _get_hyperparameters(self):
+        return self.properties["hyperparameters"]
+
+    def _update_hyperparameters(self, hyperparameters=None):
+        if hyperparameters is None:
+            return
+        # override
+        for p in hyperparameters:
+            self.properties["hyperparameters"][p] = hyperparameters[p]
 
     ######### Seperation functions to let LLM or other caller know if it's an operator or a tool
     @classmethod

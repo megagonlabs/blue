@@ -180,6 +180,7 @@ export default function CollectionEntity({ entity, addCrumb }) {
                     }}
                 >
                     <Leaves
+                        isEditing={isEditing}
                         loading={loading}
                         addCrumb={addCrumb}
                         list={_.values(
@@ -209,6 +210,7 @@ export default function CollectionEntity({ entity, addCrumb }) {
                     }}
                 >
                     <Leaves
+                        isEditing={isEditing}
                         loading={loading}
                         addCrumb={addCrumb}
                         list={_.values(

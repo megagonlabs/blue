@@ -2,8 +2,8 @@ import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
 import {
-    Card,
     Classes,
+    Colors,
     hideContextMenu,
     Intent,
     Menu,
@@ -85,9 +85,16 @@ export default function AgentGroupCard({ agentGroup }) {
         });
     };
     return (
-        <Card
+        <div
             className="full-parent-dimension interactive-card-border"
-            style={{ position: "relative", cursor: "context-menu" }}
+            style={{
+                position: "relative",
+                padding: 20,
+                cursor: "context-menu",
+                backgroundColor: darkMode
+                    ? Colors.DARK_GRAY1
+                    : Colors.LIGHT_GRAY5,
+            }}
             onContextMenu={handleContextMenu}
             onDoubleClick={launchAgentGroupSession}
         >
@@ -130,6 +137,6 @@ export default function AgentGroupCard({ agentGroup }) {
             >
                 {agentGroup.description}
             </div>
-        </Card>
+        </div>
     );
 }
