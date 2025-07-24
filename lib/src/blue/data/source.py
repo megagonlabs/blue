@@ -104,3 +104,20 @@ class DataSource:
 
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
         return [{}]
+
+    #######  stats ############
+    def fetch_source_stats(self):
+        return None
+
+    def fetch_database_stats(self, database):
+        return None
+    
+    def fetch_collection_stats(self, database, collection_name, schema_json=None, sample_limit=None):
+        return None
+
+    def fetch_entity_stats(self, database, collection, entity):
+        return None
+
+    def fetch_property_stats(self, database, collection, entity, property_name):
+        return None 
+
