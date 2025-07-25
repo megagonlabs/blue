@@ -8,7 +8,7 @@ import copy
 ###### Blue
 from blue.tools.tool import Tool
 from blue.utils import json_utils, tool_utils
-from blue.utils.type_utils import string_to_python_type, create_pydantic_model, validate_attribute_type
+from blue.utils.type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
 
 ###############
 ### Operator
@@ -139,15 +139,15 @@ class Operator(Tool):
     def _extract_signature(self):
         super()._extract_signature()
 
-        # expand attributes with attribute metadata, in function signature attributes
+        # expand parameters with attribute metadata, in function signature attributes
         signature = self.properties['signature']
 
-        if 'attributes' in signature['attributes']:
-            attributes = signature['attributes']['attributes']
+        if 'attributes' in signature['parameters']:
+            attributes = signature['parameters']['attributes']
             attributes['properties'] = copy.deepcopy(self.properties["attributes"])
-            for p in attributes['properties']:
-                param = attributes['properties'][p]
-                param['type'] = tool_utils.convert_type_string_to_mcp(param['type'])
+            for a in attributes['properties']:
+                attribute = attributes['properties'][a]
+                attribute['type'] = tool_utils.convert_type_string_to_mcp(attribute['type'])
 
     def get_attributes(self):
         return self.properties["attributes"]

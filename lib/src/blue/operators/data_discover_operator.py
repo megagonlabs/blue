@@ -163,7 +163,7 @@ class DataDiscoverOperator(Operator):
         "data_registry.name": "default",
     }
 
-    name = "data discover"
+    name = "data_discover"
     description = "Discovers data sources using the data registry"
     default_attributes = {
         "search_query": {"type": "str", "description": "Text to search for in source names and descriptions", "required": True, "default": ""},
