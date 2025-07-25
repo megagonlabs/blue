@@ -1,6 +1,6 @@
 ###### Parsers, Formats, Utils
 import logging
-from typing import List, Dict, Any, Callable, Union, Optional
+from typing import List, Dict, Any, Callable, Union, Optional, Any
 from dataclasses import dataclass
 from pydantic import BaseModel, ValidationError
 import copy
@@ -14,46 +14,46 @@ from blue.utils.type_utils import string_to_python_type, create_pydantic_model, 
 ### Operator
 
 
-def default_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+def default_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Default function for operator. It should be overridden by each operator."""
     return []
 
 
-def default_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Default validator for operator parameters."""
+def default_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Default validator for operator attributes."""
     try:
-        return default_params_validator(params, properties)
+        return default_attributes_validator(attributes, properties)
     except Exception as e:
         # validation error
         return False
 
 
-def default_params_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate actual parameters (params) using the parameter definitions in properties."""
-    # Need to get the parameters definition and validation error handling from properties
+def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate actual attributes (attributes) using the attribute definitions in properties."""
+    # Need to get the attributes definition and validation error handling from properties
     if properties is None:
         properties = {}
-    parameters_def = properties.get("parameters", {})
+    attributes_def = properties.get("attributes", {})
     validation_error_handling = properties.get("validation_error_handling", "fail")
 
-    # Validate required parameters
-    for param_name, param_def in parameters_def.items():
-        # check if required parameter is present
-        required = param_def.get("required", False)
-        if required and param_name not in params:
+    # Validate required attributes
+    for attrib_name, attrib_def in attributes_def.items():
+        # check if required attribute is present
+        required = attrib_def.get("required", False)
+        if required and attrib_name not in attributes:
             return False
 
-        # validate parameter type
-        if param_name in params:
-            param_value = params[param_name]
-            param_type = param_def.get("type")
-            if param_type:
+        # validate attribute type
+        if attrib_name in attributes:
+            attrib_value = attributes[attrib_name]
+            attrib_type = attrib_def.get("type")
+            if attrib_type:
                 try:
-                    if not validate_parameter_type(param_value, param_type):
+                    if not validate_attribute_type(attrib_value, attrib_type):
                         return False
                 except Exception as e:
                     # System failure in validation - handle based on configuration
-                    error_msg = f"Parameter validation system error for '{param_name}': {e}"
+                    error_msg = f"attribute validation system error for '{attrib_name}': {e}"
                     if validation_error_handling == "fail":
                         # raise validation error
                         logging.error(error_msg)
@@ -67,7 +67,7 @@ def default_params_validator(params: Dict[str, Any], properties: Dict[str, Any] 
     return True
 
 
-def default_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
+def default_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Default explainer for operator output."""
     total_input_records = sum(len(data) for data in input_data)
     output_count = len(output) if isinstance(output, list) else 1
@@ -80,7 +80,7 @@ def default_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]
         "num_output_data": len(output),
         "num_output_records": output_count,
         "transformation_ratio": output_count / total_input_records if total_input_records > 0 else 0,
-        "parameters": params,
+        "attributes": attributes,
     }
     return explanation
 
@@ -96,75 +96,24 @@ class Operator(Tool):
     def __init__(
         self,
         name: str,
-        description: str,
-        properties: Dict[str, Any] = None,
         function: Callable = None,
+        description: str = None,
+        properties: Dict[str, Any] = None,
         validator: Callable = None,
         explainer: Callable = None,
     ):
-        """
-        Initialize an Operator.
-        Args:
-            name: Name of the operator
-            description: Description of what the operator does
-            properties: properties for the operator, should include a key "parameters" with parameter definitions
-            function: Function to execute the operator
-            validator: Function to validate input parameters
-            explainer: Function to explain output and potential errors
-        """
-        self.name = name
-        self.description = description
-        self.properties = properties
-        self.function = function
-        self.validator = validator
-        self.explainer = explainer
 
-        # Initialize properties, parameters, validator, and explainer
-        if properties is None:
-            self.properties = {}
-        if "parameters" not in self.properties:
-            self.properties["parameters"] = {}
-        if "hyperparameters" not in self.properties:
-            self.properties["hyperparameters"] = {}
-
-        ## Currently disable the default function to switch to function based operator design
-        # if function is None:
-        # self.function = self._execute_operator_logic  # this is the function that each operator should override
+        if function is None:
+            function = default_operator_function
         if validator is None:
-            self.validator = default_operator_validator
+            validator = default_operator_validator
         if explainer is None:
-            self.explainer = default_operator_explainer
+            explainer = default_operator_explainer
 
-        self._initialize(properties=properties)
-
-        # construct signature, first by automatically extracting, then by adding parameter metadata
-        self.signature = tool_utils.extract_signature(self.function, mcp_format=True)
-        # expand params with parameter metadata, in function signature parameters
-        if 'params' in self.signature['parameters']:
-            params = self.signature['parameters']['params']
-            params['properties'] = copy.deepcopy(self.properties["parameters"])
-            for p in params['properties']:
-                param = params['properties'][p]
-                param['type'] = tool_utils.convert_type_string_to_mcp(param['type'])
-
-        super().__init__(
-            name=name,
-            description=description,
-            properties=self.properties,
-            function=self.function,
-            signature=self.signature,
-            validator=self.validator,
-            explainer=self.explainer,
-        )
-
-    def _initialize(self, properties=None):
-        """Initialize the Operator following the same pattern as Agent."""
-        self._initialize_properties()
-        self._update_properties(properties=properties)
+        super().__init__(name, function, description=description, properties=properties, validator=validator, explainer=explainer)
 
     def _initialize_properties(self):
-        """Initialize default properties for operators."""
-        self.properties = {}
+        super()._initialize_properties()
 
         # Tool type
         self.properties["tool_type"] = "operator"
@@ -181,68 +130,130 @@ class Operator(Tool):
         self.properties["error_handling"] = "skip"  # fail, log, skip
         self.properties["log_processing_stats"] = True
 
-        # Parameter definitions
-        self.properties["parameters"] = {}
+        # attribute definitions
+        self.properties["attributes"] = {}
 
-        # Hyperparameter definitions
+        # hyperparameter definitions
         self.properties["hyperparameters"] = {}
 
-    def _get_properties(self, properties=None):
-        if properties is None:
-            properties = {}
-        return json_utils.merge_json(self.properties, properties)
+    def _extract_signature(self):
+        super()._extract_signature()
 
-    def _update_properties(self, properties=None):
-        if properties is None:
+        # expand parameters with attribute metadata, in function signature attributes
+        signature = self.properties['signature']
+
+        if 'attributes' in signature['parameters']:
+            attributes = signature['parameters']['attributes']
+            attributes['properties'] = copy.deepcopy(self.properties["attributes"])
+            for a in attributes['properties']:
+                attribute = attributes['properties'][a]
+                attribute['type'] = tool_utils.convert_type_string_to_mcp(attribute['type'])
+
+    def get_attributes(self):
+        return self.properties["attributes"]
+
+    def update_attributes(self, attributes=None):
+        if attributes is None:
             return
 
         # override
-        for p in properties:
-            self.properties[p] = properties[p]
+        for p in attributes:
+            self.properties["attributes"][p] = attributes[p]
 
-    def _get_parameters(self):
-        return self.properties["parameters"]
+        # update signature with updated attributes
+        self._extract_signature()
 
-    def _update_parameters(self, parameters=None):
-        if parameters is None:
-            return
-        # override
-        for p in parameters:
-            self.properties["parameters"][p] = parameters[p]
+    def get_attribute(self, attribute):
+        attributes = self.get_attributes()
+        if attribute in attributes:
+            return attributes[attribute]
+        return None
 
-    def _get_hyperparameters(self):
+    def get_attribute_type(self, attribute):
+        attribute = self.get_attribute(attribute)
+        if attribute:
+            if 'type' in attribute:
+                return attribute['type']
+        return None
+
+    def get_attribute_description(self, attribute):
+        attribute = self.get_attribute(attribute)
+        if attribute:
+            if 'description' in attribute:
+                return attribute['description']
+        return None
+
+    def set_attribute_description(self, attribute, description):
+        attribute = self.get_attribute(attribute)
+        if attribute:
+            attribute['description'] = description
+            # update signature with updated attributes
+            self._extract_signature()
+        return None
+
+    def set_attribute_required(self, attribute, required):
+        attribute = self.get_attribute(attribute)
+        if attribute:
+            attribute['required'] = required
+            # update signature with updated attributes
+            self._extract_signature()
+        return None
+
+    def set_attribute_hidden(self, attribute, hidden):
+        attribute = self.get_attribute(attribute)
+        if attribute:
+            attribute['hidden'] = hidden
+            # update signature with updated attributes
+            self._extract_signature()
+        return None
+
+    def is_attribute_required(self, attribute):
+        attribute = self.get_attribute(attribute)
+        if attribute:
+            if 'required' in attribute:
+                return attribute['required']
+        return None
+
+    def is_attribute_hidden(self, attribute):
+        attribute = self.get_attribute(attribute)
+        if attribute:
+            if 'hidden' in attribute:
+                return attribute['hidden']
+        return None
+
+    def get_hyperparameters(self):
         return self.properties["hyperparameters"]
 
-    def _update_hyperparameters(self, hyperparameters=None):
+    def update_hyperparameters(self, hyperparameters=None):
         if hyperparameters is None:
             return
         # override
         for p in hyperparameters:
             self.properties["hyperparameters"][p] = hyperparameters[p]
 
-    ######### Seperation functions to let LLM or other caller know if it's an operator or a tool
+    ######### Seperation functions to let LLM or other caller know if it's an operator or a function
     @classmethod
-    def is_operator(cls, tool_or_operator) -> bool:
+    def is_operator(cls, function_or_operator) -> bool:
         """Check if a tool/operator is actually an operator."""
-        if hasattr(tool_or_operator, 'properties'):
-            return tool_or_operator.properties.get("tool_type") == "operator"
+        if hasattr(function_or_operator, 'properties'):
+            return function_or_operator.properties.get("tool_type") == "operator"
         return False
 
     @classmethod
-    def get_tool_type(cls, tool_or_operator) -> str:
-        """Get the type of a tool/operator."""
-        if cls.is_operator(tool_or_operator):
+    def get_tool_type(cls, function_or_operator) -> str:
+        """Get the type of a function/operator."""
+        if cls.is_operator(function_or_operator):
             return "operator"
-        return "tool"
+        return "function"
 
     ######### class-method-based operator execution flow as optional version besides function based operator design
-    # def execute_operator(self, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any] = {}) -> Dict[str, Any]:
+    # def execute_operator(self, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any] = {}) -> Dict[str, Any]:
     #     """
     #     Main entry point for operator execution.
     #     This method orchestrates the complete execution flow and returns a structured result.
     #     Args:
     #         input_data: List of data sources, each containing JSON array of records
-    #         params: Operator-specific parameter values (actual values, not definitions)
+    #         attributes: Operator-specific attribute values (actual values, not definitions)
     #     Returns:
     #         Dictionary containing result, error, and explanation
     #     """
@@ -252,40 +263,40 @@ class Operator(Tool):
     #             return {
     #                 "operator": self.name,
     #                 "input_data": input_data,
-    #                 "parameters": params or {},
+    #                 "attributes": attributes or {},
     #                 "result": [],
     #                 "error": "Invalid input_data format",
     #                 "explain": {"error": "input_data must be a list of lists of dictionaries"},
     #             }
 
-    #         # Validate parameters
-    #         if not self.validator(params or {}):
+    #         # Validate attributes
+    #         if not self.validator(attributes or {}):
     #             return {
     #                 "operator": self.name,
     #                 "input_data": input_data,
-    #                 "parameters": params or {},
+    #                 "attributes": attributes or {},
     #                 "result": [],
-    #                 "error": "Parameter validation failed",
-    #                 "explain": {"error": "Invalid parameters provided"},
+    #                 "error": "attribute validation failed",
+    #                 "explain": {"error": "Invalid attributes provided"},
     #             }
 
     #         # Execute operator-specific logic
-    #         result = self._execute_operator_logic(input_data, params or {})
+    #         result = self._execute_operator_logic(input_data, attributes or {})
 
     #         # Validate output data
     #         if self.properties.get("validate_output", True) and not self._validate_io_data(result):
     #             return {
     #                 "operator": self.name,
     #                 "input_data": input_data,
-    #                 "parameters": params or {},
+    #                 "attributes": attributes or {},
     #                 "result": result,
     #                 "error": "Invalid output data format",
     #                 "explain": {"error": "output_data must be a list of lists of dictionaries"},
     #             }
 
     #         # Generate explanation
-    #         explanation = self.explainer(result, input_data, params or {})
-    #         return {"operator": self.name, "input_data": input_data, "parameters": params or {}, "result": result, "error": None, "explain": explanation}
+    #         explanation = self.explainer(result, input_data, attributes or {})
+    #         return {"operator": self.name, "input_data": input_data, "attributes": attributes or {}, "result": result, "error": None, "explain": explanation}
 
     #     except Exception as e:
     #         error_handling = self.properties.get("error_handling", "skip")
@@ -294,10 +305,10 @@ class Operator(Tool):
     #             raise e
     #         elif error_handling == "log":
     #             logging.error(f"Error in {self.name}, skipping: {str(e)}")
-    #             return {"operator": self.name, "input_data": input_data, "parameters": params or {}, "result": [], "error": str(e), "explain": {"error": f"Execution failed: {str(e)}"}}
+    #             return {"operator": self.name, "input_data": input_data, "attributes": attributes or {}, "result": [], "error": str(e), "explain": {"error": f"Execution failed: {str(e)}"}}
     #         else:  # skip
     #             logging.info(f"Error in {self.name}, skipping: {str(e)}")
-    #             return {"operator": self.name, "input_data": input_data, "parameters": params or {}, "result": [], "error": str(e), "explain": {"error": f"Execution failed: {str(e)}"}}
+    #             return {"operator": self.name, "input_data": input_data, "attributes": attributes or {}, "result": [], "error": str(e), "explain": {"error": f"Execution failed: {str(e)}"}}
 
     # def _validate_io_data(self, input_data: List[List[Dict[str, Any]]]) -> bool:
     #     """Validate input/output data format. It should be a list of lists of dictionaries."""
@@ -311,14 +322,14 @@ class Operator(Tool):
     #                 return False
     #     return True
 
-    # def _execute_operator_logic(self, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+    # def _execute_operator_logic(self, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
     #     """
     #     Execute the actual operator-specific logic.
     #     This method contains the core logic for each operator type.
     #     Operators should override this method with their specific implementation.
     #     Args:
     #         input_data: List of datas, each containing JSON array of records
-    #         params: Operator-specific parameter values
+    #         attributes: Operator-specific attribute values
     #     Returns:
     #         List of datas, each containing JSON array of records
     #     """

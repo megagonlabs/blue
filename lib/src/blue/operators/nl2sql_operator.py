@@ -15,16 +15,16 @@ from blue.data.schema import DataSchema
 ### NL2SQL Operator
 
 
-def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    question = params.get('question', '')
-    protocol = params.get('protocol', 'postgres')
-    database = params.get('database', '')
-    collection = params.get('collection', '')
-    force_query_prefixes = params.get('force_query_prefixes', 'SELECT')
-    case_insensitive = params.get('case_insensitive', True)
-    additional_requirements = params.get('additional_requirements', '')
-    context = params.get('context', '')
-    schema = params.get('schema', '')
+def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    question = attributes.get('question', '')
+    protocol = attributes.get('protocol', 'postgres')
+    database = attributes.get('database', '')
+    collection = attributes.get('collection', '')
+    force_query_prefixes = attributes.get('force_query_prefixes', 'SELECT')
+    case_insensitive = attributes.get('case_insensitive', True)
+    additional_requirements = attributes.get('additional_requirements', '')
+    context = attributes.get('context', '')
+    schema = attributes.get('schema', '')
 
     if not question or not question.strip():
         return []
@@ -79,18 +79,18 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
 
     # If execution is enabled, execute the generated SQL
     if execute_query and generated_query:
-        # Execute query directly using connection parameters
-        connection_params = properties.get('connection', {})
-        if connection_params:
+        # Execute query directly using connection attributes
+        connection_attributes = properties.get('connection', {})
+        if connection_attributes:
             try:
                 if protocol == 'postgres':
 
                     conn = psycopg2.connect(
-                        host=connection_params.get('host'),
-                        port=connection_params.get('port'),
+                        host=connection_attributes.get('host'),
+                        port=connection_attributes.get('port'),
                         database=database,
-                        user=connection_params.get('user'),
-                        password=connection_params.get('password'),
+                        user=connection_attributes.get('user'),
+                        password=connection_attributes.get('password'),
                     )
                     cursor = conn.cursor()
                     cursor.execute(generated_query)
@@ -106,11 +106,11 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
 
                 elif protocol == 'mysql':
                     conn = mysql.connector.connect(
-                        host=connection_params.get('host'),
-                        port=connection_params.get('port'),
+                        host=connection_attributes.get('host'),
+                        port=connection_attributes.get('port'),
                         database=database,
-                        user=connection_params.get('user'),
-                        password=connection_params.get('password'),
+                        user=connection_attributes.get('user'),
+                        password=connection_attributes.get('password'),
                     )
                     cursor = conn.cursor(buffered=True)
                     cursor.execute(generated_query)
@@ -128,22 +128,22 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
             except Exception as e:
                 raise ValueError(f"Error executing query: {str(e)}")
         else:
-            raise ValueError("No connection parameters provided for query execution")
+            raise ValueError("No connection attributes provided for query execution")
         return result
     # if execution is disabled, return the sql query only
     return [[{"sql": generated_query}]]
 
 
-def nl2sql_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate nl2sql operator parameters."""
-    return default_operator_validator(params, properties)
+def nl2sql_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate nl2sql operator attributes."""
+    return default_operator_validator(attributes, properties)
 
 
-def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain nl2sql operator output. Currently only returns parameters and output"""
+def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    """Explain nl2sql operator output. Currently only returns attributes and output"""
     nl2sql_explanation = {
         'output': output,
-        "parameters": params,
+        "attributes": attributes,
     }
     return nl2sql_explanation
 
@@ -209,7 +209,7 @@ Output:
 
     name = "nl2sql"
     description = "Translates natural language questions into SQL queries using LLM models"
-    default_parameters = {
+    default_attributes = {
         "question": {"type": "str", "description": "Natural language question to translate to SQL", "required": True},
         "protocol": {"type": "str", "description": "Database protocol (postgres or mysql)", "required": True, "default": "postgres"},
         "database": {"type": "str", "description": "Database name", "required": True, "default": ""},
@@ -220,36 +220,24 @@ Output:
         "schema": {"type": "str", "description": "JSON string of database schema (optional - will be fetched automatically if not provided)", "required": False, "default": ""},
     }
 
-    def __init__(self, name: str = "nl2sql", description: str = None, properties: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None):
-        if description is None:
-            description = self.description
-
-        if properties is None:
-            properties = {}
-        if "parameters" not in properties:
-            properties["parameters"] = self.default_parameters
-        if function is None:
-            function = nl2sql_operator_function
-        if validator is None:
-            validator = nl2sql_operator_validator
-        if explainer is None:
-            explainer = nl2sql_operator_explainer
-
+    def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(
-            name=name,
-            description=description,
-            properties=properties,
-            function=function,
-            validator=validator,
-            explainer=explainer,
+            self.name,
+            function=nl2sql_operator_function,
+            description=description or self.description,
+            properties=properties or self.PROPERTIES,
+            validator=nl2sql_operator_validator,
+            explainer=nl2sql_operator_explainer,
         )
 
     def _initialize_properties(self):
-        super()._initialize_properties()  # get default properties for Operator
-        self.properties.update(self.PROPERTIES)  # update with NL2SQL specific properties
+        super()._initialize_properties()
 
-    def extract_input_params(self, input_data, properties=None):
-        """Extract input parameters for template substitution"""
+        # attribute definitions
+        self.properties["attributes"] = self.default_attributes
+
+    def extract_input_attributes(self, input_data, properties=None):
+        """Extract input attributes for template substitution"""
         # For NL2SQL, input_data is a dictionary containing all the template variables
         if isinstance(input_data, dict):
             return input_data
@@ -260,30 +248,30 @@ Output:
 ### Helper Functions of NL2SQL Operator
 def _fetch_database_schema(protocol: str, database: str, collection: str, properties: Dict[str, Any]) -> str:
     """Fetch database schema directly from the database."""
-    connection_params = properties.get('connection', {})
-    if not connection_params:
-        raise ValueError("No connection parameters provided for schema fetching")
+    connection_attributes = properties.get('connection', {})
+    if not connection_attributes:
+        raise ValueError("No connection attributes provided for schema fetching")
 
     try:
         if protocol == 'postgres':
-            return _fetch_postgres_schema(database, collection, connection_params)
+            return _fetch_postgres_schema(database, collection, connection_attributes)
         elif protocol == 'mysql':
-            return _fetch_mysql_schema(database, collection, connection_params)
+            return _fetch_mysql_schema(database, collection, connection_attributes)
         else:
             raise ValueError(f"Unsupported protocol for schema fetching: {protocol}")
     except Exception as e:
         raise ValueError(f"Error fetching schema: {str(e)}")
 
 
-def _fetch_postgres_schema(database: str, collection: str, connection_params: Dict[str, Any]) -> str:
+def _fetch_postgres_schema(database: str, collection: str, connection_attributes: Dict[str, Any]) -> str:
     """Fetch PostgreSQL schema."""
     # Connect to the database
     conn = psycopg2.connect(
-        host=connection_params.get('host'),
-        port=connection_params.get('port'),
+        host=connection_attributes.get('host'),
+        port=connection_attributes.get('port'),
         database=database,
-        user=connection_params.get('user'),
-        password=connection_params.get('password'),
+        user=connection_attributes.get('user'),
+        password=connection_attributes.get('password'),
     )
 
     try:
@@ -347,15 +335,15 @@ def _fetch_postgres_schema(database: str, collection: str, connection_params: Di
         conn.close()
 
 
-def _fetch_mysql_schema(database: str, collection: str, connection_params: Dict[str, Any]) -> str:
+def _fetch_mysql_schema(database: str, collection: str, connection_attributes: Dict[str, Any]) -> str:
     """Fetch MySQL schema."""
     # Connect to the database
     conn = mysql.connector.connect(
-        host=connection_params.get('host'),
-        port=connection_params.get('port'),
+        host=connection_attributes.get('host'),
+        port=connection_attributes.get('port'),
         database=database,
-        user=connection_params.get('user'),
-        password=connection_params.get('password'),
+        user=connection_attributes.get('user'),
+        password=connection_attributes.get('password'),
     )
 
     try:
@@ -385,7 +373,7 @@ if __name__ == "__main__":
     ## calling example
 
     input_data = [[]]
-    params = {
+    attributes = {
         "question": "what is the most frequently advertised manager role in jurong?",
         # "question": "what are the top 10 project manager jobs in jurong with a minimum salary of 4000?",
         "protocol": "postgres",
@@ -397,8 +385,8 @@ if __name__ == "__main__":
         # schema will be fetched automatically if not provided
     }
 
-    print(f"=== NL2SQL PARAMETERS ===")
-    print(params)
+    print(f"=== NL2SQL attributes ===")
+    print(attributes)
 
     # just used to get the default properties
     nl2sql_operator = NL2SQLOperator()
@@ -409,10 +397,10 @@ if __name__ == "__main__":
 
     # call the function
     # Option 1: directly call the nl2sql_operator_function
-    result = nl2sql_operator_function(input_data, params, properties)
+    result = nl2sql_operator_function(input_data, attributes, properties)
     print("=== NL2SQL RESULT (Option 1)===")
     print(result)
     # Option 2: use the function method
-    result = nl2sql_operator.function(input_data, params, properties)
+    result = nl2sql_operator.function(input_data, attributes, properties)
     print("=== NL2SQL RESULT (Option 2)===")
     print(result)

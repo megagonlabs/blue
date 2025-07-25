@@ -3,7 +3,6 @@ from typing import List
 
 ###### Blue
 from blue.tools.tool import Tool
-from blue.utils import tool_utils
 
 
 ###############
@@ -20,11 +19,9 @@ def add(numbers: List[int]) -> int:
 
 
 add_tool = Tool(
-    name="add",
+    "add",
+    add,
     description="adds numbers and returns the addition as a result",
-    properties={},
-    function=add,
-    signature=tool_utils.extract_signature(add, mcp_format=True),
     validator=lambda params: 'numbers' in params and type(params['numbers']) == list and all([type(number) in [int, float] for number in params['numbers']]),
     explainer=lambda output, params: {"output": output, "params": params},
 )
@@ -40,11 +37,9 @@ def multiply(numbers: List[int]) -> int:
 
 
 multiply_tool = Tool(
-    name="multiply",
+    "multiply",
+    multiply,
     description="multiplies numbers and returns the multiplication ion as a result",
-    properties={},
-    function=multiply,
-    signature=tool_utils.extract_signature(multiply, mcp_format=True),
     validator=lambda params: 'numbers' in params and type(params['numbers']) == list and all([type(number) in [int, float] for number in params['numbers']]),
     explainer=lambda output, params: {"output": output, "params": params},
 )

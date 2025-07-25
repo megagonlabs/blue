@@ -69,9 +69,14 @@ class OpenAIAgent(RequestorAgent):
 
         # iterate over all parameters
         for p, values in tool_schema['properties']['signature']['parameters'].items():
+            # skip hidden
+            if 'hidden' in values and values['hidden']:
+                continue
             openai_schema["function"]["parameters"]["properties"][p] = {"type": values["type"]}
-            if "items" in values:
+            # copy over items
+            if 'items' in values:
                 openai_schema["function"]["parameters"]["properties"][p]["items"] = values["items"]
+            # separately aggregate required parameters
             if values["required"]:
                 openai_schema["function"]["parameters"]["required"].append(p)
 

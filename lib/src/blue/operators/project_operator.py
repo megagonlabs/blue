@@ -8,11 +8,11 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 ### Project Operator (Projection)
 
 
-def project_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+def project_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Project records to keep only specified keys and optionally rename them (key-wise projection)."""
-    # Extract parameters
-    kept_keys = params.get('kept_keys', [])
-    key_mapping = params.get('key_mapping', {})
+    # Extract attributes
+    kept_keys = attributes.get('kept_keys', [])
+    key_mapping = attributes.get('key_mapping', {})
 
     # Validate input
     if not input_data or not input_data[0]:
@@ -36,17 +36,17 @@ def project_operator_function(input_data: List[List[Dict[str, Any]]], params: Di
     return [result]
 
 
-def project_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate project operator parameters."""
+def project_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate project operator attributes."""
     try:
-        if not default_operator_validator(params, properties):
+        if not default_operator_validator(attributes, properties):
             return False
     except Exception:
         return False
 
     # Business logic validation (types already checked by default validator)
-    kept_keys = params.get('kept_keys', [])
-    key_mapping = params.get('key_mapping', {})
+    kept_keys = attributes.get('kept_keys', [])
+    key_mapping = attributes.get('key_mapping', {})
 
     # Validate that all keys in key_mapping are in kept_keys
     for mapped_key in key_mapping.keys():
@@ -62,8 +62,8 @@ def project_operator_validator(params: Dict[str, Any], properties: Dict[str, Any
     return True
 
 
-def project_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
-    return default_operator_explainer(output, input_data, params)
+def project_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    return default_operator_explainer(output, input_data, attributes)
 
 
 def _validate_key_mapping_conflicts(kept_keys: List[str], key_mapping: Dict[str, str]) -> None:
@@ -87,36 +87,30 @@ class ProjectOperator(Operator):
     Supports key selection and renaming with conflict detection.
     """
 
+    PROPERTIES = {}
+
     name = "project"
     description = "Given an input data, return only a set of attributes for each data element (key-wise)"
-    default_parameters = {
+    default_attributes = {
         "kept_keys": {"type": "list[str]", "description": "List of keys to keep in each record", "required": True},
         "key_mapping": {"type": "dict[str, str]", "description": "Dictionary mapping old key names to new key names", "required": False, "default": {}},
     }
 
-    def __init__(self, name: str = "project", description: str = None, properties: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None):
-        if description is None:
-            description = self.description
-
-        if properties is None:
-            properties = {}
-        if "parameters" not in properties:
-            properties["parameters"] = self.default_parameters
-        if function is None:
-            function = project_operator_function
-        if validator is None:
-            validator = project_operator_validator
-        if explainer is None:
-            explainer = project_operator_explainer
-
+    def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(
-            name=name,
-            description=description,
-            properties=properties,
-            function=function,
-            validator=validator,
-            explainer=explainer,
+            self.name,
+            function=project_operator_function,
+            description=description or self.description,
+            properties=properties or self.PROPERTIES,
+            validator=project_operator_validator,
+            explainer=project_operator_explainer,
         )
+
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # attribute definitions
+        self.properties["attributes"] = self.default_attributes
 
 
 if __name__ == "__main__":
@@ -131,13 +125,13 @@ if __name__ == "__main__":
     ]
 
     ## test basic projection
-    params = {"kept_keys": ["job_id", "name", "salary"]}
-    result = project_operator_function(input_data, params)
+    attributes = {"kept_keys": ["job_id", "name", "salary"]}
+    result = project_operator_function(input_data, attributes)
     print("=== PROJECT RESULT (basic projection) ===")
     print(result)
 
     ## test projection with key mapping
-    params = {"kept_keys": ["job_id", "name", "salary"], "key_mapping": {"name": "employee_name", "salary": "annual_salary"}}
-    result = project_operator_function(input_data, params)
+    attributes = {"kept_keys": ["job_id", "name", "salary"], "key_mapping": {"name": "employee_name", "salary": "annual_salary"}}
+    result = project_operator_function(input_data, attributes)
     print("=== PROJECT RESULT (with key mapping) ===")
     print(result)
