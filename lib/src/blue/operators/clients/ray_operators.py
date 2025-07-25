@@ -17,6 +17,7 @@ from blue.operators.nl2sql_operator import NL2SQLOperator
 from blue.operators.data_discover_operator import DataDiscoverOperator
 from blue.operators.select_operator import SelectOperator
 from blue.operators.project_operator import ProjectOperator
+from blue.operators.insert_operator import InsertOperator
 
 join_operator = JoinOperator()
 operators_dict[join_operator.name] = join_operator
@@ -35,3 +36,6 @@ operators_dict[select_operator.name] = select_operator
 
 project_operator = ProjectOperator()
 operators_dict[project_operator.name] = project_operator
+
+insert_operator = InsertOperator()
+operators_dict[insert_operator.name] = insert_operator

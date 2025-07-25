@@ -404,5 +404,38 @@
         },
         "icon": null,
         "contents": {}
+    },
+    {
+        "name": "insert",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given input data, insert records by position(s)",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "insert_records": {
+                    "type": "list[dict]",
+                    "description": "List of records to insert into the first data source (optional if second data group provided)",
+                    "required": false,
+                    "default": []
+                },
+                "insert_idx": {
+                    "type": "Union[int, list[int]]",
+                    "description": "Position(s) to insert records (-1 for append, 0+ for specific position). If list, each element corresponds to position for each record",
+                    "required": false,
+                    "default": -1
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
     }
 ]
