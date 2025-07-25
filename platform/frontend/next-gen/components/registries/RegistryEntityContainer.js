@@ -234,6 +234,9 @@ function RegistryEntityContainer({
                             )}
                             {_.isEqual(type, "operator") && (
                                 <OperatorEntity
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
                                     entity={current}
                                     backCrumb={backCrumb}
                                 />

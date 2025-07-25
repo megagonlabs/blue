@@ -202,7 +202,7 @@ def update_server_operator(request: Request, server_name, operator_name, data: O
     server = operator_registry.get_server(server_name)
     server_acl_enforce(request, server, write=True)
     # TODO: properties
-    operator_registry.update_server_operator(server_name, operator_name, description=data.description, properties={}, rebuild=True)
+    operator_registry.update_server_operator(server_name, operator_name, description=data.description, icon=data.icon, properties={}, rebuild=True)
     if sync:
         operator_registry.sync_server_operator(server_name, operator_name, recursive=recursive, rebuild=True)
     # save

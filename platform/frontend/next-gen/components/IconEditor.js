@@ -1,12 +1,13 @@
+import { canvasPreview } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import {
     Button,
     ButtonGroup,
     ButtonVariant,
-    Card,
     Classes,
     Colors,
     ControlGroup,
+    FileInput,
     InputGroup,
     Intent,
     Size,
@@ -17,6 +18,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
     faDotCircle,
+    faFaceViewfinder,
     faIcons,
     faImage,
     faSearch,
@@ -27,9 +29,16 @@ import classNames from "classnames";
 import _ from "lodash";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import ReactCrop, {
+    centerCrop,
+    convertToPixelCrop,
+    makeAspectCrop,
+} from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import { useShallow } from "zustand/react/shallow";
 import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "./constants";
 import { FAIcon } from "./FAIcon";
+import { useDebounceEffect } from "./hooks/useDebounceEffect";
 import NoResultsFound from "./nonidealstates/NoResultsFound";
 import RegistryEntityIcon from "./registries/RegistryEntityIcon";
 const COLOR_OPTIONS = [
@@ -200,32 +209,20 @@ function IconPicker({ content, setNewContent }) {
                 </div>
             </div>
             <div style={{ padding: 20, overflowY: "auto", width: 320 }}>
-                <Card
+                <div
+                    className={classNames(
+                        "padding-0",
+                        "overflow-hidden",
+                        "custom-card",
+                        { [Classes.SKELETON]: loading }
+                    )}
                     style={{
+                        ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                         marginBottom: 20,
-                        position: "relative",
-                        height: 80,
                     }}
                 >
-                    <div
-                        className={classNames(
-                            "padding-0",
-                            "overflow-hidden",
-                            "custom-card",
-                            { [Classes.SKELETON]: loading }
-                        )}
-                        style={{
-                            ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
-                            position: "absolute",
-                            left: 20,
-                            top: 20,
-                        }}
-                    >
-                        <RegistryEntityIcon
-                            content={`${iconName}:${colorHex}`}
-                        />
-                    </div>
-                </Card>
+                    <RegistryEntityIcon content={`${iconName}:${colorHex}`} />
+                </div>
                 <ControlGroup style={{ marginBottom: 20 }}>
                     <Tag
                         className={loading ? Classes.SKELETON : null}
@@ -302,6 +299,209 @@ function IconPicker({ content, setNewContent }) {
         </div>
     );
 }
+function ImagePicker({ content, setNewContent }) {
+    const [fileName, setFileName] = useState("Choose file...");
+    const [crop, setCrop] = useState(null);
+    const [completedCrop, setCompletedCrop] = useState(null);
+    const [imgSrc, setImgSrc] = useState(content);
+    const onSelectFile = (event) => {
+        if (event.target.files && event.target.files.length > 0) {
+            setCrop(null); // makes crop preview update between images.
+            const reader = new FileReader();
+            reader.addEventListener("load", () => {
+                setImgSrc(reader.result?.toString() || "");
+            });
+            setFileName(event.target.files[0].name);
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    };
+    const imgRef = useRef(null);
+    const previewCanvasRef = useRef(null);
+    const centerAspectCrop = (
+        mediaWidth,
+        mediaHeight,
+        aspect = 1,
+        cropWidth = 100,
+        cropHeight = 100
+    ) => {
+        return centerCrop(
+            makeAspectCrop(
+                { unit: "%", width: cropWidth, height: cropHeight },
+                aspect,
+                mediaWidth,
+                mediaHeight
+            ),
+            mediaWidth,
+            mediaHeight
+        );
+    };
+    const loadingRef = useRef(false);
+    const readFileAsDataURL = async (file) => {
+        loadingRef.current = true;
+        let result_base64 = await new Promise((resolve) => {
+            let fileReader = new FileReader();
+            fileReader.onload = () => resolve(fileReader.result);
+            fileReader.readAsDataURL(file);
+        });
+        loadingRef.current = false;
+        return result_base64;
+    };
+    const centerCropManually = () => {
+        const centerCropArea = centerAspectCrop(
+            imgRef.current.width,
+            imgRef.current.height,
+            1,
+            crop.width,
+            crop.height
+        );
+        setCrop(centerCropArea);
+        setCompletedCrop(
+            convertToPixelCrop(
+                centerCropArea,
+                imgRef.current.width,
+                imgRef.current.height
+            )
+        );
+    };
+    const onImageLoad = (event) => {
+        const { width, height } = event.currentTarget;
+        setCrop(centerAspectCrop(width, height));
+    };
+    useDebounceEffect(
+        async () => {
+            if (_.isNull(completedCrop)) return;
+            if (
+                completedCrop?.width &&
+                completedCrop?.height &&
+                imgRef.current &&
+                previewCanvasRef.current
+            ) {
+                // we use canvasPreview as it's much faster than imgPreview.
+                canvasPreview(
+                    imgRef.current,
+                    previewCanvasRef.current,
+                    completedCrop
+                );
+            }
+            const image = imgRef.current;
+            const previewCanvas = previewCanvasRef.current;
+            if (!image || !previewCanvas || !completedCrop) {
+                throw new Error("Crop canvas does not exist");
+            }
+            // this will size relative to the uploaded image
+            // size. If you want to size according to what they
+            // are looking at on screen, remove scaleX + scaleY
+            const scaleX = image.naturalWidth / image.width;
+            const scaleY = image.naturalHeight / image.height;
+            const offscreen = new OffscreenCanvas(
+                completedCrop.width * scaleX,
+                completedCrop.height * scaleY
+            );
+            const ctx = offscreen.getContext("2d");
+            if (!ctx) {
+                throw new Error("No 2d context");
+            }
+            ctx.drawImage(
+                previewCanvas,
+                0,
+                0,
+                previewCanvas.width,
+                previewCanvas.height,
+                0,
+                0,
+                offscreen.width,
+                offscreen.height
+            );
+            // uou might want { type: "image/jpeg", quality: <0 to 1> } to
+            // reduce image size
+            const blob = await offscreen.convertToBlob({
+                type: "image/jpeg",
+                quality: 1,
+            });
+            const dataURL = await readFileAsDataURL(blob);
+            setNewContent(dataURL);
+        },
+        100,
+        [completedCrop]
+    );
+    return (
+        <div
+            className="full-parent-dimension"
+            style={{ padding: 20, overflow: "auto" }}
+        >
+            <ControlGroup fill>
+                <FileInput
+                    size={Size.LARGE}
+                    inputProps={{ accept: "image/*" }}
+                    text={fileName}
+                    onInputChange={onSelectFile}
+                />
+                {!!imgSrc && (
+                    <ButtonGroup
+                        fill
+                        variant={ButtonVariant.MINIMAL}
+                        style={{ maxWidth: 150 }}
+                    >
+                        <Button
+                            text="Center crop"
+                            icon={<FAIcon icon={faFaceViewfinder} />}
+                            onClick={centerCropManually}
+                        />
+                    </ButtonGroup>
+                )}
+            </ControlGroup>
+            {!!imgSrc && (
+                <div style={{ display: "flex", marginTop: 20 }}>
+                    <ReactCrop
+                        keepSelection
+                        crop={crop}
+                        onChange={(_, percentCrop) => {
+                            setCrop(percentCrop);
+                        }}
+                        onComplete={(crop, percentCrop) => {
+                            setCompletedCrop(
+                                convertToPixelCrop(
+                                    percentCrop,
+                                    imgRef.current.width,
+                                    imgRef.current.height
+                                )
+                            );
+                        }}
+                        aspect={1}
+                        minWidth={80}
+                        minHeight={80}
+                    >
+                        <img
+                            ref={imgRef}
+                            alt="Crop me"
+                            src={imgSrc}
+                            onLoad={onImageLoad}
+                        />
+                    </ReactCrop>
+                    <div style={{ minWidth: 80, padding: "0px 20px" }}>
+                        <div
+                            className={classNames(
+                                "padding-0",
+                                "overflow-hidden",
+                                "custom-card"
+                            )}
+                            style={REGISTRY_ENTITY_ICON_WRAPPER_STYLES}
+                        >
+                            <canvas
+                                ref={previewCanvasRef}
+                                style={{
+                                    objectFit: "contain",
+                                    width: 40,
+                                    height: 40,
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 export default function IconEditor({ content, setIcon, setShowIconEditor }) {
     const [tab, setTab] = useState("icon");
     useEffect(() => {
@@ -338,7 +538,7 @@ export default function IconEditor({ content, setIcon, setShowIconEditor }) {
                     </Tooltip>
                 </ButtonGroup>
                 <div style={{ position: "absolute", right: 10, top: 10 }}>
-                    <Tooltip content="Revert to default icon">
+                    <Tooltip content="Revert to default">
                         <Button
                             size={Size.LARGE}
                             intent={Intent.DANGER}
@@ -364,6 +564,12 @@ export default function IconEditor({ content, setIcon, setShowIconEditor }) {
             <div style={{ height: "calc(100% - 61px)" }}>
                 {_.isEqual(tab, "icon") && (
                     <IconPicker
+                        content={content}
+                        setNewContent={setNewContent}
+                    />
+                )}{" "}
+                {_.isEqual(tab, "image") && (
+                    <ImagePicker
                         content={content}
                         setNewContent={setNewContent}
                     />
