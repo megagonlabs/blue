@@ -31,8 +31,8 @@ class OperatorRegistry(ToolRegistry):
     def register_server_tool(self, server, tool, description="", properties={}, rebuild=False):
         self.register_server_operator(server, tool, description=description, properties=properties, rebuild=rebuild)
 
-    def update_server_operator(self, server, operator, description=None, properties=None, rebuild=False):
-        super().update_record(operator, 'operator', f'/server/{server}', description=description, properties=properties, rebuild=rebuild)
+    def update_server_operator(self, server, operator, description=None, icon=None, properties=None, rebuild=False):
+        super().update_record(operator, 'operator', f'/server/{server}', description=description, icon=icon, properties=properties, rebuild=rebuild)
 
     def update_server_tool(self, server, tool, description=None, properties=None, rebuild=False):
         self.update_server_operator(server, tool, description=description, properties=properties, rebuild=rebuild)

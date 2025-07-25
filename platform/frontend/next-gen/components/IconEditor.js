@@ -538,7 +538,7 @@ export default function IconEditor({ content, setIcon, setShowIconEditor }) {
                     </Tooltip>
                 </ButtonGroup>
                 <div style={{ position: "absolute", right: 10, top: 10 }}>
-                    <Tooltip content="Revert to default icon">
+                    <Tooltip content="Revert to default">
                         <Button
                             size={Size.LARGE}
                             intent={Intent.DANGER}
