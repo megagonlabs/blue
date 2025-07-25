@@ -27,7 +27,13 @@ import EntityDisplayName from "../EntityDisplayName";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_OPERATOR_REGISTRY_NAME } = allEnv();
-export default function OperatorEntity({ entity, backCrumb }) {
+export default function OperatorEntity({
+    entity,
+    setShowIconEditor,
+    icon,
+    setIcon,
+    backCrumb,
+}) {
     const { name, scope, type } = entity;
     const [operator, setOperator] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -88,7 +94,10 @@ export default function OperatorEntity({ entity, backCrumb }) {
             .finally(() => {
                 setLoading(false);
             });
-    }, [entity, url]);
+    }, [entity]);
+    useEffect(() => {
+        updateOperator({ path: "icon", value: icon });
+    }, [icon]);
     const handleDiscard = () => {
         setEditedOperator(operator);
         setMainProperties(
@@ -171,11 +180,20 @@ export default function OperatorEntity({ entity, backCrumb }) {
                         "custom-card",
                         { [Classes.SKELETON]: loading }
                     )}
+                    onClick={() => {
+                        if (_.isFunction(setShowIconEditor)) {
+                            setShowIconEditor(isEditing);
+                        }
+                    }}
                     style={{
                         ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                         position: "absolute",
                         left: 20,
                         top: 20,
+                        cursor:
+                            isEditing && _.isFunction(setIcon)
+                                ? "pointer"
+                                : null,
                     }}
                 >
                     <RegistryEntityIcon
