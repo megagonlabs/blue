@@ -9,16 +9,16 @@ from blue.data.registry import DataRegistry
 ### Data Discover Operator
 
 
-def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    # Extract parameters
-    search_query = params.get('search_query', '')
-    approximate = params.get('approximate', True)
-    hybrid = params.get('hybrid', False)
-    page = params.get('page', 0)
-    page_size = params.get('page_size', 10)
-    include_metadata = params.get('include_metadata', False)
-    threshold = params.get('threshold', 0.5)
-    progressive_pagination = params.get('progressive_pagination', False)
+def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    # Extract attributes
+    search_query = attributes.get('search_query', '')
+    approximate = attributes.get('approximate', True)
+    hybrid = attributes.get('hybrid', False)
+    page = attributes.get('page', 0)
+    page_size = attributes.get('page_size', 10)
+    include_metadata = attributes.get('include_metadata', False)
+    threshold = attributes.get('threshold', 0.5)
+    progressive_pagination = attributes.get('progressive_pagination', False)
 
     # Get data registry from properties - follow agent pattern
     data_registry = _get_data_registry_from_properties(properties)
@@ -114,19 +114,19 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], para
     return [results]
 
 
-def data_discover_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate data discover operator parameters."""
+def data_discover_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate data discover operator attributes."""
     try:
-        if not default_operator_validator(params, properties):
+        if not default_operator_validator(attributes, properties):
             return False
     except Exception:
         return False
 
-    # Check required parameters, the type of the parameters is validated by the default operator validator
-    search_query = params.get('search_query', '')
-    page = params.get('page', 0)
-    page_size = params.get('page_size', 10)
-    threshold = params.get('threshold', 0.5)
+    # Check required attributes, the type of the attributes is validated by the default operator validator
+    search_query = attributes.get('search_query', '')
+    page = attributes.get('page', 0)
+    page_size = attributes.get('page_size', 10)
+    threshold = attributes.get('threshold', 0.5)
 
     if not search_query or not search_query.strip():
         return False
@@ -138,13 +138,13 @@ def data_discover_operator_validator(params: Dict[str, Any], properties: Dict[st
     return True
 
 
-def data_discover_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
+def data_discover_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Explain data discover operator output."""
     data_discover_explanation = {
         'output': output,
         'input_data': input_data,
-        'params': params,
-        'explanation': f"Data discover operator searched for data sources with query '{params.get('search_query', '')}' and returned {len(output[0]) if output and len(output) > 0 else 0} results.",
+        'attributes': attributes,
+        'explanation': f"Data discover operator searched for data sources with query '{attributes.get('search_query', '')}' and returned {len(output[0]) if output and len(output) > 0 else 0} results.",
     }
     return data_discover_explanation
 
@@ -165,7 +165,7 @@ class DataDiscoverOperator(Operator):
 
     name = "data discover"
     description = "Discovers data sources using the data registry"
-    default_parameters = {
+    default_attributes = {
         "search_query": {"type": "str", "description": "Text to search for in source names and descriptions", "required": True, "default": ""},
         "approximate": {"type": "bool", "description": "Whether to use approximate (vector) search", "required": True, "default": True},
         "hybrid": {"type": "bool", "description": "Whether to use hybrid search (text + vector)", "required": False, "default": False},
@@ -186,17 +186,21 @@ class DataDiscoverOperator(Operator):
         },
     }
 
-    def __init__(
-        self, name: str = "data_discover", description: str = None, properties: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None
-    ):
+    def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(
-            name=name,
+            self.name,
+            function=data_discover_operator_function,
             description=description or self.description,
             properties=properties or self.PROPERTIES,
-            function=function or data_discover_operator_function,
-            validator=validator or data_discover_operator_validator,
-            explainer=explainer or data_discover_operator_explainer,
+            validator=data_discover_operator_validator,
+            explainer=data_discover_operator_explainer,
         )
+
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # attribute definitions
+        self.properties["attributes"] = self.default_attributes
 
 
 ###########

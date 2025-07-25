@@ -8,14 +8,14 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 ### Select Operator (Filtering)
 
 
-def select_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+def select_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Filter records based on a single condition (record-wise filtering)."""
-    # Extract parameters
-    operand_key = params.get('operand_key')
-    operand = params.get('operand')
-    operand_val = params.get('operand_val')
-    approximate_match = params.get('approximate_match', False)
-    eps = params.get('eps', 1e-9)
+    # Extract attributes
+    operand_key = attributes.get('operand_key')
+    operand = attributes.get('operand')
+    operand_val = attributes.get('operand_val')
+    approximate_match = attributes.get('approximate_match', False)
+    eps = attributes.get('eps', 1e-9)
 
     # Validate input
     if not input_data or not input_data[0]:
@@ -34,28 +34,28 @@ def select_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
     return [result]
 
 
-def select_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate select operator parameters."""
+def select_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate select operator attributes."""
     try:
-        if not default_operator_validator(params, properties):
+        if not default_operator_validator(attributes, properties):
             return False
     except Exception:
         return False
 
     # Business logic validation (types already checked by default validator)
-    operand = params.get('operand')
+    operand = attributes.get('operand')
     if operand and operand not in ['=', '!=', '>', '>=', '<', '<=']:
         return False
 
-    eps = params.get('eps', 1e-9)
+    eps = attributes.get('eps', 1e-9)
     if eps < 0:
         return False
 
     return True
 
 
-def select_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
-    return default_operator_explainer(output, input_data, params)
+def select_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    return default_operator_explainer(output, input_data, attributes)
 
 
 def _evaluate_condition(record_value: Any, operand: str, operand_val: Any, approximate_match: bool, eps: float) -> bool:
@@ -126,9 +126,11 @@ class SelectOperator(Operator):
     Supports basic comparison operators with type-aware comparison logic.
     """
 
+    PROPERTIES = {}
+
     name = "select"
     description = "Given an input data, filter data elements based on a specified condition by type-aware comparison (record-wise)"
-    default_parameters = {
+    default_attributes = {
         "operand_key": {"type": "str", "description": "The key to check in each record", "required": True},
         "operand": {"type": "str", "description": "Comparison operator: =, !=, >, >=, <, <=", "required": True},
         "operand_val": {"type": "Any", "description": "Value to compare with", "required": True},
@@ -136,29 +138,21 @@ class SelectOperator(Operator):
         "eps": {"type": "float", "description": "Epsilon tolerance for approximate numeric comparison", "required": False, "default": 1e-9},
     }
 
-    def __init__(self, name: str = "select", description: str = None, properties: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None):
-        if description is None:
-            description = self.description
-
-        if properties is None:
-            properties = {}
-        if "parameters" not in properties:
-            properties["parameters"] = self.default_parameters
-        if function is None:
-            function = select_operator_function
-        if validator is None:
-            validator = select_operator_validator
-        if explainer is None:
-            explainer = select_operator_explainer
-
+    def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(
-            name=name,
-            description=description,
-            properties=properties,
-            function=function,
-            validator=validator,
-            explainer=explainer,
+            self.name,
+            function=select_operator_function,
+            description=description or self.description,
+            properties=properties or self.PROPERTIES,
+            validator=select_operator_validator,
+            explainer=select_operator_explainer,
         )
+
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # attribute definitions
+        self.properties["attributes"] = self.default_attributes
 
 
 if __name__ == "__main__":
@@ -173,13 +167,13 @@ if __name__ == "__main__":
     ]
 
     ## test numeric filtering
-    params = {"operand_key": "experience", "operand": ">=", "operand_val": 4}
-    result = select_operator_function(input_data, params)
+    attributes = {"operand_key": "experience", "operand": ">=", "operand_val": 4}
+    result = select_operator_function(input_data, attributes)
     print("=== SELECT RESULT (experience >= 4) ===")
     print(result)
 
     ## test salary filtering
-    params = {"operand_key": "name", "operand": "!=", "operand_val": "name B"}
-    result = select_operator_function(input_data, params)
+    attributes = {"operand_key": "name", "operand": "!=", "operand_val": "name B"}
+    result = select_operator_function(input_data, attributes)
     print("=== SELECT RESULT (name != name C) ===")
     print(result)

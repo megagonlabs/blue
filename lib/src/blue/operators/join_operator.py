@@ -8,13 +8,13 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 ### Join Operator
 
 
-def join_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    join_on = params.get('join_on', [])
-    join_type = params.get('join_type', 'inner')
-    join_suffix = params.get('join_suffix', [])
-    keep_keys = params.get('keep_keys', 'left')
+def join_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    join_on = attributes.get('join_on', [])
+    join_type = attributes.get('join_type', 'inner')
+    join_suffix = attributes.get('join_suffix', [])
+    keep_keys = attributes.get('keep_keys', 'left')
 
-    # validation check regarding input data and parameters
+    # validation check regarding input data and attributes
     if not input_data or len(input_data) < 2:
         return []
     if len(join_on) != len(input_data):
@@ -33,16 +33,16 @@ def join_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[
     return [result]
 
 
-def join_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+def join_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     try:
-        if not default_operator_validator(params, properties):
+        if not default_operator_validator(attributes, properties):
             return False
     except Exception:
         return False
 
-    join_on = params.get('join_on', [])
-    join_suffix = params.get('join_suffix', [])
-    keep_keys = params.get('keep_keys', 'left')
+    join_on = attributes.get('join_on', [])
+    join_suffix = attributes.get('join_suffix', [])
+    keep_keys = attributes.get('keep_keys', 'left')
 
     if not isinstance(join_on, list) or len(join_on) < 2:
         return False
@@ -63,14 +63,14 @@ def join_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] =
     if keep_keys not in ['left', 'both']:
         return False
 
-    join_type = params.get('join_type', 'inner')
+    join_type = attributes.get('join_type', 'inner')
     if join_type not in ['inner', 'left', 'right', 'outer']:
         return False
     return True
 
 
-def join_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
-    return default_operator_explainer(output, input_data, params)
+def join_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    return default_operator_explainer(output, input_data, attributes)
 
 
 class JoinOperator(Operator):
@@ -78,38 +78,32 @@ class JoinOperator(Operator):
     Join operator performs N-way join on JSON array datas.
     """
 
+    PROPERTIES = {}
+
     name = "join"
     description = "Joins multiple JSON array data sources using N-way join operations"
-    default_parameters = {
+    default_attributes = {
         "join_on": {"type": "list[list[str]]", "description": "List of join key lists for each data source", "required": True},
         "join_type": {"type": "str", "description": "Type of join: 'inner', 'left', 'right', 'outer'", "required": False, "default": "inner"},
         "join_suffix": {"type": "list[str]", "description": "Suffixes for non-key fields", "required": False, "default": []},
         "keep_keys": {"type": "str", "description": "'left' to keep left keys only, 'both' to keep both", "required": False, "default": "left"},
     }
 
-    def __init__(self, name: str = "join", description: str = None, properties: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None):
-        if description is None:
-            description = self.description
-
-        if properties is None:
-            properties = {}
-        if "parameters" not in properties:
-            properties["parameters"] = self.default_parameters
-        if function is None:
-            function = join_operator_function
-        if validator is None:
-            validator = join_operator_validator
-        if explainer is None:
-            explainer = join_operator_explainer
-
+    def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(
-            name=name,
-            description=description,
-            properties=properties,
-            function=function,
-            validator=validator,
-            explainer=explainer,
+            self.name,
+            function=join_operator_function,
+            description=description or self.description,
+            properties=properties or self.PROPERTIES,
+            validator=join_operator_validator,
+            explainer=join_operator_explainer,
         )
+
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # attribute definitions
+        self.properties["attributes"] = self.default_attributes
 
 
 ###############
@@ -453,20 +447,20 @@ if __name__ == "__main__":
     ]
 
     # #### using tool class
-    # params = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "both"}
+    # attributes = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "both"}
     # join_operator = JoinOperator()
-    # result = join_operator.execute(input_data, params)  # this assume the Tool class define the execute method
+    # result = join_operator.execute(input_data, attributes)  # this assume the Tool class define the execute method
 
     #### using function directly
 
     ## test keep_keys = "left"
-    params = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "left"}
-    result = join_operator_function(input_data, params)
+    attributes = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "left"}
+    result = join_operator_function(input_data, attributes)
     print("=== JOIN RESULT ===")
     print(result)
 
     ## test keep_keys = "both"
-    params = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "both"}
-    result = join_operator_function(input_data, params)
+    attributes = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "both"}
+    result = join_operator_function(input_data, attributes)
     print("=== JOIN RESULT ===")
     print(result)

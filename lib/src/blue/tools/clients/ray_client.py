@@ -67,7 +67,7 @@ class RayToolClient(ToolClient):
             tool_obj = self.tools[tool]
             p = {}
             p = json_utils.merge_json(p, tool_obj.properties)
-            p = json_utils.merge_json(p, {"signature": tool_obj.signature})
+            p = json_utils.merge_json(p, {"signature": tool_obj.get_signature()})
             metadata = {"name": tool_obj.name, "description": tool_obj.description, "properties": p}
         return metadata
 

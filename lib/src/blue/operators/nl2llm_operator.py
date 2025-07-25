@@ -9,12 +9,12 @@ from blue.utils.service_utils import ServiceClient
 ### NL2LLM Operator
 
 
-def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Process natural language query using LLM models and return structured data"""
-    # Extract parameters
-    query = params.get('query', '')
-    context = params.get('context', '')
-    attr_names = params.get('attr_names', [])
+    # Extract attributes
+    query = attributes.get('query', '')
+    context = attributes.get('context', '')
+    attr_names = attributes.get('attr_names', [])
 
     # Validate input
     if not query or not query.strip():
@@ -33,16 +33,16 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], params: Dic
     return [service_client.execute_api_call(service_input_data)]
 
 
-def nl2llm_operator_validator(params: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate nl2llm operator parameters."""
-    return default_operator_validator(params, properties)
+def nl2llm_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate nl2llm operator attributes."""
+    return default_operator_validator(attributes, properties)
 
 
-def nl2llm_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain nl2llm operator output. Currently only returns parameters and output"""
+def nl2llm_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    """Explain nl2llm operator output. Currently only returns attributes and output"""
     nl2llm_explanation = {
         'output': output,
-        "parameters": params,
+        "attributes": attributes,
     }
     return nl2llm_explanation
 
@@ -97,39 +97,27 @@ Output:
 
     name = "nl2llm"
     description = "Processes natural language query using LLM models and returns structured data"
-    default_parameters = {
+    default_attributes = {
         "query": {"type": "str", "description": "Natural language query to process", "required": True},
         "context": {"type": "str", "description": "Optional context to provide domain knowledge", "required": False, "default": ""},
         "attr_names": {"type": "list[str]", "description": "Optional list of attribute names for the output objects", "required": False, "default": []},
     }
 
-    def __init__(self, name: str = "nl2llm", description: str = None, properties: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None):
-        if description is None:
-            description = self.description
-
-        if properties is None:
-            properties = {}
-        if "parameters" not in properties:
-            properties["parameters"] = self.default_parameters
-        if function is None:
-            function = nl2llm_operator_function
-        if validator is None:
-            validator = nl2llm_operator_validator
-        if explainer is None:
-            explainer = nl2llm_operator_explainer
-
+    def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(
-            name=name,
-            description=description,
-            properties=properties,
-            function=function,
-            validator=validator,
-            explainer=explainer,
+            self.name,
+            function=nl2llm_operator_function,
+            description=description or self.description,
+            properties=properties or self.PROPERTIES,
+            validator=nl2llm_operator_validator,
+            explainer=nl2llm_operator_explainer,
         )
 
     def _initialize_properties(self):
-        super()._initialize_properties()  # get default properties for Operator
-        self.properties.update(self.PROPERTIES)  # update with NL2LLM specific properties
+        super()._initialize_properties()
+
+        # attribute definitions
+        self.properties["attributes"] = self.default_attributes
 
 
 if __name__ == "__main__":
@@ -137,14 +125,14 @@ if __name__ == "__main__":
 
     # Test data - natural language query
     input_data = [[]]  # empty input data for query type data operator
-    params = {
+    attributes = {
         "query": "What are the top 5 programming languages in 2024?",
         "context": "Focus on popularity and job market demand",
         # "attr_names": ["language", "popularity_rank", "description"],
         "attr_names": ["language", "year"],
     }
-    print(f"=== NL2LLM PARAMETERS ===")
-    print(params)
+    print(f"=== NL2LLM attributes ===")
+    print(attributes)
 
     # just used to get the default properties
     nl2llm_operator = NL2LLMOperator()
@@ -155,11 +143,11 @@ if __name__ == "__main__":
 
     # call the function
     # Option 1: directly call the nl2llm_operator_function
-    result = nl2llm_operator_function(input_data, params, properties)
+    result = nl2llm_operator_function(input_data, attributes, properties)
     print("=== NL2LLM RESULT (Option 1)===")
     print(result)
     # Option 2: use the function method
-    params['attr_names'] = ["language", "popularity_rank", "description", "latest_release_date"]
-    result = nl2llm_operator.function(input_data, params, properties)
+    attributes['attr_names'] = ["language", "popularity_rank", "description", "latest_release_date"]
+    result = nl2llm_operator.function(input_data, attributes, properties)
     print("=== NL2LLM RESULT (Option 2)===")
     print(result)
