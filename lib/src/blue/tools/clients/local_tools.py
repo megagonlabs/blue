@@ -43,5 +43,5 @@ multiply_tool = Tool(
     explainer=lambda output, params: {"output": output, "params": params},
 )
 # example to hide a parameter
-multiply_tool.properties['signature']['parameters']['x']['hidden'] = True
+multiply_tool.set_parameter_hidden('x', True)
 tools_dict["multiply"] = multiply_tool
