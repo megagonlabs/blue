@@ -49,7 +49,7 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
             attrib_type = attrib_def.get("type")
             if attrib_type:
                 try:
-                    if not validate_attribute_type(attrib_value, attrib_type):
+                    if not validate_parameter_type(attrib_value, attrib_type):
                         return False
                 except Exception as e:
                     # System failure in validation - handle based on configuration
