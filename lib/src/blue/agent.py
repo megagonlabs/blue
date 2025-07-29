@@ -592,7 +592,6 @@ class Agent:
         self.inputs = {}
         self.outputs = {}
 
-
         if properties is None:
             properties = {}
         self._initialize(properties=properties)
@@ -621,10 +620,13 @@ class Agent:
     ###### initialization
     def _initialize(self, properties=None):
         self._initialize_properties()
-        self._update_properties(properties=properties)
 
         self._initialize_inputs()
         self._initialize_outputs()
+
+        self._update_properties(properties=properties)
+
+        # updates inputs/outputs if set in properties
         self._update_inputs(properties=properties)
         self._update_outputs(properties=properties)
 
@@ -664,56 +666,46 @@ class Agent:
         self.add_output("DEFAULT")
 
     def _update_inputs(self, properties=None):
-        # update from agent properties with contents
-        if 'contents' in properties:
-            contents = properties['contents']
-            if 'input' in contents:
-                inputs = contents['input']
-                for input in inputs:
-                    i = inputs[input]
-                    if 'properties' in i:
-                        input_properties = i['properties']
-                        self.update_input(input, input_properties)
+        # update from agent properties
+        if 'inputs' in properties:
+            inputs = properties['inputs']
+            for input in inputs:
+                i = inputs[input]
+                d = i['description'] if 'description' in i else None
+                p = i['properties'] if 'properties' in i else None
+                self.update_input(input, description=d, properties=p)
 
     def _update_outputs(self, properties=None):
-        # update from agent properties with contents
-        if 'contents' in properties:
-            contents = properties['contents']
-            if 'output' in contents:
-                outputs = contents['output']
-                for output in outputs:
-                    o = outputs[output]
-                    if 'properties' in o:
-                        output_properties = o['properties']
-                        self.update_input(output, output_properties)
+        # update from agent properties
+        if 'outputs' in properties:
+            outputs = properties['outputs']
+            for output in outputs:
+                o = outputs[output]
+                d = o['description'] if 'description' in o else None
+                p = o['properties'] if 'properties' in o else None
+                self.update_output(input, description=d, properties=p)
 
-    def update_input(self, name, input_properties=None):
+    def update_input(self, name, description=None, properties=None):
         if name not in self.inputs:
             return
 
-        description = ""
-        if 'description' in input_properties:
-            description = input_properties['description']
         includes = []
         excludes = []
-        if 'listens' in input_properties:
-            listens = input_properties['listens']
+        if 'listens' in properties:
+            listens = properties['listens']
             if 'includes' in listens:
                 includes = listens['includes']
             if 'excludes' in listens:
                 excludes = listens['excludes']
         self.add_input(name, description=description, includes=includes, excludes=excludes)
 
-    def update_output(self, name, output_properties=None):
+    def update_output(self, name, description=None, properties=None):
         if name not in self.outputs:
             return
 
-        description = ""
-        if 'description' in output_properties:
-            description = output_properties['description']
         tags = []
-        if 'tags' in output_properties:
-            tags = output_properties['tags']
+        if 'tags' in properties:
+            tags = properties['tags']
 
         self.add_output(name, description=description, tags=tags)
 
@@ -1161,6 +1153,12 @@ class Agent:
             self._start_session_consumer()
 
         self.logger.info("Started agent {name}".format(name=self.name))
+        self.logger.info("Agent properties:")
+        self.logger.info(json.dumps(self.properties))
+        self.logger.info("Inputs:")
+        self.logger.info(json.dumps(self.inputs))
+        self.logger.info("Outputs:")
+        self.logger.info(json.dumps(self.outputs))
 
     def _start_session_consumer(self):
         # start a consumer to listen to session stream
@@ -1362,12 +1360,8 @@ class AgentFactory:
             if self._name == base_name:
                 name = agent
 
-                # start with factory properties, merge properties from API call
-                properties_from_api = message.getArg("properties")
-                # properties_from_factory = self.properties
-                agent_properties = {}
-                # agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
-                agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
+                agent_properties = message.getArg("properties")
+
                 input = None
 
                 if "input" in agent_properties:
