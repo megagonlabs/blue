@@ -58,7 +58,7 @@ class ServiceClient:
     def extract_input_params(self, input_data, properties=None):
         properties = self.get_properties(properties=properties)
 
-        return {}
+        return {"input": input_data}
 
     def extract_output_params(self, output_data, properties=None):
         properties = self.get_properties(properties=properties)
@@ -89,7 +89,7 @@ class ServiceClient:
         if 'input_template' in properties and properties['input_template'] is not None:
             input_template = properties['input_template']
             input_params = self.extract_input_params(input_data, properties=properties)
-            input_data = string_utils.safe_substitute(input_template, **properties, **input_params, **additional_data, **input_data)
+            input_data = string_utils.safe_substitute(input_template, **properties, **input_params, **additional_data)
 
         # set input text to message
         input_object = input_data
