@@ -601,12 +601,6 @@
     "properties": {
       "image": "megagonlabs/blue-agent-nl2mongoql-private:latest",
       "service_url": "ws://blue_service_openai:8001",
-      "listens": {
-        "DEFAULT": {
-          "includes": [],
-          "excludes": []
-        }
-      },
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
       "openai.temperature": 0,
@@ -662,11 +656,7 @@
         "all"
       ],
       "nl2q_output_max_results": null,
-      "tags": {
-        "DEFAULT": [
-          "QUERY"
-        ]
-      },
+
       "categories": [
         "BASE"
       ]
@@ -933,7 +923,7 @@
       "schema": null,
       "listens": {
           "includes": [],
-          "excludes": ["USER"]
+          "excludes": []
         }
     },
     "icon": null

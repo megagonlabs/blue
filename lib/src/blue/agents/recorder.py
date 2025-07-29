@@ -29,6 +29,9 @@ class RecorderAgent(Agent):
         self.properties['records'] = records
         records.append({"variable": "all", "query": "$", "single": True})
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="JSON input stream to process and query records", includes=["JSON"])
 
     def _initialize_outputs(self):
         # no output

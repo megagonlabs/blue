@@ -18,6 +18,9 @@ class UserAgent(Agent):
     def _initialize_inputs(self):
         pass
 
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="user output")
+
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 

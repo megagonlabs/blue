@@ -17,6 +17,13 @@ class PresenterAgent(Agent):
             kwargs['name'] = "PRESENTER"
         super().__init__(**kwargs)
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        return
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="Form data in structured format (JSON)", tags=["JSON"])
+
     def triggered(self, text, properties):
         # if instructed, consider it triggered
         if 'instructable' in properties:
