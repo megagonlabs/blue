@@ -464,5 +464,59 @@
         },
         "icon": null,
         "contents": {}
+    },
+    {
+        "name": "union",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given multiple input data sources, combine all records and remove exact duplicates",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "match_option": {
+                    "type": "str",
+                    "description": "Matching strategy for duplicate detection: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)",
+                    "required": false,
+                    "default": "key_match"
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "intersect",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given multiple input data sources, return only records that exist in all data sources",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "match_option": {
+                    "type": "str",
+                    "description": "Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)",
+                    "required": false,
+                    "default": "key_match"
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
     }
 ]
