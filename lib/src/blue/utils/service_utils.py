@@ -2,6 +2,7 @@
 import json
 import re
 import copy
+import logging
 
 ###### Communication
 from websockets.sync.client import connect
@@ -174,10 +175,6 @@ class ServiceClient:
         return output_data
 
     def execute_api_call(self, input, properties=None, additional_data=None):
-        """Execute an API call to the service"""
-        if isinstance(input, str):
-            input = {"input": input}  # make sure your template use ${input} for this str
-
         # create message from input
         message = self.create_message(input, properties=properties, additional_data=additional_data)
 
@@ -209,6 +206,8 @@ class ServiceClient:
         return None
 
     def call_service(self, url, data):
+        logging.info("sending data to:" + str(url))
+        logging.info(str(data))
         with connect(url) as websocket:
             websocket.send(data)
             message = websocket.recv()

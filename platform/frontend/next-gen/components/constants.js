@@ -114,7 +114,7 @@ export const USER_ROLES_LOOKUP = {
         "tags",
         "categories",
     ],
-    ENTITY_TYPE_CONVERSION = {
+    ENTITY_TYPE_URL_PREFIX_CONVERSION = {
         source: "data",
         server: {
             tool: "tools",

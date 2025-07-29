@@ -1,3 +1,4 @@
+import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
     ButtonVariant,
@@ -12,6 +13,9 @@ import {
     faBars,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import { useShallow } from "zustand/react/shallow";
+import { ENTITY_TYPE_LOOKUP } from "../constants";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 const { FAIcon } = require("../FAIcon");
 const HYPHEN_ICON = (
     <FAIcon icon={faAngleRight} style={{ marginLeft: 5, marginRight: 5 }} />
@@ -19,6 +23,10 @@ const HYPHEN_ICON = (
 const BREADCRUMB_STYLES = { display: "flex", alignItems: "center" };
 const TAG_PROPS = { size: Size.LARGE, minimal: true };
 export default function Breadcrumbs({ crumbs, toCrumb }) {
+    const { replaceContainer } = useGridStore(
+        useShallow((state) => ({ replaceContainer: state.replaceContainer }))
+    );
+    const { gridContainerId: id } = useGridContainerContext();
     if (_.isEmpty(crumbs)) {
         return null;
     }
@@ -38,8 +46,32 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                             }}
                         >
                             {items.map((item) => {
-                                const { name, type, end, index } = item;
+                                const {
+                                    name,
+                                    type,
+                                    end,
+                                    index,
+                                    content,
+                                    title,
+                                } = item;
+                                const icon = _.get(
+                                    ENTITY_TYPE_LOOKUP,
+                                    [item["listType"], "icon"],
+                                    null
+                                );
                                 if (end) return null;
+                                const onClick = () => {
+                                    if (_.isEqual(type, "registry")) {
+                                        replaceContainer({
+                                            id,
+                                            content,
+                                            icon,
+                                            title,
+                                        });
+                                    } else {
+                                        toCrumb(index);
+                                    }
+                                };
                                 return (
                                     <CompoundTag
                                         key={index}
@@ -47,13 +79,7 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                                         fill
                                         leftContent={type}
                                         intent={!end ? Intent.PRIMARY : null}
-                                        onClick={
-                                            !end
-                                                ? () => {
-                                                      toCrumb(index);
-                                                  }
-                                                : null
-                                        }
+                                        onClick={!end ? onClick : null}
                                         style={{
                                             cursor: !end ? "pointer" : null,
                                         }}
@@ -73,7 +99,24 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                 </Popover>
             )}
             visibleItemRenderer={(item) => {
-                const { name, type, start, end, index } = item;
+                const { name, type, start, end, index, content, title } = item;
+                const icon = _.get(
+                    ENTITY_TYPE_LOOKUP,
+                    [item["listType"], "icon"],
+                    null
+                );
+                const onClick = () => {
+                    if (_.isEqual(type, "registry")) {
+                        replaceContainer({
+                            id,
+                            content,
+                            icon,
+                            title,
+                        });
+                    } else {
+                        toCrumb(index);
+                    }
+                };
                 return (
                     <div style={BREADCRUMB_STYLES}>
                         {!start ? HYPHEN_ICON : null}
@@ -81,13 +124,7 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                             {...TAG_PROPS}
                             leftContent={type}
                             intent={!end ? Intent.PRIMARY : null}
-                            onClick={
-                                !end
-                                    ? () => {
-                                          toCrumb(index);
-                                      }
-                                    : null
-                            }
+                            onClick={!end ? onClick : null}
                             style={{ cursor: !end ? "pointer" : null }}
                         >
                             {name}

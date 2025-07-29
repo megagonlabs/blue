@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import {
     ENTITY_NAME_SEPARATOR,
     ENTITY_REGISTRY_LOOKUP,
-    ENTITY_TYPE_CONVERSION,
+    ENTITY_TYPE_URL_PREFIX_CONVERSION,
     HEX_TRANSPARENCY,
 } from "../constants";
 import { FAIcon } from "../FAIcon";
@@ -71,14 +71,14 @@ export default function NewEntity({
         }
         let url = `/registry/${ENTITY_REGISTRY_LOOKUP[calculatedType]}`;
         let convertedType = _.get(
-            ENTITY_TYPE_CONVERSION,
+            ENTITY_TYPE_URL_PREFIX_CONVERSION,
             calculatedType,
             calculatedType
         );
         if (_.isEqual(calculatedType, "server")) {
             url = `/registry/${ENTITY_REGISTRY_LOOKUP[calculatedType][registry]}`;
             convertedType = _.get(
-                ENTITY_TYPE_CONVERSION,
+                ENTITY_TYPE_URL_PREFIX_CONVERSION,
                 [calculatedType, registry],
                 calculatedType
             );
