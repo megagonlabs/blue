@@ -190,7 +190,10 @@ function ToolList({ width, height }) {
                     {tools.map((server, index) => (
                         <div key={index} className="grid-item">
                             {search ? (
-                                <SearchResultCard entity={server} />
+                                <SearchResultCard
+                                    entity={server}
+                                    registry="tool"
+                                />
                             ) : (
                                 <RegistryEntityCard
                                     entity={server}

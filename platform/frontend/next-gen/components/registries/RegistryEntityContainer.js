@@ -2,7 +2,7 @@ import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { Colors, Overlay2 } from "@blueprintjs/core";
 import _ from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import IconEditor from "../IconEditor";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
 import withAutoSizer from "../hocs/withAutoSizer";
@@ -10,24 +10,30 @@ import Breadcrumbs from "./Breadcrumbs";
 import NewEntity from "./NewEntity";
 import AgentEntity from "./agents/AgentEntity";
 import AgentGroupEntity from "./agents/AgentGroupEntity";
+import AgentList from "./agents/AgentList";
 import AgentTree from "./agents/AgentTree";
 import CollectionEntity from "./data/CollectionEntity";
 import DatabaseEntity from "./data/DatabaseEntity";
 import EntityEntity from "./data/EntityEntity";
 import RelationEntity from "./data/RelationEntity";
 import SourceEntity from "./data/SourceEntity";
+import SourceList from "./data/SourceList";
 import InputEntity from "./inputs/InputEntity";
 import ModelEntity from "./models/ModelEntity";
+import ModelList from "./models/ModelList";
 import OperatorEntity from "./operators/OperatorEntity";
+import OperatorList from "./operators/OperatorList";
 import OutputEntity from "./outputs/OutputEntity";
 import ServerEntity from "./tools/ServerEntity";
 import ToolEntity from "./tools/ToolEntity";
+import ToolList from "./tools/ToolList";
 function RegistryEntityContainer({
     width,
     height,
     entity,
     registry,
     duplicate = false,
+    registryCrumb = false,
 }) {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [duplicated, setDuplicated] = useState(false);
@@ -35,20 +41,67 @@ function RegistryEntityContainer({
     const { gridContainerId } = useGridContainerContext();
     const removeContainer = useGridStore((state) => state.removeContainer);
     useEffect(() => {
-        let crumbs = [entity];
-        _.set(crumbs, [0, "start"], true);
-        _.set(crumbs, [0, "end"], true);
-        setBreadcrumbs(crumbs);
-    }, [entity]);
-    const normalizeCrumbs = (list) => {
-        let next = _.cloneDeep(list);
-        for (let i = 0; i < _.size(next); i++) {
-            _.set(next, [i, "start"], _.isEqual(i, 0));
-            _.set(next, [i, "end"], _.isEqual(i, _.size(next) - 1));
-            _.set(next, [i, "index"], i);
+        const { type } = entity;
+        let crumbs = [];
+        if (registryCrumb) {
+            const REGISTRY_LIST_LOOKUP = {
+                agent: { list: <AgentList />, title: "Agent Registry" },
+                source: {
+                    name: "data",
+                    list: <SourceList />,
+                    title: "Data Registry",
+                },
+                operator: {
+                    name: "operator",
+                    list: <OperatorList />,
+                    title: "Operator Registry",
+                },
+                model: { list: <ModelList />, title: "Model Registry" },
+                server: {
+                    name: "tool",
+                    list: <ToolList />,
+                    title: "Tool Registry",
+                },
+            };
+            let calculatedType = type;
+            if (_.isEqual(type, "server") && _.isEqual(registry, "operator")) {
+                calculatedType = "operator";
+            }
+            if (_.has(REGISTRY_LIST_LOOKUP, calculatedType)) {
+                const { list, title } = REGISTRY_LIST_LOOKUP[calculatedType];
+                crumbs.push({
+                    type: "registry",
+                    name: _.get(
+                        REGISTRY_LIST_LOOKUP,
+                        [calculatedType, "name"],
+                        calculatedType
+                    ),
+                    content: list,
+                    listType: calculatedType,
+                    title,
+                });
+            }
         }
-        return next;
-    };
+        crumbs.push(entity);
+        setBreadcrumbs(normalizeCrumbs(crumbs));
+    }, [entity]);
+    const normalizeCrumbs = useCallback(
+        (list) => {
+            let next = _.cloneDeep(list);
+            _.remove(
+                next,
+                (element) =>
+                    !registryCrumb && _.isEqual(element.type, "registry")
+            );
+            for (let i = 0; i < _.size(next); i++) {
+                _.set(next, [i, "start"], _.isEqual(i, 0));
+                _.set(next, [i, "end"], _.isEqual(i, _.size(next) - 1));
+                _.set(next, [i, "index"], i);
+            }
+            return next;
+        },
+        [registryCrumb]
+    );
     const toCrumb = (index) => {
         setBreadcrumbs(normalizeCrumbs(_.slice(breadcrumbs, 0, index + 1)));
     };

@@ -1,6 +1,6 @@
 import {
-    ENTITY_TYPE_CONVERSION,
     ENTITY_TYPE_LOOKUP,
+    ENTITY_TYPE_URL_PREFIX_CONVERSION,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
@@ -72,7 +72,7 @@ export default function SourceEntity({
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
     const url = `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/${_.get(
-        ENTITY_TYPE_CONVERSION,
+        ENTITY_TYPE_URL_PREFIX_CONVERSION,
         type,
         type
     )}/${name}`;

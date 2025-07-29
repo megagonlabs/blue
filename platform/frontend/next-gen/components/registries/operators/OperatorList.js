@@ -191,7 +191,10 @@ function OperatorList({ width, height }) {
                     {operators.map((operator, index) => (
                         <div key={index} className="grid-item">
                             {search ? (
-                                <SearchResultCard entity={operator} />
+                                <SearchResultCard
+                                    entity={operator}
+                                    registry="operator"
+                                />
                             ) : (
                                 <RegistryEntityCard
                                     entity={operator}
