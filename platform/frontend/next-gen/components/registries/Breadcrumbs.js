@@ -46,8 +46,32 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                             }}
                         >
                             {items.map((item) => {
-                                const { name, type, end, index } = item;
+                                const {
+                                    name,
+                                    type,
+                                    end,
+                                    index,
+                                    content,
+                                    title,
+                                } = item;
+                                const icon = _.get(
+                                    ENTITY_TYPE_LOOKUP,
+                                    [item["listType"], "icon"],
+                                    null
+                                );
                                 if (end) return null;
+                                const onClick = () => {
+                                    if (_.isEqual(type, "registry")) {
+                                        replaceContainer({
+                                            id,
+                                            content,
+                                            icon,
+                                            title,
+                                        });
+                                    } else {
+                                        toCrumb(index);
+                                    }
+                                };
                                 return (
                                     <CompoundTag
                                         key={index}
@@ -55,13 +79,7 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                                         fill
                                         leftContent={type}
                                         intent={!end ? Intent.PRIMARY : null}
-                                        onClick={
-                                            !end
-                                                ? () => {
-                                                      toCrumb(index);
-                                                  }
-                                                : null
-                                        }
+                                        onClick={!end ? onClick : null}
                                         style={{
                                             cursor: !end ? "pointer" : null,
                                         }}
@@ -81,21 +99,24 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                 </Popover>
             )}
             visibleItemRenderer={(item) => {
-                const {
-                    name,
-                    type,
-                    start,
-                    end,
-                    index,
-                    content,
-                    listType,
-                    title,
-                } = item;
+                const { name, type, start, end, index, content, title } = item;
                 const icon = _.get(
                     ENTITY_TYPE_LOOKUP,
-                    [listType, "icon"],
+                    [item["listType"], "icon"],
                     null
                 );
+                const onClick = () => {
+                    if (_.isEqual(type, "registry")) {
+                        replaceContainer({
+                            id,
+                            content,
+                            icon,
+                            title,
+                        });
+                    } else {
+                        toCrumb(index);
+                    }
+                };
                 return (
                     <div style={BREADCRUMB_STYLES}>
                         {!start ? HYPHEN_ICON : null}
@@ -103,22 +124,7 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                             {...TAG_PROPS}
                             leftContent={type}
                             intent={!end ? Intent.PRIMARY : null}
-                            onClick={
-                                !end
-                                    ? () => {
-                                          if (_.isEqual(type, "registry")) {
-                                              replaceContainer({
-                                                  id,
-                                                  content,
-                                                  icon,
-                                                  title,
-                                              });
-                                          } else {
-                                              toCrumb(index);
-                                          }
-                                      }
-                                    : null
-                            }
+                            onClick={!end ? onClick : null}
                             style={{ cursor: !end ? "pointer" : null }}
                         >
                             {name}

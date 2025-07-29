@@ -51,29 +51,33 @@ function RegistryEntityContainer({
                     list: <SourceList />,
                     title: "Data Registry",
                 },
-                operator: {
-                    name: "operator",
-                    list: <OperatorList />,
-                    title: "Operator Registry",
-                },
                 model: { list: <ModelList />, title: "Model Registry" },
                 server: {
-                    name: "tool",
-                    list: <ToolList />,
-                    title: "Tool Registry",
+                    tool: {
+                        name: "tool",
+                        list: <ToolList />,
+                        title: "Tool Registry",
+                    },
+                    operator: {
+                        name: "operator",
+                        list: <OperatorList />,
+                        title: "Operator Registry",
+                    },
                 },
             };
-            let calculatedType = type;
-            if (_.isEqual(type, "server") && _.isEqual(registry, "operator")) {
-                calculatedType = "operator";
+            let calculatedType = type,
+                path = [type];
+            if (_.isEqual(type, "server")) {
+                calculatedType = registry;
+                path = ["server", registry];
             }
-            if (_.has(REGISTRY_LIST_LOOKUP, calculatedType)) {
-                const { list, title } = REGISTRY_LIST_LOOKUP[calculatedType];
+            if (_.has(REGISTRY_LIST_LOOKUP, path)) {
+                const { list, title } = _.get(REGISTRY_LIST_LOOKUP, path, {});
                 crumbs.push({
                     type: "registry",
                     name: _.get(
                         REGISTRY_LIST_LOOKUP,
-                        [calculatedType, "name"],
+                        [...path, "name"],
                         calculatedType
                     ),
                     content: list,
