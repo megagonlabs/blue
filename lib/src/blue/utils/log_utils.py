@@ -17,7 +17,7 @@ class CustomFilter(logging.Filter):
         return True
 
 
-def extract_call_stack(s, depth=3):
+def extract_call_stack(s, depth=8):
     call_stack = []
     for i in range(len(s)):
         if len(call_stack) >= depth:

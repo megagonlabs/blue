@@ -42,6 +42,13 @@ class CoordinatorAgent(Agent):
         default_tags["DEFAULT"] = ["INSTRUCTION"]
         self.properties['tags'] = default_tags
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT")
+        
     def _start(self):
         super()._start()
 

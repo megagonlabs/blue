@@ -14,6 +14,10 @@ class UserAgent(Agent):
             kwargs['name'] = "USER"
         super().__init__(**kwargs)
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        pass
+
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 
