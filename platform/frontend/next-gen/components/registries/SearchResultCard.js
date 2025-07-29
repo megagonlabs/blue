@@ -19,7 +19,7 @@ import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
 import RegistryEntityContainer from "./RegistryEntityContainer";
 import RegistryEntityIcon from "./RegistryEntityIcon";
-export default function SearchResultCard({ entity }) {
+export default function SearchResultCard({ entity, registry }) {
     const { addContainer, replaceContainer } = useGridStore(
         useShallow((state) => ({
             addContainer: state.addContainer,
@@ -40,7 +40,10 @@ export default function SearchResultCard({ entity }) {
                     onClick={() => {
                         addContainer({
                             content: (
-                                <RegistryEntityContainer entity={entity} />
+                                <RegistryEntityContainer
+                                    entity={entity}
+                                    registry={registry}
+                                />
                             ),
                         });
                     }}
@@ -68,7 +71,13 @@ export default function SearchResultCard({ entity }) {
             onDoubleClick={() => {
                 replaceContainer({
                     id: gridContainerId,
-                    content: <RegistryEntityContainer entity={entity} />,
+                    content: (
+                        <RegistryEntityContainer
+                            registryCrumb={true}
+                            entity={entity}
+                            registry={registry}
+                        />
+                    ),
                 });
             }}
             className="full-parent-dimension interactive-card-border"
