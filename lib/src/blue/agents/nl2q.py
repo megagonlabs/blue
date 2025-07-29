@@ -77,7 +77,7 @@ Output:
         "output_transformations": [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}],
         "output_strip": True,
         "output_cast": "json",
-        "listens": {"DEFAULT": {"includes": ["USER"], "excludes": []}},
+        },
     }
 
     def __init__(self, **kwargs):
@@ -91,6 +91,13 @@ Output:
         # intialize defatult properties
         for key in NL2SQLAgent.PROPERTIES:
             self.properties[key] = NL2SQLAgent.PROPERTIES[key]
+
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="natural language input to transform into SQL")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="transformed SQL", tags=["QUERY", "SQL"])
 
     def _start(self):
         super()._start()
@@ -497,6 +504,13 @@ Output:
         for key in Nl2CypherAgent.PROPERTIES:
             self.properties[key] = Nl2CypherAgent.PROPERTIES[key]
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="natural language input to transform into CYPHER")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="transformed CYPHER, optionally query results", tags=["QUERY", "CYPHER"])
+
     def _format_schema(self, schema):
         self.logger.info(f"Formatting schema: {schema}")
         return schema
@@ -568,6 +582,14 @@ Output:
         # intialize defatult properties
         for key in NL2MongoQL.PROPERTIES:
             self.properties[key] = NL2MongoQL.PROPERTIES[key]
+
+
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="natural language input to transform into MongoQL")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="transformed MongoQL, optionally query results", tags=["QUERY", "MONGOQL"])
 
     def _format_schema(self, schema):
         self.logger.info(f"Formatting schema: {schema}")

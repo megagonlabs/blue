@@ -77,32 +77,64 @@ def session_acl_enforce(request: Request, session: dict, read=False, write=False
 
 
 def agent_join_session(registry_name, agent_name, properties, session_id):
-    properties_from_registry = agent_registry.get_agent_properties(agent_name)
+    # save api properties
+    api_properties = properties
 
-    # start with platform properties, merge properties from registry, then merge properties from API call
-    properties_from_api = properties
-    agent_properties = {}
+    # initialize properties, inputs, outputs
+    properties = {}
+
     # start from platform properties
-    agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
-    # check if derivate agent, if so merge
-    # <_name> or <_name>_<derivative__name>
-    ca = agent_name.split(Agent.SEPARATOR)
-    if len(ca) > 1:
-        parent_agent_name = ca[0]
+    properties = json_utils.merge_json(properties, PROPERTIES)
 
-        parent_properties_from_registry = agent_registry.get_agent_properties(parent_agent_name)
-        if parent_properties_from_registry:
-            agent_properties = json_utils.merge_json(agent_properties, parent_properties_from_registry)
+    # recursively gather properties, inputs, outputs from derivations
+    agent_hiearchy = agent_name.split(Agent.SEPARATOR)
+    prefix = ""
+    for ai in agent_hiearchy:
+        # build parent_agent name starting from top agent
+        agent_name = prefix + ai
 
-    # merge in registry properties
-    agent_properties = json_utils.merge_json(agent_properties, properties_from_registry)
+        agent_properties = agent_registry.get_agent_properties(agent_name)
+
+        inputs = {}
+        outputs = {}
+        agent_properties['inputs'] = inputs
+        agent_properties['outputs'] = outputs
+
+        # inputs
+        ri = agent_registry.get_agent_inputs(agent_name)
+        if ri is None:
+            ri = []
+        for input in ri:
+            n = input['name'] if 'name' in input else None
+            if n is None:
+                continue
+            d = input['description'] if 'description' in input else ""
+            props = input['properties']
+            inputs[n] = {'name': n, 'description': d, 'properties': props}
+
+        # outputs
+        ro = agent_registry.get_agent_outputs(agent_name)
+        if ro is None:
+            ro = []
+        for output in ro:
+            n = output['name'] if 'name' in output else None
+            if n is None:
+                continue
+            d = output['description'] if 'description' in output else ""
+            props = output['properties']
+            output[n] = {'name': n, 'description': d, 'properties': props}
+
+        # merge
+        properties = json_utils.merge_json(properties, agent_properties)
+
+        # go to next level in agent hierarchy
+        prefix = agent_name + Agent.SEPARATOR
+
     # merge in properties from the api
-    agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
-
-    # ASSUMPTION: agent is already deployed
+    properties = json_utils.merge_json(properties, api_properties)
 
     ## add agent to session
-    p.join_session(session_id, registry_name, agent_name, agent_properties)
+    p.join_session(session_id, registry_name, agent_name, properties)
 
 
 #############

@@ -20,15 +20,6 @@ class RecorderAgent(Agent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # default properties
-        listeners = {}
-        default_listeners = {}
-        listeners["DEFAULT"] = default_listeners
-
-        self.properties['listens'] = listeners
-        default_listeners['includes'] = ['JSON']
-        default_listeners['excludes'] = [self.name]
-
         # recorder is an aggregator agent
         self.properties['aggregator'] = True
         self.properties['aggregator.eos'] = 'NEVER'
@@ -37,6 +28,14 @@ class RecorderAgent(Agent):
         records = []
         self.properties['records'] = records
         records.append({"variable": "all", "query": "$", "single": True})
+
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="JSON input stream to process and query records", includes=["JSON"])
+
+    def _initialize_outputs(self):
+        # no output
+        return
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         if message.isEOS():
