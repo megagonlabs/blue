@@ -1,3 +1,6 @@
+import { FAIcon } from "@/components/FAIcon";
+import SessionContainer from "@/components/sessions/SessionContainer";
+import SessionDisplayName from "@/components/sessions/SessionDisplayName";
 import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
@@ -21,9 +24,6 @@ import {
 import _ from "lodash";
 import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { FAIcon } from "./FAIcon";
-import SessionContainer from "./sessions/SessionContainer";
-import SessionDisplayName from "./sessions/SessionDisplayName";
 const NUMBER_TO_ICON = {
     1: fa1,
     2: fa2,

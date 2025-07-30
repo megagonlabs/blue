@@ -1,4 +1,6 @@
+import { FAIcon } from "@/components/FAIcon";
 import { scrollToTarget } from "@/components/helper";
+import VerticalScrollable from "@/components/VerticalScrollable";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
@@ -14,8 +16,6 @@ import {
 import { faQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useShallow } from "zustand/react/shallow";
-import { FAIcon } from "./FAIcon";
-import VerticalScrollable from "./VerticalScrollable";
 export default function Dock() {
     const darkMode = useAppStore((state) => state.dark_mode);
     const { layout, containers } = useGridStore(

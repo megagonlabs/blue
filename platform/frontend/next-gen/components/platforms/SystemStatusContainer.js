@@ -15,7 +15,6 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faCircleDot,
     faFastForward,
     faSearch,
     faWavePulse,
@@ -26,6 +25,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
 import {
+    CIRCLE_DOT_WITH_FADE,
     EMPTY_ARRAY,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
@@ -193,16 +193,7 @@ function SystemStatusContainer({ width, height }) {
                     {isSystemStatusLive && (
                         <Button
                             className="pointer-events-none"
-                            icon={
-                                <FAIcon
-                                    icon={faCircleDot}
-                                    className="fa-fade"
-                                    style={{
-                                        "--fa-animation-duration": "2s",
-                                        color: Colors.GREEN3,
-                                    }}
-                                />
-                            }
+                            icon={CIRCLE_DOT_WITH_FADE}
                         />
                     )}
                     <Popover
