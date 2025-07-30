@@ -442,16 +442,11 @@ class Worker:
             # add additional tags from write
             if tags:
                 all_tags = all_tags.union(set(tags))
-            # add tags from properties
-            if "tags" in self.properties:
-                tags_by_param = self.properties["tags"]
-                # include tags from properties by output param
-                for param in tags_by_param:
-                    output_name = output.split(":")[0]
-                    # add params specific to outp
-                    if output_name == param:
-                        param_tags = tags_by_param[param]
-                        all_tags = all_tags.union(set(param_tags))
+            # add tags for specific output variable
+            output_name = output.split(":")[0]
+            output_tags = self.agent.get_output_tags(output_name)
+            if output_tags:
+                all_tags = all_tags.union(set(output_tags))
             all_tags = list(all_tags)
 
             self.session.notify(self.agent, output_stream, all_tags)
@@ -593,6 +588,10 @@ class Agent:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
+        # input and outputs of an agent
+        self.inputs = {}
+        self.outputs = {}
+
         if properties is None:
             properties = {}
         self._initialize(properties=properties)
@@ -621,10 +620,19 @@ class Agent:
     ###### initialization
     def _initialize(self, properties=None):
         self._initialize_properties()
+
+        self._initialize_inputs()
+        self._initialize_outputs()
+
         self._update_properties(properties=properties)
+
+        # updates inputs/outputs if set in properties
+        self._update_inputs(properties=properties)
+        self._update_outputs(properties=properties)
 
         self._initialize_logger()
 
+    ####### properties
     def _initialize_properties(self):
         self.properties = {}
 
@@ -634,24 +642,6 @@ class Agent:
 
         # instructable
         self.properties["instructable"] = True
-
-        ### include/exclude list of rules to listen to agents/tags
-        listeners = {}
-        self.properties["listens"] = listeners
-
-        # DEFAULT is the default input parameter
-        default_listeners = {}
-        listeners["DEFAULT"] = default_listeners
-        default_listeners["includes"] = []
-        default_listeners["excludes"] = []
-
-        ### default tags to tag output streams
-        tags = {}
-        self.properties["tags"] = tags
-
-        # DEFAULT is the default output parameter
-        default_tags = []
-        tags["DEFAULT"] = default_tags
 
         # perf tracker
         self.properties["tracker.perf.platform.agent.autostart"] = False
@@ -668,6 +658,207 @@ class Agent:
         for p in properties:
             self.properties[p] = properties[p]
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT")
+
+    def _update_inputs(self, properties=None):
+        # update from agent properties
+        if 'inputs' in properties:
+            inputs = properties['inputs']
+            for input in inputs:
+                i = inputs[input]
+                d = i['description'] if 'description' in i else None
+                p = i['properties'] if 'properties' in i else None
+                self.update_input(input, description=d, properties=p)
+
+    def _update_outputs(self, properties=None):
+        # update from agent properties
+        if 'outputs' in properties:
+            outputs = properties['outputs']
+            for output in outputs:
+                o = outputs[output]
+                d = o['description'] if 'description' in o else None
+                p = o['properties'] if 'properties' in o else None
+                self.update_output(input, description=d, properties=p)
+
+    def update_input(self, name, description=None, properties=None):
+        if name not in self.inputs:
+            return
+
+        includes = []
+        excludes = []
+        if 'listens' in properties:
+            listens = properties['listens']
+            if 'includes' in listens:
+                includes = listens['includes']
+            if 'excludes' in listens:
+                excludes = listens['excludes']
+        self.add_input(name, description=description, includes=includes, excludes=excludes)
+
+    def update_output(self, name, description=None, properties=None):
+        if name not in self.outputs:
+            return
+
+        tags = []
+        if 'tags' in properties:
+            tags = properties['tags']
+
+        self.add_output(name, description=description, tags=tags)
+
+    def add_input(self, name, description=None, includes=None, excludes=None):
+        if description is None:
+            description = ""
+        if includes is None:
+            includes = []
+        if excludes is None:
+            excludes = []
+
+        self.inputs[name] = {"name": name, "description": description, "listens": {"includes": includes, "excludes": excludes}}
+
+    def add_output(self, name, description=None, tags=None):
+        if description is None:
+            description = ""
+        if tags is None:
+            tags = []
+
+        self.outputs[name] = {"name": name, "description": description, "tags": tags}
+
+    def get_input(self, name):
+        if name in self.inputs:
+            return self.inputs[name]
+        return None
+
+    def get_output(self, name):
+        if name in self.outputs:
+            return self.outputs[name]
+        return None
+
+    def update_output(self, name, output_properties=None):
+        if name not in self.outputs:
+            return
+
+        description = ""
+        if 'description' in output_properties:
+            description = output_properties['description']
+        tags = []
+        if 'tags' in output_properties:
+            tags = output_properties['tags']
+
+        self.add_output(name, description=description, tags=tags)
+
+    def add_input(self, name, description=None, includes=None, excludes=None):
+        if description is None:
+            description = ""
+        if includes is None:
+            includes = []
+        if excludes is None:
+            excludes = []
+
+        self.inputs[name] = {"name": name, "description": description, "listens": {"includes": includes, "excludes": excludes}}
+
+    def has_input(self, name):
+        return name in self.inputs
+
+    def has_output(self, name):
+        return name in self.outputs
+
+    def set_input_description(self, name, description=None):
+        if description is None:
+            description = ""
+        if name in self.inputs:
+            self.inputs[name]['description'] = description
+
+    def get_input_description(self, name):
+        if name in self.inputs:
+            return self.inputs[name]['description']
+        return None
+
+    def set_output_description(self, name, description=None):
+        if description is None:
+            description = ""
+        if name in self.outputs:
+            self.outputs[name]['description'] = description
+
+    def get_output_description(self, name):
+        if name in self.outputs:
+            return self.outputs[name]['description']
+        return None
+
+    def add_input_include(self, name, include=None):
+        if include is None:
+            return
+
+        if name in self.inputs:
+            self.inputs[name]['listens']['includes'].append(include)
+
+    def remove_input_include(self, name, include=None):
+        if include is None:
+            return
+
+        if name in self.inputs:
+            self.inputs[name]['listens']['includes'].remove(include)
+
+    def input_includes(self, name, include):
+        if name in self.inputs:
+            return include in self.inputs[name]['listens']['includes']
+        return None
+
+    def get_input_includes(self, name):
+        if name in self.inputs:
+            return self.inputs[name]['listens']['includes']
+
+    def add_input_exclude(self, name, exclude=None):
+        if exclude is None:
+            return
+
+        if name in self.inputs:
+            self.inputs[name]['listens']['excludes'].append(exclude)
+
+    def remove_input_exclude(self, name, exclude=None):
+        if exclude is None:
+            return
+
+        if name in self.inputs:
+            self.inputs[name]['listens']['excludes'].remove(exclude)
+
+    def input_excludes(self, name, exclude):
+        if name in self.inputs:
+            return exclude in self.inputs[name]['listens']['excludes']
+        return None
+
+    def get_input_excludes(self, name):
+        if name in self.inputs:
+            return self.inputs[name]['listens']['excludes']
+
+    def add_output_tag(self, name, tag=None):
+        if tag is None:
+            return
+
+        if name in self.outputs:
+            self.outputs[name]['tags'].append(tag)
+
+    def remove_output_tag(self, name, tag=None):
+        if tag is None:
+            return
+
+        if name in self.outputs:
+            self.outputs[name]['tags'].remove(tag)
+
+    def has_output_tag(self, name, tag):
+        if name in self.outputs:
+            return tag in self.outputs[name]['tags']
+        return None
+
+    def get_output_tags(self, name):
+        if name in self.outputs:
+            return self.outputs[name]['tags']
+        return None
+
+    ####### logger
     def _initialize_logger(self):
         self.logger = log_utils.CustomLogger()
         # customize log
@@ -739,11 +930,7 @@ class Agent:
         properties=None,
         worker=None,
     ):
-        self.logger.info("default_processor: override")
-        self.logger.info(message)
-        self.logger.info(input)
-        self.logger.info(properties)
-        self.logger.info(worker)
+        pass
 
     ###### default processor, do not override
     def _instruction_processor(
@@ -803,10 +990,8 @@ class Agent:
             if agent_cid == self.cid:
                 return
 
-            # agent define what to listen to using include/exclude expressions
-            # self.logger.info("Checking listener tags...")
-            matched_params = self._match_listen_to_tags(tags)
-            # self.logger.info("Done.")
+            # find matching inputs
+            matched_inputs = self._match_inputs_to_stream_tags(tags)
 
             # instructable
             # self.logger.info("instructable? " + str(self.properties['instructable']))
@@ -816,15 +1001,15 @@ class Agent:
                     instruction_worker = self.create_worker(stream, input="INSTRUCTION", processor=lambda *args, **kwargs: self._instruction_processor(*args, **kwargs))
 
             # skip
-            if len(matched_params) == 0:
+            if len(matched_inputs) == 0:
                 # self.logger.info("Skipping stream {stream} with {tags}...".format(stream=stream, tags=tags))
                 return
 
-            for param in matched_params:
-                tags = matched_params[param]
+            for input in matched_inputs:
+                tags = matched_inputs[input]
 
                 # create worker
-                worker = self.create_worker(stream, input=param, context=stream)
+                worker = self.create_worker(stream, input=input, context=stream)
 
                 # self.logger.info("Spawned worker for stream {stream}...".format(stream=stream))
 
@@ -832,22 +1017,15 @@ class Agent:
         elif message.isEOS():
             self.stop()
 
-    def _match_listen_to_tags(self, tags):
-        matched_params = {}
+    def _match_inputs_to_stream_tags(self, tags):
+        matched_inputs = {}
 
-        # default listeners
-        listeners_by_param = self.properties["listens"]
-        # self.logger.info(json.dumps(listeners_by_param, indent=3))
-        for param in listeners_by_param:
+        # check listeners for each input
+        for input in self.inputs:
             matched_tags = set()
 
-            param_listeners = listeners_by_param[param]
-            if 'includes' not in param_listeners:
-                continue
-            includes = param_listeners["includes"]
-            excludes = []
-            if 'excludes' in param_listeners:
-                excludes = param_listeners["excludes"]
+            includes = self.get_input_includes(input)
+            excludes = self.get_input_excludes(input)
 
             for i in includes:
                 p = None
@@ -881,8 +1059,8 @@ class Agent:
             if len(matched_tags) == 0:
                 continue
 
-            # found matched_tags for param
-            matched_params[param] = list(matched_tags)
+            # found matched_tags for input
+            matched_inputs[input] = list(matched_tags)
 
             for x in excludes:
                 p = None
@@ -891,7 +1069,7 @@ class Agent:
                     if p.match(tag):
                         # self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
                         # delete match
-                        del matched_params[param]
+                        del matched_inputs[input]
                         break
                 elif type(x) == list:
                     a = True
@@ -912,10 +1090,10 @@ class Agent:
                     if a:
                         # self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
                         # delete match
-                        del matched_params[param]
+                        del matched_inputs[input]
                         break
 
-        return matched_params
+        return matched_inputs
 
     def interact(self, data, output="DEFAULT", unique=True, eos=True):
         if self.session is None:
@@ -975,6 +1153,12 @@ class Agent:
             self._start_session_consumer()
 
         self.logger.info("Started agent {name}".format(name=self.name))
+        self.logger.info("Agent properties:")
+        self.logger.info(json.dumps(self.properties))
+        self.logger.info("Inputs:")
+        self.logger.info(json.dumps(self.inputs))
+        self.logger.info("Outputs:")
+        self.logger.info(json.dumps(self.outputs))
 
     def _start_session_consumer(self):
         # start a consumer to listen to session stream
@@ -1176,12 +1360,8 @@ class AgentFactory:
             if self._name == base_name:
                 name = agent
 
-                # start with factory properties, merge properties from API call
-                properties_from_api = message.getArg("properties")
-                # properties_from_factory = self.properties
-                agent_properties = {}
-                # agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
-                agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
+                agent_properties = message.getArg("properties")
+
                 input = None
 
                 if "input" in agent_properties:

@@ -28,19 +28,12 @@ class CoordinatorAgent(Agent):
         # coordinator is not instructable
         self.properties['instructable'] = False
 
-    def _initialize_properties(self):
-        super()._initialize_properties()
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="Plan to coordinate", includes=["PLAN"])
 
-        listeners = {}
-        default_listeners = {}
-        listeners["DEFAULT"] = default_listeners
-        self.properties['listens'] = listeners
-        default_listeners['includes'] = ['PLAN']
-        default_listeners['excludes'] = []
-
-        default_tags = {}
-        default_tags["DEFAULT"] = ["INSTRUCTION"]
-        self.properties['tags'] = default_tags
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="Instructions to follow", tags=["INSTRUCTION", "HIDDEN"])
 
     def _start(self):
         super()._start()
