@@ -75,7 +75,7 @@ export default function TopSessions() {
                 padding: "10px 0px",
                 overflow: "hidden",
                 position: "relative",
-                marginBottom: !_.isEmpty(layout) && 20,
+                marginBottom: 20,
             }}
         >
             <Tag
