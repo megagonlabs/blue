@@ -333,6 +333,7 @@ def add_agent_input(request: Request, agent_name, param_name, parameter: Paramet
 
 
 @router.put("/agent/{agent_name}/input/{param_name}")
+@router.put("/agent/{path:path}/agent/{agent_name}/input/{param_name}")
 def update_agent_input(request: Request, agent_name, param_name, parameter: ParameterSchema):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
@@ -371,6 +372,7 @@ def get_agent_input_property(request: Request, agent_name, param_name, property_
 
 
 @router.post("/agent/{agent_name}/input/{param_name}/property/{property_name}")
+@router.post("/agent/{path:path}/agent/{agent_name}/input/{param_name}/property/{property_name}")
 def set_agent_input_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
@@ -381,6 +383,7 @@ def set_agent_input_property(request: Request, agent_name, param_name, property_
 
 
 @router.delete("/agent/{agent_name}/input/{param_name}/property/{property_name}")
+@router.delete("/agent/{path:path}/agent/{agent_name}/input/{param_name}/property/{property_name}")
 def delete_agent_input_property(request: Request, agent_name, param_name, property_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
@@ -424,6 +427,7 @@ def add_agent_output(request: Request, agent_name, param_name, parameter: Parame
 
 
 @router.put("/agent/{agent_name}/output/{param_name}")
+@router.put("/agent/{path:path}/agent/{agent_name}/output/{param_name}")
 def update_agent_output(request: Request, agent_name, param_name, parameter: ParameterSchema):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
@@ -462,6 +466,7 @@ def get_agent_output_property(request: Request, agent_name, param_name, property
 
 
 @router.post("/agent/{agent_name}/output/{param_name}/property/{property_name}")
+@router.post("/agent/{path:path}/agent/{agent_name}/output/{param_name}/property/{property_name}")
 def set_agent_output_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
@@ -472,6 +477,7 @@ def set_agent_output_property(request: Request, agent_name, param_name, property
 
 
 @router.delete("/agent/{agent_name}/output/{param_name}/property/{property_name}")
+@router.delete("/agent/{path:path}/agent/{agent_name}/output/{param_name}/property/{property_name}")
 def delete_agent_output_property(request: Request, agent_name, param_name, property_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
