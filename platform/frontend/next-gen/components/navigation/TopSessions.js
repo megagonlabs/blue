@@ -59,11 +59,8 @@ export default function TopSessions() {
             });
         return result.slice(0, 5);
     }, [sessionIds, sessions, user]);
-    const { layout, addContainer } = useGridStore(
-        useShallow((state) => ({
-            layout: state.layout,
-            addContainer: state.addContainer,
-        }))
+    const { addContainer } = useGridStore(
+        useShallow((state) => ({ addContainer: state.addContainer }))
     );
     if (_.isEmpty(topSessions)) {
         return null;
