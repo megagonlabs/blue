@@ -1,4 +1,5 @@
 import {
+    CIRCLE_DOT_WITH_FADE,
     END_OF_EVENT_SIGNAL,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "@/components/constants";
@@ -8,7 +9,6 @@ import {
     Button,
     ButtonGroup,
     ButtonVariant,
-    Colors,
     Intent,
     Size,
     Tooltip,
@@ -16,7 +16,6 @@ import {
 import {
     faArrowDown,
     faBan,
-    faCircleDot,
     faXmarkLarge,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -98,16 +97,7 @@ export default function AgentLogs({
                     {isLive && (
                         <Button
                             className="pointer-events-none"
-                            icon={
-                                <FAIcon
-                                    icon={faCircleDot}
-                                    className="fa-fade"
-                                    style={{
-                                        "--fa-animation-duration": "2s",
-                                        color: Colors.GREEN3,
-                                    }}
-                                />
-                            }
+                            icon={CIRCLE_DOT_WITH_FADE}
                         />
                     )}
                     <Tooltip

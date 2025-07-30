@@ -22,7 +22,6 @@ import { Omnibar } from "@blueprintjs/select";
 import {
     faBellConcierge,
     faCircleA,
-    faCircleDot,
     faInboxFull,
     faInboxOut,
     faMagnifyingGlass,
@@ -40,10 +39,12 @@ import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
 import Authentication from "./Authentication";
-import { ENTITY_TYPE_LOOKUP } from "./constants";
-import Dock from "./Dock";
+import { CIRCLE_DOT_WITH_FADE, ENTITY_TYPE_LOOKUP } from "./constants";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
+import Dock from "./navigation/Dock";
+import TopSessions from "./navigation/TopSessions";
+import WSConnectionIndicator from "./navigation/WSConnectionIndicator";
 import PlatformAgents from "./platforms/PlatformAgents";
 import PlatformConfigurations from "./platforms/PlatformConfigurations";
 import PlatformServices from "./platforms/PlatformServices";
@@ -57,7 +58,6 @@ import ToolList from "./registries/tools/ToolList";
 import ApplicationContainer from "./sessions/ApplicationContainer";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
-import TopSessions from "./TopSessions";
 import VerticalScrollable from "./VerticalScrollable";
 const { NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 const AGENT_GROUP_ICON = _.get(ENTITY_TYPE_LOOKUP, "agent_group.icon", null);
@@ -167,16 +167,7 @@ export default function Blue({ children }) {
             icon: faWavePulse,
             content: <SystemStatusContainer />,
             visible: permissions.canReadPlatformStatus,
-            labelElement: isSystemStatusLive && (
-                <FAIcon
-                    icon={faCircleDot}
-                    className="fa-fade"
-                    style={{
-                        "--fa-animation-duration": "2s",
-                        color: Colors.GREEN3,
-                    }}
-                />
-            ),
+            labelElement: isSystemStatusLive && CIRCLE_DOT_WITH_FADE,
         },
         agents: {
             title: "Platform Agents",
@@ -630,7 +621,7 @@ export default function Blue({ children }) {
                                 position: "absolute",
                                 top: 85,
                                 left: 20,
-                                width: 67,
+                                width: 65,
                                 height: "calc(100% - 170px)",
                                 overflowY: "auto",
                             }}
@@ -644,7 +635,8 @@ export default function Blue({ children }) {
                                         : Colors.LIGHT_GRAY5
                                 }
                             >
-                                <div style={{ padding: "20px 1px" }}>
+                                <div style={{ padding: "21px 0px" }}>
+                                    <WSConnectionIndicator />
                                     <TopSessions />
                                     <Dock />
                                 </div>
