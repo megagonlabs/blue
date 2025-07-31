@@ -82,7 +82,7 @@ class CoordinatorAgent(Agent):
             agent_properties = agent['properties']
             logging.info("Adding agent to session...")
             # extract sid from cid
-            session_sid = ":".join(self.session.cid.split(":")[-2:])
+            session_sid = uuid_utils.extract_sid(self.session.cid)
             logging.info("Session: " + str(session_sid))
             logging.info("Agent: " + agent_canonical_name)
             logging.info("Properties: " + json.dumps(agent_properties))

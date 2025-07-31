@@ -9,6 +9,7 @@ import pydash
 from redis.commands.json.path import Path
 
 ###### Blue
+from blue.core import Entity
 from blue.stream import ControlCode
 from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
@@ -18,33 +19,11 @@ from blue.utils import uuid_utils, log_utils
 ###############
 ### Session
 #
-class Session:
-    def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+class Session(Entity):
+    def __init__(self, id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+        super().__init__(name="SESSION", id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix)
+
         self.connection = None
-
-        #########
-        self.name = name
-        if id:
-            self.id = id
-        else:
-            self.id = uuid_utils.create_uuid()
-
-        if sid:
-            self.sid = sid
-        else:
-            self.sid = self.name + ":" + self.id
-
-        self.prefix = prefix
-        self.suffix = suffix
-        self.cid = cid
-
-        if self.cid == None:
-            self.cid = self.sid
-
-            if self.prefix:
-                self.cid = self.prefix + ":" + self.cid
-            if self.suffix:
-                self.cid = self.cid + ":" + self.suffix
 
         # session stream
         self.producer = None
