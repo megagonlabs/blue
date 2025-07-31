@@ -6,9 +6,11 @@ import json
 
 ###### Blue
 from blue.agent import Agent
+from blue.agents.registry import AgentRegistry
+from blue.platform import Platform
 from blue.plan import Plan, Status, NodeType
 from blue.stream import ControlCode
-from blue.utils import uuid_utils
+from blue.utils import uuid_utils, json_utils
 from blue.data.planner import DataPlanner
 from blue.data.pipeline import DataPipeline
 
@@ -38,7 +40,25 @@ class CoordinatorAgent(Agent):
     def _start(self):
         super()._start()
 
+        # initialize platform
+        self._init_platform()
+
+        # initialize registry
+        self._init_registry()
+
         self.plans = {}
+
+    def _init_platform(self):
+        # create instance of platform
+        platform_id = self.properties["platform.name"]
+        self.platform = Platform(id=platform_id, properties=self.properties)
+
+    def _init_registry(self):
+        # create instance of agent registry
+        platform_id = self.properties["platform.name"]
+        prefix = 'PLATFORM:' + platform_id
+
+        self.registry = AgentRegistry(id=self.properties['agent_registry.name'], prefix=prefix, properties=self.properties)
 
     def initialize_plan(self, plan, worker=None):
 
@@ -53,6 +73,24 @@ class CoordinatorAgent(Agent):
 
         # save plan
         plan.save()
+
+        # add agents to session
+        agents = plan.get_nodes(filter_node_type=[NodeType.AGENT])
+        for agent_id in agents:
+            agent = plan.get_node(agent_id)
+            agent_canonical_name = agent['canonical_name']
+            agent_properties = agent['properties']
+            logging.info("Adding agent to session...")
+            # extract sid from cid
+            session_sid = ":".join(self.session.cid.split(":")[-2:])
+            logging.info("Session: " + str(session_sid))
+            logging.info("Agent: " + agent_canonical_name)
+            logging.info("Properties: " + json.dumps(agent_properties))
+
+            agent_properties_from_registry = self.registry.get_agent_properties(agent_canonical_name, recursive=True, include_params=True)
+            agent_properties = json_utils.merge_json(agent_properties_from_registry, agent_properties)
+
+            self.platform.join_session(session_sid, self.properties['agent_registry.name'], agent_canonical_name, agent_properties)
 
         # process data instreams
         streams = plan.get_streams()
@@ -232,7 +270,7 @@ class CoordinatorAgent(Agent):
                     # if from an agent output capture
                     if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
                         from_agent_node = plan.get_parent_node(node_id)
-                        from_agent = from_agent_node['name']
+                        from_agent = from_agent_node['canonical_name']
                         from_agent_param = node['name']
                         f = (from_agent, from_agent_param)
                     elif plan.get_node_type(node_id) == NodeType.INPUT:
@@ -255,7 +293,7 @@ class CoordinatorAgent(Agent):
 
                         if plan.get_node_type(next_node_id) == NodeType.AGENT_INPUT:
                             to_agent_node = plan.get_parent_node(next_node_id)
-                            to_agent = to_agent_node['name']
+                            to_agent = to_agent_node['canonical_name']
                             to_agent_id = to_agent_node['id']
                             to_agent_param = next_node['name']
                             t = (to_agent, to_agent_param)
@@ -282,7 +320,10 @@ class CoordinatorAgent(Agent):
                             # execute agent
                             if to_agent:
                                 context = plan.get_scope() + ":PLAN:" + plan_id
-                                to_agent_properties = plan.get_node_properties(to_agent_id)
+                                # get agent properties from registry
+                                to_agent_properties = self.registry.get_agent_properties(to_agent, recursive=True, include_params=True)
+                                to_agent_plan_properties = plan.get_node_properties(to_agent_id)
+                                to_agent_properties = json_utils.merge_json(to_agent_properties, to_agent_plan_properties)
                                 # issue instruction
                                 worker.write_control(
                                     ControlCode.EXECUTE_AGENT, {"agent": to_agent, "context": context, "properties": to_agent_properties, "inputs": {to_agent_param: input_stream}}
