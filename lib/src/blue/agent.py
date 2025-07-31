@@ -1360,6 +1360,13 @@ class AgentFactory:
             if self._name == base_name:
                 name = agent
 
+                # check if already joined
+                s = Session(cid=session, properties=self.properties)
+                sas = s.list_agents()
+                sesion_agent_names = [sa['name'] for sa in sas]
+                if name in sesion_agent_names:
+                    return
+
                 agent_properties = message.getArg("properties")
 
                 input = None
