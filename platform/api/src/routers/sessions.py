@@ -86,49 +86,9 @@ def agent_join_session(registry_name, agent_name, properties, session_id):
     # start from platform properties
     properties = json_utils.merge_json(properties, PROPERTIES)
 
-    # recursively gather properties, inputs, outputs from derivations
-    agent_hiearchy = agent_name.split(Agent.SEPARATOR)
-    prefix = ""
-    for ai in agent_hiearchy:
-        # build parent_agent name starting from top agent
-        agent_name = prefix + ai
-
-        agent_properties = agent_registry.get_agent_properties(agent_name)
-
-        inputs = {}
-        outputs = {}
-        agent_properties['inputs'] = inputs
-        agent_properties['outputs'] = outputs
-
-        # inputs
-        ri = agent_registry.get_agent_inputs(agent_name)
-        if ri is None:
-            ri = []
-        for input in ri:
-            n = input['name'] if 'name' in input else None
-            if n is None:
-                continue
-            d = input['description'] if 'description' in input else ""
-            props = input['properties']
-            inputs[n] = {'name': n, 'description': d, 'properties': props}
-
-        # outputs
-        ro = agent_registry.get_agent_outputs(agent_name)
-        if ro is None:
-            ro = []
-        for output in ro:
-            n = output['name'] if 'name' in output else None
-            if n is None:
-                continue
-            d = output['description'] if 'description' in output else ""
-            props = output['properties']
-            output[n] = {'name': n, 'description': d, 'properties': props}
-
-        # merge
-        properties = json_utils.merge_json(properties, agent_properties)
-
-        # go to next level in agent hierarchy
-        prefix = agent_name + Agent.SEPARATOR
+    # merge agent properties, recursively with input/output params
+    agent_properties = agent_registry.get_agent_properties(agent_name, recursive=True, include_params=True)
+    properties = json_utils.merge_json(properties, agent_properties)
 
     # merge in properties from the api
     properties = json_utils.merge_json(properties, api_properties)
