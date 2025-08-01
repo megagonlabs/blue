@@ -15,7 +15,6 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faCircleDot,
     faFastForward,
     faSearch,
     faWavePulse,
@@ -26,6 +25,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
 import {
+    CIRCLE_DOT_WITH_FADE,
     EMPTY_ARRAY,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
@@ -45,20 +45,28 @@ const TrackerCard = memo(function TrackerCard({ data, index, style }) {
     const contents = _.get(trackerData, [tracker, "data"], EMPTY_ARRAY);
     const darkMode = useAppStore((state) => state.dark_mode);
     useEffect(() => {
-        if (cardRef.current) {
-            const newHeight = cardRef.current.getBoundingClientRect().height;
-            if (!_.isEqual(rowHeights.current[index], newHeight)) {
-                setRowHeight(index, newHeight);
+        const element = cardRef.current;
+        if (!element) return;
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                const newHeight = entry.target.getBoundingClientRect().height;
+                if (!_.isEqual(rowHeights.current[index], newHeight)) {
+                    setRowHeight(index, newHeight);
+                }
             }
-        }
-    }, [index, setRowHeight, tracker, rowHeights]); // depend on 'tracker' instead of 'data' for more specific change detection
+        });
+        resizeObserver.observe(element);
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [index, setRowHeight, rowHeights, tracker]);
     return (
         <div
             style={{
                 ...style,
-                padding: "0px 20px",
-                paddingTop: 20,
-                paddingBottom: _.isEqual(index, _.size(trackers) - 1) ? 20 : 0,
+                padding: `20px 20px ${
+                    _.isEqual(index, _.size(trackers) - 1) ? 20 : 0
+                }px 20px`,
             }}
         >
             <div
@@ -185,16 +193,7 @@ function SystemStatusContainer({ width, height }) {
                     {isSystemStatusLive && (
                         <Button
                             className="pointer-events-none"
-                            icon={
-                                <FAIcon
-                                    icon={faCircleDot}
-                                    className="fa-fade"
-                                    style={{
-                                        "--fa-animation-duration": "2s",
-                                        color: Colors.GREEN3,
-                                    }}
-                                />
-                            }
+                            icon={CIRCLE_DOT_WITH_FADE}
                         />
                     )}
                     <Popover

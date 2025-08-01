@@ -27,8 +27,6 @@ class NL2LLMAgent(Agent):
         # output related properties
         "nl2llm_output_filters": ["all"],
         "nl2llm_output_max_results": None,  # if not None, it will limit the number of records in returned json array
-        # agent configuration
-        "listens": {"DEFAULT": {"includes": ["USER"], "excludes": []}},
     }
 
     def __init__(self, **kwargs):
@@ -42,6 +40,13 @@ class NL2LLMAgent(Agent):
         # initialize default properties
         for key in NL2LLMAgent.PROPERTIES:
             self.properties[key] = NL2LLMAgent.PROPERTIES[key]
+
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="natural language query")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="query results", tags=["QUERY", "NL"])
 
     def _start(self):
         self.logger.info("NL2LLMAgent _start() called")

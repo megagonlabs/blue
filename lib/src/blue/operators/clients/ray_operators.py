@@ -17,6 +17,10 @@ from blue.operators.nl2sql_operator import NL2SQLOperator
 from blue.operators.data_discover_operator import DataDiscoverOperator
 from blue.operators.select_operator import SelectOperator
 from blue.operators.project_operator import ProjectOperator
+from blue.operators.insert_operator import InsertOperator
+from blue.operators.delete_operator import DeleteOperator
+from blue.operators.union_operator import UnionOperator
+from blue.operators.intersect_operator import IntersectOperator
 
 join_operator = JoinOperator()
 operators_dict[join_operator.name] = join_operator
@@ -35,3 +39,15 @@ operators_dict[select_operator.name] = select_operator
 
 project_operator = ProjectOperator()
 operators_dict[project_operator.name] = project_operator
+
+insert_operator = InsertOperator()
+operators_dict[insert_operator.name] = insert_operator
+
+delete_operator = DeleteOperator()
+operators_dict[delete_operator.name] = delete_operator
+
+union_operator = UnionOperator()
+operators_dict[union_operator.name] = union_operator
+
+intersect_operator = IntersectOperator()
+operators_dict[intersect_operator.name] = intersect_operator

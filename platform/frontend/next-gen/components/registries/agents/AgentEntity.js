@@ -311,146 +311,129 @@ export default function AgentEntity({
                         loading={loading}
                     />
                 </div>
-                {baseAgent && (
-                    <>
+                <div style={{ marginTop: 20 }} className="split-pane-container">
+                    <div className="pane-item">
+                        <div style={{ marginBottom: 10 }}>
+                            <EntityTitle
+                                icon={
+                                    <FAIcon
+                                        icon={ENTITY_TYPE_LOOKUP["input"].icon}
+                                        size={25}
+                                    />
+                                }
+                                heading={H3}
+                                title="Inputs"
+                            />
+                        </div>
                         <div
-                            style={{ marginTop: 20 }}
-                            className="split-pane-container"
+                            style={{
+                                display: "flex",
+                                gap: 10,
+                                flexDirection: "column",
+                            }}
                         >
-                            <div className="pane-item">
-                                <div style={{ marginBottom: 10 }}>
-                                    <EntityTitle
-                                        icon={
-                                            <FAIcon
-                                                icon={
-                                                    ENTITY_TYPE_LOOKUP["input"]
-                                                        .icon
-                                                }
-                                                size={25}
-                                            />
-                                        }
-                                        heading={H3}
-                                        title="Inputs"
-                                    />
-                                </div>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        gap: 10,
-                                        flexDirection: "column",
-                                    }}
-                                >
-                                    <Leaves
-                                        isEditing={isEditing}
-                                        loading={loading}
-                                        addCrumb={addCrumb}
-                                        list={_.values(
-                                            _.get(agent, "contents.input", {})
-                                        )}
-                                    />
-                                    {!isEditing && (
-                                        <Button
-                                            disabled={loading}
-                                            variant={ButtonVariant.MINIMAL}
-                                            icon={<FAIcon icon={faPlus} />}
-                                            fill
-                                            text="Add input"
-                                            onClick={() => {
-                                                setShowNewEntity(true);
-                                                setNewEntityType("input");
-                                            }}
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                            <div className="pane-item">
-                                <div style={{ marginBottom: 10 }}>
-                                    <EntityTitle
-                                        icon={
-                                            <FAIcon
-                                                icon={
-                                                    ENTITY_TYPE_LOOKUP["output"]
-                                                        .icon
-                                                }
-                                                size={25}
-                                            />
-                                        }
-                                        heading={H3}
-                                        title="Outputs"
-                                    />
-                                </div>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        gap: 10,
-                                        flexDirection: "column",
-                                    }}
-                                >
-                                    <Leaves
-                                        isEditing={isEditing}
-                                        loading={loading}
-                                        addCrumb={addCrumb}
-                                        list={_.values(
-                                            _.get(agent, "contents.output", {})
-                                        )}
-                                    />
-                                    {!isEditing && (
-                                        <Button
-                                            disabled={loading}
-                                            variant={ButtonVariant.MINIMAL}
-                                            icon={<FAIcon icon={faPlus} />}
-                                            fill
-                                            text="Add output"
-                                            onClick={() => {
-                                                setShowNewEntity(true);
-                                                setNewEntityType("output");
-                                            }}
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div style={{ marginTop: 20 }}>
-                            <div style={{ marginBottom: 10 }}>
-                                <EntityTitle
-                                    icon={
-                                        <FAIcon
-                                            icon={
-                                                ENTITY_TYPE_LOOKUP["agent"].icon
-                                            }
-                                            size={25}
-                                        />
-                                    }
-                                    heading={H3}
-                                    title="Derived Agents"
-                                />
-                            </div>
-                            <div className="responsive-grid-container">
-                                <Leaves
-                                    isEditing={isEditing}
-                                    loading={loading}
-                                    addCrumb={addCrumb}
-                                    list={_.values(
-                                        _.get(agent, "contents.agent", {})
-                                    )}
-                                />
-                                {!isEditing && (
-                                    <Button
-                                        disabled={loading}
-                                        variant={ButtonVariant.MINIMAL}
-                                        icon={<FAIcon icon={faPlus} />}
-                                        fill
-                                        text="Add derived agent"
-                                        onClick={() => {
-                                            setShowNewEntity(true);
-                                            setNewEntityType("agent");
-                                        }}
-                                    />
+                            <Leaves
+                                isEditing={isEditing}
+                                loading={loading}
+                                addCrumb={addCrumb}
+                                list={_.values(
+                                    _.get(agent, "contents.input", {})
                                 )}
-                            </div>
+                            />
+                            {!isEditing && (
+                                <Button
+                                    disabled={loading}
+                                    variant={ButtonVariant.MINIMAL}
+                                    icon={<FAIcon icon={faPlus} />}
+                                    fill
+                                    text="Add input"
+                                    onClick={() => {
+                                        setShowNewEntity(true);
+                                        setNewEntityType("input");
+                                    }}
+                                />
+                            )}
                         </div>
-                    </>
-                )}
+                    </div>
+                    <div className="pane-item">
+                        <div style={{ marginBottom: 10 }}>
+                            <EntityTitle
+                                icon={
+                                    <FAIcon
+                                        icon={ENTITY_TYPE_LOOKUP["output"].icon}
+                                        size={25}
+                                    />
+                                }
+                                heading={H3}
+                                title="Outputs"
+                            />
+                        </div>
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: 10,
+                                flexDirection: "column",
+                            }}
+                        >
+                            <Leaves
+                                isEditing={isEditing}
+                                loading={loading}
+                                addCrumb={addCrumb}
+                                list={_.values(
+                                    _.get(agent, "contents.output", {})
+                                )}
+                            />
+                            {!isEditing && (
+                                <Button
+                                    disabled={loading}
+                                    variant={ButtonVariant.MINIMAL}
+                                    icon={<FAIcon icon={faPlus} />}
+                                    fill
+                                    text="Add output"
+                                    onClick={() => {
+                                        setShowNewEntity(true);
+                                        setNewEntityType("output");
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <div style={{ marginTop: 20 }}>
+                    <div style={{ marginBottom: 10 }}>
+                        <EntityTitle
+                            icon={
+                                <FAIcon
+                                    icon={ENTITY_TYPE_LOOKUP["agent"].icon}
+                                    size={25}
+                                />
+                            }
+                            heading={H3}
+                            title="Derived Agents"
+                        />
+                    </div>
+                    <div className="responsive-grid-container">
+                        <Leaves
+                            isEditing={isEditing}
+                            loading={loading}
+                            addCrumb={addCrumb}
+                            list={_.values(_.get(agent, "contents.agent", {}))}
+                        />
+                        {!isEditing && (
+                            <Button
+                                disabled={loading}
+                                variant={ButtonVariant.MINIMAL}
+                                icon={<FAIcon icon={faPlus} />}
+                                fill
+                                text="Add derived agent"
+                                onClick={() => {
+                                    setShowNewEntity(true);
+                                    setNewEntityType("agent");
+                                }}
+                            />
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

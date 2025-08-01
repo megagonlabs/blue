@@ -48,6 +48,13 @@ class OpenAIAgent(RequestorAgent):
         self.properties['tool_discovery_similarity_threshold'] = 0.5
         self.properties['tool_max_calling_depth'] = 5
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="Text input that will be sent to OPENAI")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="Generated text output from OPENAI", tags=["AI"])
+
     def _start(self):
         super()._start()
 

@@ -27,7 +27,6 @@ agent_properties = {
     "openai.max_tokens": 512,
     "nl2q.case_insensitive": True,
     "rephrase": True,
-    "tags": {"PLAN": ["PLAN"]},
     "summary_template": "",
     "queries": {},
 }
@@ -52,6 +51,13 @@ class SummarizerAgent(OpenAIAgent):
 
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
+
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        return
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="summary text incorporating query results", tags=["SUMMARY"])
 
     def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
 

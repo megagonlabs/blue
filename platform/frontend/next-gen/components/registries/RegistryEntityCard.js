@@ -112,6 +112,7 @@ export default function RegistryEntityCard({ entity, registry }) {
                     id: gridContainerId,
                     content: (
                         <RegistryEntityContainer
+                            registryCrumb={true}
                             entity={entity}
                             registry={registry}
                         />
