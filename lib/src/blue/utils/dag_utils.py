@@ -1,6 +1,7 @@
 ###### Parsers, Utils
 import json
 import logging
+import copy
 
 ###### Backend, Databases
 from redis.commands.json.path import Path
@@ -11,6 +12,107 @@ from blue.stream import Constant, ControlCode, ConstantEncoder
 from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
 from blue.utils import uuid_utils, json_utils
+
+
+class Base:
+    def __init__(self, name, id=None, label=None, type=None, path=None, properties=None, synchronizer=None, auto_sync=False):
+
+        # name
+        self.name = name
+
+        # id
+        if id:
+            self.id = id
+        else:
+            self.id = uuid_utils.create_uuid()
+
+        # label
+        if label is None:
+            label = name
+
+        # type
+        self.type = type
+
+        # sync path
+        if path is None:
+            path = "$"
+        self.auto_sync = auto_sync
+        if synchronizer:
+            self.synchronizer = synchronizer
+
+        self._initialize(properties=properties)
+
+    def _initialize(self, properties=None):
+        self.properties = {}
+
+        self._initialize_properties()
+        self._update_properties(properties=properties)
+
+    # override
+    def _initialize_properties(self):
+        return
+
+    def _update_properties(self, properties=None, sync=False):
+        if properties is None:
+            return
+
+        # override
+        for p in properties:
+            self.properties[p] = properties[p]
+
+        if self.auto_sync or sync:
+            self.synchronizer(path=self.path + ".properties")
+
+    # attributes
+    def set_attribute(self, key, value, sync=False):
+        setattr(self, key, value)
+
+        if self.auto_sync or sync:
+            self.synchronizer(path=self.path + "." + key)
+
+    def get_attribute(self, key):
+        if key in self.__dict__:
+            return getattr(self, key)
+        return None
+
+    def get_attributes(self):
+        return self.__dict__
+
+    # properties
+    def set_property(self, key, value, sync=False):
+        self.properties[key] = value
+
+        if self.auto_sync or sync:
+            self.synchronizer(path=self.path + ".properties." + key)
+
+    def get_property(self, key):
+        if key in self.properties:
+            return self.properties[key]
+        return None
+
+    def get_properties(self):
+        return self.properties
+
+    def toJSON(self):
+        base = {
+            "id": self.id,
+            "name": self.name,
+            "label": self.label,
+            "type": self.type,
+        }
+        # add attributes
+        base = json_utils.merge_json(base, copy.deepcopy(self.get_attributes()))
+        # add properties
+        base = json_utils.merge_json(base, {"properties": copy.deepcopy(self.get_properties())})
+        return base
+
+
+class Node(Base):
+    def __init__(self, name, id=None, label=None, path=None, properties=None):
+        super().__init__(name, id=id, label=label, path=path, properties=properties)
+
+        self.prev = []
+        self.next = []
 
 
 class DAG:
@@ -263,7 +365,6 @@ class DAG:
 
         if save:
             self.save(path="$.nodes[']" + id + "']")
-   
 
     def get_node_by_id(self, id):
         if id in self._repr['nodes']:
