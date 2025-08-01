@@ -103,6 +103,7 @@ class AgentRegistry(Registry):
     def get_agent_parent(self, agent):
         agent_hierarchy = agent.split(Agent.SEPARATOR)
         parent = Agent.SEPARATOR.join(agent_hierarchy[:-1]) if len(agent_hierarchy) > 1 else None
+        return parent
 
     # agent properties
     def get_agent_properties(self, agent, recursive=False, include_params=False):
