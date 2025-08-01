@@ -90,6 +90,7 @@ export default function AgentGroupCard({ agentGroup }) {
             style={{
                 position: "relative",
                 padding: 20,
+                borderRadius: 2,
                 cursor: "context-menu",
                 backgroundColor: darkMode
                     ? Colors.DARK_GRAY1

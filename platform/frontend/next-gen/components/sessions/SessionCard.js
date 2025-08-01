@@ -151,6 +151,7 @@ export default function SessionCard({ sessionId }) {
             className="full-parent-dimension session-list-card interactive-card-border"
             style={{
                 padding: 20,
+                borderRadius: 2,
                 position: "relative",
                 cursor: "context-menu",
                 backgroundColor: darkMode
