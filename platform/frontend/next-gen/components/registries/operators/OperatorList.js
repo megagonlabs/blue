@@ -4,6 +4,7 @@ import {
 } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
+import { CardListCallout } from "@/components/ux/CardListCallout";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useOperatorStore } from "@/stores/operator-store";
@@ -184,6 +185,9 @@ function OperatorList({ width, height }) {
                         size={Size.LARGE}
                     />
                 </ControlGroup>
+                <div style={{ marginTop: 20 }}>
+                    <CardListCallout />
+                </div>
                 <div
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"

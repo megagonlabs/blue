@@ -30,6 +30,7 @@ import {
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import FilterPane from "../registries/FilterPane";
+import { CardListCallout } from "../ux/CardListCallout";
 import SessionCard from "./SessionCard";
 function SessionList({ width, height }) {
     const user = useAuthStore((state) => state.user);
@@ -199,6 +200,9 @@ function SessionList({ width, height }) {
                         }}
                     />
                 </ControlGroup>
+                <div style={{ marginTop: 20 }}>
+                    <CardListCallout />
+                </div>
                 <div
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"
