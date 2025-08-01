@@ -1360,7 +1360,20 @@ class AgentFactory:
             if self._name == base_name:
                 name = agent
 
+                # check if already joined
+                s = Session(cid=session, properties=self.properties)
+                sas = s.list_agents()
+                sesion_agent_names = [sa['name'] for sa in sas]
+                if name in sesion_agent_names:
+                    return
+
+                # get properties
                 agent_properties = message.getArg("properties")
+
+                # start with agent factory properties, merge
+                properties = {}
+                properties = json_utils.merge_json(properties, self.properties)
+                properties = json_utils.merge_json(properties, agent_properties)
 
                 input = None
 
@@ -1369,14 +1382,14 @@ class AgentFactory:
                     del agent_properties["input"]
 
                 self.logger.info("Launching Agent: " + name + "...")
-                self.logger.info("Agent Properties: " + json.dumps(agent_properties) + "...")
+                self.logger.info("Agent Properties: " + json.dumps(properties) + "...")
 
                 prefix = session + ":" + "AGENT"
                 a = self.create(
                     name=name,
                     prefix=prefix,
                     session=session,
-                    properties=agent_properties,
+                    properties=properties,
                 )
 
                 self.logger.info("Joined session: " + session)

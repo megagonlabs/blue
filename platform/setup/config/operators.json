@@ -404,5 +404,119 @@
         },
         "icon": null,
         "contents": {}
+    },
+    {
+        "name": "insert",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given input data, insert records by position(s)",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "insert_records": {
+                    "type": "list[dict]",
+                    "description": "List of records to insert into the first data source (optional if second data group provided)",
+                    "required": false,
+                    "default": []
+                },
+                "insert_idx": {
+                    "type": "Union[int, list[int]]",
+                    "description": "Position(s) to insert records (-1 for append, 0+ for specific position). If list, each element corresponds to position for each record",
+                    "required": false,
+                    "default": -1
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "delete",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given input data, delete records by position(s)",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "delete_idx": {
+                    "type": "Union[int, list[int]]",
+                    "description": "Position(s) to delete records. Supports negative indexing (-1 = last, -2 = second to last, etc.)",
+                    "required": false,
+                    "default": []
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "union",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given multiple input data sources, combine all records and remove exact duplicates",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "match_option": {
+                    "type": "str",
+                    "description": "Matching strategy for duplicate detection: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)",
+                    "required": false,
+                    "default": "key_match"
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "intersect",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Given multiple input data sources, return only records that exist in all data sources",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "parameters": {
+                "match_option": {
+                    "type": "str",
+                    "description": "Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)",
+                    "required": false,
+                    "default": "key_match"
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
     }
 ]

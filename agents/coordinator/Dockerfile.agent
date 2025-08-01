@@ -12,6 +12,9 @@ RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.co
 ADD src/requirements.agent /app/requirements.agent
 RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.agent
 
+ADD src/requirements.registry /app/requirements.registry
+RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
+
 ADD src/requirements.coordinator /app/requirements.coordinator
 RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.coordinator
 

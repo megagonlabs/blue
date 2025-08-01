@@ -1,13 +1,15 @@
 ###### Blue
 from blue.agent import Agent
 from blue.registry import Registry
+from blue.utils import json_utils
+
 
 ###############
 ### AgentRegistry
 #
 class AgentRegistry(Registry):
     SEPARATOR = Agent.SEPARATOR
-    
+
     def __init__(self, name="AGENT_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, type='agent', id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 
@@ -55,7 +57,7 @@ class AgentRegistry(Registry):
     def remove_agent_from_agent_group(self, agent_group, agent, rebuild=False):
         record = self.get_agent_group_agent(agent_group, agent)
         if record:
-           super().deregister(record, rebuild=rebuild)
+            super().deregister(record, rebuild=rebuild)
 
     def get_agent_group_agent_properties(self, agent_group, agent):
         return super().get_record_properties(agent, 'agent', f'/agent_group/{agent_group}')
@@ -98,10 +100,60 @@ class AgentRegistry(Registry):
         scope = self._derive_scope_from_name(agent, full=False)
         super().set_record_description(agent, 'agent', scope, description, rebuild=rebuild)
 
+    def get_agent_parent(self, agent):
+        agent_hierarchy = agent.split(Agent.SEPARATOR)
+        parent = Agent.SEPARATOR.join(agent_hierarchy[:-1]) if len(agent_hierarchy) > 1 else None
+        return parent
+
     # agent properties
-    def get_agent_properties(self, agent):
-        scope = self._derive_scope_from_name(agent, full=False)
-        return super().get_record_properties(agent, 'agent', scope)
+    def get_agent_properties(self, agent, recursive=False, include_params=False):
+        if recursive:
+            parent = self.get_agent_parent(agent)
+            parent_properties = {}
+            if parent:
+                parent_properties = self.get_agent_properties(parent, recursive=recursive, include_params=include_params)
+
+            agent_properties = self.get_agent_properties(agent, recursive=False, include_params=include_params)
+            # merge agents properties into parents, overriding when overlap
+            return json_utils.merge_json(parent_properties, agent_properties)
+        else:
+            scope = self._derive_scope_from_name(agent, full=False)
+            agent_properties = super().get_record_properties(agent, 'agent', scope)
+
+            if agent_properties is None:
+                return {}
+
+            if include_params:
+                inputs = {}
+                outputs = {}
+                agent_properties['inputs'] = inputs
+                agent_properties['outputs'] = outputs
+
+                # inputs
+                ri = self.get_agent_inputs(agent)
+                if ri is None:
+                    ri = []
+                for input in ri:
+                    n = input['name'] if 'name' in input else None
+                    if n is None:
+                        continue
+                    d = input['description'] if 'description' in input else ""
+                    props = input['properties']
+                    inputs[n] = {'name': n, 'description': d, 'properties': props}
+
+                # outputs
+                ro = self.get_agent_outputs(agent)
+                if ro is None:
+                    ro = []
+                for output in ro:
+                    n = output['name'] if 'name' in output else None
+                    if n is None:
+                        continue
+                    d = output['description'] if 'description' in output else ""
+                    props = output['properties']
+                    output[n] = {'name': n, 'description': d, 'properties': props}
+
+            return agent_properties
 
     def get_agent_property(self, agent, key):
         scope = self._derive_scope_from_name(agent, full=False)
@@ -211,4 +263,3 @@ class AgentRegistry(Registry):
     def get_agent_derived_agents(self, agent):
         scope = self._derive_scope_from_name(agent, full=True)
         return self.list_records(type='agent', scope=scope, recursive=False)
-        
