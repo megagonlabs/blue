@@ -268,6 +268,8 @@ class Plan:
             raise Exception("Name is not specified")
         if label is None:
             label = name
+        if Agent.SEPARATOR in label:
+            raise Exception("Label should not contain: " + Agent.SEPARATOR)
         if label in self._plan_spec['label2id']:
             raise Exception("Labels should be unique")
 
