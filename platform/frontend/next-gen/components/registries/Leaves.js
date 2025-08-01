@@ -2,7 +2,9 @@ import { useAppStore } from "@/stores/app-store";
 import { Classes, Colors } from "@blueprintjs/core";
 import classNames from "classnames";
 import _ from "lodash";
+import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "../constants";
 import EntityDisplayName from "./EntityDisplayName";
+import RegistryEntityIcon from "./RegistryEntityIcon";
 export default function Leaves({ list, addCrumb, loading, isEditing }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     return (
@@ -30,28 +32,58 @@ export default function Leaves({ list, addCrumb, loading, isEditing }) {
                                 ? Colors.DARK_GRAY1
                                 : Colors.LIGHT_GRAY5,
                             borderRadius: 2,
+                            position: "relative",
                         }}
                     >
                         <div
-                            className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            className={classNames(
+                                "padding-0",
+                                "overflow-hidden",
+                                "custom-card",
+                                { [Classes.SKELETON]: loading }
+                            )}
                             style={{
-                                fontWeight: 600,
-                                color: isEditing
-                                    ? null
-                                    : darkMode
-                                    ? Colors.BLUE5
-                                    : Colors.BLUE2,
+                                ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
+                                position: "absolute",
+                                left: 20,
+                                top: 20,
                             }}
                         >
-                            <EntityDisplayName entity={element} />
+                            <RegistryEntityIcon
+                                type={element.type}
+                                content={_.get(element, "icon", null)}
+                            />
                         </div>
                         <div
-                            className={classNames(
-                                Classes.TEXT_MUTED,
-                                Classes.TEXT_OVERFLOW_ELLIPSIS
-                            )}
+                            style={{
+                                marginLeft: 60,
+                                display: "flex",
+                                flexDirection: "column",
+                                height: 40,
+                                justifyContent: "space-between",
+                            }}
                         >
-                            {element.description}
+                            <div
+                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                                style={{
+                                    fontWeight: 600,
+                                    color: isEditing
+                                        ? null
+                                        : darkMode
+                                        ? Colors.BLUE5
+                                        : Colors.BLUE2,
+                                }}
+                            >
+                                <EntityDisplayName entity={element} />
+                            </div>
+                            <div
+                                className={classNames(
+                                    Classes.TEXT_MUTED,
+                                    Classes.TEXT_OVERFLOW_ELLIPSIS
+                                )}
+                            >
+                                {element.description}
+                            </div>
                         </div>
                     </div>
                 );

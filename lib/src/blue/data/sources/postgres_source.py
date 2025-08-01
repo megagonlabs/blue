@@ -156,14 +156,15 @@ class PostgresDBSource(DataSource):
             if not schema.has_entity(table_name):
                 schema.add_entity(table_name)
 
-            if enum_types and udt_name in enum_types:
-                schema.add_entity_property(table_name, column_name, {
-                    "type": data_type,
-                    "enum": enum_types[udt_name]
-                })
-            else:
-                schema.add_entity_property(table_name, column_name, data_type)
+            
+            property_def = {"type": data_type}
 
+            if enum_types and udt_name in enum_types:
+                property_def["enum"] = enum_types[udt_name]
+
+            schema.add_entity_property(table_name, column_name, property_def)
+
+            
         self._db_disconnect(db_connection)
 
         return schema.to_json()

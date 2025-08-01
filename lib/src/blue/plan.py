@@ -6,6 +6,7 @@ import logging
 from redis.commands.json.path import Path
 
 ###### Blue
+from blue.agent import Agent
 from blue.session import Session
 from blue.stream import Constant, ControlCode, ConstantEncoder
 from blue.pubsub import Producer
@@ -33,11 +34,11 @@ class NodeType(Constant):
         super().__init__(c)
 
 
-NodeType.INPUT = Status("INPUT")
-NodeType.OUTPUT = Status("OUTPUT")
-NodeType.AGENT = Status("AGENT")
-NodeType.AGENT_INPUT = Status("AGENT_INPUT")
-NodeType.AGENT_OUTPUT = Status("AGENT_OUTPUT")
+NodeType.INPUT = Constant("INPUT")
+NodeType.OUTPUT = Constant("OUTPUT")
+NodeType.AGENT = Constant("AGENT")
+NodeType.AGENT_INPUT = Constant("AGENT_INPUT")
+NodeType.AGENT_OUTPUT = Constant("AGENT_OUTPUT")
 
 
 ###############
@@ -187,22 +188,20 @@ class Plan:
     def get_status(self):
         return self._plan_spec['status']
 
-    def define_input(self, name, label=None, value=None, stream=None, properties={}, save=False):
+    def define_input(self, name, value=None, stream=None, properties={}, save=False):
         # checks
         if name is None:
             raise Exception("Name is not specified")
-        if name and name in self._plan_spec['label2id']:
-            raise Exception("Name should be unique")
-        if label and label in self._plan_spec['label2id']:
+        label = name
+        if label in self._plan_spec['label2id']:
             raise Exception("Labels should be unique")
 
         # create node
         node = {}
         id = node['id'] = uuid_utils.create_uuid()
         node['name'] = name
-        if label is None:
-            label = name
         node['label'] = label
+        node['canonical_name'] = label
         node['type'] = NodeType.INPUT
         node['value'] = value
         node['stream'] = stream
@@ -215,12 +214,10 @@ class Plan:
         # add to plan
         self._plan_spec['nodes'][id] = node
         self._plan_spec['label2id'][label] = id
-        self._plan_spec['label2id'][name] = id
         # save
         if save:
             self.save(path="$.nodes[']" + id + "']")
             self.save(path="$.label2id['" + label + "']")
-            self.save(path="$.label2id['" + name + "']")
 
         # add stream, if assigned
         if stream:
@@ -228,22 +225,20 @@ class Plan:
 
         return node
 
-    def define_output(self, name, label=None, value=None, stream=None, properties={}, save=False):
+    def define_output(self, name, value=None, stream=None, properties={}, save=False):
         # checks
         if name is None:
             raise Exception("Name is not specified")
-        if name and name in self._plan_spec['label2id']:
-            raise Exception("Name should be unique")
-        if label and label in self._plan_spec['label2id']:
+        label = name
+        if label in self._plan_spec['label2id']:
             raise Exception("Labels should be unique")
 
         # create node
         node = {}
         id = node['id'] = uuid_utils.create_uuid()
         node['name'] = name
-        if label is None:
-            label = name
         node['label'] = label
+        node['canonical_name'] = label
         node['type'] = NodeType.OUTPUT
         node['value'] = value
         node['stream'] = stream
@@ -256,12 +251,10 @@ class Plan:
         # add to plan
         self._plan_spec['nodes'][id] = node
         self._plan_spec['label2id'][label] = id
-        self._plan_spec['label2id'][name] = id
         # save
         if save:
             self.save(path="$.nodes[']" + id + "']")
             self.save(path="$.label2id['" + label + "']")
-            self.save(path="$.label2id['" + name + "']")
 
         # add stream, if assigned
         if stream:
@@ -273,18 +266,20 @@ class Plan:
         # checks
         if name is None:
             raise Exception("Name is not specified")
-        if name and name in self._plan_spec['label2id']:
-            raise Exception("Name should be unique")
-        if label and label in self._plan_spec['label2id']:
+        if label is None:
+            label = name
+        if label in self._plan_spec['label2id']:
             raise Exception("Labels should be unique")
 
         # create node
         node = {}
         id = node['id'] = uuid_utils.create_uuid()
         node['name'] = name
-        if label is None:
-            label = name
         node['label'] = label
+        # agent with a label is considered as derivative agent
+        # e.g. OPENAI agent with label is OPENAI___X, etc.
+        canonical_name = name if label == name else name + Agent.SEPARATOR + label
+        node['canonical_name'] = canonical_name
         node['type'] = NodeType.AGENT
         node['value'] = None
         node['stream'] = None
@@ -297,39 +292,34 @@ class Plan:
         # add to plan
         self._plan_spec['nodes'][id] = node
         self._plan_spec['label2id'][label] = id
-        self._plan_spec['label2id'][name] = id
+        self._plan_spec['label2id'][canonical_name] = id
         # save
         if save:
             self.save(path="$.nodes[']" + id + "']")
             self.save(path="$.label2id['" + label + "']")
-            self.save(path="$.label2id['" + name + "']")
+            self.save(path="$.label2id['" + canonical_name + "']")
 
         return node
 
-    def define_agent_input(self, name, agent, label=None, stream=None, properties={}, save=False):
+    def define_agent_input(self, name, agent, stream=None, properties={}, save=False):
         # checks
         if name is None:
             raise Exception("Name is not specified")
         if agent is None:
             raise Exception("Agent is not specified")
-        if label and label in self._plan_spec['label2id']:
-            raise Exception("Labels should be unique")
 
         # get agent name
         agent_id = None
-        agent_name = None
+        agent_canonical_name = None
         agent_node = self.get_node(agent)
         if agent_node:
             agent_id = agent_node['id']
-            agent_name = agent_node['name']
-        if agent_id is None:
+            agent_canonical_name = agent_node['canonical_name']
+        else:
             raise Exception("Agent is not in defined")
 
-        default_label = self._get_default_label(agent_name, input=name)
-        if label is None:
-            label = default_label
-
-        if default_label and default_label in self._plan_spec['label2id']:
+        label = self._get_default_label(agent_canonical_name, input=name)
+        if label in self._plan_spec['label2id']:
             raise Exception("Labels should be unique")
 
         # create node
@@ -337,6 +327,7 @@ class Plan:
         id = node['id'] = uuid_utils.create_uuid()
         node['name'] = name
         node['label'] = label
+        node['canonical_name'] = label
         node['type'] = NodeType.AGENT_INPUT
         node['value'] = None
         node['stream'] = None
@@ -352,12 +343,10 @@ class Plan:
         # add to plan
         self._plan_spec['nodes'][id] = node
         self._plan_spec['label2id'][label] = id
-        self._plan_spec['label2id'][default_label] = id
         # save
         if save:
             self.save(path="$.nodes[']" + id + "']")
             self.save(path="$.label2id['" + label + "']")
-            self.save(path="$.label2id['" + default_label + "']")
             self.save(path="$.nodes['" + agent_id + "'].children")
 
         # add stream, if assigned
@@ -366,30 +355,25 @@ class Plan:
 
         return node
 
-    def define_agent_output(self, name, agent, label=None, properties={}, save=False):
+    def define_agent_output(self, name, agent, properties={}, save=False):
         # checks
         if name is None:
             raise Exception("Name is not specified")
         if agent is None:
             raise Exception("Agent is not specified")
-        if label and label in self._plan_spec['label2id']:
-            raise Exception("Labels should be unique")
 
         # get agent name
         agent_id = None
-        agent_name = None
+        agent_canonical_name = None
         agent_node = self.get_node(agent)
         if agent_node:
             agent_id = agent_node['id']
-            agent_name = agent_node['name']
-        if agent_id is None:
+            agent_canonical_name = agent_node['canonical_name']
+        else:
             raise Exception("Agent is not in defined")
 
-        default_label = self._get_default_label(agent_name, output=name)
-        if label is None:
-            label = default_label
-
-        if default_label and default_label in self._plan_spec['label2id']:
+        label = self._get_default_label(agent_canonical_name, output=name)
+        if label in self._plan_spec['label2id']:
             raise Exception("Labels should be unique")
 
         # create node
@@ -397,6 +381,7 @@ class Plan:
         id = node['id'] = uuid_utils.create_uuid()
         node['name'] = name
         node['label'] = label
+        node['canonical_name'] = label
         node['type'] = NodeType.AGENT_OUTPUT
         node['value'] = None
         node['stream'] = None
@@ -412,12 +397,10 @@ class Plan:
         # add to plan
         self._plan_spec['nodes'][id] = node
         self._plan_spec['label2id'][label] = id
-        self._plan_spec['label2id'][default_label] = id
         # save
         if save:
             self.save(path="$.nodes[']" + id + "']")
             self.save(path="$.label2id['" + label + "']")
-            self.save(path="$.label2id['" + default_label + "']")
             self.save(path="$.nodes['" + agent_id + "'].children")
 
         return node
@@ -457,13 +440,10 @@ class Plan:
             node = self.get_node_by_label(n)
         return node
 
-    def get_nodes(self):
-        return self._plan_spec['nodes']
+    def get_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
+        nodes = {}
 
-    def count_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
-        count = 0
-        nodes = self.get_nodes()
-        for node_id in nodes:
+        for node_id in self._plan_spec['nodes']:
             node = self.get_node_by_id(node_id)
             node_type = node['type']
             prev = node['prev']
@@ -481,9 +461,13 @@ class Plan:
                 if len(next) == 0:
                     continue
 
-            count = count + 1
+            nodes[node_id] = node
 
-        return count
+        return nodes
+
+    def count_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
+        nodes = self.get_nodes(filter_node_type=filter_node_type, filter_hasPrev=filter_hasPrev, filter_hasNext=filter_hasNext)
+        return len(nodes)
 
     def is_node_leaf(self, n):
         node = self.get_node(n)
@@ -765,12 +749,13 @@ class Plan:
             if agent_node is None:
                 agent_node = self.define_agent(agent)
 
-            agent_name = agent_node['name']
+            agent_canonical_name = agent_node['canonical_name']
             label = None
             if node_type == NodeType.AGENT_INPUT:
-                label = self._get_default_label(agent_name, input=agent_param)
+                label = self._get_default_label(agent_canonical_name, input=agent_param)
             elif node_type == NodeType.AGENT_OUTPUT:
-                label = self._get_default_label(agent_name, output=agent_param)
+                label = self._get_default_label(agent_canonical_name, output=agent_param)
+
             agent_param_node = self.get_node(label)
             if agent_param_node is None:
                 if node_type == NodeType.AGENT_INPUT:

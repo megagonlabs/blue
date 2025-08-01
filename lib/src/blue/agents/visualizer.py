@@ -34,6 +34,13 @@ class VisualizerAgent(Agent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        return
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="visualization", tags=["VIS"])
+
     def write_to_new_stream(self, worker, content, output, id=None, tags=None, scope="worker"):
 
         # create a unique id

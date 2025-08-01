@@ -1,3 +1,6 @@
+import { FAIcon } from "@/components/FAIcon";
+import SessionContainer from "@/components/sessions/SessionContainer";
+import SessionDisplayName from "@/components/sessions/SessionDisplayName";
 import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
@@ -21,9 +24,6 @@ import {
 import _ from "lodash";
 import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { FAIcon } from "./FAIcon";
-import SessionContainer from "./sessions/SessionContainer";
-import SessionDisplayName from "./sessions/SessionDisplayName";
 const NUMBER_TO_ICON = {
     1: fa1,
     2: fa2,
@@ -59,11 +59,8 @@ export default function TopSessions() {
             });
         return result.slice(0, 5);
     }, [sessionIds, sessions, user]);
-    const { layout, addContainer } = useGridStore(
-        useShallow((state) => ({
-            layout: state.layout,
-            addContainer: state.addContainer,
-        }))
+    const { addContainer } = useGridStore(
+        useShallow((state) => ({ addContainer: state.addContainer }))
     );
     if (_.isEmpty(topSessions)) {
         return null;
@@ -75,7 +72,7 @@ export default function TopSessions() {
                 padding: "10px 0px",
                 overflow: "hidden",
                 position: "relative",
-                marginBottom: !_.isEmpty(layout) && 20,
+                marginBottom: 20,
             }}
         >
             <Tag

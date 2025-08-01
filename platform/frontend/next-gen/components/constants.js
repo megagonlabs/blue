@@ -6,6 +6,7 @@ import {
     faArrowTurnDownLeft,
     faBoxIsometricTape,
     faCircleA,
+    faCircleDot,
     faCircleNodes,
     faDatabase,
     faFile,
@@ -106,6 +107,16 @@ export const USER_ROLES_LOOKUP = {
             },
         },
     },
+    CIRCLE_DOT_WITH_FADE = (
+        <FAIcon
+            icon={faCircleDot}
+            className="fa-fade"
+            style={{
+                "--fa-animation-duration": "2s",
+                color: Colors.GREEN3,
+            }}
+        />
+    ),
     ENTITY_MAIN_INFO_PROPERTY_KEYS = [
         "system_agent",
         "image",
@@ -114,7 +125,7 @@ export const USER_ROLES_LOOKUP = {
         "tags",
         "categories",
     ],
-    ENTITY_TYPE_CONVERSION = {
+    ENTITY_TYPE_URL_PREFIX_CONVERSION = {
         source: "data",
         server: {
             tool: "tools",

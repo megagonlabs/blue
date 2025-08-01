@@ -31,6 +31,13 @@ class DocumenterAgent(Agent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        return
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="document", tags=["DOC"])
+
     def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
 
         if worker == None:

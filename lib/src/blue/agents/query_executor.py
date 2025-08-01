@@ -29,6 +29,13 @@ class QueryExecutorAgent(Agent):
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="input query")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="query results", tags=["QUERY", "RESULT", "HIDDEN"])
+
     def execute_sql_query(self, path, query):
         result = None
         question = None

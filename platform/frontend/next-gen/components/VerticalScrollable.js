@@ -90,7 +90,9 @@ function VerticalScrollable({
                         height: 40 + caretPaddingTop,
                         width,
                         textAlign: Alignment.CENTER,
-                        background: `linear-gradient(to bottom, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
+                        background: `linear-gradient(to bottom, ${backgroundColor} 0%, ${backgroundColor} ${
+                            20 + caretPaddingBottom
+                        }px, transparent 99%, transparent 100%)`,
                         display: "flex",
                         justifyContent: "flex-start",
                         flexDirection: "column",
@@ -112,7 +114,9 @@ function VerticalScrollable({
                         height: 40 + caretPaddingBottom,
                         width,
                         textAlign: Alignment.CENTER,
-                        background: `linear-gradient(to top, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
+                        background: `linear-gradient(to top, ${backgroundColor} 0%, ${backgroundColor} ${
+                            20 + caretPaddingBottom
+                        }px, transparent 99%, transparent 100%)`,
                         display: "flex",
                         justifyContent: "flex-end",
                         flexDirection: "column",

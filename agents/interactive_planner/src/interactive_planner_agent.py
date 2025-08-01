@@ -38,8 +38,6 @@ PLAN:",
     "registry.name": "default",
     "search.threshold": 0.05,
     "search.limit": 10,
-    "listens": {"DEFAULT": {"includes": ["USER"], "excludes": []}},
-    "tags": {"DEFAULT": ["PLAN"]},
 }
 
 
