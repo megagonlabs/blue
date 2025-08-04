@@ -11,7 +11,7 @@ from blue.session import Session
 from blue.stream import Constant, ControlCode, ConstantEncoder
 from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
-from blue.utils import uuid_utils, json_utils
+from blue.utils import uuid_utils, json_utils, dag_utils
 
 
 ###############
@@ -44,130 +44,56 @@ NodeType.AGENT_OUTPUT = Constant("AGENT_OUTPUT")
 ###############
 ### Plan
 #
-class Plan:
-    def __init__(self, id=None, scope=None, properties={}):
+class Plan(dag_utils.DAG):
+    def __init__(self, id=None, scope=None, properties=None):
 
-        self.name = "PLAN"
-
-        if id:
-            self.id = id
-        else:
-            self.id = uuid_utils.create_uuid()
-
-        self.sid = self.name + ":" + self.id
-
-        if type(scope) == str:
-            self.prefix = scope
-        elif type(scope) == Session:
+        self.prefix = scope
+        if type(scope) == Session:
             self.prefix = scope.cid
 
-        self.suffix = None
-        self.cid = None
-
-        if self.cid == None:
-            self.cid = self.sid
-
-            if self.prefix:
-                self.cid = self.prefix + ":" + self.cid
-            if self.suffix:
-                self.cid = self.cid + ":" + self.suffix
-
-        self._initialize(properties=properties)
-
-        # plan spec details
-        self._plan_spec = {"id": self.id, "nodes": {}, "streams": {}, "context": {"scope": self.prefix}, "status": Status.INACTIVE, "properties": self.properties, "label2id": {}}
+        super().__init__(name="PLAN", id=id, type="PLAN", properties=properties, auto_sync=True)
 
         # start
         self._start()
 
-    ###### INITIALIZATION
-    def _initialize(self, properties=None):
-        self._initialize_properties()
-        self._update_properties(properties=properties)
+    def _init_data(self):
+        super()._init_data()
 
+        self._set_data("context", {"scope": self.prefix})
+        self._set_data("status", Status.INACTIVE)
+        self._set_data("entities", {})
+        self._set_data("streams", {})
+
+    # properties
     def _initialize_properties(self):
-        self.properties = {}
+        super()._initialize_properties()
 
         # db connectivity
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
 
-    def _update_properties(self, properties=None, save=False):
-        if properties is None:
-            return
-
-        # override
-        for p in properties:
-            self.properties[p] = properties[p]
-
-        if save:
-            self.save(path="$.properties")
-
-    def _start(self):
-        self._start_connection()
-
-        self.leaves = None
-
-    def _start_connection(self):
-        self.connection_factory = PooledConnectionFactory(properties=self.properties)
-        self.connection = self.connection_factory.get_connection()
-
-    @classmethod
-    def _verify_plan_spec(cls, plan_spec):
-        # TODO: Do more verification, in regards to steps, context streams
-        if type(plan_spec) == dict:
-            if 'id' not in plan_spec:
-                return None
-            if 'nodes' not in plan_spec:
-                return None
-            if 'streams' not in plan_spec:
-                return None
-            if 'context' not in plan_spec:
-                return None
-            context = plan_spec['context']
-            if 'scope' not in context:
-                return None
-        else:
-            return None
-        return plan_spec
-
-    # build a declaratively, from a json spec
-    @classmethod
-    def from_json(cls, plan_spec, save=False):
-        if type(plan_spec) == str:
-            try:
-                plan_spec = json.loads(plan_spec)
-            except:
-                plan_spec = None
-
-        # verify plan
-        plan_spec = Plan._verify_plan_spec(plan_spec)
-
-        if plan_spec:
-            id = plan_spec['id']
-            scope = plan_spec['context']['scope']
-            properties = plan_spec['properties']
-
-            # create instance
-            plan = cls(id=id, scope=scope, properties=properties)
-
-            # set spec
-            plan._plan_spec = plan_spec
-
-            if save:
-                plan.save()
-
-            # return
-            return plan
-        else:
-            raise Exception("Invalid plan spec")
-
-    def to_json(self):
-        return json.dumps(self._plan_spec)
+    # basics, context, scope, status
+    def get_context(self):
+        return self._get_data("context")
 
     def get_scope(self):
-        return self._plan_spec['context']['scope']
+        context = self.get_context()
+        if 'scope' in context:
+            return context['scope']
+        else:
+            return None
 
+    def set_status(self, status, sync=False):
+        self._set_data("status", status)
+
+        # sync
+        if sync:
+            self.synchronize(path="$.status")
+
+    def get_status(self):
+        return self._get_data('status')
+
+    # inputs, outputs, agents, w/input and output parameters
     def _get_default_label(self, agent, input=None, output=None):
         label = agent
 
@@ -178,46 +104,26 @@ class Plan:
 
         return label
 
-    def set_status(self, status, save=False):
-        self._plan_spec['status'] = status
+    def define_input(self, name, value=None, stream=None, properties={}, sync=False):
+        input_node = super().create_node(name, type=NodeType.INPUT, properties=properties)
 
-        # save
-        if save:
-            self.save(path="$.status")
+        # canonical name
+        input_node._set_data('canonical_name', input_node.get_label())
 
-    def get_status(self):
-        return self._plan_spec['status']
+        # input value/stream
+        input_node._set_data('value', value)
+        input_node._set_data('stream', stream)
 
-    def define_input(self, name, value=None, stream=None, properties={}, save=False):
+        # references to entities
+        input_node._set_data('parent', None)
+        input_node._set_data('children', [])
+
         # checks
         if name is None:
             raise Exception("Name is not specified")
         label = name
         if label in self._plan_spec['label2id']:
             raise Exception("Labels should be unique")
-
-        # create node
-        node = {}
-        id = node['id'] = uuid_utils.create_uuid()
-        node['name'] = name
-        node['label'] = label
-        node['canonical_name'] = label
-        node['type'] = NodeType.INPUT
-        node['value'] = value
-        node['stream'] = stream
-        node['properties'] = properties
-        node['parent'] = None
-        node['children'] = []
-        node['prev'] = []
-        node['next'] = []
-
-        # add to plan
-        self._plan_spec['nodes'][id] = node
-        self._plan_spec['label2id'][label] = id
-        # save
-        if save:
-            self.save(path="$.nodes[']" + id + "']")
-            self.save(path="$.label2id['" + label + "']")
 
         # add stream, if assigned
         if stream:
@@ -408,14 +314,6 @@ class Plan:
         return node
 
     # node functions
-    def get_node_by_id(self, id):
-        if id in self._plan_spec['nodes']:
-            return self._plan_spec['nodes'][id]
-
-    def get_node_by_label(self, label):
-        if label in self._plan_spec['label2id']:
-            id = self._plan_spec['label2id'][label]
-            return self.get_node_by_id(id)
 
     def get_nodes_by_stream(self, stream, node_type=None):
         nodes = []
@@ -480,6 +378,80 @@ class Plan:
             return True
         else:
             return False
+
+    # sync
+    def synchronize(self, path, value):
+        if self.synchronizer is None:
+            raise Exception("No sychronized function set")
+
+        if path is None:
+            path = self.path
+            value = self.__data__
+
+        # TODO: implement sync
+
+    # start
+    def _start(self):
+        self._start_connection()
+
+        self.leaves = None
+
+    def _start_connection(self):
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
+
+    @classmethod
+    def _verify_plan_spec(cls, plan_spec):
+        # TODO: Do more verification, in regards to steps, context streams
+        if type(plan_spec) == dict:
+            if 'id' not in plan_spec:
+                return None
+            if 'nodes' not in plan_spec:
+                return None
+            if 'streams' not in plan_spec:
+                return None
+            if 'context' not in plan_spec:
+                return None
+            context = plan_spec['context']
+            if 'scope' not in context:
+                return None
+        else:
+            return None
+        return plan_spec
+
+    # build a declaratively, from a json spec
+    @classmethod
+    def from_json(cls, plan_spec, save=False):
+        if type(plan_spec) == str:
+            try:
+                plan_spec = json.loads(plan_spec)
+            except:
+                plan_spec = None
+
+        # verify plan
+        plan_spec = Plan._verify_plan_spec(plan_spec)
+
+        if plan_spec:
+            id = plan_spec['id']
+            scope = plan_spec['context']['scope']
+            properties = plan_spec['properties']
+
+            # create instance
+            plan = cls(id=id, scope=scope, properties=properties)
+
+            # set spec
+            plan._plan_spec = plan_spec
+
+            if save:
+                plan.save()
+
+            # return
+            return plan
+        else:
+            raise Exception("Invalid plan spec")
+
+    def to_json(self):
+        return json.dumps(self._plan_spec)
 
     def get_streams(self):
         return self._plan_spec['streams']
