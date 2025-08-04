@@ -163,6 +163,11 @@ export default function StreamFlows({ sessionId }) {
                         style: { strokeWidth: 2 },
                     });
                     seenEdges.add(edge);
+                    _.set(
+                        nodes,
+                        [nodeIndex[streamNodeId], "data", "consumed"],
+                        true
+                    );
                 }
             }
             // producers
