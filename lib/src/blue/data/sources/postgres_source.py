@@ -207,7 +207,6 @@ class PostgresDBSource(DataSource):
                 cur.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
                 databases = [row[0] for row in cur.fetchall()]
                 stats["database_count"] = len(databases)
-                stats["database_names"] = databases
                 
                 cur.execute("""
                     SELECT now() - pg_postmaster_start_time() AS uptime;
@@ -233,20 +232,6 @@ class PostgresDBSource(DataSource):
             stats["size_bytes"] = size[0] if size else None
 
             cur.execute("""
-            SELECT table_schema, table_name
-            FROM information_schema.tables
-            WHERE table_schema NOT IN ('pg_catalog', 'information_schema');
-            """)
-
-            rows = cur.fetchall()
-
-            # Save both schema and table in stats
-            stats['tables'] = [
-                {'schema': schema, 'table': table}
-                for schema, table in rows
-            ]
-
-            cur.execute("""
             SELECT COUNT(*) 
             FROM information_schema.tables 
             WHERE table_schema NOT IN ('pg_catalog', 'information_schema') 
@@ -269,19 +254,12 @@ class PostgresDBSource(DataSource):
 
         stats = {}
         
-        for entity, meta in schema_json.get("entities", {}).items():
-        
-            ent_stats = {}
-            ent_stats["stats"] = self.fetch_entity_stats(database, collection_name, entity)
+        num_entities = len(schema_json.get("entities", {}))
+        stats["num_entities"] = num_entities
 
-            props = meta.get("properties", {})
-            
-            ent_stats["properties"] = {}
-            for prop in props:
-                ent_stats["properties"][prop] = self.fetch_property_stats(database, collection_name, entity, prop, sample_limit=sample_limit)
-
-            stats[entity] = ent_stats
-
+        num_relations = len(schema_json.get("relations", {}))
+        stats["num_relations"] = num_relations
+    
         return stats
 
 

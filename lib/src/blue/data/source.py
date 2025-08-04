@@ -118,6 +118,6 @@ class DataSource:
     def fetch_entity_stats(self, database, collection, entity):
         return None
 
-    def fetch_property_stats(self, database, collection, entity, property_name):
+    def fetch_property_stats(self, database, collection, entity, property_name, sample_limit=None):
         return None 
 
