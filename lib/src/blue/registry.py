@@ -480,15 +480,15 @@ class Registry:
         return sn
 
     def _derive_scope_from_name(self, name, full=False):
-        agent_hiearchy = name.split(self.SEPARATOR)
+        hierarchy = name.split(self.SEPARATOR)
         if not full:
-            agent_hiearchy = agent_hiearchy[:-1]
+            hierarchy = hierarchy[:-1]
         prefix = ""
         scope = ""
-        for ai in agent_hiearchy:
-            agent_name = prefix + ai
-            prefix = agent_name + "___"
-            scope += "/" + self.type + "/" + agent_name
+        for ei in hierarchy:
+            entity_name = prefix + ei
+            prefix = entity_name + self.SEPARATOR
+            scope += "/" + self.type + "/" + entity_name
         if scope == "":
             scope = "/"
         return scope
