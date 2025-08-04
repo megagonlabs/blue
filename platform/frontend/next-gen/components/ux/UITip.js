@@ -11,6 +11,7 @@ import {
     faCircleQuestion,
     faQuestionCircle,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import _ from "lodash";
 import { useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";

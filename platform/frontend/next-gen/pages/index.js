@@ -123,9 +123,10 @@ export default function Home() {
                                     id="window_control_bar_maximization_tip"
                                     content={
                                         <div style={{ maxWidth: 300 }}>
-                                            To maximize the window's dimensions
-                                            &#40;full width and height&#41;,
-                                            double-click the window control bar.
+                                            To maximize the window&apos;s
+                                            dimensions &#40;full width and
+                                            height&#41;, double-click the window
+                                            control bar.
                                         </div>
                                     }
                                 />
