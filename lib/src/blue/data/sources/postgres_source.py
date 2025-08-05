@@ -137,7 +137,7 @@ class PostgresDBSource(DataSource):
         return enum_types
 
         
-    def fetch_database_collection_schema(self, database, collection):
+    def fetch_database_collection_schema(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
         db_connection = self._db_connect(database)
 
         query = """
@@ -162,6 +162,34 @@ class PostgresDBSource(DataSource):
             if enum_types and udt_name in enum_types:
                 property_def["enum"] = enum_types[udt_name]
 
+            if data_type.lower() in ("character varying", "varchar", "character", "text", "name"):
+                
+                cursor.execute(f"""
+                  SELECT COUNT(DISTINCT "{column_name}"), COUNT(*) 
+                  FROM "{collection}"."{table_name}"
+                  WHERE "{column_name}" IS NOT NULL
+                 """)
+            
+                distinct_count, total_count = cursor.fetchone()
+                
+                cursor.execute(f'''
+                    SELECT AVG(LENGTH("{column_name}"))
+                    FROM "{collection}"."{table_name}"
+                    WHERE "{column_name}" IS NOT NULL
+                ''')
+                avg_length = cursor.fetchone()[0] or 0
+
+
+                if (distinct_count <= max_distinct and (total_count == 0 or distinct_count / total_count <= max_ratio) and avg_length <= max_length):
+                    cursor.execute(f"""
+                        SELECT DISTINCT "{column_name}"
+                        FROM "{collection}"."{table_name}"
+                        WHERE "{column_name}" IS NOT NULL
+                        LIMIT {max_distinct};
+                    """)
+                    values = [row[0] for row in cursor.fetchall()]
+                    property_def["values"] = values
+        
             schema.add_entity_property(table_name, column_name, property_def)
 
             
@@ -207,7 +235,6 @@ class PostgresDBSource(DataSource):
                 cur.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
                 databases = [row[0] for row in cur.fetchall()]
                 stats["database_count"] = len(databases)
-                stats["database_names"] = databases
                 
                 cur.execute("""
                     SELECT now() - pg_postmaster_start_time() AS uptime;
@@ -233,20 +260,6 @@ class PostgresDBSource(DataSource):
             stats["size_bytes"] = size[0] if size else None
 
             cur.execute("""
-            SELECT table_schema, table_name
-            FROM information_schema.tables
-            WHERE table_schema NOT IN ('pg_catalog', 'information_schema');
-            """)
-
-            rows = cur.fetchall()
-
-            # Save both schema and table in stats
-            stats['tables'] = [
-                {'schema': schema, 'table': table}
-                for schema, table in rows
-            ]
-
-            cur.execute("""
             SELECT COUNT(*) 
             FROM information_schema.tables 
             WHERE table_schema NOT IN ('pg_catalog', 'information_schema') 
@@ -269,19 +282,12 @@ class PostgresDBSource(DataSource):
 
         stats = {}
         
-        for entity, meta in schema_json.get("entities", {}).items():
-        
-            ent_stats = {}
-            ent_stats["stats"] = self.fetch_entity_stats(database, collection_name, entity)
+        num_entities = len(schema_json.get("entities", {}))
+        stats["num_entities"] = num_entities
 
-            props = meta.get("properties", {})
-            
-            ent_stats["properties"] = {}
-            for prop in props:
-                ent_stats["properties"][prop] = self.fetch_property_stats(database, collection_name, entity, prop, sample_limit=sample_limit)
-
-            stats[entity] = ent_stats
-
+        num_relations = len(schema_json.get("relations", {}))
+        stats["num_relations"] = num_relations
+    
         return stats
 
 
