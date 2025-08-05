@@ -96,6 +96,7 @@ export const USER_ROLES_LOOKUP = {
         dead: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
     },
     MIN_ALLOTMENT_PANE_SIZE = 400,
+    POPOVER_CONTENT_MAX_WIDTH = 300,
     MESSAGE_OVERFLOW_THRESHOLD = 200,
     WORKSAPCE_DRAGGABLE_SYMBOL = Symbol("workspaceDraggable"),
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10 = {

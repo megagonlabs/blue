@@ -13,17 +13,20 @@ import { useShallow } from "zustand/react/shallow";
 import { CIRCLE_DOT_WITH_FADE } from "../constants";
 import { FAIcon } from "../FAIcon";
 export default function WSConnectionIndicator() {
-    const { socketReadyState, connectWebSocket, socket } = useSocketStore(
+    const { socketReadyState, connectWebSocket } = useSocketStore(
         useShallow((state) => ({
             socketReadyState: state.socketReadyState,
             connectWebSocket: state.connectWebSocket,
-            socket: state.socket,
         }))
     );
     return (
         <div style={{ marginBottom: 20, textAlign: "center" }}>
             {_.isEqual(socketReadyState, WebSocket.OPEN) ? (
-                CIRCLE_DOT_WITH_FADE
+                <Button
+                    className="pointer-events-none"
+                    variant={ButtonVariant.MINIMAL}
+                    icon={CIRCLE_DOT_WITH_FADE}
+                />
             ) : (
                 <ButtonGroup
                     vertical

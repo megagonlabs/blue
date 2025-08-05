@@ -1,4 +1,7 @@
-import { REACT_FLOW_NODE } from "@/components/constants";
+import {
+    POPOVER_CONTENT_MAX_WIDTH,
+    REACT_FLOW_NODE,
+} from "@/components/constants";
 import { useUpdateNodeInternals } from "@xyflow/react";
 import _ from "lodash";
 import { memo, useEffect, useRef, useState } from "react";
@@ -44,7 +47,7 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
                 height: "auto",
                 minWidth: 1,
                 minHeight: 1,
-                maxWidth: 300,
+                maxWidth: POPOVER_CONTENT_MAX_WIDTH,
                 display: "inline-block",
                 boxSizing: "border-box",
             }}

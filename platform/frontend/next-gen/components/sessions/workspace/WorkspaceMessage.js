@@ -1,4 +1,7 @@
-import { WORKSAPCE_DRAGGABLE_SYMBOL } from "@/components/constants";
+import {
+    POPOVER_CONTENT_MAX_WIDTH,
+    WORKSAPCE_DRAGGABLE_SYMBOL,
+} from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import { useAppStore } from "@/stores/app-store";
 import { useSessionStore } from "@/stores/session-store";
@@ -85,7 +88,7 @@ export default function WorkspaceMessage({
                             root.render(
                                 <div
                                     style={{
-                                        maxWidth: 200,
+                                        maxWidth: POPOVER_CONTENT_MAX_WIDTH,
                                         maxHeight: 200,
                                         padding: 20,
                                         overflow: "hidden",
