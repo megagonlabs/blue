@@ -316,7 +316,7 @@ class DataRegistry(Registry):
                     #  sync to update description, properties, schema
                     self.sync_source_database(source, db, source_connection=source_connection, recursive=False, rebuild=rebuild)
 
-    def sync_source_database(self, source, database, source_connection=None, recursive=False, rebuild=False):
+    def sync_source_database(self, source, database, source_connection=None, recursive=False, rebuild=False, collect_stats=False):
         if source_connection is None:
             source_connection = self.connect_source(source)
 
@@ -332,13 +332,11 @@ class DataRegistry(Registry):
                 description = metadata['description']
             self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
 
-            try:
-                if hasattr(source_connection, "fetch_database_stats"):
-                    db_stats = source_connection.fetch_database_stats(database)
+            if collect_stats:
+                db_stats = source_connection.fetch_database_stats(database)
+                if db_stats:
                     self.set_source_database_property(source, database, "stats", db_stats, rebuild=rebuild)
-            except Exception as e:
-                logging.warning(f"Failed to fetch stats for database {database}: {e}")
-
+            
             
             # fetch collections
             fetched_collections = source_connection.fetch_database_collections(database)
@@ -384,7 +382,7 @@ class DataRegistry(Registry):
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
 
-    def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False):
+    def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, collect_stats=False, sample_limit=10):
         if source_connection is None:
             source_connection = self.connect_source(source)
 
@@ -404,13 +402,12 @@ class DataRegistry(Registry):
             #### fetch collection schema
             schema = source_connection.fetch_database_collection_schema(database, collection)
 
-            try:
-                if hasattr(source_connection, "fetch_collection_stats"):
-                    collection_stats = source_connection.fetch_collection_stats(database, collection, schema)
+            if collect_stats:
+                collection_stats = source_connection.fetch_collection_stats(database, collection, schema, sample_limit=sample_limit)
+                
+                if collection_stats:
                     self.set_source_database_collection_property(source, database, collection, "stats", collection_stats, rebuild=rebuild)
-            except Exception as e:
-                logging.warning(f"Failed to fetch collection stats for {collection}: {e}")
-
+            
             entities = schema['entities']
             relations = schema['relations']
 
@@ -449,6 +446,19 @@ class DataRegistry(Registry):
             for collection in merges:
                 self.update_source_database_collection_entity(source, database, collection, entity, description="", properties=entities[entity], rebuild=rebuild)
 
+            
+            if collect_stats:
+                for entity, meta in schema.get("entities", {}).items():
+                    ent_stats = {}
+                    ent_stats["stats"] = source_connection.fetch_entity_stats(database, collection, entity)
+         
+                    props = meta.get("properties", {})
+                    ent_stats["property_stats"] = {}
+                    for prop in props:
+                        ent_stats["property_stats"][prop] = source_connection.fetch_property_stats(database, collection, entity, prop, sample_limit=sample_limit)
+
+                    self.set_source_database_collection_entity_property(source, database, collection, entity, "stats", ent_stats, rebuild=rebuild)
+         
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)

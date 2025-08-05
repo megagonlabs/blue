@@ -6,6 +6,7 @@ import _ from "lodash";
 import { create } from "zustand";
 import { useAppStore } from "./app-store";
 import { useSocketStore } from "./socket-store";
+import { useUIVisibilityStore } from "./ui-visibility-store";
 const firebaseConfig = {
     apiKey: "AIzaSyAkVp-dj3o1yf89mL3wMUtEidUHjzqyWCQ",
     authDomain: "blue-9d597.firebaseapp.com",
@@ -141,6 +142,8 @@ export const useAuthStore = create((set, get) => ({
                     ),
                 };
                 const { setState } = useAppStore.getState();
+                const { setState: setUIVisibility } =
+                    useUIVisibilityStore.getState();
                 const KEYS = [
                     "dark_mode",
                     "show_workspace",
@@ -155,6 +158,10 @@ export const useAuthStore = create((set, get) => ({
                         value: _.get(user, ["settings", KEYS[i]], false),
                     });
                 }
+                setUIVisibility({
+                    key: "UIVisibility",
+                    value: _.get(user, "ui_visibility", {}),
+                });
                 set({ user, permissions });
             })
             .catch((error) => {})

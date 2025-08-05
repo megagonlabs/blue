@@ -175,20 +175,16 @@ class Platform:
         default_user_settings = self.get_metadata('settings.default_user_settings')
         if pydash.is_empty(default_user_settings):
             default_user_settings = {}
-        # create user profile with guest role if does not exist
+        # create user profile if does not exist
         self.set_metadata(
             f'users.{uid}',
-            {
-                'uid': user['uid'],
-                'role': default_user_role,
-                'email': user['email'],
-                'name': user['name'],
-                'picture': user['picture'],
-                'settings': default_user_settings,
-                'sessions': {"pinned": {}, "owner": {}, "member": {}},
-            },
+            {'uid': user['uid'], 'role': default_user_role, 'email': user['email'], 'name': user['name'], 'picture': user['picture']},
             nx=True,
         )
+        self.set_metadata(f'users.{uid}.ui_visibility', {}, nx=True)
+        self.set_metadata(f'users.{uid}.sessions', {"pinned": {}, "owner": {}, "member": {}}, nx=True)
+        self.set_metadata(f'users.{uid}.settings', default_user_settings, nx=True)
+
         self.set_metadata(f'users.{uid}.email', user['email'])
         self.set_metadata(f'users.{uid}.name', user['name'])
         self.set_metadata(f'users.{uid}.picture', user['picture'])

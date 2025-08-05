@@ -181,6 +181,13 @@ async def signin_cli(request: Request):
         return ERROR_RESPONSE
 
 
+@router.put('/profile/ui_visibility/{name}')
+async def set_ui_visibility(request: Request, name):
+    payload = await request.json()
+    p.set_metadata(f'users.{request.state.user["uid"]}.ui_visibility.{name}', payload.get('value'))
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.put('/profile/settings/{name}')
 async def set_settings(request: Request, name):
     payload = await request.json()
@@ -197,6 +204,7 @@ def get_profile(request: Request):
                 **request.state.user,
                 'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {}),
                 "settings": pydash.objects.get(user_metadata, 'settings', {}),
+                "ui_visibility": pydash.objects.get(user_metadata, 'ui_visibility', {}),
                 "sessions": pydash.objects.get(user_metadata, 'sessions', {}),
             },
         }
@@ -213,7 +221,9 @@ def get_profile_by_email(request: Request, email):
                 user_record = auth.get_user_by_email(email)
                 user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
             else:
-                return JSONResponse(status_code=501, content={"message": 'The server lacks the ability to fulfill the request because environment variable "FIREBASE_SERVICE_CRED" is not configured.'})
+                return JSONResponse(
+                    status_code=501, content={"message": 'The server lacks the ability to fulfill the request because environment variable "FIREBASE_SERVICE_CRED" is not configured.'}
+                )
     except auth.UserNotFoundError as ex:
         return JSONResponse(content={"message": f'No user record found for the given identifier: "{email}".'}, status_code=400)
     except ValueError as ex:

@@ -1,6 +1,7 @@
 import { GridContainerContextProvider } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import GridContainerWrapper from "@/components/GridContainerWrapper";
+import UITip from "@/components/ux/UITip";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
@@ -109,6 +110,27 @@ export default function Home() {
                                 gap: 10,
                             }}
                         >
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    [windowsControlButtons
+                                        ? "left"
+                                        : "right"]: 20,
+                                    top: 12,
+                                }}
+                            >
+                                <UITip
+                                    id="window_control_bar_maximization_tip"
+                                    content={
+                                        <div style={{ maxWidth: 300 }}>
+                                            To maximize the window&apos;s
+                                            dimensions &#40;full width and
+                                            height&#41;, double-click the window
+                                            control bar.
+                                        </div>
+                                    }
+                                />
+                            </div>
                             <ButtonGroup
                                 style={{
                                     marginRight: windowsControlButtons ? 0 : 10,

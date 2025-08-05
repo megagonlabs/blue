@@ -18,6 +18,7 @@ import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import NewEntity from "../registries/NewEntity";
+import { CardListCallout } from "../ux/CardListCallout";
 import AgentGroupCard from "./AgentGroupCard";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
 function ApplicationContainer({ width, height }) {
@@ -93,6 +94,9 @@ function ApplicationContainer({ width, height }) {
                 >
                     How can I help you today?
                 </H1>
+                <div style={{ marginTop: 20 }}>
+                    <CardListCallout />
+                </div>
                 <div
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"

@@ -2,6 +2,7 @@ import {
     HEX_TRANSPARENCY,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "@/components/constants";
+import { CardListCallout } from "@/components/ux/CardListCallout";
 import { useAgentStore } from "@/stores/agent-store";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
@@ -199,6 +200,9 @@ function AgentList({ width, height }) {
                         size={Size.LARGE}
                     />
                 </ControlGroup>
+                <div style={{ marginTop: 20 }}>
+                    <CardListCallout />
+                </div>
                 <div
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"
