@@ -5,7 +5,7 @@ import {
     Classes,
     Colors,
     Popover,
-    PopoverInteractionKind,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faCircleQuestion,
@@ -39,7 +39,6 @@ export default function UITip({ content, id }) {
             <Popover
                 {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
                 boundary={popoverBoundary}
-                interactionKind={PopoverInteractionKind.HOVER}
                 content={
                     <div style={{ padding: 10, lineHeight: "20px" }}>
                         <Callout icon={null}>
@@ -73,11 +72,19 @@ export default function UITip({ content, id }) {
                     </div>
                 }
             >
-                <FAIcon
-                    size={20}
-                    icon={faCircleQuestion}
-                    style={{ color: Colors.ORANGE3, cursor: "pointer" }}
-                />
+                <Tooltip
+                    {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                    content="Tip"
+                    boundary={popoverBoundary}
+                    placement="bottom"
+                    openOnTargetFocus={false}
+                >
+                    <FAIcon
+                        size={20}
+                        icon={faCircleQuestion}
+                        style={{ color: Colors.ORANGE3, cursor: "pointer" }}
+                    />
+                </Tooltip>
             </Popover>
         </div>
     );
