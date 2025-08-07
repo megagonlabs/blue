@@ -603,8 +603,6 @@ class Agent:
             self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs)
 
         self.session = None
-        if session:
-            self.join_session(session)
 
         # consumer for session stream
         self.session_consumer = None
@@ -616,6 +614,10 @@ class Agent:
         self.event_producers = {}
 
         self._start()
+
+        # lastly, join session
+        if session:
+            self.join_session(session)
 
     ###### initialization
     def _initialize(self, properties=None):
@@ -967,12 +969,13 @@ class Agent:
 
         self.session = session
 
-        if self.session:
-            self.session.add_agent(self)
-
         # update logger
         self.logger.del_config_data("session")
         self.logger.set_config_data("session", self.session.sid, -1)
+
+        if self.session:
+            self.session.add_agent(self)
+            self._start_session_consumer()
 
     def leave_session(self):
         if self.session:
@@ -1147,10 +1150,6 @@ class Agent:
 
         # init tracker
         self._init_tracker()
-
-        # if agent is associated with a session
-        if self.session:
-            self._start_session_consumer()
 
         self.logger.info("Started agent {name}".format(name=self.name))
         self.logger.info("Agent properties:")
