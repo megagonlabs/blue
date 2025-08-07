@@ -1,8 +1,8 @@
 import { Button, ButtonVariant, Colors, Intent } from "@blueprintjs/core";
 import { faCheck } from "@fortawesome/pro-solid-svg-icons";
 import {
-    faArrowRightFromArc,
-    faArrowRightToArc,
+    faArrowRightFromLine,
+    faArrowRightToLine,
     faArrowTurnDownLeft,
     faBoxIsometricTape,
     faCircleA,
@@ -64,8 +64,8 @@ export const USER_ROLES_LOOKUP = {
         agent: { icon: faCircleA, permissionKey: "agent_registry" },
         data: { icon: faServer },
         agent_group: { icon: faGrid2, permissionKey: "agent_registry" },
-        input: { icon: faArrowRightToArc, permissionKey: "agent_registry" },
-        output: { icon: faArrowRightFromArc, permissionKey: "agent_registry" },
+        input: { icon: faArrowRightToLine, permissionKey: "agent_registry" },
+        output: { icon: faArrowRightFromLine, permissionKey: "agent_registry" },
         source: { icon: faServer, permissionKey: "data_registry" },
         database: { icon: faDatabase, permissionKey: "data_registry" },
         collection: { icon: faFolders },

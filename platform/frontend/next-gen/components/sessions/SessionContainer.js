@@ -25,7 +25,7 @@ import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
-import { useRefDimensions } from "../hooks/useRefDimensions";
+import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import AddSessionAgent from "./AddSessionAgent";
 import SessionDetails from "./SessionDetails";
 import SessionMessages from "./SessionMessages";
@@ -89,7 +89,8 @@ function SessionContainer({ width, height, sessionId }) {
         setUserMessage("");
     };
     const controGroupRef = createRef();
-    const { height: controlGroupHeight } = useRefDimensions(controGroupRef);
+    const { height: controlGroupHeight } =
+        useContainerDimensions(controGroupRef);
     const { showWorkspace: defaultShowWorkspace } = useAppStore(
         useShallow((state) => ({ showWorkspace: state.show_workspace }))
     );
