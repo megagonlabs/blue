@@ -36,22 +36,26 @@ class NodeType(Constant):
 
 NodeType.INPUT = Constant("INPUT")
 NodeType.OUTPUT = Constant("OUTPUT")
-NodeType.AGENT = Constant("AGENT")
 NodeType.AGENT_INPUT = Constant("AGENT_INPUT")
 NodeType.AGENT_OUTPUT = Constant("AGENT_OUTPUT")
 
 
-###############
+class EntityType(Constant):
+    def __init__(self, c):
+        super().__init__(c)
+
+
+EntityType.AGENT = Constant("AGENT")
+EntityType.STREAM = Constant("STREAM")
+
+
+##############
 ### Plan
 #
 class Plan(dag_utils.DAG):
-    def __init__(self, id=None, scope=None, properties=None):
-
-        self.prefix = scope
-        if type(scope) == Session:
-            self.prefix = scope.cid
-
-        super().__init__(name="PLAN", id=id, type="PLAN", properties=properties, auto_sync=True)
+    def __init__(self, scope=None, properties=None):
+        self.scope = scope
+        super().__init__(type="PLAN", properties=properties)
 
         # start
         self._start()
@@ -59,22 +63,22 @@ class Plan(dag_utils.DAG):
     def _init_data(self):
         super()._init_data()
 
-        self._set_data("context", {"scope": self.prefix})
-        self._set_data("status", Status.INACTIVE)
-        self._set_data("entities", {})
-        self._set_data("streams", {})
+        self.set_data("context", {"scope": self.scope})
+        self.set_status(Status.INACTIVE)
+        self.set_data("agents", {})
+        self.set_data("streams", {})
 
     # properties
     def _initialize_properties(self):
         super()._initialize_properties()
 
         # db connectivity
-        self.properties['db.host'] = 'localhost'
-        self.properties['db.port'] = 6379
+        self.set_property('db.host', 'localhost')
+        self.set_property('db.port', 6379)
 
-    # basics, context, scope, status
+    # context, scope
     def get_context(self):
-        return self._get_data("context")
+        return self.get_data("context")
 
     def get_scope(self):
         context = self.get_context()
@@ -83,16 +87,14 @@ class Plan(dag_utils.DAG):
         else:
             return None
 
+    # status
     def set_status(self, status, sync=False):
-        self._set_data("status", status)
-
-        # sync
-        if sync:
-            self.synchronize(path="$.status")
+        self.set_data("status", str(status), sync=sync)
 
     def get_status(self):
-        return self._get_data('status')
+        return self.get_data('status')
 
+    #### plan specific nodes, agents
     # inputs, outputs, agents, w/input and output parameters
     def _get_default_label(self, agent, input=None, output=None):
         label = agent
@@ -104,364 +106,260 @@ class Plan(dag_utils.DAG):
 
         return label
 
-    def define_input(self, name, value=None, stream=None, properties={}, sync=False):
-        input_node = super().create_node(name, type=NodeType.INPUT, properties=properties)
-
-        # canonical name
-        input_node._set_data('canonical_name', input_node.get_label())
+    def define_input(self, label=None, value=None, stream=None, properties={}, sync=False):
+        if label is None:
+            raise Exception("Label is not specified")
+        input_node = self.create_node(label=label, type=str(NodeType.INPUT), properties=properties, sync=sync)
 
         # input value/stream
-        input_node._set_data('value', value)
-        input_node._set_data('stream', stream)
-
-        # references to entities
-        input_node._set_data('parent', None)
-        input_node._set_data('children', [])
-
-        # checks
-        if name is None:
-            raise Exception("Name is not specified")
-        label = name
-        if label in self._plan_spec['label2id']:
-            raise Exception("Labels should be unique")
+        input_node.set_data('value', value, sync=sync)
 
         # add stream, if assigned
         if stream:
-            self.set_node_stream(label, stream, save=save)
+            self.set_node_stream(label, stream, sync=sync)
 
-        return node
+        return input_node
 
-    def define_output(self, name, value=None, stream=None, properties={}, save=False):
-        # checks
-        if name is None:
-            raise Exception("Name is not specified")
-        label = name
-        if label in self._plan_spec['label2id']:
-            raise Exception("Labels should be unique")
+    def define_output(self, label=None, value=None, stream=None, properties={}, sync=False):
+        if label is None:
+            raise Exception("Label is not specified")
+        output_node = self.create_node(label=label, type=str(NodeType.OUTPUT), properties=properties, sync=sync)
 
-        # create node
-        node = {}
-        id = node['id'] = uuid_utils.create_uuid()
-        node['name'] = name
-        node['label'] = label
-        node['canonical_name'] = label
-        node['type'] = NodeType.OUTPUT
-        node['value'] = value
-        node['stream'] = stream
-        node['properties'] = properties
-        node['parent'] = None
-        node['children'] = []
-        node['prev'] = []
-        node['next'] = []
-
-        # add to plan
-        self._plan_spec['nodes'][id] = node
-        self._plan_spec['label2id'][label] = id
-        # save
-        if save:
-            self.save(path="$.nodes[']" + id + "']")
-            self.save(path="$.label2id['" + label + "']")
+        # output value/stream
+        output_node.set_data('value', value, sync=sync)
 
         # add stream, if assigned
         if stream:
-            self.set_node_stream(label, stream, save=save)
+            self.set_node_stream(label, stream, sync=sync)
 
-        return node
+        return output_node
 
-    def define_agent(self, name, label=None, properties={}, save=False):
+    def define_agent(self, name=None, label=None, properties={}, sync=False):
         # checks
         if name is None:
             raise Exception("Name is not specified")
+
         if label is None:
             label = name
-        if Agent.SEPARATOR in label:
-            raise Exception("Label should not contain: " + Agent.SEPARATOR)
-        if label in self._plan_spec['label2id']:
-            raise Exception("Labels should be unique")
+        agent = self.create_agent(label=label, properties=properties, sync=sync)
 
-        # create node
-        node = {}
-        id = node['id'] = uuid_utils.create_uuid()
-        node['name'] = name
-        node['label'] = label
-        # agent with a label is considered as derivative agent
-        # e.g. OPENAI agent with label is OPENAI___X, etc.
+        agent.set_data("name", name)
         canonical_name = name if label == name else name + Agent.SEPARATOR + label
-        node['canonical_name'] = canonical_name
-        node['type'] = NodeType.AGENT
-        node['value'] = None
-        node['stream'] = None
-        node['properties'] = properties
-        node['parent'] = None
-        node['children'] = []
-        node['prev'] = []
-        node['next'] = []
+        agent.set_data("canonical_name", canonical_name)
+        agent.set_data('children', [])
 
-        # add to plan
-        self._plan_spec['nodes'][id] = node
-        self._plan_spec['label2id'][label] = id
-        self._plan_spec['label2id'][canonical_name] = id
-        # save
-        if save:
-            self.save(path="$.nodes[']" + id + "']")
-            self.save(path="$.label2id['" + label + "']")
-            self.save(path="$.label2id['" + canonical_name + "']")
+        # add canonical_name to map
+        self.map(canonical_name, agent.get_id(), sync=sync)
 
-        return node
+        return agent
 
-    def define_agent_input(self, name, agent, stream=None, properties={}, save=False):
+    def define_agent_input(self, name=None, agent=None, stream=None, properties={}, sync=False):
         # checks
         if name is None:
             raise Exception("Name is not specified")
         if agent is None:
             raise Exception("Agent is not specified")
 
-        # get agent name
-        agent_id = None
-        agent_canonical_name = None
-        agent_node = self.get_node(agent)
-        if agent_node:
-            agent_id = agent_node['id']
-            agent_canonical_name = agent_node['canonical_name']
+        # get agent agent
+        agent = self.get_agent(agent)
+
+        if agent:
+            agent_id = agent.get_id()
+            agent_canonical_name = agent.get_data("canonical_name")
         else:
             raise Exception("Agent is not in defined")
 
         label = self._get_default_label(agent_canonical_name, input=name)
-        if label in self._plan_spec['label2id']:
-            raise Exception("Labels should be unique")
 
-        # create node
-        node = {}
-        id = node['id'] = uuid_utils.create_uuid()
-        node['name'] = name
-        node['label'] = label
-        node['canonical_name'] = label
-        node['type'] = NodeType.AGENT_INPUT
-        node['value'] = None
-        node['stream'] = None
-        node['properties'] = properties
-        node['parent'] = agent_id
-        node['children'] = []
-        node['prev'] = []
-        node['next'] = []
+        # agent input node
+        agent_input_node = self.create_node(label=label, type=str(NodeType.AGENT_INPUT), properties=properties, sync=sync)
+        agent_input_node.set_data("canonical_name", label, sync=sync)
+        agent_input_node.set_data("value", None, sync=sync)
+        agent_input_node.set_data("stream", None, sync=sync)
+        agent_input_node.set_data("parent", agent_id, sync=sync)
 
-        # agent attributes
-        agent_node['children'].append(id)
-
-        # add to plan
-        self._plan_spec['nodes'][id] = node
-        self._plan_spec['label2id'][label] = id
-        # save
-        if save:
-            self.save(path="$.nodes[']" + id + "']")
-            self.save(path="$.label2id['" + label + "']")
-            self.save(path="$.nodes['" + agent_id + "'].children")
+        # agent
+        agent.append_data('children', agent_input_node.get_id(), sync=sync)
 
         # add stream, if assigned
         if stream:
-            self.set_node_stream(label, stream, save=save)
+            self.set_node_stream(label, stream, sync=sync)
 
-        return node
+        return agent_input_node
 
-    def define_agent_output(self, name, agent, properties={}, save=False):
+    def define_agent_output(self, name, agent, properties={}, sync=False):
         # checks
         if name is None:
             raise Exception("Name is not specified")
         if agent is None:
             raise Exception("Agent is not specified")
 
-        # get agent name
-        agent_id = None
-        agent_canonical_name = None
-        agent_node = self.get_node(agent)
-        if agent_node:
-            agent_id = agent_node['id']
-            agent_canonical_name = agent_node['canonical_name']
+        # get agent agent
+        agent = self.get_agent(agent)
+
+        if agent:
+            agent_id = agent.get_id()
+            agent_canonical_name = agent.get_data("canonical_name")
         else:
             raise Exception("Agent is not in defined")
 
         label = self._get_default_label(agent_canonical_name, output=name)
-        if label in self._plan_spec['label2id']:
-            raise Exception("Labels should be unique")
 
-        # create node
-        node = {}
-        id = node['id'] = uuid_utils.create_uuid()
-        node['name'] = name
-        node['label'] = label
-        node['canonical_name'] = label
-        node['type'] = NodeType.AGENT_OUTPUT
-        node['value'] = None
-        node['stream'] = None
-        node['properties'] = properties
-        node['parent'] = agent_id
-        node['children'] = []
-        node['prev'] = []
-        node['next'] = []
+        # agent output node
+        agent_output_node = self.create_node(label=label, type=str(NodeType.AGENT_OUTPUT), properties=properties, sync=sync)
+        agent_output_node.set_data("canonical_name", label, sync=sync)
+        agent_output_node.set_data("value", None, sync=sync)
+        agent_output_node.set_data("stream", None, sync=sync)
+        agent_output_node.set_data("parent", agent_id, sync=sync)
 
-        # agent attributes
-        agent_node['children'].append(id)
+        # agent
+        agent.append_data('children', agent_output_node.get_id(), sync=sync)
 
-        # add to plan
-        self._plan_spec['nodes'][id] = node
-        self._plan_spec['label2id'][label] = id
-        # save
-        if save:
-            self.save(path="$.nodes[']" + id + "']")
-            self.save(path="$.label2id['" + label + "']")
-            self.save(path="$.nodes['" + agent_id + "'].children")
+        return agent_output_node
 
-        return node
-
-    # node functions
-
-    def get_nodes_by_stream(self, stream, node_type=None):
-        nodes = []
-        if stream in self._plan_spec['streams']:
-            ids = self._plan_spec['streams'][stream]['nodes']
-            for id in ids:
-                node = self.get_node(id)
-                if node_type:
-                    if type(node_type) == list:
-                        if node['type'] in node_type:
-                            nodes.append(node)
-                    else:
-                        if node['type'] == node_type:
-                            nodes.append(node)
-                else:
-                    nodes.append(node)
-        return nodes
-
-    def get_node(self, n):
-        node = None
-        if n in self._plan_spec['nodes']:
-            node = self.get_node_by_id(n)
-        else:
-            node = self.get_node_by_label(n)
-        return node
-
-    def get_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
-        nodes = {}
-
-        for node_id in self._plan_spec['nodes']:
-            node = self.get_node_by_id(node_id)
-            node_type = node['type']
-            prev = node['prev']
-            next = node['next']
-
-            if filter_node_type:
-                if node_type not in filter_node_type:
-                    continue
-
-            if filter_hasPrev:
-                if len(prev) == 0:
-                    continue
-
-            if filter_hasNext:
-                if len(next) == 0:
-                    continue
-
-            nodes[node_id] = node
-
-        return nodes
-
-    def count_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
-        nodes = self.get_nodes(filter_node_type=filter_node_type, filter_hasPrev=filter_hasPrev, filter_hasNext=filter_hasNext)
-        return len(nodes)
-
-    def is_node_leaf(self, n):
-        node = self.get_node(n)
-        prev = node['prev']
-        next = node['next']
-
-        if len(prev) > 0 and len(next) == 0:
-            return True
-        else:
+    ### agent
+    def _verify_agent(self, label=None, type=None, properties=None):
+        # verify if label is unique
+        if label and self.is_mapped(label):
             return False
 
-    # sync
-    def synchronize(self, path, value):
-        if self.synchronizer is None:
-            raise Exception("No sychronized function set")
+        if Agent.SEPARATOR in label:
+            return False
 
-        if path is None:
-            path = self.path
-            value = self.__data__
+        return True
 
-        # TODO: implement sync
+    def create_agent(self, label=None, properties=None, sync=False):
+        # verify agent, first
+        if not self._verify_agent(label=label, type=type, properties=properties):
+            raise Exception("Cannot create agent due to failed varification")
 
-    # start
-    def _start(self):
-        self._start_connection()
+        # create agent entity
+        agent = dag_utils.Entity(
+            label=label, type=str(EntityType.AGENT), properties=properties, path=self.path + "." + self.get_id() + ".agents", synchronizer=self.synchronizer, auto_sync=self.auto_sync
+        )
+        agent_id = agent.get_id()
+        agent_label = agent.get_label()
 
-        self.leaves = None
+        # add to agents
+        agents = self.get_agents()
+        agents[agent_id] = agent.get_data()
 
-    def _start_connection(self):
-        self.connection_factory = PooledConnectionFactory(properties=self.properties)
-        self.connection = self.connection_factory.get_connection()
+        # add to map
+        if label:
+            self.map(agent_label, agent_id, sync=sync)
 
-    @classmethod
-    def _verify_plan_spec(cls, plan_spec):
-        # TODO: Do more verification, in regards to steps, context streams
-        if type(plan_spec) == dict:
-            if 'id' not in plan_spec:
-                return None
-            if 'nodes' not in plan_spec:
-                return None
-            if 'streams' not in plan_spec:
-                return None
-            if 'context' not in plan_spec:
-                return None
-            context = plan_spec['context']
-            if 'scope' not in context:
-                return None
+        return agent
+
+    def get_agents(self):
+        return self.get_data("agents")
+
+    def get_agent(self, a, cls=None):
+        agent = self.get_agent_by_id(a, cls=cls)
+        if agent is None:
+            agent = self.get_agent_by_label(a, cls=cls)
+        return agent
+
+    def get_agent_by_id(self, agent_id, cls=None):
+        agents = self.get_agents()
+        if agent_id in agents:
+            agent_data = agents[agent_id]
+            if cls is None:
+                cls = dag_utils.Entity
+            return cls.from_dict(agent_data, path=self.path + "." + self.get_id() + ".agents", synchronizer=self.synchronizer, auto_sync=self.auto_sync)
         else:
             return None
-        return plan_spec
 
-    # build a declaratively, from a json spec
-    @classmethod
-    def from_json(cls, plan_spec, save=False):
-        if type(plan_spec) == str:
-            try:
-                plan_spec = json.loads(plan_spec)
-            except:
-                plan_spec = None
+    def get_agent_by_label(self, agent_label, cls=None):
+        map = self.get_data("map")
+        agent = None
+        if agent_label in map:
+            agent_id = map[agent_label]
+            agent = self.get_agent_by_id(agent_id)
+        return agent
 
-        # verify plan
-        plan_spec = Plan._verify_plan_spec(plan_spec)
+    ### stream
+    def _verify_stream(self, label=None, type=None, properties=None):
+        # verify if label is unique
+        if label and self.is_mapped(label):
+            return False
 
-        if plan_spec:
-            id = plan_spec['id']
-            scope = plan_spec['context']['scope']
-            properties = plan_spec['properties']
+        return True
 
-            # create instance
-            plan = cls(id=id, scope=scope, properties=properties)
+    def create_stream(self, label=None, properties=None, sync=False):
+        # verify stream, first
+        if not self._verify_stream(label=label, type=type, properties=properties):
+            raise Exception("Cannot create stream due to failed varification")
 
-            # set spec
-            plan._plan_spec = plan_spec
+        # create stream
+        stream = dag_utils.Entity(
+            label=label, type=str(EntityType.STREAM), properties=properties, path=self.path + "." + self.get_id() + ".streams", synchronizer=self.synchronizer, auto_sync=self.auto_sync
+        )
+        stream_id = stream.get_id()
+        stream_label = stream.get_label()
 
-            if save:
-                plan.save()
+        # add to streams
+        streams = self.get_streams()
+        streams[stream_id] = stream.get_data()
 
-            # return
-            return plan
-        else:
-            raise Exception("Invalid plan spec")
+        # add to map
+        if label:
+            self.map(stream_label, stream_id, sync=sync)
 
-    def to_json(self):
-        return json.dumps(self._plan_spec)
+        return stream
 
     def get_streams(self):
-        return self._plan_spec['streams']
+        return self.get_data("streams")
+
+    def get_stream(self, a, cls=None):
+        stream = self.get_stream_by_id(a, cls=cls)
+        if stream is None:
+            stream = self.get_stream_by_label(a, cls=cls)
+        return stream
+
+    def get_stream_by_id(self, stream_id, cls=None):
+        streams = self.get_streams()
+        if stream_id in streams:
+            stream_data = streams[stream_id]
+            if cls is None:
+                cls = dag_utils.Entity
+            return cls.from_dict(stream_data, path=self.path + "." + self.get_id() + ".streams", synchronizer=self.synchronizer, auto_sync=self.auto_sync)
+        else:
+            return None
+
+    def get_stream_by_label(self, stream_label, cls=None):
+        map = self.get_data("map")
+        stream = None
+        if stream_label in map:
+            stream_id = map[stream_label]
+            stream = self.get_stream_by_id(stream_id)
+        return stream
+
+    def get_nodes_by_stream(self, s, node_type=None):
+        stream = self.get_stream(s)
+        if stream is None:
+            return []
+        nodes = []
+
+        ids = stream.get_data("nodes")
+        for id in ids:
+            node = self.get_node(id)
+            if node_type:
+                if type(node_type) == list:
+                    if node.get_type() in node_type:
+                        nodes.append(node)
+                else:
+                    if node.get_type() == node_type:
+                        nodes.append(node)
+            else:
+                nodes.append(node)
+        return nodes
 
     def count_streams(self, filter_status=None):
         count = 0
         streams = self.get_streams()
         for stream_id in streams:
-            stream = streams[stream_id]
-            status = stream['status']
+            stream = self.get_stream(stream_id)
+            status = stream.get_data("status")
 
             if filter_status:
                 if status not in filter_status:
@@ -476,21 +374,17 @@ class Plan(dag_utils.DAG):
         if node is None:
             raise Exception("Value for non-existing node cannot be get")
 
-        value = node['value']
+        value = node.get_data("value")
 
         if value is None:
             return self.fetch_node_value_from_stream(n)
 
-    def set_node_value_from_stream(self, n, save=False):
+    def set_node_value_from_stream(self, n, sync=False):
         node = self.get_node(n)
         if node is None:
             raise Exception("Value for non-existing node cannot be get")
 
-        node['value'] = self.fetch_node_value_from_stream(n)
-
-        if save:
-            id = node['id']
-            self.save(path="$.nodes['" + id + "'].value")
+        node.set_data("value", self.fetch_node_value_from_stream(n), sync=sync)
 
     def fetch_node_value_from_stream(self, n):
         node = self.get_node(n)
@@ -498,168 +392,73 @@ class Plan(dag_utils.DAG):
             raise Exception("Value for non-existing node cannot be get")
 
         # get from stream
-        stream = node['stream']
-        stream_status = self.get_stream_status(stream)
+        stream_id = node.get_data("stream")
+        stream = self.get_stream(stream_id)
+        stream_status = stream.get_data("status")
         if stream_status == Status.FINISHED:
             return self.get_stream_value(stream)
 
         return None
 
-    def set_node_value(self, n, value, save=False):
-        node = self.get_node(n)
-        if node is None:
-            raise Exception("Value for non-existing node cannot be set")
-
-        node['value'] = value
-
-        if save:
-            id = node['id']
-            self.save(path="$.nodes['" + id + "'].value")
-
-    def set_node_stream(self, n, stream, save=False):
+    def set_node_stream(self, n, stream, sync=False):
         node = self.get_node(n)
         if node is None:
             raise Exception("Stream for non-existing node cannot be set")
 
-        node['stream'] = stream
-        id = node['id']
+        node_id = node.get_id()
 
-        if stream in self._plan_spec['streams']:
-            # add node
-            self._plan_spec['streams'][stream]['nodes'].append(id)
+        if stream is None:
+            node.set_data("stream", None, sync=sync)
         else:
-            self._plan_spec['streams'][stream] = {"nodes": [id], "status": Status.INITED, "value": None}
+            stream_node = self.get_stream(stream)
+            if stream_node is None:
+                stream_node = self.create_stream(label=stream, sync=sync)
+                stream_node.set_data("nodes", [], sync=sync)
+                stream_node.set_data("status", str(Status.INITED), sync=sync)
+                stream_node.set_data("value", None, sync=sync)
 
-        if save:
-            self.save(path="$.nodes['" + id + "'].stream")
-            self.save(path="$.streams['" + stream + "']")
+            stream_node.append_data("nodes", node_id, sync=sync)
+            node.set_data("stream", stream_node.get_id(), sync=sync)
 
     def get_node_stream(self, n):
         node = self.get_node(n)
         if node is None:
             raise Exception("Stream for non-existing node cannot be get")
 
-        return node['stream']
+        return node.get_data("stream")
 
-    def get_node_properties(self, n):
-        node = self.get_node(n)
-        if node is None:
-            raise Exception("Properties for non-existing node cannot be get")
+    # status, value
+    def set_stream_status(self, s, status, sync=False):
+        stream = self.get_stream(s)
+        if stream:
+            stream.set_data("status", str(status), sync=sync)
 
-        return node['properties']
+    def get_stream_status(self, s):
+        stream = self.get_stream(s)
+        if stream:
+            return stream.get_data("status")
+        return None
 
-    def get_node_property(self, n, property):
-        node = self.get_node(n)
-        if node is None:
-            raise Exception("Properties for non-existing node cannot be get")
+    def set_stream_value(self, s, value, sync=False):
+        stream = self.get_stream(s)
+        if stream:
+            stream.set_data("value", value, sync=sync)
 
-        properties = node['properties']
-        if property in properties:
-            return properties[property]
-        else:
-            return None
+    def append_stream_value(self, s, value, sync=False):
+        stream = self.get_stream(s)
+        if stream:
+            stream.append_data("value", value, sync=sync)
 
-    def set_node_properties(self, n, properties, save=False):
-        node = self.get_node(n)
-        if node is None:
-            raise Exception("Properties for non-existing node cannot be set")
+    def get_stream_value(self, s):
+        stream = self.get_stream(s)
+        if stream:
+            return stream.get_data("value")
+        return None
 
-        node['properties'] = properties
-
-        if save:
-            self.save(path="$.nodes['" + id + "'].properties")
-
-    def set_node_property(self, n, property, value, save=False):
-        node = self.get_node(n)
-        if node is None:
-            raise Exception("Properties for non-existing node cannot be set")
-
-        properties = node['properties']
-        properties[property] = value
-
-        if save:
-            self.save(path="$.nodes['" + id + "'].properties['" + property + "']")
-
-    def get_node_type(self, n):
-        node = self.get_node(n)
-
-        return node['type']
-
-    def get_parent_node(self, n):
-        node = self.get_node(n)
-
-        parent_id = node['parent']
-        parent_node = self.get_node_by_id(parent_id)
-
-        return parent_node
-
-    def get_prev_nodes(self, n):
-        node = self.get_node(n)
-        prev_nodes = []
-        if node:
-            prev_ids = node['prev']
-            for prev_id in prev_ids:
-                prev_node = self.get_node_by_id(prev_id)
-                if prev_node:
-                    prev_nodes.append(prev_node)
-
-        return prev_nodes
-
-    def get_next_nodes(self, n):
-        node = self.get_node(n)
-        next_nodes = []
-        if node:
-            next_ids = node['next']
-            for next_id in next_ids:
-                next_node = self.get_node_by_id(next_id)
-                if next_node:
-                    next_nodes.append(next_node)
-
-        return next_nodes
-
-    # stream functions
-    def set_stream_status(self, stream, status, save=False):
-        if stream in self._plan_spec['streams']:
-            self._plan_spec['streams'][stream]['status'] = status
-
-            if save:
-                self.save(path="$.streams['" + stream + "'].status")
-
-    def get_stream_status(self, stream):
-        if stream in self._plan_spec['streams']:
-            return self._plan_spec['streams'][stream]['status']
-        else:
-            return None
-
-    def set_stream_value(self, stream, value, save=False):
-        if stream in self._plan_spec['streams']:
-            self._plan_spec['streams'][stream]['value'] = value
-
-            if save:
-                self.save(path="$.streams['" + stream + "'].value")
-
-    def append_stream_value(self, stream, value, save=False):
-        if stream in self._plan_spec['streams']:
-            va = self._plan_spec['streams'][stream]['value']
-            if va is None:
-                va = []
-                self._plan_spec['streams'][stream]['value'] = va
-
-            va.append(value)
-
-            if save:
-                self.save(path="$.streams['" + stream + "'].value")
-
-    def get_stream_value(self, stream):
-        if stream in self._plan_spec['streams']:
-            return self._plan_spec['streams'][stream]['value']
-        else:
-            return None
-
-    # stream discovery
+    # discovery
     def match_stream(self, stream):
         node = None
-        stream_prefix = self.get_scope() + ":" + self.sid
+        stream_prefix = self.get_scope() + ":" + "PLAN" + self.get_id()
         if stream.find(stream_prefix) == 0:
             s = stream[len(stream_prefix) + 1 :]
             ss = s.split(":")
@@ -673,26 +472,84 @@ class Plan(dag_utils.DAG):
 
         return node
 
+    # node functions
+    def set_node_value(self, n, value, sync=False):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Value for non-existing node cannot be set")
+
+        node.set_data("value", value, sync=sync)
+
+    def get_node_properties(self, n):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Properties for non-existing node cannot be get")
+
+        return node.get_properties()
+
+    def get_node_property(self, n, property):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Properties for non-existing node cannot be get")
+
+        return node.get_property(property)
+
+    def set_node_properties(self, n, properties, sync=False):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Properties for non-existing node cannot be set")
+
+        for property in properties:
+            node.set_property(property, properties[property], sync=sync)
+
+    def set_node_property(self, n, property, value, sync=False):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Properties for non-existing node cannot be set")
+
+        node.set_property(property, value, sync=sync)
+
+    def get_node_type(self, n):
+        node = self.get_node(n)
+
+        if node is None:
+            raise Exception("Type for non-existing node cannot be get")
+
+        return node.get_type()
+
+    def get_parent_node(self, n):
+        node = self.get_node(n)
+
+        parent_id = node.get_data("parent")
+        parent_node = self.get_agent(parent_id)
+
+        return parent_node
+
+    def get_prev_nodes(self, n):
+        node = self.get_node(n)
+        prev_nodes = []
+        if node:
+            prev_ids = node.get_data('prev')
+            for prev_id in prev_ids:
+                prev_node = self.get_node_by_id(prev_id)
+                if prev_node:
+                    prev_nodes.append(prev_node)
+
+        return prev_nodes
+
+    def get_next_nodes(self, n):
+        node = self.get_node(n)
+        next_nodes = []
+        if node:
+            next_ids = node.get_data('next')
+            for next_id in next_ids:
+                next_node = self.get_node_by_id(next_id)
+                if next_node:
+                    next_nodes.append(next_node)
+
+        return next_nodes
+
     ## connections
-    def _connect(self, f, t, save=False):
-        from_node = self.get_node(f)
-        to_node = self.get_node(t)
-
-        if from_node is None:
-            raise Exception("Non-existing node cannot be connected")
-        if to_node is None:
-            raise Exception("Non-existing node cannot be connected")
-
-        from_id = from_node['id']
-        to_id = to_node['id']
-
-        from_node['next'].append(to_id)
-        to_node['prev'].append(from_id)
-
-        if save:
-            self.save(path="$.nodes['" + from_id + "'].next")
-            self.save(path="$.nodes['" + to_id + "'].prev")
-
     def _resolve_input_output_node_id(self, input=None, output=None):
         n = None
         if input:
@@ -707,11 +564,11 @@ class Plan(dag_utils.DAG):
         if node is None:
             # create node
             if input:
-                node = self.define_input(input)
+                node = self.define_input(label=input)
             elif output:
-                node = self.define_output(output)
+                node = self.define_output(label=output)
 
-        return node['id']
+        return node.get_id()
 
     def _resolve_agent_param_node_id(self, agent=None, agent_param=None, node_type=None):
         node_id = None
@@ -719,11 +576,11 @@ class Plan(dag_utils.DAG):
             if agent_param is None:
                 agent_param = "DEFAULT"
 
-            agent_node = self.get_node(agent)
+            agent_node = self.get_agent(agent)
             if agent_node is None:
-                agent_node = self.define_agent(agent)
+                agent_node = self.define_agent(name=agent)
 
-            agent_canonical_name = agent_node['canonical_name']
+            agent_canonical_name = agent_node.get_data("canonical_name")
             label = None
             if node_type == NodeType.AGENT_INPUT:
                 label = self._get_default_label(agent_canonical_name, input=agent_param)
@@ -733,54 +590,45 @@ class Plan(dag_utils.DAG):
             agent_param_node = self.get_node(label)
             if agent_param_node is None:
                 if node_type == NodeType.AGENT_INPUT:
-                    agent_param_node = self.define_agent_input(agent_param, agent)
+                    agent_param_node = self.define_agent_input(name=agent_param, agent=agent)
                 elif node_type == NodeType.AGENT_OUTPUT:
-                    agent_param_node = self.define_agent_output(agent_param, agent)
+                    agent_param_node = self.define_agent_output(name=agent_param, agent=agent)
 
-            node_id = agent_param_node['id']
+            node_id = agent_param_node.get_id()
 
         elif agent_param:
             agent_param_node = self.get_node(agent_param)
-            node_id = agent_param_node['id']
+            node_id = agent_param_node.get_id()
         else:
             raise Exception("Non-existing agent input/output cannot be connected")
 
         return node_id
 
-    def connect_input_to_agent(self, from_input=None, to_agent=None, to_agent_input=None, save=False):
+    def connect_input_to_agent(self, from_input=None, to_agent=None, to_agent_input=None, sync=False):
 
         from_id = self._resolve_input_output_node_id(input=from_input)
         to_id = self._resolve_agent_param_node_id(agent=to_agent, agent_param=to_agent_input, node_type=NodeType.AGENT_INPUT)
-        self._connect(from_id, to_id, save=save)
+        self.connect_nodes(from_id, to_id, sync=sync)
 
-    def connect_agent_to_agent(self, from_agent=None, from_agent_output=None, to_agent=None, to_agent_input=None, save=False):
+    def connect_agent_to_agent(self, from_agent=None, from_agent_output=None, to_agent=None, to_agent_input=None, sync=False):
 
         from_id = self._resolve_agent_param_node_id(agent=from_agent, agent_param=from_agent_output, node_type=NodeType.AGENT_OUTPUT)
         to_id = self._resolve_agent_param_node_id(agent=to_agent, agent_param=to_agent_input, node_type=NodeType.AGENT_INPUT)
-        self._connect(from_id, to_id, save=save)
+        self.connect_nodes(from_id, to_id, sync=sync)
 
-    def connect_agent_to_output(self, from_agent=None, from_agent_output=None, to_output=None, save=False):
+    def connect_agent_to_output(self, from_agent=None, from_agent_output=None, to_output=None, sync=False):
 
         from_id = self._resolve_agent_param_node_id(agent=from_agent, agent_param=from_agent_output, node_type=NodeType.AGENT_OUTPUT)
         to_id = self._resolve_input_output_node_id(output=to_output)
-        self._connect(from_id, to_id, save=save)
+        self.connect_nodes(from_id, to_id, sync=sync)
 
-    def connect_input_to_output(self, from_input=None, to_output=None, save=False):
+    def connect_input_to_output(self, from_input=None, to_output=None, sync=False):
 
         from_id = self._resolve_input_output_node_id(input=from_input)
         to_id = self._resolve_input_output_node_id(output=to_output)
-        self._connect(from_id, to_id, save=save)
+        self.connect_nodes(from_id, to_id, sync=sync)
 
-    ## Stream I/O
-    def _safe_json(self, o):
-        if type(o) == dict:
-            s = json.dumps(o, cls=ConstantEncoder)
-            return json.loads(s)
-        elif isinstance(o, Constant):
-            return str(o)
-        else:
-            return o
-
+    # plan execution i/o
     def _write_to_stream(self, worker, data, output, tags=None, eos=True):
         # tags
         if tags is None:
@@ -801,8 +649,9 @@ class Plan(dag_utils.DAG):
         return self._write_to_stream(worker, data, output, eos=eos)
 
     def _write_plan_spec(self, worker, eos=True):
-        return self._write_to_stream(worker, self._plan_spec, "PLAN", tags=["PLAN"], eos=eos)
+        return self._write_to_stream(worker, self.get_data(), "PLAN", tags=["PLAN"], eos=eos)
 
+    # plan execution status/checks
     def _detect_leaves(self):
         self.leaves = []
 
@@ -811,7 +660,7 @@ class Plan(dag_utils.DAG):
             if self.is_node_leaf(node_id):
                 self.leaves.append(node_id)
 
-    def check_status(self, save=False):
+    def check_status(self, sync=False):
         if self.leaves is None:
             self._detect_leaves()
 
@@ -819,7 +668,7 @@ class Plan(dag_utils.DAG):
 
         for leaf_id in self.leaves:
             leaf_node = self.get_node(leaf_id)
-            leaf_stream = leaf_node['stream']
+            leaf_stream = leaf_node.get_data("stream")
             if leaf_stream is None:
                 status = Status.RUNNING
                 break
@@ -828,31 +677,32 @@ class Plan(dag_utils.DAG):
                 status = Status.RUNNING
                 break
 
-        self.set_status(status, save=save)
+        self.set_status(status, sync=sync)
         return status
 
+    # plan submit
     def submit(self, worker):
         # process inputs with initialized values, if any
-        nodes = self._plan_spec['nodes']
+        nodes = self.get_nodes()
         for node_id in nodes:
-            node = nodes[node_id]
+            node = self.get_node(node_id)
 
             # inputs
-            if node['type'] == NodeType.INPUT:
-                if node['value']:
-                    data = node['value']
-                    label = node['label']
+            if node.get_type() == NodeType.INPUT:
+                node_value = node.get_data("value")
+                if node_value:
+                    node_label = node.get_label()
                     # write data for input
-                    stream = self._write_data(worker, data, label)
+                    stream = self._write_data(worker, node_value, node_label)
                     # set stream for node
                     self.set_node_stream(node_id, stream)
             # outputs
-            if node['type'] == NodeType.OUTPUT:
-                if node['value']:
-                    data = node['value']
-                    label = node['label']
+            if node.get_type() == NodeType.OUTPUT:
+                node_value = node.get_data("value")
+                if node_value:
+                    node_label = node.get_label()
                     # write data for output
-                    stream = self._write_data(worker, data, label)
+                    stream = self._write_data(worker, node_value, node_label)
                     # set stream for node
                     self.set_node_stream(node_id, stream)
 
@@ -864,14 +714,55 @@ class Plan(dag_utils.DAG):
 
     # persistence
     def _get_plan_data_namespace(self):
-        return self.cid + ":DATA"
+        return self.scope + ":" + "PLAN" + ":" + self.get_id() + ":DATA"
 
-    def save(self, path=None):
-        if path is None:
-            path = "$"
+    # sync
+    def synchronizer(self, path, key, value):
+        print("synchronize: " + str(path) + "." + str(key) + "=" + json.dumps(value))
+        self.connection.json().set(self._get_plan_data_namespace(), path + "." + key, value)
 
-        data = json_utils.json_query(self._plan_spec, path, single=True)
+    # start
+    def _start(self):
+        self._start_connection()
 
-        safe_data = self._safe_json(data)
+        self.leaves = None
 
-        self.connection.json().set(self._get_plan_data_namespace(), path, safe_data)
+    def _start_connection(self):
+        self.connection_factory = PooledConnectionFactory(properties=self.get_properties())
+        self.connection = self.connection_factory.get_connection()
+
+    @classmethod
+    def _validate(cls, d):
+        dv = super(Plan, cls)._validate(d)
+        if dv is None:
+            return None
+        if 'context' not in dv:
+            return None
+        else:
+            context = dv['context']
+            if 'scope' not in context:
+                return None
+        if 'agents' not in dv:
+            dv['agents'] = {}
+        if 'streams' not in dv:
+            dv['streams'] = {}
+
+        return dv
+
+    @classmethod
+    def from_dict(cls, d, path=None, synchronizer=None, auto_sync=False):
+        d = cls._validate(d)
+        if d:
+            b = cls()
+            # hard-set data
+            b.__data__ = d
+            b.path = path
+            b.synchronizer = synchronizer
+            b.auto_sync = auto_sync
+
+            # plan specific
+            scope = d['context']['scope']
+            b.scope = scope
+            return b
+        else:
+            raise Exception("Failed validation")
