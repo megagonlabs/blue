@@ -63,7 +63,7 @@ class CoordinatorAgent(Agent):
     def initialize_plan(self, plan, worker=None):
 
         # get plan id
-        plan_id = plan.id
+        plan_id = plan.get_id()
 
         # set plan to track
         self.plans[plan_id] = plan
@@ -71,15 +71,12 @@ class CoordinatorAgent(Agent):
         # update status
         plan.set_status(Status.INITED)
 
-        # save plan
-        plan.save()
-
         # add agents to session
-        agents = plan.get_nodes(filter_node_type=[NodeType.AGENT])
+        agents = plan.get_agents()
         for agent_id in agents:
-            agent = plan.get_node(agent_id)
-            agent_canonical_name = agent['canonical_name']
-            agent_properties = agent['properties']
+            agent = plan.get_agent(agent_id)
+            agent_canonical_name = agent.get_data('canonical_name')
+            agent_properties = agent.get_properties()
             logging.info("Adding agent to session...")
             # extract sid from cid
             session_sid = uuid_utils.extract_sid(self.session.cid)
@@ -97,7 +94,7 @@ class CoordinatorAgent(Agent):
 
         for stream in streams:
             # plan existing streams for inputs/outputs processing
-            plan.set_stream_status(stream, Status.PLANNED, save=True)
+            plan.set_stream_status(stream, Status.PLANNED)
 
             # process nodes with streams
             self.create_worker(stream, input=plan_id)
@@ -119,9 +116,9 @@ class CoordinatorAgent(Agent):
                 # check if there is a matching node for stream
                 node = plan.match_stream(stream)
                 if node:
-                    node_id = node['id']
+                    node_id = node.get_id()
                     # assign stream to node
-                    plan.set_node_stream(node_id, stream, save=True)
+                    plan.set_node_stream(node_id, stream)
                     # process stream
                     self.create_worker(stream, input=plan_id)
 
@@ -209,14 +206,16 @@ class CoordinatorAgent(Agent):
 
                 plan = None
                 try:
-                    plan = Plan.from_json(p)
+                    plan = Plan.from_dict(p, auto_sync=True)
+                    # save
+                    plan.synchronize()
                 except Exception:
                     self.logger.info("Error reading valid plan")
 
                 if plan:
                     # start plan
                     self.initialize_plan(plan, worker=worker)
-                    plan_id = plan.id
+                    plan_id = plan.get_id()
                     # status
                     worker.write_progress(progress_id=plan_id, label='Initialized', value=0.0)
 
@@ -231,20 +230,20 @@ class CoordinatorAgent(Agent):
                 plan = self.plans[plan_id]
 
                 # set plan status
-                plan.set_status(Status.RUNNING, save=True)
+                plan.set_status(Status.RUNNING)
 
                 ### set stream status, capture value
                 if message.isBOS():
-                    plan.set_stream_status(stream, Status.RUNNING, save=True)
-                    plan.set_stream_value(stream, [], save=True)
+                    plan.set_stream_status(stream, Status.RUNNING)
+                    plan.set_stream_value(stream, [])
                 elif message.isData():
                     v = message.getData()
-                    plan.append_stream_value(stream, v, save=True)
+                    plan.append_stream_value(stream, v)
                 elif message.isEOS():
-                    plan.set_stream_status(stream, Status.FINISHED, save=True)
+                    plan.set_stream_status(stream, Status.FINISHED)
 
                     # check, update plan status
-                    plan.check_status(save=True)
+                    plan.check_status()
 
                 ###  trigger next
                 # identify node
@@ -259,7 +258,7 @@ class CoordinatorAgent(Agent):
                     if node is None:
                         return
 
-                    node_id = node['id']
+                    node_id = node.get_id()
 
                     #### from
                     f = None
@@ -270,18 +269,18 @@ class CoordinatorAgent(Agent):
                     # if from an agent output capture
                     if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
                         from_agent_node = plan.get_parent_node(node_id)
-                        from_agent = from_agent_node['canonical_name']
-                        from_agent_param = node['name']
+                        from_agent = from_agent_node.get_data('canonical_name')
+                        from_agent_param = node.get_data('name')
                         f = (from_agent, from_agent_param)
                     elif plan.get_node_type(node_id) == NodeType.INPUT:
-                        from_input = node['name']
+                        from_input = node.get_label()
                         f = from_input
 
                     #### next
                     next_nodes = plan.get_next_nodes(node_id)
 
                     for next_node in next_nodes:
-                        next_node_id = next_node['id']
+                        next_node_id = next_node.get_id()
 
                         # to
                         t = None
@@ -293,12 +292,12 @@ class CoordinatorAgent(Agent):
 
                         if plan.get_node_type(next_node_id) == NodeType.AGENT_INPUT:
                             to_agent_node = plan.get_parent_node(next_node_id)
-                            to_agent = to_agent_node['canonical_name']
-                            to_agent_id = to_agent_node['id']
-                            to_agent_param = next_node['name']
+                            to_agent = to_agent_node.get_data('canonical_name')
+                            to_agent_id = to_agent_node.get_id()
+                            to_agent_param = next_node.get_data('name')
                             t = (to_agent, to_agent_param)
                         elif plan.get_node_type(next_node_id) == NodeType.OUTPUT:
-                            to_output = next_node['name']
+                            to_output = next_node.get_label()
                             t = to_output
 
                         if t is None:
@@ -313,7 +312,7 @@ class CoordinatorAgent(Agent):
                         input_stream = self.transform_data(stream, budget, f, t)
 
                         # set next node stream
-                        plan.set_node_stream(next_node_id, input_stream, save=True)
+                        plan.set_node_stream(next_node_id, input_stream)
 
                         # write an EXECUTE_AGENT instruction
                         if input_stream:
@@ -322,7 +321,7 @@ class CoordinatorAgent(Agent):
                                 context = plan.get_scope() + ":PLAN:" + plan_id
                                 # get agent properties from registry
                                 to_agent_properties = self.registry.get_agent_properties(to_agent, recursive=True, include_params=True)
-                                to_agent_plan_properties = plan.get_node_properties(to_agent_id)
+                                to_agent_plan_properties = plan.get_agent_properties(to_agent_id)
                                 to_agent_properties = json_utils.merge_json(to_agent_properties, to_agent_plan_properties)
                                 # issue instruction
                                 worker.write_control(
@@ -339,11 +338,11 @@ class CoordinatorAgent(Agent):
                     nodes = plan.get_nodes_by_stream(stream, node_type=NodeType.OUTPUT)
 
                     for node in nodes:
-                        node_id = node['id']
-                        plan.set_node_value_from_stream(node_id, save=True)
+                        node_id = node.get_id()
+                        plan.set_node_value_from_stream(node_id)
 
                     # check, update plan status
-                    plan_status = plan.check_status(save=True)
+                    plan_status = plan.check_status()
 
                     if plan_status == Status.FINISHED:
                         worker.write_progress(progress_id=plan_id, label='Finished', value=1.0)

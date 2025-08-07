@@ -53,28 +53,31 @@ EntityType.STREAM = Constant("STREAM")
 ### Plan
 #
 class Plan(dag_utils.DAG):
-    def __init__(self, scope=None, properties=None):
-        self.scope = scope
-        super().__init__(type="PLAN", properties=properties)
 
-        # start
-        self._start()
+    def __init__(self, scope=None, id=None, label=None, type="PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
-    def _init_data(self):
-        super()._init_data()
+        s = scope
+        if isinstance(s, Session):
+            s = scope.cid
 
-        self.set_data("context", {"scope": self.scope})
-        self.set_status(Status.INACTIVE)
-        self.set_data("agents", {})
-        self.set_data("streams", {})
+        self._set_scope(s, sync=sync)
+
+    def _init_data(self, sync=None):
+        super()._init_data(sync=sync)
+
+        self.set_data("context", {"scope": None}, sync=sync)
+        self.set_status(Status.INACTIVE, sync=sync)
+        self.set_data("agents", {}, sync=sync)
+        self.set_data("streams", {}, sync=sync)
 
     # properties
-    def _initialize_properties(self):
-        super()._initialize_properties()
+    def _initialize_properties(self, sync=None):
+        super()._initialize_properties(sync=sync)
 
         # db connectivity
-        self.set_property('db.host', 'localhost')
-        self.set_property('db.port', 6379)
+        self.set_property('db.host', 'localhost', sync=sync)
+        self.set_property('db.port', 6379, sync=sync)
 
     # context, scope
     def get_context(self):
@@ -87,8 +90,14 @@ class Plan(dag_utils.DAG):
         else:
             return None
 
+    def _set_scope(self, scope, sync=None):
+        context = self.get_context()
+        context['scope'] = scope
+
+        self.synchronize(key="context.scope", value=scope)
+
     # status
-    def set_status(self, status, sync=False):
+    def set_status(self, status, sync=None):
         self.set_data("status", str(status), sync=sync)
 
     def get_status(self):
@@ -106,7 +115,7 @@ class Plan(dag_utils.DAG):
 
         return label
 
-    def define_input(self, label=None, value=None, stream=None, properties={}, sync=False):
+    def define_input(self, label=None, value=None, stream=None, properties={}, sync=None):
         if label is None:
             raise Exception("Label is not specified")
         input_node = self.create_node(label=label, type=str(NodeType.INPUT), properties=properties, sync=sync)
@@ -120,7 +129,7 @@ class Plan(dag_utils.DAG):
 
         return input_node
 
-    def define_output(self, label=None, value=None, stream=None, properties={}, sync=False):
+    def define_output(self, label=None, value=None, stream=None, properties={}, sync=None):
         if label is None:
             raise Exception("Label is not specified")
         output_node = self.create_node(label=label, type=str(NodeType.OUTPUT), properties=properties, sync=sync)
@@ -134,7 +143,7 @@ class Plan(dag_utils.DAG):
 
         return output_node
 
-    def define_agent(self, name=None, label=None, properties={}, sync=False):
+    def define_agent(self, name=None, label=None, properties={}, sync=None):
         # checks
         if name is None:
             raise Exception("Name is not specified")
@@ -153,7 +162,7 @@ class Plan(dag_utils.DAG):
 
         return agent
 
-    def define_agent_input(self, name=None, agent=None, stream=None, properties={}, sync=False):
+    def define_agent_input(self, name=None, agent=None, stream=None, properties={}, sync=None):
         # checks
         if name is None:
             raise Exception("Name is not specified")
@@ -173,6 +182,7 @@ class Plan(dag_utils.DAG):
 
         # agent input node
         agent_input_node = self.create_node(label=label, type=str(NodeType.AGENT_INPUT), properties=properties, sync=sync)
+        agent_input_node.set_data("name", name, sync=sync)
         agent_input_node.set_data("canonical_name", label, sync=sync)
         agent_input_node.set_data("value", None, sync=sync)
         agent_input_node.set_data("stream", None, sync=sync)
@@ -187,7 +197,7 @@ class Plan(dag_utils.DAG):
 
         return agent_input_node
 
-    def define_agent_output(self, name, agent, properties={}, sync=False):
+    def define_agent_output(self, name, agent, properties={}, sync=None):
         # checks
         if name is None:
             raise Exception("Name is not specified")
@@ -207,6 +217,7 @@ class Plan(dag_utils.DAG):
 
         # agent output node
         agent_output_node = self.create_node(label=label, type=str(NodeType.AGENT_OUTPUT), properties=properties, sync=sync)
+        agent_output_node.set_data("name", name, sync=sync)
         agent_output_node.set_data("canonical_name", label, sync=sync)
         agent_output_node.set_data("value", None, sync=sync)
         agent_output_node.set_data("stream", None, sync=sync)
@@ -228,14 +239,14 @@ class Plan(dag_utils.DAG):
 
         return True
 
-    def create_agent(self, label=None, properties=None, sync=False):
+    def create_agent(self, label=None, properties=None, sync=None):
         # verify agent, first
         if not self._verify_agent(label=label, type=type, properties=properties):
             raise Exception("Cannot create agent due to failed varification")
 
         # create agent entity
         agent = dag_utils.Entity(
-            label=label, type=str(EntityType.AGENT), properties=properties, path=self.path + "." + self.get_id() + ".agents", synchronizer=self.synchronizer, auto_sync=self.auto_sync
+            label=label, type=str(EntityType.AGENT), properties=properties, path=self.path + "." + self.get_id() + ".agents", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=sync
         )
         agent_id = agent.get_id()
         agent_label = agent.get_label()
@@ -265,7 +276,7 @@ class Plan(dag_utils.DAG):
             agent_data = agents[agent_id]
             if cls is None:
                 cls = dag_utils.Entity
-            return cls.from_dict(agent_data, path=self.path + "." + self.get_id() + ".agents", synchronizer=self.synchronizer, auto_sync=self.auto_sync)
+            return cls.from_dict(agent_data, path=self.path + "." + self.get_id() + ".agents", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=False)
         else:
             return None
 
@@ -277,6 +288,12 @@ class Plan(dag_utils.DAG):
             agent = self.get_agent_by_id(agent_id)
         return agent
 
+    def get_agent_properties(self, a):
+        agent = self.get_agent(a)
+        if agent:
+            return agent.get_properties()
+        return {}
+
     ### stream
     def _verify_stream(self, label=None, type=None, properties=None):
         # verify if label is unique
@@ -285,14 +302,20 @@ class Plan(dag_utils.DAG):
 
         return True
 
-    def create_stream(self, label=None, properties=None, sync=False):
+    def create_stream(self, label=None, properties=None, sync=None):
         # verify stream, first
         if not self._verify_stream(label=label, type=type, properties=properties):
             raise Exception("Cannot create stream due to failed varification")
 
         # create stream
         stream = dag_utils.Entity(
-            label=label, type=str(EntityType.STREAM), properties=properties, path=self.path + "." + self.get_id() + ".streams", synchronizer=self.synchronizer, auto_sync=self.auto_sync
+            label=label,
+            type=str(EntityType.STREAM),
+            properties=properties,
+            path=self.path + "." + self.get_id() + ".streams",
+            synchronizer=self.synchronizer,
+            auto_sync=self.auto_sync,
+            sync=sync,
         )
         stream_id = stream.get_id()
         stream_label = stream.get_label()
@@ -322,7 +345,7 @@ class Plan(dag_utils.DAG):
             stream_data = streams[stream_id]
             if cls is None:
                 cls = dag_utils.Entity
-            return cls.from_dict(stream_data, path=self.path + "." + self.get_id() + ".streams", synchronizer=self.synchronizer, auto_sync=self.auto_sync)
+            return cls.from_dict(stream_data, path=self.path + "." + self.get_id() + ".streams", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=False)
         else:
             return None
 
@@ -379,7 +402,7 @@ class Plan(dag_utils.DAG):
         if value is None:
             return self.fetch_node_value_from_stream(n)
 
-    def set_node_value_from_stream(self, n, sync=False):
+    def set_node_value_from_stream(self, n, sync=None):
         node = self.get_node(n)
         if node is None:
             raise Exception("Value for non-existing node cannot be get")
@@ -400,7 +423,7 @@ class Plan(dag_utils.DAG):
 
         return None
 
-    def set_node_stream(self, n, stream, sync=False):
+    def set_node_stream(self, n, stream, sync=None):
         node = self.get_node(n)
         if node is None:
             raise Exception("Stream for non-existing node cannot be set")
@@ -428,7 +451,7 @@ class Plan(dag_utils.DAG):
         return node.get_data("stream")
 
     # status, value
-    def set_stream_status(self, s, status, sync=False):
+    def set_stream_status(self, s, status, sync=None):
         stream = self.get_stream(s)
         if stream:
             stream.set_data("status", str(status), sync=sync)
@@ -439,12 +462,12 @@ class Plan(dag_utils.DAG):
             return stream.get_data("status")
         return None
 
-    def set_stream_value(self, s, value, sync=False):
+    def set_stream_value(self, s, value, sync=None):
         stream = self.get_stream(s)
         if stream:
             stream.set_data("value", value, sync=sync)
 
-    def append_stream_value(self, s, value, sync=False):
+    def append_stream_value(self, s, value, sync=None):
         stream = self.get_stream(s)
         if stream:
             stream.append_data("value", value, sync=sync)
@@ -473,7 +496,7 @@ class Plan(dag_utils.DAG):
         return node
 
     # node functions
-    def set_node_value(self, n, value, sync=False):
+    def set_node_value(self, n, value, sync=None):
         node = self.get_node(n)
         if node is None:
             raise Exception("Value for non-existing node cannot be set")
@@ -494,7 +517,7 @@ class Plan(dag_utils.DAG):
 
         return node.get_property(property)
 
-    def set_node_properties(self, n, properties, sync=False):
+    def set_node_properties(self, n, properties, sync=None):
         node = self.get_node(n)
         if node is None:
             raise Exception("Properties for non-existing node cannot be set")
@@ -502,7 +525,7 @@ class Plan(dag_utils.DAG):
         for property in properties:
             node.set_property(property, properties[property], sync=sync)
 
-    def set_node_property(self, n, property, value, sync=False):
+    def set_node_property(self, n, property, value, sync=None):
         node = self.get_node(n)
         if node is None:
             raise Exception("Properties for non-existing node cannot be set")
@@ -550,7 +573,7 @@ class Plan(dag_utils.DAG):
         return next_nodes
 
     ## connections
-    def _resolve_input_output_node_id(self, input=None, output=None):
+    def _resolve_input_output_node_id(self, input=None, output=None, sync=None):
         n = None
         if input:
             n = input
@@ -564,13 +587,13 @@ class Plan(dag_utils.DAG):
         if node is None:
             # create node
             if input:
-                node = self.define_input(label=input)
+                node = self.define_input(label=input, sync=sync)
             elif output:
-                node = self.define_output(label=output)
+                node = self.define_output(label=output, sync=sync)
 
         return node.get_id()
 
-    def _resolve_agent_param_node_id(self, agent=None, agent_param=None, node_type=None):
+    def _resolve_agent_param_node_id(self, agent=None, agent_param=None, node_type=None, sync=None):
         node_id = None
         if agent:
             if agent_param is None:
@@ -578,7 +601,7 @@ class Plan(dag_utils.DAG):
 
             agent_node = self.get_agent(agent)
             if agent_node is None:
-                agent_node = self.define_agent(name=agent)
+                agent_node = self.define_agent(name=agent, sync=sync)
 
             agent_canonical_name = agent_node.get_data("canonical_name")
             label = None
@@ -590,9 +613,9 @@ class Plan(dag_utils.DAG):
             agent_param_node = self.get_node(label)
             if agent_param_node is None:
                 if node_type == NodeType.AGENT_INPUT:
-                    agent_param_node = self.define_agent_input(name=agent_param, agent=agent)
+                    agent_param_node = self.define_agent_input(name=agent_param, agent=agent, sync=sync)
                 elif node_type == NodeType.AGENT_OUTPUT:
-                    agent_param_node = self.define_agent_output(name=agent_param, agent=agent)
+                    agent_param_node = self.define_agent_output(name=agent_param, agent=agent, sync=sync)
 
             node_id = agent_param_node.get_id()
 
@@ -604,28 +627,28 @@ class Plan(dag_utils.DAG):
 
         return node_id
 
-    def connect_input_to_agent(self, from_input=None, to_agent=None, to_agent_input=None, sync=False):
+    def connect_input_to_agent(self, from_input=None, to_agent=None, to_agent_input=None, sync=None):
 
-        from_id = self._resolve_input_output_node_id(input=from_input)
-        to_id = self._resolve_agent_param_node_id(agent=to_agent, agent_param=to_agent_input, node_type=NodeType.AGENT_INPUT)
+        from_id = self._resolve_input_output_node_id(input=from_input, sync=sync)
+        to_id = self._resolve_agent_param_node_id(agent=to_agent, agent_param=to_agent_input, node_type=NodeType.AGENT_INPUT, sync=sync)
         self.connect_nodes(from_id, to_id, sync=sync)
 
-    def connect_agent_to_agent(self, from_agent=None, from_agent_output=None, to_agent=None, to_agent_input=None, sync=False):
+    def connect_agent_to_agent(self, from_agent=None, from_agent_output=None, to_agent=None, to_agent_input=None, sync=None):
 
-        from_id = self._resolve_agent_param_node_id(agent=from_agent, agent_param=from_agent_output, node_type=NodeType.AGENT_OUTPUT)
-        to_id = self._resolve_agent_param_node_id(agent=to_agent, agent_param=to_agent_input, node_type=NodeType.AGENT_INPUT)
+        from_id = self._resolve_agent_param_node_id(agent=from_agent, agent_param=from_agent_output, node_type=NodeType.AGENT_OUTPUT, sync=sync)
+        to_id = self._resolve_agent_param_node_id(agent=to_agent, agent_param=to_agent_input, node_type=NodeType.AGENT_INPUT, sync=sync)
         self.connect_nodes(from_id, to_id, sync=sync)
 
-    def connect_agent_to_output(self, from_agent=None, from_agent_output=None, to_output=None, sync=False):
+    def connect_agent_to_output(self, from_agent=None, from_agent_output=None, to_output=None, sync=None):
 
-        from_id = self._resolve_agent_param_node_id(agent=from_agent, agent_param=from_agent_output, node_type=NodeType.AGENT_OUTPUT)
-        to_id = self._resolve_input_output_node_id(output=to_output)
+        from_id = self._resolve_agent_param_node_id(agent=from_agent, agent_param=from_agent_output, node_type=NodeType.AGENT_OUTPUT, sync=sync)
+        to_id = self._resolve_input_output_node_id(output=to_output, sync=sync)
         self.connect_nodes(from_id, to_id, sync=sync)
 
-    def connect_input_to_output(self, from_input=None, to_output=None, sync=False):
+    def connect_input_to_output(self, from_input=None, to_output=None, sync=None):
 
-        from_id = self._resolve_input_output_node_id(input=from_input)
-        to_id = self._resolve_input_output_node_id(output=to_output)
+        from_id = self._resolve_input_output_node_id(input=from_input, sync=sync)
+        to_id = self._resolve_input_output_node_id(output=to_output, sync=sync)
         self.connect_nodes(from_id, to_id, sync=sync)
 
     # plan execution i/o
@@ -637,18 +660,18 @@ class Plan(dag_utils.DAG):
         tags.append("HIDDEN")
 
         # data
-        output_stream = worker.write_data(data, output=output, id=self.id, tags=tags, scope="worker")
+        output_stream = worker.write_data(data, output=output, id=self.get_id(), tags=tags, scope="worker")
 
         # eos
         if eos:
-            worker.write_eos(output=output, id=self.id, scope="worker")
+            worker.write_eos(output=output, id=self.get_id(), scope="worker")
 
         return output_stream
 
     def _write_data(self, worker, data, output, eos=True):
         return self._write_to_stream(worker, data, output, eos=eos)
 
-    def _write_plan_spec(self, worker, eos=True):
+    def _write_plan(self, worker, eos=True):
         return self._write_to_stream(worker, self.get_data(), "PLAN", tags=["PLAN"], eos=eos)
 
     # plan execution status/checks
@@ -660,7 +683,7 @@ class Plan(dag_utils.DAG):
             if self.is_node_leaf(node_id):
                 self.leaves.append(node_id)
 
-    def check_status(self, sync=False):
+    def check_status(self, sync=None):
         if self.leaves is None:
             self._detect_leaves()
 
@@ -681,7 +704,7 @@ class Plan(dag_utils.DAG):
         return status
 
     # plan submit
-    def submit(self, worker):
+    def submit(self, worker, sync=None):
         # process inputs with initialized values, if any
         nodes = self.get_nodes()
         for node_id in nodes:
@@ -695,7 +718,7 @@ class Plan(dag_utils.DAG):
                     # write data for input
                     stream = self._write_data(worker, node_value, node_label)
                     # set stream for node
-                    self.set_node_stream(node_id, stream)
+                    self.set_node_stream(node_id, stream, sync=sync)
             # outputs
             if node.get_type() == NodeType.OUTPUT:
                 node_value = node.get_data("value")
@@ -704,31 +727,34 @@ class Plan(dag_utils.DAG):
                     # write data for output
                     stream = self._write_data(worker, node_value, node_label)
                     # set stream for node
-                    self.set_node_stream(node_id, stream)
+                    self.set_node_stream(node_id, stream, sync=sync)
 
         # set status
-        self.set_status(Status.SUBMITTED)
+        self.set_status(Status.SUBMITTED, sync=sync)
 
         # write plan
-        self._write_plan_spec(worker)
+        self._write_plan(worker)
 
     # persistence
     def _get_plan_data_namespace(self):
-        return self.scope + ":" + "PLAN" + ":" + self.get_id() + ":DATA"
+        return self.get_scope() + ":" + "PLAN" + ":" + self.get_id() + ":DATA"
 
     # sync
     def synchronizer(self, path, key, value):
-        print("synchronize: " + str(path) + "." + str(key) + "=" + json.dumps(value))
-        self.connection.json().set(self._get_plan_data_namespace(), path + "." + key, value)
+        print("synchronize: " + str(path) + "." + (str(key) if key else "NONE") + "=" + json.dumps(value))
+        # self.connection.json().set(self._get_plan_data_namespace(), path + "." + key, value)
 
     # start
-    def _start(self):
-        self._start_connection()
+    def _start(self, properties=None):
+        self._start_connection(properties=properties)
 
         self.leaves = None
 
-    def _start_connection(self):
-        self.connection_factory = PooledConnectionFactory(properties=self.get_properties())
+    def _start_connection(self, properties=None):
+        p = {}
+        if properties:
+            p = properties
+        self.connection_factory = PooledConnectionFactory(properties=p)
         self.connection = self.connection_factory.get_connection()
 
     @classmethod
@@ -748,21 +774,3 @@ class Plan(dag_utils.DAG):
             dv['streams'] = {}
 
         return dv
-
-    @classmethod
-    def from_dict(cls, d, path=None, synchronizer=None, auto_sync=False):
-        d = cls._validate(d)
-        if d:
-            b = cls()
-            # hard-set data
-            b.__data__ = d
-            b.path = path
-            b.synchronizer = synchronizer
-            b.auto_sync = auto_sync
-
-            # plan specific
-            scope = d['context']['scope']
-            b.scope = scope
-            return b
-        else:
-            raise Exception("Failed validation")

@@ -10,41 +10,59 @@ from blue.utils import uuid_utils, json_utils
 ###############
 ### Base
 #
+# a base entity with a label, type and set of properties
+#
+# if auto_sync=True, synchronize all updates, expect for specific updates where sync=True
+# if sync=True, synchronize even if auto_sync=False
+# where path is context to synchronize object
+#
+# sync | auto_sync |  synchronize?
+# --------------------------
+# NS     T            T
+# NS     F            F
+# F      F            F
+# F      T            F
+# T      F            T
+# T      T            T
 class Base:
-    def __init__(self, label=None, type=None, properties=None, path=None, synchronizer=None, auto_sync=False):
+    def __init__(self, id=None, label=None, type=None, properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+
+        # create unique id
+        if id is None:
+            id = uuid_utils.create_uuid()
+        self.id = id
 
         # sync
         if path is None:
             path = "$"
         self.path = path
+
         self.auto_sync = auto_sync
         if synchronizer:
             self.synchronizer = synchronizer
 
         # data
         self.__data__ = {}
+        self.synchronize(sync=sync)
 
-        # create unique id
-        id = uuid_utils.create_uuid()
-        self.set_data("id", id)
+        self.set_data("id", id, sync=sync)
 
         # label, optional, unique
-        self.set_data("label", label)
+        self.set_data("label", label, sync=sync)
 
         # type
-        self.set_data("type", type)
+        self.set_data("type", type, sync=sync)
 
-        self._initialize(properties=properties)
+        self._initialize(properties=properties, sync=sync)
 
-    def _init_data(self):
+    def _init_data(self, sync=None):
         pass
 
-    def set_data(self, key, value, sync=False):
+    def set_data(self, key, value, sync=None):
         self.__data__[key] = value
 
         # sync
-        if self.auto_sync or sync:
-            self.synchronize(key=key, value=value)
+        self.synchronize(key=key, value=value, sync=sync)
 
     def get_data(self, key=None):
         if key is None:
@@ -54,21 +72,20 @@ class Base:
         else:
             return None
 
-    def append_data(self, key, value, sync=False):
+    def append_data(self, key, value, sync=None):
         l = self.get_data(key)
         if type(l) is list:
             l.append(value)
 
             # sync
-            if self.auto_sync or sync:
-                self.synchronize(key=key, single=False)
+            self.synchronize(key=key, single=False, sync=sync)
         else:
             raise Exception("Data is not a list")
 
-    def _initialize(self, properties=None):
-        self._init_data()
-        self._initialize_properties()
-        self._update_properties(properties=properties)
+    def _initialize(self, properties=None, sync=None):
+        self._init_data(sync=sync)
+        self._initialize_properties(sync=sync)
+        self._update_properties(properties=properties, sync=sync)
 
     # basics
     def get_id(self):
@@ -81,10 +98,10 @@ class Base:
         return self.get_data("type")
 
     # properties
-    def _initialize_properties(self):
-        self.set_data("properties", {})
+    def _initialize_properties(self, sync=None):
+        self.set_data("properties", {}, sync=sync)
 
-    def _update_properties(self, properties=None, sync=False):
+    def _update_properties(self, properties=None, sync=None):
         if properties is None:
             return
 
@@ -92,12 +109,11 @@ class Base:
         for p in properties:
             self.set_property(p, properties[p], sync=sync)
 
-    def set_property(self, key, value, sync=False):
+    def set_property(self, key, value, sync=None):
         properties = self.get_properties()
         properties[key] = value
 
-        if self.auto_sync or sync:
-            self.synchronize(key="properties." + key, value=value)
+        self.synchronize(key="properties." + key, value=value)
 
     def get_property(self, key):
         properties = self.get_properties()
@@ -125,20 +141,35 @@ class Base:
         return d
 
     @classmethod
-    def from_dict(cls, d, path=None, synchronizer=None, auto_sync=False):
+    def from_dict(cls, d, path=None, synchronizer=None, auto_sync=False, sync=None):
         d = cls._validate(d)
         if d:
-            b = cls()
+            id = d['id']
+            b = cls(id=id, sync=sync)
+
             # hard-set data
             b.__data__ = d
             b.path = path
-            b.synchronizer = synchronizer
+            if synchronizer:
+                b.synchronizer = synchronizer
             b.auto_sync = auto_sync
+
+            b.synchronize(sync=sync)
             return b
         else:
             raise Exception("Failed validation")
 
-    def synchronize(self, key=None, value=None, single=True):
+    def synchronize(self, key=None, value=None, single=True, sync=None):
+        # sync is not set
+        if sync is None:
+            # auto sync is off -> do not sync
+            if self.auto_sync == False:
+                return
+
+        # sync is False, -> do not sync
+        if sync == False:
+            return
+
         if self.synchronizer is None:
             raise Exception("No sychronizer set")
 
@@ -151,32 +182,35 @@ class Base:
 
         context = self.path
         if key is None:
-            self.synchronizer(context, self.get_id(), value)
+            self.synchronizer(context, self.id, value)
         else:
-            self.synchronizer(context + "." + self.get_id(), key, value)
+            self.synchronizer(context + "." + self.id, key, value)
+
+    def synchronizer(self, path, key, value):
+        print("synchronize: " + str(path) + "." + (str(key) if key else "NONE") + "=" + json.dumps(value))
 
 
 class Node(Base):
-    def __init__(self, label=None, type=None, properties=None, path=None, synchronizer=None, auto_sync=False):
-        super().__init__(label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync)
+    def __init__(self, id=None, label=None, type=None, properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
-    def _init_data(self):
-        super()._init_data()
+    def _init_data(self, sync=None):
+        super()._init_data(sync=sync)
 
-        self.set_data("prev", [])
-        self.set_data("next", [])
+        self.set_data("prev", [], sync=sync)
+        self.set_data("next", [], sync=sync)
 
-    def _add_next(self, t_id, sync=False):
+    def _add_next(self, t_id, sync=None):
         self.append_data("next", t_id)
-        if self.auto_sync or sync:
-            self.synchronize(path=".next", single=False)
 
-    def _add_prev(self, f_id, sync=False):
+        self.synchronize(key="next", single=False, sync=sync)
+
+    def _add_prev(self, f_id, sync=None):
         self.append_data("prev", f_id)
-        if self.auto_sync or sync:
-            self.synchronize(path=".prev", single=False)
 
-    def connect_to(self, t, sync=False):
+        self.synchronize(key="prev", single=False, sync=sync)
+
+    def connect_to(self, t, sync=None):
         # add next
         t_id = t.get_id()
         self._add_next(t_id, sync=sync)
@@ -201,22 +235,22 @@ class Node(Base):
 ### Entity
 #
 class Entity(Base):
-    def __init__(self, label=None, type="Entity", properties=None, path=None, synchronizer=None, auto_sync=False):
-        super().__init__(label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync)
+    def __init__(self, id=None, label=None, type="Entity", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
 
 ###############
 ### DAG
 #
 class DAG(Base):
-    def __init__(self, label=None, type="DAG", properties=None, path=None, synchronizer=None, auto_sync=False):
-        super().__init__(label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync)
+    def __init__(self, id=None, label=None, type="DAG", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
-    def _init_data(self):
-        super()._init_data()
+    def _init_data(self, sync=None):
+        super()._init_data(sync=sync)
 
-        self.set_data("nodes", {})
-        self.set_data("map", {})
+        self.set_data("nodes", {}, sync=sync)
+        self.set_data("map", {}, sync=sync)
 
     def _verify_node(self, label=None, type=None, properties=None):
         # verify if label is unique
@@ -224,13 +258,13 @@ class DAG(Base):
             return False
         return True
 
-    def create_node(self, label=None, type=None, properties=None, sync=False):
+    def create_node(self, label=None, type=None, properties=None, sync=None):
         # verify node, first
         if not self._verify_node(label=label, type=type, properties=properties):
             raise Exception("Cannot create node due to failed varification")
 
         # create node
-        node = Node(label=label, type=type, properties=properties, path=self.path + "." + self.get_id() + ".nodes", synchronizer=self.synchronizer, auto_sync=self.auto_sync)
+        node = Node(label=label, type=type, properties=properties, path=self.path + "." + self.get_id() + ".nodes", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=sync)
         node_id = node.get_id()
         node_label = node.get_label()
 
@@ -244,7 +278,7 @@ class DAG(Base):
 
         return node
 
-    def connect_nodes(self, f, t, sync=False):
+    def connect_nodes(self, f, t, sync=None):
         if isinstance(f, Node):
             f_node = f
         else:
@@ -276,7 +310,7 @@ class DAG(Base):
             node_data = nodes[node_id]
             if cls is None:
                 cls = Node
-            return cls.from_dict(node_data, path=self.path + "." + self.get_id() + ".nodes", synchronizer=self.synchronizer, auto_sync=self.auto_sync)
+            return cls.from_dict(node_data, path=self.path + "." + self.get_id() + ".nodes", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=False)
         else:
             return None
 
@@ -327,12 +361,11 @@ class DAG(Base):
         else:
             return False
 
-    def map(self, f, t, sync=False):
+    def map(self, f, t, sync=None):
         map = self.get_data("map")
         map[f] = t
 
-        if self.auto_sync or sync:
-            self.synchronize(path=".map." + f, value=t)
+        self.synchronize(key="map." + f, value=t, sync=sync)
 
     def is_mapped(self, i):
         map = self.get_data("map")
@@ -340,9 +373,6 @@ class DAG(Base):
             return True
         else:
             return False
-
-    def synchronizer(self, path, key, value):
-        print("synchronize: " + str(path) + "." + str(key) + "=" + json.dumps(value))
 
     @classmethod
     def _validate(cls, d):
