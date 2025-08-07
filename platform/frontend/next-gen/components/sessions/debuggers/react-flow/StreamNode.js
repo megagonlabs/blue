@@ -1,3 +1,4 @@
+import { POPOVER_CONTENT_MAX_WIDTH } from "@/components/constants";
 import { useSessionStore } from "@/stores/session-store";
 import { Classes, Intent, Tag, Tooltip } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
@@ -24,7 +25,7 @@ export default function StreamNode({ id, data }) {
                     content={
                         <div
                             style={{
-                                maxWidth: 300,
+                                maxWidth: POPOVER_CONTENT_MAX_WIDTH,
                                 wordBreak: "break-all",
                             }}
                         >

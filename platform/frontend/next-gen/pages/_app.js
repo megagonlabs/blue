@@ -1,5 +1,7 @@
 import AuthErrorHandler from "@/components/AuthErrorHandler";
 import Blue from "@/components/Blue";
+import { TourProvider } from "@/components/contexts/TourContext";
+import TourPopup from "@/components/navigation/TourPopup";
 import SocketHandler from "@/components/SocketHandler";
 import SystemStatusHandler from "@/components/SystemStatusHandler";
 import "@/styles/custom.css";
@@ -54,9 +56,12 @@ const App = ({ Component, pageProps }) => {
                 </Head>
                 <SocketHandler>
                     <SystemStatusHandler>
-                        <Blue>
-                            <Component {...pageProps} />
-                        </Blue>
+                        <TourProvider>
+                            <Blue>
+                                <Component {...pageProps} />
+                            </Blue>
+                            <TourPopup />
+                        </TourProvider>
                     </SystemStatusHandler>
                 </SocketHandler>
             </AuthErrorHandler>

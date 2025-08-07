@@ -6,6 +6,7 @@ const ExpandingBox = ({
     expandedWidth,
     expandedHeight,
     transitionDuration = 150,
+    id = null,
     children,
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -27,6 +28,7 @@ const ExpandingBox = ({
     };
     return (
         <div
+            id={id}
             style={{
                 width,
                 height,

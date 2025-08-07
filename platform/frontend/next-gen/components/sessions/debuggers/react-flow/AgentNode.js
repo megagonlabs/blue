@@ -1,3 +1,4 @@
+import { POPOVER_CONTENT_MAX_WIDTH } from "@/components/constants";
 import { Classes, Intent, Tag, Tooltip } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
 import _ from "lodash";
@@ -14,7 +15,12 @@ export default function AgentNode({ id, data }) {
                 <Tooltip
                     className="full-parent-width"
                     content={
-                        <div style={{ maxWidth: 300, wordBreak: "break-all" }}>
+                        <div
+                            style={{
+                                maxWidth: POPOVER_CONTENT_MAX_WIDTH,
+                                wordBreak: "break-all",
+                            }}
+                        >
                             {data.label}
                         </div>
                     }

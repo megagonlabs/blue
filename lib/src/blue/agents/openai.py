@@ -67,7 +67,22 @@ class OpenAIAgent(RequestorAgent):
         prefix = 'PLATFORM:' + platform_id
         self.registry = ToolRegistry(id=self.properties['tool_registry.name'], prefix=prefix, properties=self.properties)
 
+    def _validate_tool_schema(self, tool_schema):
+        # checks
+        if 'name' not in tool_schema:
+            return False
+        if 'properties' not in tool_schema:
+            return False
+        if 'signature' not in tool_schema['properties']:
+            return False
+        if 'parameters' not in tool_schema['properties']['signature']:
+            return False
+        return True
+
     def convert_tool_schema_to_openai_format(self, tool_schema, server_name):
+        if not self._validate_tool_schema(tool_schema):
+            return None
+
         openai_schema = {"type": "function"}
 
         tool_name = tool_schema["name"]
@@ -75,16 +90,21 @@ class OpenAIAgent(RequestorAgent):
         openai_schema["function"] = {"name": canonical_name, "description": tool_schema["description"], "parameters": {"type": "object", "properties": {}, "required": []}}
 
         # iterate over all parameters
+
         for p, values in tool_schema['properties']['signature']['parameters'].items():
             # skip hidden
             if 'hidden' in values and values['hidden']:
                 continue
-            openai_schema["function"]["parameters"]["properties"][p] = {"type": values["type"]}
+
+            t = 'unknown'
+            if 'type' in values:
+                t = values['type']
+            openai_schema["function"]["parameters"]["properties"][p] = {"type": t}
             # copy over items
             if 'items' in values:
                 openai_schema["function"]["parameters"]["properties"][p]["items"] = values["items"]
             # separately aggregate required parameters
-            if values["required"]:
+            if 'required' in values and values["required"]:
                 openai_schema["function"]["parameters"]["required"].append(p)
 
         return openai_schema
@@ -156,7 +176,8 @@ class OpenAIAgent(RequestorAgent):
 
                     if selected:
                         openai_schema = self.convert_tool_schema_to_openai_format(t, server_name)
-                        tool_schemas.append(openai_schema)
+                        if openai_schema:
+                            tool_schemas.append(openai_schema)
 
         return tool_schemas
 

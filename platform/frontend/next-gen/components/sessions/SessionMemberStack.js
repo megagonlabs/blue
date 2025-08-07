@@ -2,7 +2,7 @@ import { useDedupStore } from "@/stores/dedup-store";
 import { useSessionStore } from "@/stores/session-store";
 import _ from "lodash";
 import { createRef, useEffect, useMemo } from "react";
-import { useRefDimensions } from "../hooks/useRefDimensions";
+import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import UserAvatar from "./UserAvatar";
 export default function SessionMemberStack({ sessionId, style }) {
     const sessions = useSessionStore((state) => state.sessions);
@@ -23,7 +23,7 @@ export default function SessionMemberStack({ sessionId, style }) {
         }
     }, [members, owner, getUserProfileById]);
     const memberStackref = createRef();
-    const { width } = useRefDimensions(memberStackref);
+    const { width } = useContainerDimensions(memberStackref);
     const size = useMemo(() => {
         let result = _.floor((width + 5) / 45);
         return result - (result < _.size(members) ? 1 : 0);

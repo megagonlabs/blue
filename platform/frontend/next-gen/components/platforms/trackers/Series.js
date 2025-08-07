@@ -1,5 +1,5 @@
 import { EMPTY_OBJECT } from "@/components/constants";
-import { useRefDimensions } from "@/components/hooks/useRefDimensions";
+import { useContainerDimensions } from "@/components/hooks/useContainerDimensions";
 import { useSystemStatusStore } from "@/stores/system-status-store";
 import { Colors } from "@blueprintjs/core";
 import _ from "lodash";
@@ -40,7 +40,7 @@ export default function Series({ tracker, graphKey }) {
     }, [trackerGraph]);
     const fieldKeys = fields.map((field) => field["field"]);
     const cardRef = useRef(null);
-    const { width } = useRefDimensions(cardRef);
+    const { width } = useContainerDimensions(cardRef);
     const VEGA_SPEC = useMemo(() => {
         return {
             $schema: "https://vega.github.io/schema/vega-lite/v5.json",

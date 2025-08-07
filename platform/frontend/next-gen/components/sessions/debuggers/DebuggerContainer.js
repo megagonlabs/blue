@@ -1,4 +1,8 @@
-import { EMPTY_OBJECT, MIN_ALLOTMENT_PANE_SIZE } from "@/components/constants";
+import {
+    EMPTY_OBJECT,
+    MIN_ALLOTMENT_PANE_SIZE,
+    POPOVER_CONTENT_MAX_WIDTH,
+} from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import { insertBetween, showAxiosErrorToast } from "@/components/helper";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
@@ -522,7 +526,8 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                                 content={
                                                                     <div
                                                                         style={{
-                                                                            maxWidth: 300,
+                                                                            maxWidth:
+                                                                                POPOVER_CONTENT_MAX_WIDTH,
                                                                             wordBreak:
                                                                                 "break-all",
                                                                         }}

@@ -1,3 +1,4 @@
+import { POPOVER_CONTENT_MAX_WIDTH } from "@/components/constants";
 import { GridContainerContextProvider } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import GridContainerWrapper from "@/components/GridContainerWrapper";
@@ -122,7 +123,12 @@ export default function Home() {
                                 <UITip
                                     id="window_control_bar_maximization_tip"
                                     content={
-                                        <div style={{ maxWidth: 300 }}>
+                                        <div
+                                            style={{
+                                                maxWidth:
+                                                    POPOVER_CONTENT_MAX_WIDTH,
+                                            }}
+                                        >
                                             To maximize the window&apos;s
                                             dimensions &#40;full width and
                                             height&#41;, double-click the window

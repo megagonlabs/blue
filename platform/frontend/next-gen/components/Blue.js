@@ -58,6 +58,7 @@ import ToolList from "./registries/tools/ToolList";
 import ApplicationContainer from "./sessions/ApplicationContainer";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
+import UITour from "./ux/UITour";
 import VerticalScrollable from "./VerticalScrollable";
 const { NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 const AGENT_GROUP_ICON = _.get(ENTITY_TYPE_LOOKUP, "agent_group.icon", null);
@@ -89,6 +90,7 @@ export default function Blue({ children }) {
             onKeyDown: openOmnibar,
             // prevent typing "O" in omnibar input
             preventDefault: true,
+            disabled: true,
         },
         {
             combo: "shift + d",
@@ -227,6 +229,7 @@ export default function Blue({ children }) {
                             items={omnibarItems}
                         />
                         <div
+                            id="platform-onboarding-tour-user-settings"
                             style={{
                                 position: "absolute",
                                 bottom: 20,
@@ -246,6 +249,7 @@ export default function Blue({ children }) {
                             </ExpandingBox>
                         </div>
                         <div
+                            id="platform-onboarding-tour-navigation-menu"
                             style={{
                                 position: "absolute",
                                 top: 20,
@@ -636,6 +640,7 @@ export default function Blue({ children }) {
                                 }
                             >
                                 <div style={{ padding: "21px 0px" }}>
+                                    <UITour />
                                     <WSConnectionIndicator />
                                     <TopSessions />
                                     <Dock />

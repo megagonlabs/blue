@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { useEffect, useState } from "react";
-export const useRefDimensions = (ref) => {
+export const useContainerDimensions = (ref) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     useEffect(() => {
         const currentElement = ref.current;
