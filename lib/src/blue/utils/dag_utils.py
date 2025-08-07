@@ -145,13 +145,10 @@ class Base:
         d = cls._validate(d)
         if d:
             id = d['id']
-            b = cls(id=id, sync=sync)
+            b = cls(id=id, path=path, synchronizer=synchronizer, auto_sync=False, sync=False)
 
             # hard-set data
             b.__data__ = d
-            b.path = path
-            if synchronizer:
-                b.synchronizer = synchronizer
             b.auto_sync = auto_sync
 
             b.synchronize(sync=sync)

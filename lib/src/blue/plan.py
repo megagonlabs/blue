@@ -55,6 +55,7 @@ EntityType.STREAM = Constant("STREAM")
 class Plan(dag_utils.DAG):
 
     def __init__(self, scope=None, id=None, label=None, type="PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        self.leaves = None
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
         s = scope
@@ -481,7 +482,8 @@ class Plan(dag_utils.DAG):
     # discovery
     def match_stream(self, stream):
         node = None
-        stream_prefix = self.get_scope() + ":" + "PLAN" + self.get_id()
+        stream_prefix = self.get_scope() + ":" + "PLAN" + ":" + self.get_id()
+        # TODO: REVISE THIS LOGIC!
         if stream.find(stream_prefix) == 0:
             s = stream[len(stream_prefix) + 1 :]
             ss = s.split(":")
@@ -734,28 +736,6 @@ class Plan(dag_utils.DAG):
 
         # write plan
         self._write_plan(worker)
-
-    # persistence
-    def _get_plan_data_namespace(self):
-        return self.get_scope() + ":" + "PLAN" + ":" + self.get_id() + ":DATA"
-
-    # sync
-    def synchronizer(self, path, key, value):
-        print("synchronize: " + str(path) + "." + (str(key) if key else "NONE") + "=" + json.dumps(value))
-        # self.connection.json().set(self._get_plan_data_namespace(), path + "." + key, value)
-
-    # start
-    def _start(self, properties=None):
-        self._start_connection(properties=properties)
-
-        self.leaves = None
-
-    def _start_connection(self, properties=None):
-        p = {}
-        if properties:
-            p = properties
-        self.connection_factory = PooledConnectionFactory(properties=p)
-        self.connection = self.connection_factory.get_connection()
 
     @classmethod
     def _validate(cls, d):

@@ -89,15 +89,18 @@ class CoordinatorAgent(Agent):
 
             self.platform.join_session(session_sid, self.properties['agent_registry.name'], agent_canonical_name, agent_properties)
 
-        # process data instreams
+        # process data in streams
         streams = plan.get_streams()
 
-        for stream in streams:
+        for stream_id in streams:
             # plan existing streams for inputs/outputs processing
-            plan.set_stream_status(stream, Status.PLANNED)
+            plan.set_stream_status(stream_id, Status.PLANNED)
 
             # process nodes with streams
-            self.create_worker(stream, input=plan_id)
+            stream = plan.get_stream(stream_id)
+            if stream:
+                stream_label = stream.get_data("label")
+                self.create_worker(stream_label, input=plan_id)
 
     def get_plan_progress(self, plan):
         num_connections = plan.count_nodes(filter_hasPrev=True)
@@ -193,6 +196,14 @@ class CoordinatorAgent(Agent):
 
         return output_stream
 
+    def _get_plan_data_namespace(self, plan):
+        return plan.get_scope() + ":" + "PLAN" + ":" + plan.get_id() + ":DATA"
+
+    def plan_synchronizer(self, plan, path, key, value):
+        self.logger.info(plan)
+        self.logger.info("plan synchronize: " + str(path) + "." + (str(key) if key else "NONE") + "=" + json.dumps(value))
+        # self.connection.json().set(self._get_plan_data_namespace(plan), path + "." + key, value)
+
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
@@ -206,13 +217,16 @@ class CoordinatorAgent(Agent):
 
                 plan = None
                 try:
-                    plan = Plan.from_dict(p, auto_sync=True)
-                    # save
-                    plan.synchronize()
+                    plan = Plan.from_dict(p)
                 except Exception:
                     self.logger.info("Error reading valid plan")
 
                 if plan:
+                    # synchronize
+                    plan.synchronizer = lambda path, key, value: self.plan_synchronizer(plan, path, key, value)
+                    plan.auto_sync = True
+                    plan.synchronize()
+
                     # start plan
                     self.initialize_plan(plan, worker=worker)
                     plan_id = plan.get_id()
