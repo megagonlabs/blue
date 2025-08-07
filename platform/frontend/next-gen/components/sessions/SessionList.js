@@ -213,6 +213,7 @@ function SessionList({ width, height }) {
                         </div>
                     ))}
                     <Button
+                        className="session-list-new-session-button"
                         intent={Intent.PRIMARY}
                         onClick={() => {
                             createNewSession({});

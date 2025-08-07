@@ -6,14 +6,28 @@ export const TourProvider = ({ children }) => {
     const [isTourActive, setIsTourActive] = useState(false);
     const steps = [
         {
-            id: "platform-onboarding-tour-navigation-menu",
+            elementQuery: "#platform-onboarding-tour-navigation-menu",
             title: "Welcome to Blue!",
             content:
                 "Welcome to the tour! We'll show you the main features, starting with the navigation menu, where you can access various Apps.",
             position: "right-start",
         },
         {
-            id: "platform-onboarding-tour-user-settings",
+            elementQuery: "#platform-onboarding-tour-navigation-menu",
+            title: "Sessions",
+            content:
+                'A session is a live application instance with a group of agents. To view a list of sessions available to you, click on "All Sessions."',
+            position: "right-start",
+        },
+        {
+            elementQuery: ".session-list-new-session-button",
+            title: "New Session",
+            content:
+                'There are two ways to create a new session: click "New session" here, or select "New Session" from the navigation menu below "All Sessions."',
+            position: "top",
+        },
+        {
+            elementQuery: "#platform-onboarding-tour-user-settings",
             title: "User Settings",
             content:
                 "Your personal settings and account sign-out are available here.",

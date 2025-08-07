@@ -10,19 +10,19 @@ import {
 } from "@blueprintjs/core";
 import {
     faArrowRightLong,
-    faMemoCircleCheck,
     faXmarkLarge,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import _ from "lodash";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePopper } from "react-popper";
 import { useTour } from "../contexts/TourContext";
 import { FAIcon } from "../FAIcon";
-const ArrowPointer = ({ targetElementId }) => {
+const ArrowPointer = ({ elementQuery }) => {
     const [rotation, setRotation] = useState(0);
     const arrowRef = useRef(null);
     const calculateRotation = () => {
         const arrowElement = arrowRef.current;
-        const targetElement = document.getElementById(targetElementId);
+        const targetElement = document.querySelector(elementQuery);
         if (!arrowElement || !targetElement) {
             return;
         }
@@ -50,7 +50,7 @@ const ArrowPointer = ({ targetElementId }) => {
         setTimeout(calculateRotation, 300);
     }, []);
     useEffect(() => {
-        const targetElement = document.getElementById(targetElementId);
+        const targetElement = document.querySelector(elementQuery);
         if (!targetElement) {
             const timeoutId = setTimeout(calculateRotation, 300);
             return () => clearTimeout(timeoutId);
@@ -65,7 +65,7 @@ const ArrowPointer = ({ targetElementId }) => {
             window.removeEventListener("resize", calculateRotation);
             window.removeEventListener("scroll", calculateRotation);
         };
-    }, [targetElementId, rotation]);
+    }, [elementQuery, rotation]);
     return (
         <div ref={arrowRef}>
             <FAIcon
@@ -101,7 +101,9 @@ const TourPopup = () => {
                 return;
             }
             const currentStepData = steps[currentStep];
-            const targetElement = document.getElementById(currentStepData.id);
+            const targetElement = document.querySelector(
+                currentStepData.elementQuery
+            );
             if (targetElement) {
                 setReferenceElement(targetElement);
                 targetElement.scrollIntoView({
@@ -110,6 +112,7 @@ const TourPopup = () => {
                 });
                 clearTimeout(timeoutId);
             } else {
+                setReferenceElement(null);
                 timeoutId = setTimeout(checkForElement, 300);
             }
         };
@@ -157,7 +160,7 @@ const TourPopup = () => {
                         heading={H3}
                         icon={
                             <ArrowPointer
-                                targetElementId={currentStepData.id}
+                                elementQuery={currentStepData.elementQuery}
                             />
                         }
                     />
@@ -176,11 +179,7 @@ const TourPopup = () => {
                         variant={ButtonVariant.MINIMAL}
                     />
                 )}
-                <Button
-                    icon={lastStep ? <FAIcon icon={faMemoCircleCheck} /> : null}
-                    onClick={nextStep}
-                    intent={Intent.PRIMARY}
-                >
+                <Button onClick={nextStep} intent={Intent.PRIMARY}>
                     {lastStep ? "Finish" : "Next"}
                 </Button>
             </Card>
