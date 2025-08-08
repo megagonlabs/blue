@@ -151,7 +151,7 @@ class AgentRegistry(Registry):
                         continue
                     d = output['description'] if 'description' in output else ""
                     props = output['properties']
-                    output[n] = {'name': n, 'description': d, 'properties': props}
+                    outputs[n] = {'name': n, 'description': d, 'properties': props}
 
             return agent_properties
 
