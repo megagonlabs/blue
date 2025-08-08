@@ -10,6 +10,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faArrowRightLong,
+    faMapLocationDot,
     faXmarkLarge,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -17,6 +18,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePopper } from "react-popper";
 import { useTour } from "../contexts/TourContext";
 import { FAIcon } from "../FAIcon";
+import { AppToaster } from "../toaster";
 const ArrowPointer = ({ elementQuery }) => {
     const [rotation, setRotation] = useState(0);
     const arrowRef = useRef(null);
@@ -85,6 +87,7 @@ const TourPopup = () => {
         useTour();
     const [referenceElement, setReferenceElement] = useState(null);
     const [popperElement, setPopperElement] = useState(null);
+    const toast = useRef(null);
     const { styles, attributes, update } = usePopper(
         referenceElement,
         popperElement,
@@ -110,10 +113,35 @@ const TourPopup = () => {
                     behavior: "smooth",
                     block: "center",
                 });
+                AppToaster.dismiss(toast.current);
+                toast.current = null;
                 clearTimeout(timeoutId);
             } else {
-                setReferenceElement(null);
-                timeoutId = setTimeout(checkForElement, 300);
+                if (_.get(currentStepData, "skippable", false)) {
+                    nextStep();
+                } else {
+                    setReferenceElement(null);
+                    if (!_.isEqual(toast.current, "lost-tour-guide-message")) {
+                        toast.current = AppToaster.show(
+                            {
+                                message:
+                                    "Welp, we're officially lost! No worries, our tour guide is currently consulting the digital stars to pinpoint our next dazzling destination.",
+                                intent: Intent.WARNING,
+                                timeout: 0,
+                                action: {
+                                    icon: <FAIcon icon={faMapLocationDot} />,
+                                    onClick: prevStep,
+                                    text: "Backtrack",
+                                },
+                                onDismiss: () => {
+                                    toast.current = null;
+                                },
+                            },
+                            "lost-tour-guide-message"
+                        );
+                    }
+                    timeoutId = setTimeout(checkForElement, 1000);
+                }
             }
         };
         checkForElement();
