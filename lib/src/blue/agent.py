@@ -739,29 +739,6 @@ class Agent:
             return self.outputs[name]
         return None
 
-    def update_output(self, name, output_properties=None):
-        if name not in self.outputs:
-            return
-
-        description = ""
-        if 'description' in output_properties:
-            description = output_properties['description']
-        tags = []
-        if 'tags' in output_properties:
-            tags = output_properties['tags']
-
-        self.add_output(name, description=description, tags=tags)
-
-    def add_input(self, name, description=None, includes=None, excludes=None):
-        if description is None:
-            description = ""
-        if includes is None:
-            includes = []
-        if excludes is None:
-            excludes = []
-
-        self.inputs[name] = {"name": name, "description": description, "listens": {"includes": includes, "excludes": excludes}}
-
     def has_input(self, name):
         return name in self.inputs
 
