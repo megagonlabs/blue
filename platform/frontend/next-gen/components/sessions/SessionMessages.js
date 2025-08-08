@@ -22,6 +22,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faAngleRight,
     faArrowLeft,
     faBarcodeRead,
     faBarsFilter,
@@ -46,6 +47,7 @@ import {
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
 import { FAIcon } from "../FAIcon";
+import UITip from "../ux/UITip";
 import DebuggerContainer from "./debuggers/DebuggerContainer";
 import MessageContent from "./messages/MessageContent";
 import MessageIcon from "./messages/MessageIcon";
@@ -479,6 +481,7 @@ export default function SessionMessages({
                     style={{
                         display: "flex",
                         flexDirection: "row-reverse",
+                        alignItems: "center",
                         gap: 10,
                     }}
                 >
@@ -525,6 +528,48 @@ export default function SessionMessages({
                         <SessionMemberStack
                             style={{ justifyContent: "flex-end" }}
                             sessionId={sessionId}
+                        />
+                    </div>
+                    <div style={{ marginLeft: 20 }}>
+                        <UITip
+                            id="session_inspection_debugger"
+                            content={
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        flexWrap: "wrap",
+                                    }}
+                                >
+                                    To debug a session, open the debugger{" "}
+                                    <span>by clicking</span>
+                                    <Button
+                                        className="pointer-events-none"
+                                        style={{
+                                            marginLeft: 5,
+                                            marginRight: 5,
+                                        }}
+                                        icon={<FAIcon icon={faEllipsisV} />}
+                                        variant={ButtonVariant.MINIMAL}
+                                    />
+                                    <FAIcon icon={faAngleRight} />
+                                    <Tag
+                                        style={{
+                                            marginLeft: 5,
+                                            marginRight: 5,
+                                        }}
+                                        minimal
+                                        icon={<FAIcon icon={faBarcodeRead} />}
+                                        size={Size.LARGE}
+                                        endIcon={<FAIcon icon={faBrowsers} />}
+                                    >
+                                        Inspect
+                                    </Tag>
+                                    <span>.</span> This action also activates
+                                    debug mode for the session, which enables
+                                    the reception of hidden data streams.
+                                </div>
+                            }
                         />
                     </div>
                 </div>

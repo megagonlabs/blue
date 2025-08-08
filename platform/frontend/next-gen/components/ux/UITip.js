@@ -15,7 +15,10 @@ import _ from "lodash";
 import { useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
-import { POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10 } from "../constants";
+import {
+    POPOVER_CONTENT_MAX_WIDTH,
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+} from "../constants";
 export default function UITip({ content, id }) {
     const { UIVisibility, setVisibility, queue } = useUIVisibilityStore(
         useShallow((state) => ({
@@ -47,6 +50,7 @@ export default function UITip({ content, id }) {
                                     display: "flex",
                                     gap: 10,
                                     lineHeight: "20px",
+                                    maxWidth: POPOVER_CONTENT_MAX_WIDTH,
                                 }}
                             >
                                 <FAIcon
