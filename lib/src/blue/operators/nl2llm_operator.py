@@ -24,13 +24,10 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     # currently we use option 2
 
     # Option 2: Otherwise, we create a service client here
-    # Create service client for OpenAI calls, use input properties of the function
     service_client = ServiceClient(name="nl2llm_operator_service_client", properties=properties)
+    additional_data = {'query': query, 'context': context, 'attr_names': attr_names}
 
-    # Create input_data as a dictionary with all the values needed for template substitution
-    service_input_data = {'query': query, 'context': context, 'attr_names': attr_names}
-
-    return [service_client.execute_api_call(service_input_data)]
+    return [service_client.execute_api_call({}, properties=properties, additional_data=additional_data)]
 
 
 def nl2llm_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:

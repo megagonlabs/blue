@@ -47,7 +47,7 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     else:
         schema_str = str(schema)
 
-    service_input_data = {
+    additional_data = {
         'question': question,
         'schema': schema_str,
         'protocol': protocol,
@@ -56,7 +56,7 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
         'additional_requirements': additional_requirements,
         'context': context,
     }
-    sql_result = service_client.execute_api_call(service_input_data)
+    sql_result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
 
     # Parse the result to get the query
     if isinstance(sql_result, str):
