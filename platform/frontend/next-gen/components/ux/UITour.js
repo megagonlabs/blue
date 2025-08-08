@@ -31,13 +31,15 @@ export default function UITour() {
         setVisibility({ id, value: !event.target.checked });
     };
     useEffect(() => {
-        AppToaster.show({
-            timeout: 10000,
-            intent: Intent.PRIMARY,
-            icon: <FAIcon icon={faFlag} />,
-            message:
-                "To start a basic tour, select the flag in the top-left corner.",
-        });
+        if (_.get(UIVisibility, id, true)) {
+            AppToaster.show({
+                timeout: 10000,
+                intent: Intent.PRIMARY,
+                icon: <FAIcon icon={faFlag} />,
+                message:
+                    "To start a basic tour, select the flag in the top-left corner.",
+            });
+        }
     }, []);
     if (!_.get(UIVisibility, id, true)) {
         return null;
