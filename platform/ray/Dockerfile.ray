@@ -12,7 +12,11 @@ RUN apt-get install iputils-ping -y
 # Update pip
 RUN pip install --upgrade pip
 
-# Build requirements first
+# Add core requirements
+ADD src/requirements.core /app/requirements.core
+RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
+
+# Add ray requirements
 ADD src/requirements.ray /app/requirements.ray
 RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.ray
 
