@@ -148,6 +148,8 @@ class Plan(dag_utils.DAG):
         # checks
         if name is None:
             raise Exception("Name is not specified")
+        if label and Agent.SEPARATOR in label:
+            raise Exception("Label cannot contain: " + Agent.SEPARATOR)
 
         if label is None:
             label = name
@@ -230,19 +232,16 @@ class Plan(dag_utils.DAG):
         return agent_output_node
 
     ### agent
-    def _verify_agent(self, label=None, type=None, properties=None):
+    def _verify_agent(self, label=None, properties=None):
         # verify if label is unique
         if label and self.is_mapped(label):
-            return False
-
-        if Agent.SEPARATOR in label:
             return False
 
         return True
 
     def create_agent(self, label=None, properties=None, sync=None):
         # verify agent, first
-        if not self._verify_agent(label=label, type=type, properties=properties):
+        if not self._verify_agent(label=label, properties=properties):
             raise Exception("Cannot create agent due to failed varification")
 
         # create agent entity
