@@ -3,6 +3,7 @@ import {
     Button,
     ButtonGroup,
     ButtonVariant,
+    Checkbox,
     Classes,
     Intent,
     Popover,
@@ -31,10 +32,11 @@ export default function UITour() {
     };
     useEffect(() => {
         AppToaster.show({
+            timeout: 10000,
             intent: Intent.PRIMARY,
             icon: <FAIcon icon={faFlag} />,
             message:
-                "To begin a basic tour, select the flag in the top-left corner.",
+                "To start a basic tour, select the flag in the top-left corner.",
         });
     }, []);
     if (!_.get(UIVisibility, id, true)) {
@@ -54,7 +56,7 @@ export default function UITour() {
                             text="Start the tour"
                             intent={Intent.PRIMARY}
                         />
-                        {/* <Checkbox
+                        <Checkbox
                             className={
                                 _.get(queue, id, false) && Classes.SKELETON
                             }
@@ -65,7 +67,7 @@ export default function UITour() {
                                 marginTop: 10,
                             }}
                             label="Don't show this again"
-                        /> */}
+                        />
                     </div>
                 }
             >

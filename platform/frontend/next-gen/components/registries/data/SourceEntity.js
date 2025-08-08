@@ -13,15 +13,25 @@ import {
     settlePromises,
     shallowDiff,
 } from "@/components/helper";
+import { UICallout } from "@/components/ux/UICallout";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
+    Button,
     Classes,
     Colors,
     EditableText,
     EntityTitle,
     H3,
+    Intent,
+    Size,
+    Tag,
 } from "@blueprintjs/core";
+import {
+    faAngleRight,
+    faEllipsisV,
+    faSync,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
@@ -166,6 +176,40 @@ export default function SourceEntity({
     };
     return (
         <div>
+            <div style={{ marginBottom: 20 }}>
+                <UICallout
+                    id="data_registry_source_entity_synchronize"
+                    content={
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                flexWrap: "wrap",
+                            }}
+                        >
+                            Synchronize the data source by{" "}
+                            <span>clicking on</span>
+                            <Button
+                                className="pointer-events-none"
+                                style={{ marginLeft: 5, marginRight: 5 }}
+                                intent={Intent.PRIMARY}
+                                icon={<FAIcon icon={faEllipsisV} />}
+                            />
+                            <FAIcon icon={faAngleRight} />
+                            <Tag
+                                style={{ marginLeft: 5, marginRight: 5 }}
+                                minimal
+                                icon={<FAIcon icon={faSync} />}
+                                size={Size.LARGE}
+                                intent={Intent.SUCCESS}
+                            >
+                                Synchronize
+                            </Tag>
+                            .
+                        </div>
+                    }
+                />
+            </div>
             <div
                 style={{
                     backgroundColor: `${Colors.BLUE3}${
