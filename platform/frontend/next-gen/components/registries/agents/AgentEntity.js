@@ -12,6 +12,7 @@ import {
     settlePromises,
     shallowDiff,
 } from "@/components/helper";
+import { UICallout } from "@/components/ux/UICallout";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
@@ -303,6 +304,14 @@ export default function AgentEntity({
                         loading={loading}
                     />
                 </div>
+                {!baseAgent && (
+                    <div style={{ marginTop: 20 }}>
+                        <UICallout
+                            id="derived_agents_configurations_override"
+                            content="Derived agents inherit configurations from their parent agent (inherited configurations that are not overridden are not shown). You can override inherited properties, inputs, and outputs by specifying them here."
+                        />
+                    </div>
+                )}
                 <div style={{ marginTop: 20 }}>
                     <EntityProperties
                         isEditing={isEditing}
