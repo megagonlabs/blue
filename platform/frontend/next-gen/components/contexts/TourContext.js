@@ -25,7 +25,6 @@ export const TourProvider = ({ children }) => {
             content:
                 'There are two ways to create a new session: click "New session" here, or select "New Session" from the navigation menu below "All Sessions."',
             position: "top",
-            skippable: false,
         },
         {
             elementQuery: "#platform-onboarding-tour-user-settings",
