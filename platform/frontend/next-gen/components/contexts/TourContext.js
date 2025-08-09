@@ -16,7 +16,7 @@ export const TourProvider = ({ children }) => {
             elementQuery: "#platform-onboarding-tour-navigation-menu",
             title: "Sessions",
             content:
-                'A session is a live application instance with a group of agents. To view a list of sessions available to you, click on "All Sessions."',
+                'A session is a live application instance with a group of agents. Click on "All Sessions" to view a list of sessions available to you.',
             position: "right-start",
         },
         {
@@ -25,7 +25,7 @@ export const TourProvider = ({ children }) => {
             content:
                 'There are two ways to create a new session: click "New session" here, or select "New Session" from the navigation menu below "All Sessions."',
             position: "top",
-            skippable: true,
+            skippable: false,
         },
         {
             elementQuery: "#platform-onboarding-tour-user-settings",
