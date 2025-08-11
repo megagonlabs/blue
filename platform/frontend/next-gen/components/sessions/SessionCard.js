@@ -134,11 +134,13 @@ export default function SessionCard({ sessionId }) {
                 AppToaster.show({
                     icon: (
                         <FAIcon
-                            icon={!pinned ? faThumbTackSlash : faThumbTack}
-                            size={!pinned ? 20 : 16}
+                            icon={pinned ? faThumbTackSlash : faThumbTack}
+                            size={pinned ? 18 : 16}
                         />
                     ),
-                    message: `Session ${pinned ? "un" : ""}pinned`,
+                    message: `Session "${sessionId}" ${
+                        pinned ? "un" : ""
+                    }pinned`,
                 });
             })
             .finally(() => {
@@ -197,12 +199,15 @@ export default function SessionCard({ sessionId }) {
                         <Button
                             loading={loading}
                             onClick={handlePinSession}
+                            onDoubleClick={(event) => {
+                                event.stopPropagation();
+                            }}
                             icon={
                                 <FAIcon
                                     icon={
                                         pinned ? faThumbTackSlash : faThumbTack
                                     }
-                                    size={pinned ? 20 : 16}
+                                    size={pinned ? 18 : 16}
                                 />
                             }
                         />
