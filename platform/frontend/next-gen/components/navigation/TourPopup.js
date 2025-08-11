@@ -206,8 +206,8 @@ const TourPopup = () => {
                         text="Previous"
                         style={{ marginRight: 10 }}
                         onClick={() => {
-                            skipped.current = 0;
                             prevStep(skipped.current);
+                            skipped.current = 0;
                         }}
                         variant={ButtonVariant.MINIMAL}
                     />
