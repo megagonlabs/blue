@@ -685,7 +685,7 @@ class Agent:
                 o = outputs[output]
                 d = o['description'] if 'description' in o else None
                 p = o['properties'] if 'properties' in o else None
-                self.update_output(input, description=d, properties=p)
+                self.update_output(output, description=d, properties=p)
 
     def update_input(self, name, description=None, properties=None):
         if name not in self.inputs:
