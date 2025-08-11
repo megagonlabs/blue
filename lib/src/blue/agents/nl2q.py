@@ -281,7 +281,6 @@ Output:
             entity_stats = entity['properties'].get('stats', {})
             property_stats = entity_stats.get('property_stats', {})
                 
-
             columns = []
             for col_name, col_info in properties.items():
                 if isinstance(col_info, dict):
@@ -293,8 +292,7 @@ Output:
                 
                 if col_name in property_stats:
                     col_entry["stats"] = property_stats[col_name]
-            
-                
+
                 columns.append(col_entry)
 
             res.append({"table_name": table_name, "columns": columns})
