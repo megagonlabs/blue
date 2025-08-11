@@ -206,7 +206,6 @@ const TourPopup = () => {
                         text="Previous"
                         style={{ marginRight: 10 }}
                         onClick={() => {
-                            console.log(skipped.current);
                             prevStep(skipped.current);
                             skipped.current = 0;
                         }}
