@@ -45,12 +45,12 @@ class RayToolClient(ToolClient):
         if 'namespace' in c:
             namespace = c['namespace']
 
-        if not ray.is_initialized():
-            ray.init(address=server_url, namespace=namespace)
+        ray.init(address=server_url, namespace=namespace, ignore_reinit_error=True)
         return {}
 
     def _disconnect(self):
-        # TODO:
+        if ray.is_initialized():
+            ray.shutdown()
         return None
 
     ######### server
