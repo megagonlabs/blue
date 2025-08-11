@@ -139,8 +139,8 @@ const TourPopup = () => {
                 clearTimeout(timeoutId);
             } else {
                 if (_.get(currentStepData, "skippable", true)) {
-                    nextStep();
                     skipped.current += 1;
+                    nextStep();
                 } else {
                     setReferenceElement(null);
                     timeoutId = setTimeout(checkForElement, 300);
@@ -206,16 +206,16 @@ const TourPopup = () => {
                         text="Previous"
                         style={{ marginRight: 10 }}
                         onClick={() => {
-                            prevStep(skipped.current);
                             skipped.current = 0;
+                            prevStep(skipped.current);
                         }}
                         variant={ButtonVariant.MINIMAL}
                     />
                 )}
                 <Button
                     onClick={() => {
-                        nextStep();
                         skipped.current = 0;
+                        nextStep();
                     }}
                     intent={Intent.PRIMARY}
                     disabled={!allowNext && !isLastStep}
