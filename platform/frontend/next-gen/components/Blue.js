@@ -654,7 +654,7 @@ export default function Blue({ children }) {
                             onConfirm={logout}
                         >
                             There seems to be an issue with your account
-                            information. Please log in again to continue.
+                            information. Please sign in again to continue.
                         </Alert>
                         <div
                             className="full-parent-dimension"

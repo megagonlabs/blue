@@ -182,6 +182,7 @@ class Platform:
             nx=True,
         )
         self.set_metadata(f'users.{uid}.ui_visibility', {}, nx=True)
+        self.set_metadata(f'users.{uid}.role', default_user_role, nx=True)
         self.set_metadata(f'users.{uid}.sessions', {"pinned": {}, "owner": {}, "member": {}}, nx=True)
         self.set_metadata(f'users.{uid}.settings', default_user_settings, nx=True)
 
