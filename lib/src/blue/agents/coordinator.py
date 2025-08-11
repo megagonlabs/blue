@@ -196,13 +196,10 @@ class CoordinatorAgent(Agent):
 
         return output_stream
 
-    def _get_plan_data_namespace(self, plan):
-        return plan.get_scope() + ":" + "PLAN" + ":" + plan.get_id() + ":DATA"
-
     def plan_synchronizer(self, plan, path, key, value):
-        self.logger.info(plan)
-        self.logger.info("plan synchronize: " + str(path) + "." + (str(key) if key else "NONE") + "=" + json.dumps(value))
-        # self.connection.json().set(self._get_plan_data_namespace(plan), path + "." + key, value)
+        # remove $. from path + key
+        canonical_key = path + "." + key
+        self.set_data(canonical_key[2:], value)
 
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
