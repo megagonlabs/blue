@@ -151,10 +151,7 @@ function IconPicker({ content, setNewContent }) {
                             target="_blank"
                             href="https://fontawesome.com/search?o=r&ic=pro-collection&s=solid&ip=sharp-duotone"
                         >
-                            <Tooltip
-                                placement="bottom-end"
-                                content="Advanced search"
-                            >
+                            <Tooltip content="Advanced search">
                                 <Button
                                     variant={ButtonVariant.MINIMAL}
                                     icon={<FAIcon icon={faTelescope} />}
@@ -280,9 +277,10 @@ function IconPicker({ content, setNewContent }) {
                                     width: 30,
                                     cursor: !isWhite && "pointer",
                                     height: 30,
-                                    textAlign: "center",
-                                    lineHeight: "30px",
                                     backgroundColor: !isWhite && code,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-evenly",
                                 }}
                             >
                                 {_.isEqual(colorHex, code) ? (
@@ -367,6 +365,7 @@ function ImagePicker({ content, setNewContent }) {
         const { width, height } = event.currentTarget;
         setCrop(centerAspectCrop(width, height));
     };
+    const isImage = _.startsWith(imgSrc, "data:image/");
     useDebounceEffect(
         async () => {
             if (_.isNull(completedCrop)) return;
@@ -436,7 +435,7 @@ function ImagePicker({ content, setNewContent }) {
                     text={fileName}
                     onInputChange={onSelectFile}
                 />
-                {!!imgSrc && (
+                {!!imgSrc && isImage && (
                     <ButtonGroup
                         fill
                         variant={ButtonVariant.MINIMAL}
@@ -450,7 +449,7 @@ function ImagePicker({ content, setNewContent }) {
                     </ButtonGroup>
                 )}
             </ControlGroup>
-            {!!imgSrc && (
+            {!!imgSrc && isImage && (
                 <div style={{ display: "flex", marginTop: 20 }}>
                     <ReactCrop
                         keepSelection
