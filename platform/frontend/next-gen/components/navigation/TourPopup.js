@@ -104,7 +104,8 @@ const TourPopup = () => {
                 const nextTargetElement = document.querySelector(
                     nextStepData.elementQuery
                 );
-                if (nextTargetElement) {
+                const skippable = _.get(nextStepData, "skippable", true);
+                if (nextTargetElement || skippable) {
                     setAllowNext(true);
                 } else {
                     setAllowNext(false);
@@ -117,6 +118,7 @@ const TourPopup = () => {
             clearTimeout(timeoutId);
         };
     }, [isTourActive, currentStep, steps, endTour]);
+    const skipped = useRef(0);
     useEffect(() => {
         let timeoutId;
         const checkForElement = () => {
@@ -138,6 +140,7 @@ const TourPopup = () => {
             } else {
                 if (_.get(currentStepData, "skippable", true)) {
                     nextStep();
+                    skipped.current += 1;
                 } else {
                     setReferenceElement(null);
                     timeoutId = setTimeout(checkForElement, 300);
@@ -202,12 +205,19 @@ const TourPopup = () => {
                     <Button
                         text="Previous"
                         style={{ marginRight: 10 }}
-                        onClick={prevStep}
+                        onClick={() => {
+                            console.log(skipped.current);
+                            prevStep(skipped.current);
+                            skipped.current = 0;
+                        }}
                         variant={ButtonVariant.MINIMAL}
                     />
                 )}
                 <Button
-                    onClick={nextStep}
+                    onClick={() => {
+                        nextStep();
+                        skipped.current = 0;
+                    }}
                     intent={Intent.PRIMARY}
                     disabled={!allowNext && !isLastStep}
                 >

@@ -45,10 +45,8 @@ export const TourProvider = ({ children }) => {
             endTour();
         }
     };
-    const prevStep = () => {
-        if (currentStep > 0) {
-            setCurrentStep(currentStep - 1);
-        }
+    const prevStep = (skipped = 0) => {
+        setCurrentStep(Math.max(0, currentStep - 1 - skipped));
     };
     const endTour = () => {
         setIsTourActive(false);
