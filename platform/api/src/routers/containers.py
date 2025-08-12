@@ -75,11 +75,16 @@ def container_acl_enforce(request: Request, agent: dict, read=False, write=False
     user_role = request.state.user['role']
     uid = request.state.user['uid']
     allow = False
+    own = pydash.objects.get(agent, 'created_by', None) == uid
+    system_agent = pydash.objects.get(agent, 'properties.system_agent', False)
     if (read and user_role in read_all_roles) or (write and user_role in write_all_roles):
         allow = True
     elif (read and user_role in read_own_roles) and (write and user_role in write_own_roles):
-        if pydash.objects.get(agent, 'created_by', None) == uid:
+        if own:
             allow = True
+    if system_agent and user_role != 'administrator':
+        if not own:
+            allow = False
     if throw and not allow:
         raise PermissionDenied
     return allow

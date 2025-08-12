@@ -176,11 +176,16 @@ def agent_acl_enforce(request: Request, agent: dict, write=False, throw=True):
     user_role = request.state.user['role']
     uid = request.state.user['uid']
     allow = False
+    own = pydash.objects.get(agent, 'created_by', None) == uid
+    system_agent = pydash.objects.get(agent, 'properties.system_agent', False)
     if write and user_role in write_all_roles:
         allow = True
     elif write and user_role in write_own_roles:
-        if pydash.objects.get(agent, 'created_by', None) == uid:
+        if own:
             allow = True
+    if system_agent and user_role != 'administrator':
+        if not own:
+            allow = False
     if throw and not allow:
         raise PermissionDenied
     return allow
