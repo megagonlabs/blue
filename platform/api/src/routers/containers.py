@@ -206,6 +206,8 @@ def deploy_agent_container(request: Request, agent_name):
     agent = agent_registry.get_agent(agent_name)
     container_acl_enforce(request, agent, write=True)
     agent_registry_properties = agent_registry.get_agent_properties(agent_name)
+    if 'image' not in agent_registry_properties:
+        return JSONResponse(content={"message": "\"image\" is not defined in the properties"}, status_code=400)
     image = agent_registry_properties["image"]
 
     # connect to docker
