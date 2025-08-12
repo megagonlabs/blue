@@ -10,6 +10,7 @@ import {
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
+    showAxiosErrorToast,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
@@ -125,6 +126,10 @@ export default function ToolEntity({ entity, backCrumb }) {
                     }
                     setLoading(false);
                 });
+            })
+            .catch((error) => {
+                showAxiosErrorToast(error);
+                setLoading(false);
             });
     };
     const onDelete = () => {

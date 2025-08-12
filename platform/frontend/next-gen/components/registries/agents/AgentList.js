@@ -5,6 +5,7 @@ import {
 import { CardListCallout } from "@/components/ux/CardListCallout";
 import { useAgentStore } from "@/stores/agent-store";
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
@@ -19,11 +20,11 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
+import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBarsFilter,
     faEraser,
     faPlus,
-    faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _, { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -46,6 +47,11 @@ function AgentList({ width, height }) {
         }))
     );
     const [showFilter, setShowFilter] = useState(false);
+    const { permissions } = useAuthStore(
+        useShallow((state) => ({
+            permissions: state.permissions,
+        }))
+    );
     const darkMode = useAppStore((state) => state.dark_mode);
     const [showNewEntity, setShowNewEntity] = useState(false);
     const { addContainer } = useGridStore(
@@ -216,16 +222,18 @@ function AgentList({ width, height }) {
                             )}
                         </div>
                     ))}
-                    <Button
-                        onClick={() => {
-                            setShowNewEntity(true);
-                        }}
-                        icon={<FAIcon icon={faPlus} />}
-                        size={Size.LARGE}
-                        fill
-                        variant={ButtonVariant.MINIMAL}
-                        text="Add agent"
-                    />
+                    {permissions.canWriteAgentRegistry && (
+                        <Button
+                            onClick={() => {
+                                setShowNewEntity(true);
+                            }}
+                            icon={<FAIcon icon={faPlus} />}
+                            size={Size.LARGE}
+                            fill
+                            variant={ButtonVariant.MINIMAL}
+                            text="Add agent"
+                        />
+                    )}
                 </div>
             </div>
         </div>

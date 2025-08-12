@@ -21,11 +21,11 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
+import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBarsFilter,
     faEraser,
     faPlus,
-    faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _, { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";

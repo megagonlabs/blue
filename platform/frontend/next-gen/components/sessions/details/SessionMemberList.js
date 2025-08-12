@@ -17,9 +17,9 @@ import {
     Size,
     Tag,
 } from "@blueprintjs/core";
+import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faCheckCircle,
-    faSearch,
     faTrash,
     faUserPlus,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";

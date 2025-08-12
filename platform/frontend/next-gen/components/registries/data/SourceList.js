@@ -6,6 +6,7 @@ import { FAIcon } from "@/components/FAIcon";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
 import { CardListCallout } from "@/components/ux/CardListCallout";
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSourceStore } from "@/stores/source-store";
 import {
@@ -21,11 +22,11 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
+import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBarsFilter,
     faEraser,
     faPlus,
-    faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _, { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -37,6 +38,11 @@ import RegistryEntityContainer from "../RegistryEntityContainer";
 import SearchResultCard from "../SearchResultCard";
 function SourceList({ width, height }) {
     const [showFilter, setShowFilter] = useState(false);
+    const { permissions } = useAuthStore(
+        useShallow((state) => ({
+            permissions: state.permissions,
+        }))
+    );
     const darkMode = useAppStore((state) => state.dark_mode);
     const { data, getSources, filter, setFilterValue, search } = useSourceStore(
         useShallow((state) => ({
@@ -232,16 +238,18 @@ function SourceList({ width, height }) {
                             )}
                         </div>
                     ))}
-                    <Button
-                        onClick={() => {
-                            setShowNewEntity(true);
-                        }}
-                        size={Size.LARGE}
-                        fill
-                        variant={ButtonVariant.MINIMAL}
-                        text="Add source"
-                        icon={<FAIcon icon={faPlus} />}
-                    />
+                    {permissions.canWriteDataRegistry && (
+                        <Button
+                            onClick={() => {
+                                setShowNewEntity(true);
+                            }}
+                            size={Size.LARGE}
+                            fill
+                            variant={ButtonVariant.MINIMAL}
+                            text="Add source"
+                            icon={<FAIcon icon={faPlus} />}
+                        />
+                    )}
                 </div>
             </div>
         </div>

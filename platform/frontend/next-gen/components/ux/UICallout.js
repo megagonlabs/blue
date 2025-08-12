@@ -1,6 +1,6 @@
 import { useUIVisibilityStore } from "@/stores/ui-visibility-store";
 import { Callout, Checkbox, Classes, Colors } from "@blueprintjs/core";
-import { faQuestionCircle } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faUserQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -30,7 +30,7 @@ export function UICallout({ content, id }) {
         >
             <div style={{ display: "flex", gap: 10, lineHeight: "20px" }}>
                 <FAIcon
-                    icon={faQuestionCircle}
+                    icon={faUserQuestion}
                     size={20}
                     style={{ color: Colors.ORANGE3 }}
                 />

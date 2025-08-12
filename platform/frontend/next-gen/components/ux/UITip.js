@@ -7,10 +7,7 @@ import {
     Popover,
     Tooltip,
 } from "@blueprintjs/core";
-import {
-    faCircleQuestion,
-    faQuestionCircle,
-} from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faUserQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -54,7 +51,7 @@ export default function UITip({ content, id }) {
                                 }}
                             >
                                 <FAIcon
-                                    icon={faQuestionCircle}
+                                    icon={faUserQuestion}
                                     size={20}
                                     style={{ color: Colors.ORANGE3 }}
                                 />
@@ -85,7 +82,7 @@ export default function UITip({ content, id }) {
                 >
                     <FAIcon
                         size={20}
-                        icon={faCircleQuestion}
+                        icon={faUserQuestion}
                         style={{ color: Colors.ORANGE3, cursor: "pointer" }}
                     />
                 </Tooltip>

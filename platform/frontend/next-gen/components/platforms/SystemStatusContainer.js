@@ -14,9 +14,9 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
+import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faFastForward,
-    faSearch,
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -199,6 +199,7 @@ function SystemStatusContainer({ width, height }) {
                     <Popover
                         {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
                         boundary={popoverBoundary}
+                        minimal
                         content={
                             <div style={{ padding: 10, width: 400 }}>
                                 <InputGroup

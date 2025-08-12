@@ -13,12 +13,12 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
+import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowLeft,
     faBarsFilter,
     faEraser,
     faInboxArrowUp,
-    faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -33,7 +33,13 @@ import FilterPane from "../registries/FilterPane";
 import { CardListCallout } from "../ux/CardListCallout";
 import SessionCard from "./SessionCard";
 function SessionList({ width, height }) {
-    const user = useAuthStore((state) => state.user);
+    const { user, permissions } = useAuthStore(
+        useShallow((state) => ({
+            user: state.user,
+            permissions: state.permissions,
+            logout: state.logout,
+        }))
+    );
     const darkMode = useAppStore((state) => state.dark_mode);
     const { sessionIds, getSessions, sessions, filter, setFilterValue } =
         useSessionStore(
@@ -212,18 +218,20 @@ function SessionList({ width, height }) {
                             <SessionCard sessionId={session} />
                         </div>
                     ))}
-                    <Button
-                        className="session-list-new-session-button"
-                        intent={Intent.PRIMARY}
-                        onClick={() => {
-                            createNewSession({});
-                        }}
-                        icon={<FAIcon icon={faInboxArrowUp} />}
-                        size={Size.LARGE}
-                        fill
-                        variant={ButtonVariant.MINIMAL}
-                        text="New session"
-                    />
+                    {permissions.canWriteSessions && (
+                        <Button
+                            className="session-list-new-session-button"
+                            intent={Intent.PRIMARY}
+                            onClick={() => {
+                                createNewSession({});
+                            }}
+                            icon={<FAIcon icon={faInboxArrowUp} />}
+                            size={Size.LARGE}
+                            fill
+                            variant={ButtonVariant.MINIMAL}
+                            text="New session"
+                        />
+                    )}
                 </div>
             </div>
         </div>

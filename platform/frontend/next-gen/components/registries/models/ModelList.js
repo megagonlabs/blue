@@ -6,6 +6,7 @@ import { FAIcon } from "@/components/FAIcon";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
 import { CardListCallout } from "@/components/ux/CardListCallout";
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useModelStore } from "@/stores/model-store";
 import {
@@ -21,11 +22,11 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
+import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBarsFilter,
     faEraser,
     faPlus,
-    faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _, { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -62,6 +63,11 @@ function ModelList({ width, height }) {
             content: <RegistryEntityContainer entity={entity} />,
         });
     };
+    const { permissions } = useAuthStore(
+        useShallow((state) => ({
+            permissions: state.permissions,
+        }))
+    );
     const elementRef = useRef(null);
     return (
         <div ref={elementRef} style={{ width, height }}>
@@ -194,16 +200,18 @@ function ModelList({ width, height }) {
                             )}
                         </div>
                     ))}
-                    <Button
-                        onClick={() => {
-                            setShowNewEntity(true);
-                        }}
-                        size={Size.LARGE}
-                        fill
-                        variant={ButtonVariant.MINIMAL}
-                        text="Add model"
-                        icon={<FAIcon icon={faPlus} />}
-                    />
+                    {permissions.canWriteModelRegistry && (
+                        <Button
+                            onClick={() => {
+                                setShowNewEntity(true);
+                            }}
+                            size={Size.LARGE}
+                            fill
+                            variant={ButtonVariant.MINIMAL}
+                            text="Add model"
+                            icon={<FAIcon icon={faPlus} />}
+                        />
+                    )}
                 </div>
             </div>
         </div>

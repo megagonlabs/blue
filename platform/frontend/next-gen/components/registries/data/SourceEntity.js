@@ -12,6 +12,7 @@ import {
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
+    showAxiosErrorToast,
 } from "@/components/helper";
 import { UICallout } from "@/components/ux/UICallout";
 import { useAppStore } from "@/stores/app-store";
@@ -158,6 +159,10 @@ export default function SourceEntity({
                     }
                     setLoading(false);
                 });
+            })
+            .catch((error) => {
+                showAxiosErrorToast(error);
+                setLoading(false);
             });
     };
     const onDelete = () => {
