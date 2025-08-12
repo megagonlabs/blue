@@ -42,14 +42,14 @@ export default function EntityActions({
     onSynchronize,
     onDuplicate,
 }) {
-    const { name, type, properties } = entity;
+    const { name, type, properties, created_by = null } = entity;
     const { user, permissions } = useAuthStore(
         useShallow((state) => ({
             user: state.user,
             permissions: state.permissions,
         }))
     );
-    const own = _.isEqual(_.get(entity, "created_by", null), user.uid);
+    const own = _.isEqual(created_by, user.uid);
     const canEditEntity = useMemo(() => {
         // write_all
         const permissionKey = _.get(

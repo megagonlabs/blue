@@ -15,6 +15,7 @@ import {
 } from "@/components/helper";
 import { UICallout } from "@/components/ux/UICallout";
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
@@ -33,7 +34,8 @@ import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
@@ -54,11 +56,31 @@ export default function AgentEntity({
     setNewEntityType,
     backCrumb,
 }) {
-    const { name, type, scope } = entity;
+    const { name, type, scope, created_by = null } = entity;
     const { gridContainerId } = useGridContainerContext();
     const setContainerHeader = useGridStore(
         (state) => state.setContainerHeader
     );
+    const { user, permissions } = useAuthStore(
+        useShallow((state) => ({
+            user: state.user,
+            permissions: state.permissions,
+        }))
+    );
+    const own = _.isEqual(created_by, user.uid);
+    const canEditEntity = useMemo(() => {
+        // write_all
+        const permissionKey = _.get(
+            ENTITY_TYPE_LOOKUP,
+            [type, "permissionKey"],
+            null
+        );
+        const writeAll = _.includes(
+            _.get(user, ["permissions", permissionKey], []),
+            "write_all"
+        );
+        return own || writeAll;
+    }, [user, permissions]);
     const baseAgent = !_.isEmpty(scope) && _.isEqual(scope, "/");
     const [agent, setAgent] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -354,7 +376,7 @@ export default function AgentEntity({
                                     _.get(agent, "contents.input", {})
                                 )}
                             />
-                            {!isEditing && (
+                            {!isEditing && canEditEntity && (
                                 <Button
                                     disabled={loading}
                                     variant={ButtonVariant.MINIMAL}
@@ -397,7 +419,7 @@ export default function AgentEntity({
                                     _.get(agent, "contents.output", {})
                                 )}
                             />
-                            {!isEditing && (
+                            {!isEditing && canEditEntity && (
                                 <Button
                                     disabled={loading}
                                     variant={ButtonVariant.MINIMAL}
@@ -433,7 +455,7 @@ export default function AgentEntity({
                             addCrumb={addCrumb}
                             list={_.values(_.get(agent, "contents.agent", {}))}
                         />
-                        {!isEditing && (
+                        {!isEditing && canEditEntity && (
                             <Button
                                 disabled={loading}
                                 variant={ButtonVariant.MINIMAL}
