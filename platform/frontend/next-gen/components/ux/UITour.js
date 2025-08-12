@@ -40,7 +40,7 @@ export default function UITour() {
                     "To start a basic tour, select the flag in the top-left corner.",
             });
         }
-    }, []);
+    }, [UIVisibility]);
     if (!_.get(UIVisibility, id, true)) {
         return null;
     }

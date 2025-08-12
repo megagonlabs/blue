@@ -28,7 +28,7 @@ function MessageMetadata({ message }) {
     const user = useAuthStore((state) => state.user);
     const own = useMemo(() => {
         return isUser && _.isEqual(user.uid, id);
-    }, [user, id]);
+    }, [isUser, user, id]);
     const displayName = _.get(
         agentMetadata,
         [createdBy, "displayName"],

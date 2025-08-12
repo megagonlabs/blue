@@ -25,7 +25,7 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
                         setCurrentDimensions({ width, height });
                         setTimeout(() => {
                             updateNodeInternals(id);
-                            if (data.onDimensionsChange) {
+                            if (_.isFunction(data.onDimensionsChange)) {
                                 data.onDimensionsChange(id, width, height);
                             }
                         }, 0);
