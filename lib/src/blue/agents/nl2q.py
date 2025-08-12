@@ -77,7 +77,6 @@ Output:
         "output_transformations": [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}],
         "output_strip": True,
         "output_cast": "json",
-        },
     }
 
     def __init__(self, **kwargs):
@@ -280,7 +279,7 @@ Output:
 
             entity_stats = entity['properties'].get('stats', {})
             property_stats = entity_stats.get('property_stats', {})
-                
+
             columns = []
             for col_name, col_info in properties.items():
                 if isinstance(col_info, dict):
@@ -289,7 +288,7 @@ Output:
                         col_entry["enum"] = col_info["enum"]
                 else:
                     col_entry = {"name": col_name, "type": col_info}
-                
+
                 if col_name in property_stats:
                     col_entry["stats"] = property_stats[col_name]
 
@@ -589,7 +588,6 @@ Output:
         # intialize defatult properties
         for key in NL2MongoQL.PROPERTIES:
             self.properties[key] = NL2MongoQL.PROPERTIES[key]
-
 
     ####### inputs / outputs
     def _initialize_inputs(self):
