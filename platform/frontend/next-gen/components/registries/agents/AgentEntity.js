@@ -270,7 +270,11 @@ export default function AgentEntity({
                         </div>
                     </div>
                     <MainPropertyBlock loading={loading} label="System agent">
-                        {isEditing ? (
+                        {isEditing &&
+                        _.isEqual(
+                            _.get(user, "role", null),
+                            "administrator"
+                        ) ? (
                             <Checkbox
                                 className="margin-0"
                                 checked={systemAgent}
