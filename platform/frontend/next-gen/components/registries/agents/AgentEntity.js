@@ -331,7 +331,8 @@ export default function AgentEntity({
                     intent={Intent.WARNING}
                     style={{ marginTop: 10 }}
                 >
-                    Only administrators can make changes to a system agent.
+                    Changes to this agent can only be made by the owner or
+                    administrators.
                 </Callout>
             )}
             <div style={{ marginTop: 20 }}>
