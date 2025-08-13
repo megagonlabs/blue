@@ -7,6 +7,7 @@ import {
     H3,
     Intent,
     Portal,
+    Spinner,
 } from "@blueprintjs/core";
 import {
     faArrowRightLong,
@@ -201,27 +202,43 @@ const TourPopup = () => {
                     />
                 </div>
                 <p>{currentStepData.content}</p>
-                {currentStep > 0 && (
-                    <Button
-                        text="Previous"
-                        style={{ marginRight: 10 }}
-                        onClick={() => {
-                            prevStep(skipped.current);
-                            skipped.current = 0;
-                        }}
-                        variant={ButtonVariant.MINIMAL}
-                    />
-                )}
-                <Button
-                    onClick={() => {
-                        skipped.current = 0;
-                        nextStep();
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
                     }}
-                    intent={Intent.PRIMARY}
-                    disabled={!allowNext && !isLastStep}
                 >
-                    {isLastStep ? "Finish" : "Next"}
-                </Button>
+                    <div>
+                        {currentStep > 0 && (
+                            <Button
+                                text="Previous"
+                                style={{ marginRight: 10 }}
+                                onClick={() => {
+                                    prevStep(skipped.current);
+                                    skipped.current = 0;
+                                }}
+                                variant={ButtonVariant.MINIMAL}
+                            />
+                        )}
+                        <Button
+                            onClick={() => {
+                                skipped.current = 0;
+                                nextStep();
+                            }}
+                            intent={Intent.PRIMARY}
+                            disabled={!allowNext && !isLastStep}
+                        >
+                            {isLastStep ? "Finish" : "Next"}
+                        </Button>
+                    </div>
+                    <div>
+                        <Spinner
+                            size={20}
+                            value={(currentStep + 1) / _.size(steps)}
+                        />
+                    </div>
+                </div>
             </Card>
         </Portal>
     );
