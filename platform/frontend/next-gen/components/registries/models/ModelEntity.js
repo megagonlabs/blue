@@ -56,6 +56,7 @@ export default function ModelEntity({
         _.set(newProperties, path, value);
         setMainProperties(newProperties);
     };
+    const [JSONError, setJSONError] = useState(false);
     const updateModel = ({ path, value }) => {
         let newModel = _.cloneDeep(editedModel);
         _.set(newModel, path, value);
@@ -183,6 +184,7 @@ export default function ModelEntity({
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onDuplicate={onDuplicate}
+                            JSONError={JSONError}
                         />
                     </div>
                 )}
@@ -270,6 +272,7 @@ export default function ModelEntity({
                     updateEntity={updateModel}
                     entity={editedModel}
                     loading={loading}
+                    setJSONError={setJSONError}
                 />
             </div>
         </div>

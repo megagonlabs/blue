@@ -32,6 +32,7 @@ export default function InputEntity({ entity, backCrumb }) {
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { progressToaster, showAxiosErrorToast } = useToaster();
+    const [JSONError, setJSONError] = useState(false);
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -145,6 +146,7 @@ export default function InputEntity({ entity, backCrumb }) {
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
+                            JSONError={JSONError}
                         />
                     </div>
                 )}
@@ -231,6 +233,7 @@ export default function InputEntity({ entity, backCrumb }) {
                     updateEntity={updateInput}
                     entity={editedInput}
                     loading={loading}
+                    setJSONError={setJSONError}
                 />
             </div>
         </div>

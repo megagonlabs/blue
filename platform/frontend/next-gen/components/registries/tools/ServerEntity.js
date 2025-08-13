@@ -57,6 +57,7 @@ export default function ServerEntity({
     const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
     const { progressToaster, showAxiosErrorToast } = useToaster();
+    const [JSONError, setJSONError] = useState(false);
     const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             addContainer: state.addContainer,
@@ -207,6 +208,7 @@ export default function ServerEntity({
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
                             onDuplicate={onDuplicate}
+                            JSONError={JSONError}
                         />
                     </div>
                 )}
@@ -285,6 +287,7 @@ export default function ServerEntity({
                     updateEntity={updateServer}
                     entity={editedServer}
                     loading={loading}
+                    setJSONError={setJSONError}
                 />
             </div>
             <div style={{ marginTop: 20 }}>

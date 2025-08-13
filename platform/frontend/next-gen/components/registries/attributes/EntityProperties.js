@@ -11,6 +11,7 @@ export default function EntityProperties({
     isEditing,
     updateEntity,
     loading,
+    setJSONError,
 }) {
     const properties = _.omit(
         _.get(entity, "properties", {}),
@@ -37,6 +38,7 @@ export default function EntityProperties({
                         setBack={(object) => {
                             updateEntity({ path: "properties", value: object });
                         }}
+                        setJSONError={setJSONError}
                     />
                 ) : (
                     <Pre className="margin-0" style={{ overflow: "hidden" }}>

@@ -54,6 +54,7 @@ export default function ToolEntity({ entity, backCrumb }) {
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
+    const [JSONError, setJSONError] = useState(false);
     const path = [scope.substring(1), type, name]
         .filter((str) => !_.isEmpty(str))
         .join("/");
@@ -173,6 +174,7 @@ export default function ToolEntity({ entity, backCrumb }) {
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
+                            JSONError={JSONError}
                         />
                     </div>
                 )}
@@ -251,6 +253,7 @@ export default function ToolEntity({ entity, backCrumb }) {
                     updateEntity={updateTool}
                     entity={editedTool}
                     loading={loading}
+                    setJSONError={setJSONError}
                 />
             </div>
         </div>

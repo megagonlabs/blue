@@ -6,6 +6,7 @@ import {
     Colors,
     Intent,
     Size,
+    Tag,
     Tooltip,
 } from "@blueprintjs/core";
 import { closeBrackets } from "@codemirror/autocomplete";
@@ -30,6 +31,7 @@ const TAB_INDENT = "    ";
 export default function JSONEditor({
     jsonObject,
     loading,
+    setJSONError,
     controlStripProps = {},
     className = [],
     onSave = null,
@@ -92,6 +94,9 @@ export default function JSONEditor({
                 }
             });
             setError(error);
+            if (_.isFunction(setJSONError)) {
+                setJSONError(error);
+            }
             setDoc(v.state.doc.toString());
         }, 300),
         []
@@ -177,7 +182,12 @@ export default function JSONEditor({
             <div
                 ref={elementRef}
                 className="border-bottom"
-                style={{ padding: 10 }}
+                style={{
+                    display: "flex",
+                    padding: 10,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                }}
             >
                 <ButtonGroup
                     size={controlStripSize}
@@ -214,6 +224,11 @@ export default function JSONEditor({
                         />
                     </Tooltip>
                 </ButtonGroup>
+                {error && (
+                    <Tag intent={Intent.DANGER} minimal size={Size.LARGE}>
+                        Invalid JSON
+                    </Tag>
+                )}
             </div>
             <div
                 style={{

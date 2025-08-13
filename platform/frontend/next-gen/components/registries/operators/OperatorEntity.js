@@ -60,6 +60,7 @@ export default function OperatorEntity({
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
+    const [JSONError, setJSONError] = useState(false);
     const path = [scope.substring(1), type, name]
         .filter((str) => !_.isEmpty(str))
         .join("/");
@@ -186,6 +187,7 @@ export default function OperatorEntity({
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
+                            JSONError={JSONError}
                         />
                     </div>
                 )}
@@ -273,6 +275,7 @@ export default function OperatorEntity({
                     updateEntity={updateOperator}
                     entity={editedOperator}
                     loading={loading}
+                    setJSONError={setJSONError}
                 />
             </div>
         </div>
