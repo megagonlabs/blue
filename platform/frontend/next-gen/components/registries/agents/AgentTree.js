@@ -1,10 +1,10 @@
 import { GREEN_CHECK } from "@/components/constants";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import {
     constructAgentTree,
     insertBetween,
     settlePromises,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import {
     Button,
@@ -62,6 +62,7 @@ export default function AgentTree({ entity }) {
         }
         setSelectedAvailable(newSelected);
     };
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     const onDeselectAdded = (agents) => {
         let newSelected = _.cloneDeep(selectedAdded);
         let addedNodes = _.cloneDeep(added);
@@ -233,39 +234,43 @@ export default function AgentTree({ entity }) {
                 })
             );
         }
-        settlePromises(promises, ({ results }) => {
-            let newAdded = _.cloneDeep(added);
-            let result = [];
-            for (let i = 0; i < _.size(results); i++) {
-                if (_.isEqual(results[i].status, "fulfilled")) {
-                    const agent = { name: results[i].value };
-                    result.push(agent.name);
-                    newAdded.push({
-                        id: agent.name,
-                        icon: (
-                            <RegistryEntityIcon
-                                type={"agent"}
-                                content={_.get(agent, "icon", null)}
-                            />
-                        ),
-                        agent,
-                        label: (
-                            <div
-                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                                style={{ marginLeft: 7 }}
-                            >
-                                <EntityDisplayName entity={agent} />
-                            </div>
-                        ),
-                        childNodes: [],
-                        hasCaret: false,
-                    });
+        settlePromises(
+            promises,
+            ({ results }) => {
+                let newAdded = _.cloneDeep(added);
+                let result = [];
+                for (let i = 0; i < _.size(results); i++) {
+                    if (_.isEqual(results[i].status, "fulfilled")) {
+                        const agent = { name: results[i].value };
+                        result.push(agent.name);
+                        newAdded.push({
+                            id: agent.name,
+                            icon: (
+                                <RegistryEntityIcon
+                                    type={"agent"}
+                                    content={_.get(agent, "icon", null)}
+                                />
+                            ),
+                            agent,
+                            label: (
+                                <div
+                                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                                    style={{ marginLeft: 7 }}
+                                >
+                                    <EntityDisplayName entity={agent} />
+                                </div>
+                            ),
+                            childNodes: [],
+                            hasCaret: false,
+                        });
+                    }
                 }
-            }
-            onDeselectAvailable(result);
-            setAdded(newAdded);
-            setLoading(false);
-        });
+                onDeselectAvailable(result);
+                setAdded(newAdded);
+                setLoading(false);
+            },
+            progressToaster
+        );
     };
     const onRemoveSelected = () => {
         setLoading(true);
@@ -288,19 +293,23 @@ export default function AgentTree({ entity }) {
                 })
             );
         }
-        settlePromises(promises, ({ results }) => {
-            let newAdded = _.cloneDeep(added);
-            let result = [];
-            for (let i = 0; i < _.size(results); i++) {
-                if (_.isEqual(results[i].status, "fulfilled")) {
-                    result.push(results[i].value);
-                    _.pullAllBy(newAdded, [{ id: results[i].value }], "id");
+        settlePromises(
+            promises,
+            ({ results }) => {
+                let newAdded = _.cloneDeep(added);
+                let result = [];
+                for (let i = 0; i < _.size(results); i++) {
+                    if (_.isEqual(results[i].status, "fulfilled")) {
+                        result.push(results[i].value);
+                        _.pullAllBy(newAdded, [{ id: results[i].value }], "id");
+                    }
                 }
-            }
-            onDeselectAdded(result);
-            setAdded(newAdded);
-            setLoading(false);
-        });
+                onDeselectAdded(result);
+                setAdded(newAdded);
+                setLoading(false);
+            },
+            progressToaster
+        );
     };
     return (
         <div className="full-parent-dimension">

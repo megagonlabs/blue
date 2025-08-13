@@ -9,7 +9,7 @@
     --separator-border: var(--border-color) !important;
     --focus-border: #2d72d2 !important;
 }
-:root .bp5-dark {
+:root .bp6-dark {
     --separator-border: var(--border-color-dark) !important;
 }
 .react-grid-item.react-grid-placeholder {
@@ -28,7 +28,7 @@
     background-color: var(--colors-white);
     border-radius: 2px;
 }
-.bp5-dark .custom-card {
+.bp6-dark .custom-card {
     border-top: 1px solid var(--border-color-dark);
     border-bottom: 1px solid var(--border-color-dark);
     border-right: 1px solid var(--border-color-dark);
@@ -40,7 +40,7 @@
     box-shadow: rgba(76, 144, 240, 0.2) 0px 0px 0px 3px,
         rgb(76, 144, 240) 0px 0px 0px 1px;
 }
-.bp5-dark .interactive-card-border:hover {
+.bp6-dark .interactive-card-border:hover {
     box-shadow: rgba(138, 187, 255, 0.4) 0px 0px 0px 3px,
         rgb(138, 187, 255) 0px 0px 0px 1px;
 }
@@ -125,19 +125,19 @@
     text-overflow: ellipsis;
 }
 
-table.bp5-html-table.table-header-sticky tbody tr:first-child td {
+table.bp6-html-table.table-header-sticky tbody tr:first-child td {
     box-shadow: none;
 }
-.bp5-dark table.bp5-html-table.table-header-sticky tbody tr:first-child td {
+.bp6-dark table.bp6-html-table.table-header-sticky tbody tr:first-child td {
     box-shadow: none;
 }
 .session-list-card:hover .session-card-actions {
     display: block !important;
 }
-span.bp5-menu-item-icon {
+span.bp6-menu-item-icon {
     margin-right: 10px !important;
 }
-.bp5-running-text .bp5-entity-title {
+.bp6-running-text .bp6-entity-title {
     h1,
     h2,
     h3,
@@ -147,7 +147,7 @@ span.bp5-menu-item-icon {
         margin: 0 !important;
     }
 }
-.user-role-configuration-permission-list li span.bp5-tag {
+.user-role-configuration-permission-list li span.bp6-tag {
     margin-right: 5px;
     font-size: 12px;
     line-height: 16px;
@@ -158,7 +158,7 @@ span.bp5-menu-item-icon {
 .background-color-on-hover:hover {
     background-color: #d3d8de !important;
 }
-.bp5-dark .background-color-on-hover:hover {
+.bp6-dark .background-color-on-hover:hover {
     background-color: #404854 !important;
 }
 table.nerd-table td {

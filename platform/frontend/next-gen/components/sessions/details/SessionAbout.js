@@ -1,5 +1,5 @@
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
-import { AppToaster } from "@/components/toaster";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
@@ -27,6 +27,7 @@ export default function SessionAbout({ sessionId }) {
         _.get(details, "description", "")
     );
     const [loading, setLoading] = useState(false);
+    const { appToaster } = useToaster();
     const handleSave = () => {
         setLoading(true);
         const payload = {
@@ -46,7 +47,7 @@ export default function SessionAbout({ sessionId }) {
             })
             .finally(() => {
                 setLoading(false);
-                AppToaster.show({
+                appToaster.show({
                     intent: Intent.SUCCESS,
                     message: "Saved",
                 });

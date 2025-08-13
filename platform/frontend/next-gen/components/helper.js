@@ -1,17 +1,11 @@
-import {
-    faCopy,
-    faExclamation,
-    faPenSwirl,
-} from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faPenSwirl } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import dagre from "dagre";
 import _ from "lodash";
 import EntityDisplayName from "./registries/EntityDisplayName";
 import RegistryEntityIcon from "./registries/RegistryEntityIcon";
-const { AppToaster, ProgressToaster } = require("./toaster");
 const classNames = require("classnames");
 const { FAIcon } = require("./FAIcon");
 const { Intent, ProgressBar, Classes } = require("@blueprintjs/core");
-const copy = require("copy-to-clipboard");
 const { default: transform } = require("css-to-react-native");
 const { ENTITY_MAIN_INFO_PROPERTY_KEYS } = require("./constants");
 const renderProgress = (progress = 0, requestError = false) => {
@@ -65,32 +59,6 @@ const constructAgentTree = (agent) => {
         _.set(node, "hasCaret", true);
     }
     return node;
-};
-const showAxiosErrorToast = (error) => {
-    let message = "";
-    try {
-        message = `${error.name}: ${error.message}`;
-        // the request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        if (error.response)
-            message = `[${error.response.status} ${
-                error.response.statusText
-            }]: ${_.get(error, "response.data.message", "-")}`;
-    } catch (error) {
-        message = "Request Error";
-    }
-    AppToaster.show({
-        icon: <FAIcon icon={faExclamation} />,
-        intent: Intent.DANGER,
-        message: <div className="multiline-ellipsis-5">{message}</div>,
-        action: {
-            icon: <FAIcon icon={faCopy} />,
-            onClick: () => {
-                copy(message);
-            },
-            text: "Copy",
-        },
-    });
 };
 function base64ToWebsafe(base64) {
     return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -290,7 +258,13 @@ module.exports = {
     hasIntersection: (left, right) => {
         return _.some(left, _.ary(_.partial(_.includes, right), 1));
     },
-    getUpdatePropertyPromises: ({ axios, url, diffs, properties }) => {
+    getUpdatePropertyPromises: ({
+        axios,
+        url,
+        diffs,
+        properties,
+        showAxiosErrorToast,
+    }) => {
         let promises = [];
         const { updated, deleted, added } = diffs;
         for (let i = 0; i < _.size(deleted); i++) {
@@ -329,7 +303,6 @@ module.exports = {
         }
         return promises;
     },
-    showAxiosErrorToast,
     constructAgentTree,
     convertCss: (style) => {
         try {
@@ -338,10 +311,10 @@ module.exports = {
             return style;
         }
     },
-    settlePromises: (promises, callback) => {
+    settlePromises: (promises, callback, progressToaster) => {
         (async () => {
             let error = false;
-            const key = ProgressToaster.show(
+            const key = progressToaster.show(
                 renderProgress(_.isEmpty(promises) ? 100 : 0)
             );
             let count = 0;
@@ -353,7 +326,7 @@ module.exports = {
                     })
                     .finally(() => {
                         const progress = (++count / _.size(promises)) * 100;
-                        ProgressToaster.show(
+                        progressToaster.show(
                             renderProgress(progress, error),
                             key
                         );

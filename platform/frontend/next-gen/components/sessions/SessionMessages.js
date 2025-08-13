@@ -46,6 +46,7 @@ import {
     MESSAGE_OVERFLOW_THRESHOLD,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
 import UITip from "../ux/UITip";
 import DebuggerContainer from "./debuggers/DebuggerContainer";
@@ -63,6 +64,7 @@ const Row = ({ index, data, style }) => {
             detailedMessage: state.detailed_message,
         }))
     );
+    const { showAxiosErrorToast } = useToaster();
     const { getUserProfileById, getAgentMetadata } = useDedupStore(
         useShallow((state) => ({
             getUserProfileById: state.getUserProfileById,
@@ -126,7 +128,7 @@ const Row = ({ index, data, style }) => {
         );
         const isUser = _.isEqual(createdBy, "USER");
         if (isUser) {
-            getUserProfileById(id);
+            getUserProfileById(id, showAxiosErrorToast);
         } else {
             getAgentMetadata(createdBy);
         }

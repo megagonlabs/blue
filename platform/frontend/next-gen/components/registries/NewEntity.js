@@ -18,14 +18,13 @@ import {
     ENTITY_TYPE_URL_PREFIX_CONVERSION,
     HEX_TRANSPARENCY,
 } from "../constants";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
 import {
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "../helper";
-import { AppToaster } from "../toaster";
 import EntityDescription from "./attributes/EntityDescription";
 import EntityProperties from "./attributes/EntityProperties";
 import MainPropertyBlock from "./MainPropertyBlock";
@@ -53,6 +52,7 @@ export default function NewEntity({
         _.set(newProperties, path, value);
         setMainProperties(newProperties);
     };
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     const updateEntity = ({ path, value }) => {
         let temp = _.cloneDeep(newEntity);
         _.set(temp, path, value);
@@ -98,7 +98,7 @@ export default function NewEntity({
                 description: newEntity.description,
             })
             .then(() => {
-                AppToaster.show({
+                appToaster.show({
                     intent: Intent.SUCCESS,
                     message: `Created ${newEntity.name} ${calculatedType}`,
                 });
@@ -112,39 +112,47 @@ export default function NewEntity({
                     url: `${url}/property`,
                     diffs,
                     properties,
+                    showAxiosErrorToast,
                 });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        if (_.isFunction(callback)) {
-                            let scope = _.get(parent, "scope", "/");
-                            if (
-                                !_.isEmpty(parent) &&
-                                _.includes(
-                                    [
-                                        "agent",
-                                        "input",
-                                        "output",
-                                        "tool",
-                                        "operator",
-                                    ],
-                                    calculatedType
-                                )
-                            ) {
-                                if (!_.isEqual(scope.slice(-1), "/")) {
-                                    scope += "/";
+                settlePromises(
+                    promises,
+                    ({ error }) => {
+                        if (!error) {
+                            if (_.isFunction(callback)) {
+                                let scope = _.get(parent, "scope", "/");
+                                if (
+                                    !_.isEmpty(parent) &&
+                                    _.includes(
+                                        [
+                                            "agent",
+                                            "input",
+                                            "output",
+                                            "tool",
+                                            "operator",
+                                        ],
+                                        calculatedType
+                                    )
+                                ) {
+                                    if (!_.isEqual(scope.slice(-1), "/")) {
+                                        scope += "/";
+                                    }
+                                    scope += `${_.get(
+                                        parent,
+                                        "type"
+                                    )}/${prefix}`;
                                 }
-                                scope += `${_.get(parent, "type")}/${prefix}`;
+                                callback({
+                                    name: fullName,
+                                    type: calculatedType,
+                                    description: newEntity.description,
+                                    scope,
+                                });
+                                setLoading(false);
                             }
-                            callback({
-                                name: fullName,
-                                type: calculatedType,
-                                description: newEntity.description,
-                                scope,
-                            });
-                            setLoading(false);
                         }
-                    }
-                });
+                    },
+                    progressToaster
+                );
             })
             .catch((error) => {
                 showAxiosErrorToast(error);

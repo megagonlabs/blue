@@ -8,12 +8,12 @@ import {
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
@@ -56,6 +56,7 @@ export default function ServerEntity({
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             addContainer: state.addContainer,
@@ -135,18 +136,25 @@ export default function ServerEntity({
                     url: `${url}/property`,
                     diffs,
                     properties,
+                    showAxiosErrorToast,
                 });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        const newServer = { ...editedServer, properties };
-                        setServer(newServer);
-                        setEditedServer(newServer);
-                        setTemplate(newServer);
-                        setMainProperties(getEntityMainProperties(properties));
-                        setIsEditing(false);
-                    }
-                    setLoading(false);
-                });
+                settlePromises(
+                    promises,
+                    ({ error }) => {
+                        if (!error) {
+                            const newServer = { ...editedServer, properties };
+                            setServer(newServer);
+                            setEditedServer(newServer);
+                            setTemplate(newServer);
+                            setMainProperties(
+                                getEntityMainProperties(properties)
+                            );
+                            setIsEditing(false);
+                        }
+                        setLoading(false);
+                    },
+                    progressToaster
+                );
             })
             .catch((error) => {
                 showAxiosErrorToast(error);

@@ -3,12 +3,12 @@ import {
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { Classes, Colors, EditableText } from "@blueprintjs/core";
@@ -31,6 +31,7 @@ export default function OutputEntity({ entity, backCrumb }) {
     const [editedOutput, setEditedOutput] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -88,17 +89,24 @@ export default function OutputEntity({ entity, backCrumb }) {
                     url: `${url}/property`,
                     diffs,
                     properties,
+                    showAxiosErrorToast,
                 });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        const newOutput = { ...editedOutput, properties };
-                        setOutput(newOutput);
-                        setEditedOutput(newOutput);
-                        setMainProperties(getEntityMainProperties(properties));
-                        setIsEditing(false);
-                    }
-                    setLoading(false);
-                });
+                settlePromises(
+                    promises,
+                    ({ error }) => {
+                        if (!error) {
+                            const newOutput = { ...editedOutput, properties };
+                            setOutput(newOutput);
+                            setEditedOutput(newOutput);
+                            setMainProperties(
+                                getEntityMainProperties(properties)
+                            );
+                            setIsEditing(false);
+                        }
+                        setLoading(false);
+                    },
+                    progressToaster
+                );
             })
             .catch((error) => {
                 showAxiosErrorToast(error);

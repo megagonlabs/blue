@@ -3,8 +3,9 @@ import {
     MIN_ALLOTMENT_PANE_SIZE,
     POPOVER_CONTENT_MAX_WIDTH,
 } from "@/components/constants";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
-import { insertBetween, showAxiosErrorToast } from "@/components/helper";
+import { insertBetween } from "@/components/helper";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
 import Timestamp from "@/components/Timestamp";
 import { useAppStore } from "@/stores/app-store";
@@ -322,6 +323,7 @@ function DebuggerContainer({ width, height, sessionId }) {
         setTreeContents(contents);
     };
     const [containerId, setContainerId] = useState(null);
+    const { showAxiosErrorToast } = useToaster();
     const callback = (agent) => {
         axios
             .get(`/containers/agents/agent/${agent.name}`)

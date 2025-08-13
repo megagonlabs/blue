@@ -15,7 +15,7 @@ import {
     Column,
     ColumnHeaderCell,
     RowHeaderCell,
-    Table2,
+    Table,
     TableLoadingOption,
     Utils,
 } from "@blueprintjs/table";
@@ -33,11 +33,10 @@ import {
     DOCKER_CONTAINER_STATUS_LOOKUP,
     TABLE_CELL_HEIGHT,
 } from "../constants";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
-import { showAxiosErrorToast } from "../helper";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Timestamp from "../Timestamp";
-import { AppToaster } from "../toaster";
 import ServiceCheckbox from "./ServiceCheckbox";
 function PlatformServices({ width, height }) {
     const {
@@ -63,6 +62,7 @@ function PlatformServices({ width, height }) {
     );
     const [tableKey, setTableKey] = useState(Date.now());
     const [deleting, setDeleting] = useState(false);
+    const { appToaster, showAxiosErrorToast } = useToaster();
     const handleStopService = () => {
         let promises = [];
         const selectedServices = _.toArray(selected);
@@ -105,7 +105,7 @@ function PlatformServices({ width, height }) {
                             _.toArray(stopped)
                         )} service`;
                     }
-                    AppToaster.show({ message, intent: Intent.SUCCESS });
+                    appToaster.show({ message, intent: Intent.SUCCESS });
                     removeServiceFromList({ ids: stopped });
                 }
             })
@@ -250,7 +250,7 @@ function PlatformServices({ width, height }) {
                         icon={<FAIcon icon={faBellConcierge} size={50} />}
                     />
                 ) : (
-                    <Table2
+                    <Table
                         key={tableKey}
                         loadingOptions={
                             loading
@@ -313,7 +313,7 @@ function PlatformServices({ width, height }) {
                                 />
                             );
                         })}
-                    </Table2>
+                    </Table>
                 )}
             </div>
         </div>

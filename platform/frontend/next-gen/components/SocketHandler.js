@@ -1,5 +1,3 @@
-import { showAxiosErrorToast } from "@/components/helper";
-import { AppToaster } from "@/components/toaster";
 import { useAuthStore } from "@/stores/auth-store";
 import { useSessionStore } from "@/stores/session-store";
 import { useSocketStore } from "@/stores/socket-store";
@@ -9,6 +7,7 @@ import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { useToaster } from "./contexts/ToasterContext";
 const { NEXT_PUBLIC_WS_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function SocketHandler({ children }) {
     const user = useAuthStore((state) => state.user);
@@ -34,6 +33,7 @@ export default function SocketHandler({ children }) {
             }
         }
     };
+    const { appToaster, showAxiosErrorToast } = useToaster();
     const connectWebSocket = () => {
         closeSocket();
         axios
@@ -50,7 +50,7 @@ export default function SocketHandler({ children }) {
                         ).toString()}`
                     );
                     newSocket.onopen = () => {
-                        AppToaster.show({
+                        appToaster.show({
                             intent: Intent.SUCCESS,
                             message: "Connection established",
                         });
@@ -84,7 +84,7 @@ export default function SocketHandler({ children }) {
                             }
                         } catch (error) {
                             // debug
-                            AppToaster.show({
+                            appToaster.show({
                                 intent: Intent.DANGER,
                                 message: error,
                             });
@@ -93,7 +93,7 @@ export default function SocketHandler({ children }) {
                         }
                     };
                     newSocket.onclose = () => {
-                        AppToaster.show({
+                        appToaster.show({
                             intent: Intent.PRIMARY,
                             message: "Connection closed",
                         });
@@ -112,7 +112,7 @@ export default function SocketHandler({ children }) {
                         );
                         reconnectDelay.current = delay;
                         reconnectAttempts.current++;
-                        AppToaster.show({
+                        appToaster.show({
                             intent: Intent.PRIMARY,
                             message: `Reconnecting in ${
                                 delay / 1000
@@ -126,7 +126,7 @@ export default function SocketHandler({ children }) {
                     };
                     newSocket.onerror = (error) => {
                         console.log(error);
-                        AppToaster.show({
+                        appToaster.show({
                             intent: Intent.DANGER,
                             message: "Failed to connect to websocket (onerror)",
                         });
@@ -134,7 +134,7 @@ export default function SocketHandler({ children }) {
                     };
                     setState({ key: "socket", value: newSocket });
                 } catch (error) {
-                    AppToaster.show({
+                    appToaster.show({
                         intent: Intent.DANGER,
                         message: (
                             <div className="multiline-ellipsis-5">

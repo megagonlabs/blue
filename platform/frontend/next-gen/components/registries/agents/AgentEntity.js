@@ -6,13 +6,13 @@ import {
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import { UICallout } from "@/components/ux/UICallout";
 import { useAppStore } from "@/stores/app-store";
@@ -112,6 +112,7 @@ export default function AgentEntity({
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
     }, [agent]);
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     useEffect(() => {
         setLoading(true);
         axios
@@ -158,18 +159,25 @@ export default function AgentEntity({
                     url: `${url}/property`,
                     diffs,
                     properties,
+                    showAxiosErrorToast,
                 });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        const newAgent = { ...editedAgent, properties };
-                        setEditedAgent(newAgent);
-                        setAgent(newAgent);
-                        setTemplate(newAgent);
-                        setMainProperties(getEntityMainProperties(properties));
-                        setIsEditing(false);
-                    }
-                    setLoading(false);
-                });
+                settlePromises(
+                    promises,
+                    ({ error }) => {
+                        if (!error) {
+                            const newAgent = { ...editedAgent, properties };
+                            setEditedAgent(newAgent);
+                            setAgent(newAgent);
+                            setTemplate(newAgent);
+                            setMainProperties(
+                                getEntityMainProperties(properties)
+                            );
+                            setIsEditing(false);
+                        }
+                        setLoading(false);
+                    },
+                    progressToaster
+                );
             })
             .catch((error) => {
                 showAxiosErrorToast(error);

@@ -23,8 +23,8 @@ import _ from "lodash";
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { USER_ROLES_LOOKUP } from "../constants";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
-import { showAxiosErrorToast } from "../helper";
 import UserAvatar from "../sessions/UserAvatar";
 const READ = (
     <Tag minimal intent={Intent.SUCCESS}>
@@ -156,6 +156,7 @@ export default function UserRoleConfiguration({
         setPermissionVisibility(newVisibility);
     };
     const [loading, setLoading] = useState(false);
+    const { showAxiosErrorToast } = useToaster();
     const handleRoleSave = () => {
         let promises = [];
         const selectedUsers = _.toArray(selected);

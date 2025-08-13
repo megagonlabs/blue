@@ -1,4 +1,4 @@
-import { AppToaster } from "@/components/toaster";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
@@ -14,13 +14,14 @@ import { useState } from "react";
 export default function SessionSettings({ sessionId }) {
     const [loading, setLoading] = useState(false);
     const removeSession = useSessionStore((state) => state.removeSession);
+    const { appToaster } = useToaster();
     const deleteSession = () => {
         setLoading(true);
         axios
             .delete(`/sessions/session/${sessionId}`)
             .then(() => {
                 removeSession(sessionId);
-                AppToaster.show({
+                appToaster.show({
                     intent: Intent.SUCCESS,
                     message: "Session deleted",
                 });

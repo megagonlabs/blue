@@ -21,9 +21,9 @@ import {
 import axios from "axios";
 import { useShallow } from "zustand/react/shallow";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
-import { AppToaster } from "../toaster";
 const SECTIONS = [
     { icon: faPaintRoller, text: "Appearance" },
     { icon: faComments, text: "Sessions & Messages" },
@@ -48,10 +48,11 @@ function SettingsContainer({ width, height }) {
     );
     const { gridContainerId } = useGridContainerContext();
     const setAppState = useAppStore((state) => state.setState);
+    const { appToaster } = useToaster();
     const saveSetting = ({ key, value }) => {
         setAppState({ key, value });
         axios.put(`/accounts/profile/settings/${key}`, { value }).then(() => {
-            AppToaster.show({
+            appToaster.show({
                 message: "Account settings updated",
                 intent: Intent.SUCCESS,
             });

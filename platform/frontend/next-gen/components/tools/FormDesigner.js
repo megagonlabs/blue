@@ -42,11 +42,11 @@ import {
     MIN_ALLOTMENT_PANE_SIZE,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import DocContainer from "../jsonforms/docs/DocContainer";
 import { JSONFORMS_RENDERERS } from "../jsonforms/renderers";
-import { AppToaster } from "../toaster";
 const DEFAULT_UI_SCHEMA = { type: "VerticalLayout", elements: [] };
 const DEFAULT_SCHEMA = { type: "object", properties: {} };
 const PANE_BUTTON_PROPS = {
@@ -66,13 +66,14 @@ function FormDesigner({ width, height }) {
     const [data, setData] = useState({});
     const [showData, setShowData] = useState(false);
     const breaker = useRef(true);
+    const { appToaster } = useToaster();
     const handleExport = (withData) => {
         let result = { schema: schema, uischema: uischema };
         if (withData) {
             _.set(result, "data", data);
         }
         copy(JSON.stringify(result));
-        AppToaster.show({
+        appToaster.show({
             icon: <FAIcon icon={faClipboard} />,
             message: `Copied schemas (with${withData ? "" : "out"}  data)`,
         });

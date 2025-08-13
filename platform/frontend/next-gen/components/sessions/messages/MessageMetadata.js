@@ -1,3 +1,4 @@
+import { useToaster } from "@/components/contexts/ToasterContext";
 import Timestamp from "@/components/Timestamp";
 import { useAgentStore } from "@/stores/agent-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -18,9 +19,10 @@ function MessageMetadata({ message }) {
             users: state.users,
         }))
     );
+    const { showAxiosErrorToast } = useToaster();
     useEffect(() => {
         if (isUser) {
-            getUserProfileById(id);
+            getUserProfileById(id, showAxiosErrorToast);
         } else {
             getAgentMetadata(createdBy);
         }

@@ -6,10 +6,10 @@ import {
     USER_ROLES_LOOKUP,
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
-import { settlePromises, showAxiosErrorToast } from "@/components/helper";
+import { settlePromises } from "@/components/helper";
 import UserAvatar from "@/components/sessions/UserAvatar";
-import { AppToaster } from "@/components/toaster";
 import { useAppStore } from "@/stores/app-store";
 import { useDedupStore } from "@/stores/dedup-store";
 import { usePlatformStore } from "@/stores/platform-store";
@@ -38,7 +38,7 @@ import {
     Column,
     ColumnHeaderCell,
     RowHeaderCell,
-    Table2,
+    Table,
     TableLoadingOption,
 } from "@blueprintjs/table";
 import {
@@ -112,6 +112,7 @@ export default function AuthenticationConfigurations() {
         setDefaultUserSettings(defaultUserSettingValues);
     }, [defaultUserRoleValue, defaultUserSettingValues]);
     const [saving, setSaving] = useState(false);
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     const handleSave = () => {
         setSaving(true);
         const promises = [
@@ -142,23 +143,28 @@ export default function AuthenticationConfigurations() {
                     });
             }),
         ];
-        settlePromises(promises, ({ error }) => {
-            if (!error) {
-                AppToaster.show({
-                    message: "Default user settings & role have been updated.",
-                    intent: Intent.SUCCESS,
-                });
-                updateConfigurationValues({
-                    key: "default_user_settings",
-                    value: defaultUserSettings,
-                });
-                updateConfigurationValues({
-                    key: "default_user_role",
-                    value: defaultUserRole,
-                });
-            }
-            setSaving(false);
-        });
+        settlePromises(
+            promises,
+            ({ error }) => {
+                if (!error) {
+                    appToaster.show({
+                        message:
+                            "Default user settings & role have been updated.",
+                        intent: Intent.SUCCESS,
+                    });
+                    updateConfigurationValues({
+                        key: "default_user_settings",
+                        value: defaultUserSettings,
+                    });
+                    updateConfigurationValues({
+                        key: "default_user_role",
+                        value: defaultUserRole,
+                    });
+                }
+                setSaving(false);
+            },
+            progressToaster
+        );
     };
     const elementRef = useRef(null);
     const popoverBoundary =
@@ -260,7 +266,7 @@ export default function AuthenticationConfigurations() {
                         [rowIndex, "email"],
                         null
                     );
-                    getUserProfileByEmail(email);
+                    getUserProfileByEmail(email, showAxiosErrorToast);
                     const uid = _.get(users, [email, "uid"], null);
                     return (
                         <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT}px` }}>
@@ -297,7 +303,7 @@ export default function AuthenticationConfigurations() {
         axios
             .put(`/platform/settings/allowed_emails/${emailAddress}`)
             .then(() => {
-                getUserProfileByEmail(emailAddress);
+                getUserProfileByEmail(emailAddress, showAxiosErrorToast);
                 addAllowedEmail(emailAddress);
             })
             .finally(() => {
@@ -523,7 +529,7 @@ export default function AuthenticationConfigurations() {
                                 </ButtonGroup>
                             </div>
                             <div style={{ height: MESSAGE_OVERFLOW_THRESHOLD }}>
-                                <Table2
+                                <Table
                                     loadingOptions={
                                         emailsLoading
                                             ? [
@@ -591,7 +597,7 @@ export default function AuthenticationConfigurations() {
                                             />
                                         );
                                     })}
-                                </Table2>
+                                </Table>
                             </div>
                         </div>
                     </div>

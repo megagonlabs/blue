@@ -5,12 +5,12 @@ import {
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
@@ -43,6 +43,7 @@ export default function ModelEntity({
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     const { removeContainer, setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             removeContainer: state.removeContainer,
@@ -117,18 +118,25 @@ export default function ModelEntity({
                     url: `${url}/property`,
                     diffs,
                     properties,
+                    showAxiosErrorToast,
                 });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        const newModel = { ...editedModel, properties };
-                        setModel(newModel);
-                        setEditedModel(newModel);
-                        setTemplate(newModel);
-                        setMainProperties(getEntityMainProperties(properties));
-                        setIsEditing(false);
-                    }
-                    setLoading(false);
-                });
+                settlePromises(
+                    promises,
+                    ({ error }) => {
+                        if (!error) {
+                            const newModel = { ...editedModel, properties };
+                            setModel(newModel);
+                            setEditedModel(newModel);
+                            setTemplate(newModel);
+                            setMainProperties(
+                                getEntityMainProperties(properties)
+                            );
+                            setIsEditing(false);
+                        }
+                        setLoading(false);
+                    },
+                    progressToaster
+                );
             })
             .catch((error) => {
                 showAxiosErrorToast(error);

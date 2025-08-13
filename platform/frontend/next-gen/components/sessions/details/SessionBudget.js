@@ -1,5 +1,6 @@
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
-import { settlePromises, showAxiosErrorToast } from "@/components/helper";
+import { settlePromises } from "@/components/helper";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
@@ -89,6 +90,7 @@ export default function SessionBudget({ sessionId }) {
                 setLoading(false);
             });
     }, [sessionId, setSessionDetails]);
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     const handleSave = () => {
         if (costError || accuracyError || latencyError) return;
         setLoading(true);
@@ -134,23 +136,27 @@ export default function SessionBudget({ sessionId }) {
                     });
             }),
         ];
-        settlePromises(promises, () => {
-            setLoading(false);
-            setSessionDetails({
-                sessionId,
-                fields: [
-                    { path: "budget.allocation.cost", value: costNumber },
-                    {
-                        path: "budget.allocation.accuracy",
-                        value: accuracyNumber / 100,
-                    },
-                    {
-                        path: "budget.allocation.latency",
-                        value: latencyNumber / 1000,
-                    },
-                ],
-            });
-        });
+        settlePromises(
+            promises,
+            () => {
+                setLoading(false);
+                setSessionDetails({
+                    sessionId,
+                    fields: [
+                        { path: "budget.allocation.cost", value: costNumber },
+                        {
+                            path: "budget.allocation.accuracy",
+                            value: accuracyNumber / 100,
+                        },
+                        {
+                            path: "budget.allocation.latency",
+                            value: latencyNumber / 1000,
+                        },
+                    ],
+                });
+            },
+            progressToaster
+        );
     };
     return (
         <div

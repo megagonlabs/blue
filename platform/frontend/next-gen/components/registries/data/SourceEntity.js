@@ -6,13 +6,13 @@ import {
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import { UICallout } from "@/components/ux/UICallout";
 import { useAppStore } from "@/stores/app-store";
@@ -64,6 +64,7 @@ export default function SourceEntity({
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             addContainer: state.addContainer,
@@ -147,18 +148,25 @@ export default function SourceEntity({
                     url: `${url}/property`,
                     diffs,
                     properties,
+                    showAxiosErrorToast,
                 });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        const newSource = { ...editedSource, properties };
-                        setSource(newSource);
-                        setEditedSource(newSource);
-                        setTemplate(newSource);
-                        setMainProperties(getEntityMainProperties(properties));
-                        setIsEditing(false);
-                    }
-                    setLoading(false);
-                });
+                settlePromises(
+                    promises,
+                    ({ error }) => {
+                        if (!error) {
+                            const newSource = { ...editedSource, properties };
+                            setSource(newSource);
+                            setEditedSource(newSource);
+                            setTemplate(newSource);
+                            setMainProperties(
+                                getEntityMainProperties(properties)
+                            );
+                            setIsEditing(false);
+                        }
+                        setLoading(false);
+                    },
+                    progressToaster
+                );
             })
             .catch((error) => {
                 showAxiosErrorToast(error);

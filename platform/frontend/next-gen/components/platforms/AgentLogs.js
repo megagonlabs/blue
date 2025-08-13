@@ -4,7 +4,6 @@ import {
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
-import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
@@ -21,6 +20,7 @@ import {
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useRef, useState } from "react";
+import { useToaster } from "../contexts/ToasterContext";
 import ContainerLogViewer from "./ContainerLogViewer";
 const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function AgentLogs({
@@ -33,6 +33,7 @@ export default function AgentLogs({
     const [isLive, setIsLive] = useState(false);
     const [logs, setLogs] = useState([]);
     const containerRef = useRef(null);
+    const { appToaster } = useToaster();
     useEffect(() => {
         if (_.isEmpty(containerId)) return;
         setLogs([]);
@@ -48,7 +49,7 @@ export default function AgentLogs({
             setIsLive(false);
             const errorData = error.data;
             if (!_.isEmpty(errorData)) {
-                AppToaster.show({ message: errorData, intent: Intent.DANGER });
+                appToaster.show({ message: errorData, intent: Intent.DANGER });
             } else {
                 console.log(error);
             }

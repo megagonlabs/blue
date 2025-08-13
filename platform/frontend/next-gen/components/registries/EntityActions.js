@@ -28,9 +28,8 @@ import _ from "lodash";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { ENTITY_TYPE_LOOKUP } from "../constants";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
-import { showAxiosErrorToast } from "../helper";
-import { AppToaster } from "../toaster";
 export default function EntityActions({
     entity,
     isEditing,
@@ -107,11 +106,12 @@ export default function EntityActions({
             canPullImage
         );
     }, [user, permissions, containerStatus]);
+    const { appToaster, showAxiosErrorToast } = useToaster();
     const onDeploy = () => {
         axios
             .post(`/containers/agents/agent/${name}`)
             .then(() => {
-                AppToaster.show({
+                appToaster.show({
                     intent: Intent.SUCCESS,
                     message: `Deployed ${name} ${type}`,
                 });
@@ -124,7 +124,7 @@ export default function EntityActions({
         axios
             .put(`/containers/agents/agent/${name}`)
             .then((response) => {
-                AppToaster.show({
+                appToaster.show({
                     message: _.get(response, "data.message", "-"),
                     icon: <FAIcon icon={faArrowDownToLine} />,
                     intent: Intent.PRIMARY,

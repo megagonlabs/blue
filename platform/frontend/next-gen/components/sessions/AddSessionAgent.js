@@ -10,8 +10,8 @@ import axios from "axios";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
-import { showAxiosErrorToast } from "../helper";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
 export default function AddSessionAgent({
     skippable = false,
@@ -90,6 +90,7 @@ export default function AddSessionAgent({
         setSelectedAvailable(selected);
         setAvailable(nodes);
     };
+    const { showAxiosErrorToast } = useToaster();
     const handleAddSessionAgent = () => {
         setLoading(true);
         let promises = [];

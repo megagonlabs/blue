@@ -2,6 +2,7 @@ import { useDedupStore } from "@/stores/dedup-store";
 import { useSessionStore } from "@/stores/session-store";
 import _ from "lodash";
 import { createRef, useEffect, useMemo } from "react";
+import { useToaster } from "../contexts/ToasterContext";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import UserAvatar from "./UserAvatar";
 export default function SessionMemberStack({ sessionId, style }) {
@@ -16,10 +17,11 @@ export default function SessionMemberStack({ sessionId, style }) {
         (state) => state.getUserProfileById
     );
     const owner = _.get(details, "created_by");
+    const { showAxiosErrorToast } = useToaster();
     useEffect(() => {
-        getUserProfileById(owner);
+        getUserProfileById(owner, showAxiosErrorToast);
         for (let i = 0; i < _.size(members); i++) {
-            getUserProfileById(members[i]);
+            getUserProfileById(members[i], showAxiosErrorToast);
         }
     }, [members, owner, getUserProfileById]);
     const memberStackref = createRef();

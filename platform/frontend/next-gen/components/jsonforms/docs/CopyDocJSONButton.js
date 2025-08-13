@@ -1,5 +1,5 @@
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
-import { AppToaster } from "@/components/toaster";
 import { Button, ButtonVariant, Size, Tooltip } from "@blueprintjs/core";
 import {
     faClipboard,
@@ -10,6 +10,7 @@ export default function CopyDocJSONButton({
     docJson,
     copyMessage = "Copied JSON",
 }) {
+    const { appToaster } = useToaster();
     return (
         <Tooltip usePortal={false} placement="bottom-end" content="Copy JSON">
             <Button
@@ -18,7 +19,7 @@ export default function CopyDocJSONButton({
                 size={Size.LARGE}
                 onClick={() => {
                     copy(docJson);
-                    AppToaster.show({
+                    appToaster.show({
                         icon: <FAIcon icon={faClipboard} />,
                         message: copyMessage,
                     });

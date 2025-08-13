@@ -5,13 +5,13 @@ import {
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
@@ -51,6 +51,7 @@ export default function AgentGroupEntity({
     const setContainerHeader = useGridStore(
         (state) => state.setContainerHeader
     );
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     const [agentGroup, setAgentGroup] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedAgentGroup, setEditedAgentGroup] = useState(null);
@@ -165,21 +166,28 @@ export default function AgentGroupEntity({
                     url: `${url}/property`,
                     diffs,
                     properties,
+                    showAxiosErrorToast,
                 });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        const newAgentGroup = {
-                            ...editedAgentGroup,
-                            properties,
-                        };
-                        setEditedAgentGroup(newAgentGroup);
-                        setAgentGroup(newAgentGroup);
-                        setTemplate(newAgentGroup);
-                        setMainProperties(getEntityMainProperties(properties));
-                        setIsEditing(false);
-                    }
-                    setLoading(false);
-                });
+                settlePromises(
+                    promises,
+                    ({ error }) => {
+                        if (!error) {
+                            const newAgentGroup = {
+                                ...editedAgentGroup,
+                                properties,
+                            };
+                            setEditedAgentGroup(newAgentGroup);
+                            setAgentGroup(newAgentGroup);
+                            setTemplate(newAgentGroup);
+                            setMainProperties(
+                                getEntityMainProperties(properties)
+                            );
+                            setIsEditing(false);
+                        }
+                        setLoading(false);
+                    },
+                    progressToaster
+                );
             })
             .catch((error) => {
                 showAxiosErrorToast(error);

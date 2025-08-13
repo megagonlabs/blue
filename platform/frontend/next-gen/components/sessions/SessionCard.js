@@ -30,7 +30,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
-import { AppToaster } from "../toaster";
+import { useToaster } from "../contexts/ToasterContext";
 import SessionContainer from "./SessionContainer";
 import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
@@ -122,6 +122,7 @@ export default function SessionCard({ sessionId }) {
     const setSessionDetails = useSessionStore(
         (state) => state.setSessionDetails
     );
+    const { appToaster } = useToaster();
     const handlePinSession = () => {
         setLoading(true);
         axios
@@ -131,7 +132,7 @@ export default function SessionCard({ sessionId }) {
                     sessionId,
                     fields: [{ path: ["pinned", user.uid], value: !pinned }],
                 });
-                AppToaster.show({
+                appToaster.show({
                     icon: (
                         <FAIcon
                             icon={pinned ? faThumbTackSlash : faThumbTack}
