@@ -109,6 +109,76 @@
         "contents": {}
     },
     {
+        "name": "breakdown",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Process natural language query using LLM models and subsqueries along with metadata",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 4096,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "Your task is to process a natural language query, and break it down to its subqueries. To do so, translate the natural language query into SQL, \ndefining each subquery as common table expressions (CTE). Return the results in JSON format.\nThe response should be a valid JSON array containing the following information for each CTE:\n- 'name': name of the CTE\n- 'description': natural language description of the CTE, representing the subquery\n- 'sql': sql statement corresponding to the CTE\n- 'table':  name of the CTE table\n- 'columns': a list of columns of the table\n- 'dependency': a list of dependent tables, defined as CTE.\n\n\nHere are additional requirements:\n- Generate {num_alternatives} number of alternatives\n- The output should be a JSON array, each containing an alternative set of CTEs matching the natural language query.\n- There might be optional context provided. Use it to assist the query if provided.\n- There might be specificed schema, whenever possible try to match it.\n- Each object should contain the requested information in a structured format\n- Please try to return non-empty output. If the query is not clear, please use your best judgement to return a non-empty output.\n- The response should be well-formatted and easy to parse.\n- Output the JSON directly. Do not generate explanation or other additional output.\n\nQuery:\n${query}\n\nSchema:\n${schema}\n\nContext:\n${context}\n\nOutput:\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "json",
+            "parameters": {
+                "query": {
+                    "type": "str",
+                    "description": "Natural language query to process",
+                    "required": true
+                },
+                "context": {
+                    "type": "str",
+                    "description": "Optional context to provide domain knowledge",
+                    "required": false,
+                    "default": ""
+                },
+                "schema": {
+                    "type": "str",
+                    "description": "Optional schema to match",
+                    "required": false,
+                    "default": ""
+                },
+                "num_alternatives": {
+                    "type": "int",
+                    "description": "Optional number of alternatives to generate",
+                    "required": false,
+                    "default": 1
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
         "name": "nl2llm",
         "type": "operator",
         "scope": "/server/blue_ray",
