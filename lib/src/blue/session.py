@@ -144,7 +144,7 @@ class Session(Entity):
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {"members": {}, 'pinned': {}},
+            {"members": {}, 'pinned': {}, 'debugger': {}},
             nx=True,
         )
 
