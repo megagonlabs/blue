@@ -21,6 +21,7 @@ from blue.operators.insert_operator import InsertOperator
 from blue.operators.delete_operator import DeleteOperator
 from blue.operators.union_operator import UnionOperator
 from blue.operators.intersect_operator import IntersectOperator
+from blue.operators.breakdown_operator import BreakdownOperator
 
 join_operator = JoinOperator()
 operators_dict[join_operator.name] = join_operator
@@ -51,3 +52,6 @@ operators_dict[union_operator.name] = union_operator
 
 intersect_operator = IntersectOperator()
 operators_dict[intersect_operator.name] = intersect_operator
+
+breakdown_operator = BreakdownOperator()
+operators_dict[breakdown_operator.name] = breakdown_operator
