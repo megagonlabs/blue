@@ -311,14 +311,14 @@ Output:
             if self.properties["nl2q_discovery"]:
                 # set scope, if selected
                 scope = None
+                
                 if self.selected_source:
-                    scope = ""
-                    scope = scope + "/" + self.selected_source
+                    scope = "/source/" + self.selected_source
                     if self.selected_database:
-                        scope = scope + "/" + self.selected_database
+                        scope += "/database/" + self.selected_database
                         if self.selected_collection:
-                            scope = scope + "/" + self.selected_collection
-                    scope = scope + "*"
+                            scope += "/collection/" + self.selected_collection
+                    scope += "*"
                 # search registry to suggest schema
                 schemas = self._search_schemas(question, scope=scope)
             else:
