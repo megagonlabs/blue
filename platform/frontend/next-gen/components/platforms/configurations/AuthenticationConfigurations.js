@@ -340,7 +340,11 @@ export default function AuthenticationConfigurations() {
                         className={loading ? Classes.SKELETON : null}
                     >
                         <FormGroup
-                            helperText="Default show session workspace"
+                            helperText={
+                                <div style={{ marginLeft: 45 }}>
+                                    Default show session workspace
+                                </div>
+                            }
                             style={{ marginBottom: 10, marginTop: 10 }}
                         >
                             <Switch
@@ -361,8 +365,12 @@ export default function AuthenticationConfigurations() {
                             />
                         </FormGroup>
                         <FormGroup
-                            helperText="Automatically expand session messages to
-                                    show full content"
+                            helperText={
+                                <div style={{ marginLeft: 45 }}>
+                                    Automatically expand session messages to
+                                    show full content
+                                </div>
+                            }
                             style={{ marginBottom: 10 }}
                         >
                             <Switch

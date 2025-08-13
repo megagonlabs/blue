@@ -116,7 +116,12 @@ function SettingsContainer({ width, height }) {
                             }}
                         >
                             <FormGroup
-                                helperText="Change the color scheme from light to dark"
+                                helperText={
+                                    <div style={{ marginLeft: 45 }}>
+                                        Change the color scheme from light to
+                                        dark
+                                    </div>
+                                }
                                 style={{ marginBottom: 10 }}
                             >
                                 <Switch
@@ -133,7 +138,12 @@ function SettingsContainer({ width, height }) {
                                 />
                             </FormGroup>
                             <FormGroup
-                                helperText="Relocate the window control buttons to the right side"
+                                helperText={
+                                    <div style={{ marginLeft: 45 }}>
+                                        Relocate the window control buttons to
+                                        the right side
+                                    </div>
+                                }
                                 style={{ marginBottom: 10 }}
                             >
                                 <Switch
@@ -150,7 +160,12 @@ function SettingsContainer({ width, height }) {
                                 />
                             </FormGroup>
                             <FormGroup
-                                helperText="New windows automatically expand to full height"
+                                helperText={
+                                    <div style={{ marginLeft: 45 }}>
+                                        New windows automatically expand to full
+                                        height
+                                    </div>
+                                }
                                 className="margin-0"
                             >
                                 <Switch
@@ -188,7 +203,11 @@ function SettingsContainer({ width, height }) {
                             }}
                         >
                             <FormGroup
-                                helperText="Default show session workspace"
+                                helperText={
+                                    <div style={{ marginLeft: 45 }}>
+                                        Default show session workspace
+                                    </div>
+                                }
                                 style={{ marginBottom: 10 }}
                             >
                                 <Switch
@@ -205,8 +224,12 @@ function SettingsContainer({ width, height }) {
                                 />
                             </FormGroup>
                             <FormGroup
-                                helperText="Automatically expand session messages to
-                                    show full content"
+                                helperText={
+                                    <div style={{ marginLeft: 45 }}>
+                                        Automatically expand session messages to
+                                        show full content
+                                    </div>
+                                }
                                 style={{ marginBottom: 10 }}
                             >
                                 <Switch
@@ -223,7 +246,12 @@ function SettingsContainer({ width, height }) {
                                 />
                             </FormGroup>
                             <FormGroup
-                                helperText="Display message details like timestamp, sender icon, and name"
+                                helperText={
+                                    <div style={{ marginLeft: 45 }}>
+                                        Display message details like timestamp,
+                                        sender icon, and name
+                                    </div>
+                                }
                                 className="margin-0"
                             >
                                 <Switch
