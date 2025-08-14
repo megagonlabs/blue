@@ -184,7 +184,7 @@ Output:
                 databases = self.registry.get_source_databases(source=source)
 
                 if databases is None:
-                    database = []
+                    databases = []
                 # set schemas for each database
                 for database in databases:
                     self._set_schemas(schemas, source=source, database=database['name'])
@@ -192,7 +192,7 @@ Output:
             # get sources
             sources = self.registry.get_sources()
 
-            if source is None:
+            if sources is None:
                 sources = []
             # set schemas for each source
             for source in sources:
