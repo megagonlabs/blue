@@ -16,6 +16,7 @@ from blue.session import Session
 from blue.tracker import PerformanceTracker, SystemPerformanceTracker, Metric, MetricGroup
 from blue.utils import json_utils, uuid_utils, log_utils
 from blue.plan import Plan
+from blue.core import Separator
 
 # system tracker
 system_tracker = None
@@ -550,8 +551,6 @@ class Worker:
 ### Agent
 #
 class Agent:
-    SEPARATOR = '___'
-
     def __init__(
         self,
         name="AGENT",
@@ -1101,7 +1100,7 @@ class Agent:
             return
 
         if not isinstance(plan, Plan):
-            self.logger.error("Incorret plan type")
+            self.logger.error("Incorrect plan type")
             return
 
         # create worker to submit plan for session
@@ -1347,7 +1346,7 @@ class AgentFactory:
 
             # check match in canonical name space, i.e.
             # <base_name> or <base_name>___<derivative__name>___<derivative__name>...
-            ca = agent.split(Agent.SEPARATOR)
+            ca = agent.split(Separator.AGENT)
             base_name = ca[0]
 
             if self._name == base_name:

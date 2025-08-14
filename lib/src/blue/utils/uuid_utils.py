@@ -1,6 +1,6 @@
 import uuid
 
-ID_SEPARATOR = ":"
+from blue.core import Separator
 
 
 def create_uuid():
@@ -8,11 +8,11 @@ def create_uuid():
 
 
 def split_ids(canonical_id):
-    return canonical_id.split(ID_SEPARATOR)
+    return canonical_id.split(Separator.ID)
 
 
 def extract_sid(canonical_id):
-    return ID_SEPARATOR.join(extract_name_id(canonical_id))
+    return Separator.ID.join(extract_name_id(canonical_id))
 
 
 def extract_name_id(canonical_id):
@@ -22,9 +22,9 @@ def extract_name_id(canonical_id):
 def extract_prefix(canonical_id):
     splits = split_ids(canonical_id)
     if len(splits) > 2:
-        return ID_SEPARATOR.join(splits[:-2])
+        return Separator.ID.join(splits[:-2])
     return None
 
 
 def concat_ids(*ids):
-    return ID_SEPARATOR.join(ids)
+    return Separator.ID.join(ids)

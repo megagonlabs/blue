@@ -2,13 +2,14 @@
 from blue.agent import Agent
 from blue.registry import Registry
 from blue.utils import json_utils
+from blue.core import Separator
 
 
 ###############
 ### AgentRegistry
 #
 class AgentRegistry(Registry):
-    SEPARATOR = Agent.SEPARATOR
+    SEPARATOR = Separator.AGENT
 
     def __init__(self, name="AGENT_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, type='agent', id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)

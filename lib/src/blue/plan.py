@@ -6,12 +6,12 @@ import logging
 from redis.commands.json.path import Path
 
 ###### Blue
-from blue.agent import Agent
 from blue.session import Session
 from blue.stream import Constant, ControlCode, ConstantEncoder
 from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
 from blue.utils import uuid_utils, json_utils, dag_utils
+from blue.core import Separator
 
 
 ###############
@@ -148,15 +148,15 @@ class Plan(dag_utils.DAG):
         # checks
         if name is None:
             raise Exception("Name is not specified")
-        if label and Agent.SEPARATOR in label:
-            raise Exception("Label cannot contain: " + Agent.SEPARATOR)
+        if label and Separator.AGENT in label:
+            raise Exception("Label cannot contain: " + Separator.AGENT)
 
         if label is None:
             label = name
         agent = self.create_agent(label=label, properties=properties, sync=sync)
 
         agent.set_data("name", name)
-        canonical_name = name if label == name else name + Agent.SEPARATOR + label
+        canonical_name = name if label == name else name + Separator.AGENT + label
         agent.set_data("canonical_name", canonical_name)
         agent.set_data('children', [])
 

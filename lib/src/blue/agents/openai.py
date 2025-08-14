@@ -6,6 +6,7 @@ from blue.agent import Agent
 from blue.agents.requestor import RequestorAgent
 from blue.utils import string_utils, json_utils
 from blue.tools.registry import ToolRegistry
+from blue.core import Separator
 
 import json
 
@@ -18,8 +19,6 @@ class OpenAIAgent(RequestorAgent):
         if 'name' not in kwargs:
             kwargs['name'] = "OPENAI"
         super().__init__(**kwargs)
-
-        self.TOOL_SEPARATOR = "___"
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -182,13 +181,13 @@ class OpenAIAgent(RequestorAgent):
         return tool_schemas
 
     def _get_canonical(self, server_name, tool_name):
-        return server_name + self.TOOL_SEPARATOR + tool_name
+        return server_name + Separator.TOOL + tool_name
 
     def _extract_canonical(self, canonical_name):
-        cs = canonical_name.split(self.TOOL_SEPARATOR)
+        cs = canonical_name.split(Separator.TOOL)
         if len(cs) >= 2:
             server_name = cs[0]
-            tool_name = self.TOOL_SEPARATOR.join(cs[1:])
+            tool_name = Separator.TOOL.join(cs[1:])
             return server_name, tool_name
         else:
             return cs[0], None

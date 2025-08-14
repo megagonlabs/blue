@@ -50,6 +50,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 from blue.agent import Agent
 from blue.platform import Platform
 from blue.agents.registry import AgentRegistry
+from blue.core import Separator
 
 
 ###### Properties
@@ -159,7 +160,7 @@ def merge_container_results(registry_results):
             else:
                 # check if parent has a container running
                 # TODO: REVISIT AFTER #186
-                name = name.split(Agent.SEPARATOR)[0]
+                name = name.split(Separator.AGENT)[0]
                 if name in containers:
                     registry_result['container'] = containers[name]
                 else:

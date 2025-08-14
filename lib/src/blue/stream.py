@@ -11,45 +11,13 @@ from redis.commands.json.path import Path
 
 ###### Blue
 from blue.connection import PooledConnectionFactory
-
-
-###############
-### Constant
-#
-class Constant:
-    def __init__(self, c):
-        self.c = c
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        elif isinstance(other, str):
-            return self.c == other
-        else:
-            return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __str__(self):
-        return self.c
-
-
-###############
-### ConstantEncoder
-#
-class ConstantEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Constant):
-            return str(obj)
-        else:
-            return json.JSONEncoder.default(self, obj)
+from blue.core import Constant, StringConstant, ConstantEncoder
 
 
 ###############
 ### MessageType
 #
-class MessageType(Constant):
+class MessageType(StringConstant):
     def __init__(self, c):
         super().__init__(c)
 
@@ -62,7 +30,7 @@ MessageType.CONTROL = MessageType("CONTROL")
 ###############
 ### ContentType
 #
-class ContentType(Constant):
+class ContentType(StringConstant):
     def __init__(self, c):
         super().__init__(c)
 
@@ -77,7 +45,7 @@ ContentType.JSON = ContentType("JSON")
 ###############
 ### ControlCode
 #
-class ControlCode(Constant):
+class ControlCode(StringConstant):
     def __init__(self, c):
         super().__init__(c)
 
@@ -356,7 +324,7 @@ class Stream:
 
     def _init_metadata_namespace(self):
         # create metadata namespace
-        return self.connection.json().set(self._get_metadata_namespace(), "$", {"created_by": "", "id": "", "tags": {}, "consumers":{}, "producers":{}}, nx=True)
+        return self.connection.json().set(self._get_metadata_namespace(), "$", {"created_by": "", "id": "", "tags": {}, "consumers": {}, "producers": {}}, nx=True)
 
     def set_metadata(self, key, value, nx=False):
         self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
