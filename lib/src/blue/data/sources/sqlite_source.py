@@ -24,23 +24,24 @@ class SQLiteDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
 
-    ###### initialization
-    def _initialize_properties(self):
-        super()._initialize_properties()
-
-        # source protocol
-        self.properties['protocol'] = "sqlite"
-        # data directory
-        self.properties['data_path'] = "."
-
     ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
+
+        # set host, port, protocol
+        self.properties['connection']['host'] = 'localhost'
+        self.properties['connection']['port'] = 5432
+        self.properties['connection']['protocol'] = 'sqlite'
+        self.properties['connection']['database_directory'] = '.'
+
     def _connect(self, **connection):
         c = copy.deepcopy(connection)
         if 'protocol' in c:
             del c['protocol']
 
         if 'database' in connection:
-            return sqlite3.connect(self.get_path(connection['database']))
+            database = connection['database']
+            return sqlite3.connect(self._get_database_path(database))
         else:
             # only database specific connection
             return {}
@@ -49,9 +50,19 @@ class SQLiteDBSource(DataSource):
         # TODO:
         return None
 
-    # data path
-    def _get_path(self, database):
-        return self.properties['data_path'] + "/" + database + ".db"
+    # database  path
+    def _get_database_directory(self):
+        connection_properties = self.properties['connection']
+        database_directory = connection_properties['database_directory']
+
+        absolute_database_directory = os.path.abspath(database_directory)
+        # make sure it exists, create if not
+        os.makedirs(absolute_database_directory, exist_ok=True)
+        return absolute_database_directory
+
+    def _get_database_path(self, database):
+        database_directory = self._get_database_directory()
+        return os.path.join(database_directory, database + ".db")
 
     ######### source
     def fetch_metadata(self):
@@ -63,7 +74,7 @@ class SQLiteDBSource(DataSource):
     ######### database
     def fetch_databases(self):
         # get list of dbs from data directory
-        ls = os.listdir(self.properties['data_directory'])
+        ls = os.listdir(self._get_database_directory())
         # return only .db files
         dbs = []
         for d in ls:

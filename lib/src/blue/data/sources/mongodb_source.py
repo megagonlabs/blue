@@ -16,21 +16,21 @@ from blue.data.schema import DataSchema
 class MongoDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
-        
-
-    ###### initialization
-    def _initialize_properties(self):
-        super()._initialize_properties()
-
-        # source protocol 
-        self.properties['protocol'] = "mongodb"
 
     ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
+
+        # set host, port, protocol
+        self.properties['connection']['host'] = 'localhost'
+        self.properties['connection']['port'] = 27017
+        self.properties['connection']['protocol'] = 'mongodb'
+
     def _connect(self, **connection):
         host = connection['host']
         port = connection['port']
-        
-        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)    
+
+        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)
         return MongoClient(connection_url)
 
     def _disconnect(self):
@@ -54,8 +54,6 @@ class MongoDBSource(DataSource):
 
     def fetch_database_schema(self, database):
         return {}
-
-
 
     ######### database/collection
     def fetch_database_collections(self, database):
@@ -95,15 +93,14 @@ class MongoDBSource(DataSource):
                     self.extract_schema(value, schema=schema, source=target)
                 else:
                     schema.add_entity_property(source, key, value.__class__.__name__)
-                
-        return schema
 
+        return schema
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
         if database is None:
             raise Exception("No database provided")
-        
+
         if collection is None:
             raise Exception("No collection provided")
 
@@ -121,4 +118,3 @@ class MongoDBSource(DataSource):
             result_list.append(doc)
 
         return result_list
-    

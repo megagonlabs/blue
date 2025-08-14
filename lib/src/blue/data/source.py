@@ -29,8 +29,8 @@ class DataSource:
     def _initialize_properties(self):
         self.properties = {}
 
-        # source protocol
-        self.properties['protocol'] = "default"
+        # connection properties
+        self._initialize_connection_properties()
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -39,6 +39,12 @@ class DataSource:
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_connection_properties(self):
+        connection_properties = {}
+
+        connection_properties['protocol'] = 'default'
+        self.properties['connection'] = connection_properties
 
     def _initialize_logger(self):
         self.logger = log_utils.CustomLogger()
@@ -111,7 +117,7 @@ class DataSource:
 
     def fetch_database_stats(self, database):
         return None
-    
+
     def fetch_collection_stats(self, database, collection_name, schema_json=None, sample_limit=None):
         return None
 
@@ -119,5 +125,4 @@ class DataSource:
         return None
 
     def fetch_property_stats(self, database, collection, entity, property_name, sample_limit=None):
-        return None 
-
+        return None

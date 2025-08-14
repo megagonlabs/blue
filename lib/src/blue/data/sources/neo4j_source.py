@@ -36,21 +36,23 @@ class NEO4JSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
 
-    ###### initialization
-    def _initialize_properties(self):
-        super()._initialize_properties()
-
-        # source protocol 
-        self.properties['protocol'] = "bolt"
-
     ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
+
+        # set host, port, protocol
+        self.properties['connection']['host'] = 'localhost'
+        self.properties['connection']['port'] = 7687
+        self.properties['connection']['protocol'] = 'bolt'
+
     def _connect(self, **connection):
         host = connection['host']
         port = connection['port']
 
         user = connection['user']
         pwd = connection['password']
-        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)
+
+        connection_url = "bolt://" + host + ":" + str(port)
 
         return neo4j_connection.NEO4J_Connection(connection_url, user, pwd)
 
