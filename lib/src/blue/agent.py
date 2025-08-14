@@ -15,7 +15,7 @@ from blue.pubsub import Consumer, Producer
 from blue.session import Session
 from blue.tracker import PerformanceTracker, SystemPerformanceTracker, Metric, MetricGroup
 from blue.utils import json_utils, uuid_utils, log_utils
-
+from blue.plan import Plan
 
 # system tracker
 system_tracker = None
@@ -1075,6 +1075,7 @@ class Agent:
 
         return matched_inputs
 
+    # interact
     def interact(self, data, output="DEFAULT", unique=True, eos=True):
         if self.session is None:
             self.logger.error("No current session to interact with.")
@@ -1092,6 +1093,22 @@ class Agent:
 
         if eos:
             worker.write_eos(output=output)
+
+    # plan
+    def submit_plan(self, plan):
+        if self.session is None:
+            self.logger.error("No current session to submit.")
+            return
+
+        if not isinstance(plan, Plan):
+            self.logger.error("Incorret plan type")
+            return
+
+        # create worker to submit plan for session
+        worker = self.create_worker(None)
+
+        # write plan, automatically notify session on BOS
+        plan.submit(worker)
 
     ## data
     def set_data(self, key, value):
