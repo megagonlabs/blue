@@ -1,6 +1,6 @@
 import uuid
 
-from blue.core import Separator
+from blue.constant import Separator
 
 
 def create_uuid():

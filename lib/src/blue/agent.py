@@ -16,7 +16,7 @@ from blue.session import Session
 from blue.tracker import PerformanceTracker, SystemPerformanceTracker, Metric, MetricGroup
 from blue.utils import json_utils, uuid_utils, log_utils
 from blue.plan import Plan
-from blue.core import Separator
+from blue.constant import Separator
 
 # system tracker
 system_tracker = None

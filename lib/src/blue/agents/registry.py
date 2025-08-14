@@ -2,7 +2,7 @@
 from blue.agent import Agent
 from blue.registry import Registry
 from blue.utils import json_utils
-from blue.core import Separator
+from blue.constant import Separator
 
 
 ###############

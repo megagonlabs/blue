@@ -1,14 +1,13 @@
 ###### Parsers, Formats, Utils
 import logging
+import json
 
 ###### Blue
 from blue.agent import Agent
 from blue.agents.requestor import RequestorAgent
 from blue.utils import string_utils, json_utils
 from blue.tools.registry import ToolRegistry
-from blue.core import Separator
-
-import json
+from blue.constant import Separator
 
 
 #########################

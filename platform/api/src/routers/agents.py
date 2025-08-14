@@ -50,7 +50,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 from blue.agent import Agent
 from blue.platform import Platform
 from blue.agents.registry import AgentRegistry
-from blue.core import Separator
+from blue.constant import Separator
 
 
 ###### Properties

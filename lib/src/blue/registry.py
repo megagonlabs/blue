@@ -10,7 +10,7 @@ from redis.commands.json.path import Path
 from redis.commands.search.field import TextField, VectorField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from redis.commands.search.query import Query
-from blue.core import Separator
+from blue.constant import Separator
 
 #######
 import numpy as np

@@ -11,7 +11,7 @@ from redis.commands.json.path import Path
 
 ###### Blue
 from blue.connection import PooledConnectionFactory
-from blue.core import Constant, StringConstant, ConstantEncoder
+from blue.constant import StringConstant, ConstantEncoder
 
 
 ###############
