@@ -17,13 +17,13 @@
         "icon": null
     },
     {
-        "name": "sqlite_example",
+        "name": "internal",
         "type": "source",
         "scope": "/",
         "description": "",
         "properties": {
             "connection": {
-                "database_directory": "/blue_data/sqlite",
+                "database_directory": "/blue_data/sqlite/internal",
                 "protocol": "sqlite"
             },
             "metadata": {}
