@@ -10,6 +10,7 @@ import mysql.connector
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
 from blue.data.schema import DataSchema
+from blue.data.registry import DataRegistry
 
 ###############
 ### NL2SQL Operator
@@ -37,8 +38,8 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
         schema = _fetch_database_schema(protocol, database, collection, properties)
     execute_query = properties.get('execute_query', True) if properties else True
     validate_query_prefixes = properties.get('validate_query_prefixes', ['SELECT']) if properties else ['SELECT']
-    if protocol not in ['postgres', 'mysql']:
-        raise ValueError(f"Unsupported protocol: {protocol}. Supported protocols are: postgres, mysql")
+    if protocol not in ['postgres', 'mysql', 'sqlite']:
+        raise ValueError(f"Unsupported protocol: {protocol}. Supported protocols are: postgres, mysql, sqlite")
 
     service_client = ServiceClient(name="nl2sql_operator_service_client", properties=properties)
     # Convert schema to JSON string if it's a dictionary
@@ -81,6 +82,7 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     if execute_query and generated_query:
         # Execute query directly using connection attributes
         connection_attributes = properties.get('connection', {})
+
         if connection_attributes:
             try:
                 if protocol == 'postgres':

@@ -27,7 +27,7 @@ Here are the requirements:
   - "query": the SQL query that is translated from the natural language question
 - When interpreting the "question" use additional context provided, if available. Ignore information in the context if the question overrides it.
 - The SQL query should be compatible with the schema of the datasource.
-- The SQL query should be compatible with the syntax of the corresponding database's protocol. Examples of protocol include "mysql" and "postgres".
+- The SQL query should be compatible with the syntax of the corresponding database's protocol. Examples of protocol include "mysql", "postgres", and "sqlite".
 - Always do case-${sensitivity} matching for string comparison.
 - The query should starts with any of the following prefixes: ${force_query_prefixes}
 - Output the JSON directly. Do not generate explanation or other additional output.
@@ -65,7 +65,7 @@ Output:
         "nl2q_source_database": None,
         "nl2q_discovery": False,
         "nl2q_discovery_similarity_threshold": 0.2,
-        "nl2q_discovery_source_protocols": ["postgres", "mysql"],
+        "nl2q_discovery_source_protocols": ["postgres", "mysql", "sqlite"],
         "nl2q_execute": True,
         "nl2q_case_insensitive": True,
         "nl2q_valid_query_prefixes": ["SELECT"],
