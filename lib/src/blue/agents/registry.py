@@ -1,4 +1,5 @@
 ###### Blue
+from blue.constant import Separator
 from blue.agent import Agent
 from blue.registry import Registry
 from blue.utils import json_utils
@@ -102,8 +103,8 @@ class AgentRegistry(Registry):
         super().set_record_description(agent, 'agent', scope, description, rebuild=rebuild)
 
     def get_agent_parent(self, agent):
-        agent_hierarchy = agent.split(Agent.SEPARATOR)
-        parent = Agent.SEPARATOR.join(agent_hierarchy[:-1]) if len(agent_hierarchy) > 1 else None
+        agent_hierarchy = agent.split(Separator.AGENT)
+        parent = Separator.AGENT.join(agent_hierarchy[:-1]) if len(agent_hierarchy) > 1 else None
         return parent
 
     # agent properties
