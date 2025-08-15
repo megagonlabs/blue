@@ -81,7 +81,7 @@ class SQLiteDBSource(DataSource):
             db = d[:-3]
             suffix = d[-3:]
             if suffix == '.db':
-                dbs.add(db)
+                dbs.append(db)
 
         return dbs
 
@@ -116,7 +116,11 @@ class SQLiteDBSource(DataSource):
         self._db_disconnect(db_connection)
         return schema.to_json()
 
-    ######### database/collection
+    def create_database(self, database, properties={}):
+        # connect and close
+        db_connection = self._db_connect(database)
+        self._db_disconnect(db_connection)
+
     def _db_connect(self, database):
         # connect to database
         c = copy.deepcopy(self.properties['connection'])
@@ -133,7 +137,12 @@ class SQLiteDBSource(DataSource):
             connection.close()
         return None
 
+    ######### database/collection
     def fetch_database_collections(self, database):
+        databases = self.fetch_databases()
+        if database not in databases:
+            return None
+
         # connect to specific database (not source directly)
         db_connection = self._db_connect(database)
 
@@ -180,6 +189,33 @@ class SQLiteDBSource(DataSource):
 
         return schema.to_json()
 
+    def create_database_collection(self, database, collection, properties={}):
+        return {}
+
+    ######### source/database/collection/entity
+    def create_database_collection_entity(self, database, collection, entity, properties={}):
+        query = "CREATE TABLE IF NOT EXISTS "
+        query += entity
+
+        # entity properties
+        entity_properties_str = ""
+        entity_properties = properties['properties']
+        for i, entity_property in enumerate(entity_properties):
+            entity_properties_str += " " + entity_property['name']
+            if 'type' in entity_property:
+                entity_properties_str += " " + entity_property['type']
+            if 'misc' in entity_property:
+                entity_properties_str += " " + entity_property['misc']
+            if i < len(entity_properties) - 1:
+                entity_properties_str += ","
+
+        query += "( " + entity_properties_str + " )"
+        self.execute_query(query, database=database, optional_properties={"commit": True})
+
+    ######### source/database/collection/relation
+    def create_database_collection_relation(self, database, collection, relation, properties={}):
+        return {}
+
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
         if database is None:
@@ -193,10 +229,16 @@ class SQLiteDBSource(DataSource):
         data = cursor.fetchall()
 
         # transform to json
-        columns = [desc[0] for desc in cursor.description]
-        df = pd.DataFrame(data, columns=columns)
-        df.fillna(value=np.nan, inplace=True)
-        result = json.loads(df.to_json(orient='records'))
+        result = {}
+        if cursor.description:
+            columns = [desc[0] for desc in cursor.description]
+            df = pd.DataFrame(data, columns=columns)
+            df.fillna(value=np.nan, inplace=True)
+            result = json.loads(df.to_json(orient='records'))
+
+        # commit
+        if 'commit' in optional_properties and optional_properties['commit']:
+            db_connection.commit()
 
         # disconnect
         self._db_disconnect(db_connection)

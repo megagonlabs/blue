@@ -88,7 +88,7 @@ class DataSource:
     def fetch_schema(self):
         return {}
 
-    ######### database
+    ######### source/database
     def fetch_databases(self):
         return []
 
@@ -98,7 +98,10 @@ class DataSource:
     def fetch_database_schema(self, database):
         return {}
 
-    ######### database/collection
+    def create_database(self, database, properties={}):
+        return {}
+
+    ######### source/database/collection
     def fetch_database_collections(self, database):
         return []
 
@@ -108,6 +111,29 @@ class DataSource:
     def fetch_database_collection_schema(self, database, collection):
         return {}
 
+    def create_database_collection(self, database, collection, properties={}):
+        return {}
+
+    ######### source/database/collection/entity
+    # properties: {
+    #     "properties": [    <--- entity properties
+    #         {
+    #             "name": "",
+    #             "type": "",
+    #             "misc":
+    #         }
+    #      ]
+    # }
+    # note: misc can include primary key, etc. features that are db specific
+    #
+    def create_database_collection_entity(self, database, collection, entity, properties={}):
+        return {}
+
+    ######### source/database/collection/relation
+    def create_database_collection_relation(self, database, collection, relation, properties={}):
+        return {}
+
+    ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
         return [{}]
 
