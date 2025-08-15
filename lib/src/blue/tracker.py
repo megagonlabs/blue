@@ -124,6 +124,8 @@ class Tracker:
         self.callback = callback
         self.timer = None
         self.state = "IDLE"
+        self.started = 0
+        self.outputs = []
 
         # init data
         self.data = None
