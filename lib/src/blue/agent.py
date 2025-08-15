@@ -1167,7 +1167,8 @@ class Agent:
 
         # leave session
         self.leave_session()
-        self.session_consumer.stop()
+        if self.session_consumer is not None and isinstance(self.session_consumer, Consumer):
+            self.session_consumer.stop()
 
         # send stop to each worker
         for worker_input_stream in self.workers:
