@@ -692,6 +692,9 @@ class Agent:
 
         includes = []
         excludes = []
+
+        if properties is None:
+            properties = {}
         if 'listens' in properties:
             listens = properties['listens']
             if 'includes' in listens:
@@ -705,6 +708,9 @@ class Agent:
             return
 
         tags = []
+        if properties is None:
+            properties = {}
+
         if 'tags' in properties:
             tags = properties['tags']
 
