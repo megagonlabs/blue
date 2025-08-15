@@ -306,6 +306,13 @@ async def create_session(request: Request):
     return JSONResponse(content={"result": result})
 
 
+@router.get("/session/{session_id}/debugger")
+def get_session_data(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    return JSONResponse(content={"result": session.get_stream_debug_info()})
+
+
 @router.get("/session/{session_id}/data")
 def get_session_data(request: Request, session_id):
     session = p.get_session(session_id)
