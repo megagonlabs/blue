@@ -10,7 +10,7 @@ from blue.session import Session
 logging.getLogger().setLevel(logging.INFO)
 
 # create a session
-session = Session()
+session = Session(properties={"db.host": "blue_db_redis"})
 
 prefix = session.cid + ":" + "AGENT"
 
@@ -24,6 +24,7 @@ user_agent.interact("i am an agent")
 # sample func to process data for counter
 stream_data = []
 
+
 def processor(message, input=None, properties=None, worker=None):
     if message.isEOS():
         # print all data received from stream
@@ -33,7 +34,7 @@ def processor(message, input=None, properties=None, worker=None):
         l = len(stream_data)
         print(l)
         # output to stream
-        return l 
+        return l
     elif message.isData():
         # store data value
         data = message.getData()
@@ -41,15 +42,8 @@ def processor(message, input=None, properties=None, worker=None):
         stream_data.append(data)
         return None
 
+
 # create a counter agent in the same session
-properties = {
-    "listens": {
-        "DEFAULT": {
-          "includes": [
-            "USER"
-          ],
-          "excludes": []
-        }
-      }
-}
+properties = {"inputs": {"DEFAULT": {"properties": {"listens": {"includes": ["USER"], "excludes": []}}}}, "outputs": {"DEFAULT": {"properties": {"tags": ["COUNT"]}}}}
+
 counter_agent = Agent(name="COUNTER", prefix=prefix, properties=properties, session=session, processor=processor)
