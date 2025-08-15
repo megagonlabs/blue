@@ -1173,13 +1173,15 @@ class Agent:
 
         # leave session
         self.leave_session()
+        if self.session_consumer is not None and isinstance(self.session_consumer, Consumer):
+            self.session_consumer.stop()
 
         # send stop to each worker
         for worker_input_stream in self.workers:
             worker = self.workers[worker_input_stream]
             worker.stop()
 
-        for worker_input_stream in self.workers:
+        for worker_input_stream in list(self.workers.keys()):
             del self.workers[worker_input_stream]
 
     def wait(self):

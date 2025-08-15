@@ -143,6 +143,12 @@ class ConnectionManager:
                     },
                 )
             elif re_observe:
+                try:
+                    observer_agent = pydash.objects.get(self.session_to_client, [session_sid, connection_id, 'observer'], None)
+                    if observer_agent is not None and isinstance(observer_agent, Agent):
+                        observer_agent.stop()
+                except Exception as ex:
+                    print(ex)
                 pydash.objects.set_(
                     self.session_to_client,
                     [session_sid, connection_id, 'observer'],
