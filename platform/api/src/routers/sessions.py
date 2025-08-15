@@ -199,8 +199,8 @@ async def update_session(request: Request, session_id):
 def get_session_debugger_information(request: Request, session_id):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), read=True)
-    debugger: dict = session.get_metadata('debugger')
-    return JSONResponse(content={"results": debugger})
+    debug_info = session.get_stream_debug_info()
+    return JSONResponse(content={"results": debug_info})
 
 
 ## members
@@ -304,13 +304,6 @@ async def create_session(request: Request):
     result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
     await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
     return JSONResponse(content={"result": result})
-
-
-@router.get("/session/{session_id}/debugger")
-def get_session_data(request: Request, session_id):
-    session = p.get_session(session_id)
-    session_acl_enforce(request, session.to_dict(), read=True)
-    return JSONResponse(content={"result": session.get_stream_debug_info()})
 
 
 @router.get("/session/{session_id}/data")

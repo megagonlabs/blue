@@ -338,14 +338,10 @@ class Session(Entity):
 
     def get_stream_debug_info(self):
         streams_metadata_ids = self.connection.keys("*" + self.sid + "*:STREAM:METADATA")
-        self.logger.info(streams_metadata_ids)
         debug_info = {}
         for streams_metadata_id in streams_metadata_ids:
-            self.logger.info(streams_metadata_id)
-            stream_id = streams_metadata_ids[: -len("METADATA") + 1].decode('utf-8')
-            self.logger.info(stream_id)
+            stream_id = streams_metadata_id[: -len("METADATA") + 1]
             stream_metadata = self.connection.json().get(streams_metadata_id)
-            self.logger.info(stream_metadata)
             debug_info[stream_id] = stream_metadata
 
         return debug_info
