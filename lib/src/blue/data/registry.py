@@ -445,7 +445,7 @@ class DataRegistry(Registry):
                 self.deregister_source_database_collection_entity(source, database, collection, entity)
 
             # update
-            for collection in merges:
+            for entity in merges:
                 self.update_source_database_collection_entity(source, database, collection, entity, description="", properties=entities[entity], rebuild=rebuild)
 
             if collect_stats:
