@@ -6,6 +6,7 @@ import {
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import { useToaster } from "@/components/contexts/ToasterContext";
+import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
@@ -14,12 +15,13 @@ import {
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
-import { Classes, Colors, EditableText } from "@blueprintjs/core";
+import { Classes, Colors, EditableText, Intent } from "@blueprintjs/core";
+import { faBracketsCurly } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
@@ -42,7 +44,7 @@ export default function OperatorEntity({
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
-    const { progressToaster, showAxiosErrorToast } = useToaster();
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     const { setContainerHeader } = useGridStore(
         useShallow((state) => ({
             setContainerHeader: state.setContainerHeader,
@@ -68,6 +70,7 @@ export default function OperatorEntity({
         "/server/",
         "/operators/"
     );
+    const JSONError = useRef(false);
     useEffect(() => {
         setContainerHeader({
             id: gridContainerId,
@@ -108,50 +111,58 @@ export default function OperatorEntity({
         setIsEditing(false);
     };
     const handleSave = () => {
-        setLoading(true);
-        axios
-            .put(url, {
-                name: editedOperator.name,
-                description: editedOperator.description,
-                icon: editedOperator.icon,
-            })
-            .then(() => {
-                const properties = {
-                    ...editedOperator.properties,
-                    ...mainProperties,
-                };
-                const diffs = shallowDiff(operator.properties, properties);
-                const promises = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                    showAxiosErrorToast,
-                });
-                settlePromises(
-                    promises,
-                    ({ error }) => {
-                        if (!error) {
-                            const newOperator = {
-                                ...editedOperator,
-                                properties,
-                            };
-                            setOperator(newOperator);
-                            setEditedOperator(newOperator);
-                            setMainProperties(
-                                getEntityMainProperties(properties)
-                            );
-                            setIsEditing(false);
-                        }
-                        setLoading(false);
-                    },
-                    progressToaster
-                );
-            })
-            .catch((error) => {
-                showAxiosErrorToast(error);
-                setLoading(false);
+        if (JSONError.current) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                icon: <FAIcon icon={faBracketsCurly} />,
+                message: "Invalid JSON",
             });
+        } else {
+            setLoading(true);
+            axios
+                .put(url, {
+                    name: editedOperator.name,
+                    description: editedOperator.description,
+                    icon: editedOperator.icon,
+                })
+                .then(() => {
+                    const properties = {
+                        ...editedOperator.properties,
+                        ...mainProperties,
+                    };
+                    const diffs = shallowDiff(operator.properties, properties);
+                    const promises = getUpdatePropertyPromises({
+                        axios,
+                        url: `${url}/property`,
+                        diffs,
+                        properties,
+                        showAxiosErrorToast,
+                    });
+                    settlePromises(
+                        promises,
+                        ({ error }) => {
+                            if (!error) {
+                                const newOperator = {
+                                    ...editedOperator,
+                                    properties,
+                                };
+                                setOperator(newOperator);
+                                setEditedOperator(newOperator);
+                                setMainProperties(
+                                    getEntityMainProperties(properties)
+                                );
+                                setIsEditing(false);
+                            }
+                            setLoading(false);
+                        },
+                        progressToaster
+                    );
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
+                    setLoading(false);
+                });
+        }
     };
     const onDelete = () => {
         setLoading(true);
@@ -273,6 +284,7 @@ export default function OperatorEntity({
                     updateEntity={updateOperator}
                     entity={editedOperator}
                     loading={loading}
+                    JSONError={JSONError}
                 />
             </div>
         </div>

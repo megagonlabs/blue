@@ -30,12 +30,15 @@ import {
     H3,
     Intent,
 } from "@blueprintjs/core";
-import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faBracketsCurly,
+    faPlus,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
@@ -112,7 +115,7 @@ export default function AgentEntity({
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
     }, [agent]);
-    const { progressToaster, showAxiosErrorToast } = useToaster();
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     useEffect(() => {
         setLoading(true);
         axios
@@ -134,6 +137,7 @@ export default function AgentEntity({
     useEffect(() => {
         updateAgent({ path: "icon", value: icon });
     }, [icon]);
+    const JSONError = useRef(false);
     const handleDiscard = () => {
         setEditedAgent(agent);
         setMainProperties(
@@ -143,46 +147,57 @@ export default function AgentEntity({
         setIcon(_.get(agent, "icon", null));
     };
     const handleSave = () => {
-        setLoading(true);
-        axios
-            .put(url, {
-                name,
-                description: editedAgent.description,
-                icon: editedAgent.icon,
-            })
-            .then(() => {
-                let updated = _.cloneDeep(mainProperties);
-                const properties = { ...editedAgent.properties, ...updated };
-                const diffs = shallowDiff(agent.properties, properties);
-                const promises = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                    showAxiosErrorToast,
-                });
-                settlePromises(
-                    promises,
-                    ({ error }) => {
-                        if (!error) {
-                            const newAgent = { ...editedAgent, properties };
-                            setEditedAgent(newAgent);
-                            setAgent(newAgent);
-                            setTemplate(newAgent);
-                            setMainProperties(
-                                getEntityMainProperties(properties)
-                            );
-                            setIsEditing(false);
-                        }
-                        setLoading(false);
-                    },
-                    progressToaster
-                );
-            })
-            .catch((error) => {
-                showAxiosErrorToast(error);
-                setLoading(false);
+        if (JSONError.current) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                icon: <FAIcon icon={faBracketsCurly} />,
+                message: "Invalid JSON",
             });
+        } else {
+            setLoading(true);
+            axios
+                .put(url, {
+                    name,
+                    description: editedAgent.description,
+                    icon: editedAgent.icon,
+                })
+                .then(() => {
+                    let updated = _.cloneDeep(mainProperties);
+                    const properties = {
+                        ...editedAgent.properties,
+                        ...updated,
+                    };
+                    const diffs = shallowDiff(agent.properties, properties);
+                    const promises = getUpdatePropertyPromises({
+                        axios,
+                        url: `${url}/property`,
+                        diffs,
+                        properties,
+                        showAxiosErrorToast,
+                    });
+                    settlePromises(
+                        promises,
+                        ({ error }) => {
+                            if (!error) {
+                                const newAgent = { ...editedAgent, properties };
+                                setEditedAgent(newAgent);
+                                setAgent(newAgent);
+                                setTemplate(newAgent);
+                                setMainProperties(
+                                    getEntityMainProperties(properties)
+                                );
+                                setIsEditing(false);
+                            }
+                            setLoading(false);
+                        },
+                        progressToaster
+                    );
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
+                    setLoading(false);
+                });
+        }
     };
     const onDelete = () => {
         setLoading(true);
@@ -377,6 +392,7 @@ export default function AgentEntity({
                     updateEntity={updateAgent}
                     entity={editedAgent}
                     loading={loading}
+                    JSONError={JSONError}
                 />
             </div>
             <div style={{ marginTop: 20 }} className="split-pane-container">

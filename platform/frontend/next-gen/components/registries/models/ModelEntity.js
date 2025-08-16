@@ -6,6 +6,7 @@ import {
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import { useToaster } from "@/components/contexts/ToasterContext";
+import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
@@ -14,12 +15,13 @@ import {
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
-import { Classes, Colors, EditableText } from "@blueprintjs/core";
+import { Classes, Colors, EditableText, Intent } from "@blueprintjs/core";
+import { faBracketsCurly } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
@@ -43,7 +45,7 @@ export default function ModelEntity({
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
-    const { progressToaster, showAxiosErrorToast } = useToaster();
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     const { removeContainer, setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             removeContainer: state.removeContainer,
@@ -51,6 +53,7 @@ export default function ModelEntity({
             setContainerHeader: state.setContainerHeader,
         }))
     );
+    const JSONError = useRef(false);
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -100,48 +103,56 @@ export default function ModelEntity({
         setIcon(_.get(model, "icon", null));
     };
     const handleSave = () => {
-        setLoading(true);
-        axios
-            .put(url, {
-                name: editedModel.name,
-                description: editedModel.description,
-                icon: editedModel.icon,
-            })
-            .then(() => {
-                const properties = {
-                    ...editedModel.properties,
-                    ...mainProperties,
-                };
-                const diffs = shallowDiff(model.properties, properties);
-                const promises = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                    showAxiosErrorToast,
-                });
-                settlePromises(
-                    promises,
-                    ({ error }) => {
-                        if (!error) {
-                            const newModel = { ...editedModel, properties };
-                            setModel(newModel);
-                            setEditedModel(newModel);
-                            setTemplate(newModel);
-                            setMainProperties(
-                                getEntityMainProperties(properties)
-                            );
-                            setIsEditing(false);
-                        }
-                        setLoading(false);
-                    },
-                    progressToaster
-                );
-            })
-            .catch((error) => {
-                showAxiosErrorToast(error);
-                setLoading(false);
+        if (JSONError.current) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                icon: <FAIcon icon={faBracketsCurly} />,
+                message: "Invalid JSON",
             });
+        } else {
+            setLoading(true);
+            axios
+                .put(url, {
+                    name: editedModel.name,
+                    description: editedModel.description,
+                    icon: editedModel.icon,
+                })
+                .then(() => {
+                    const properties = {
+                        ...editedModel.properties,
+                        ...mainProperties,
+                    };
+                    const diffs = shallowDiff(model.properties, properties);
+                    const promises = getUpdatePropertyPromises({
+                        axios,
+                        url: `${url}/property`,
+                        diffs,
+                        properties,
+                        showAxiosErrorToast,
+                    });
+                    settlePromises(
+                        promises,
+                        ({ error }) => {
+                            if (!error) {
+                                const newModel = { ...editedModel, properties };
+                                setModel(newModel);
+                                setEditedModel(newModel);
+                                setTemplate(newModel);
+                                setMainProperties(
+                                    getEntityMainProperties(properties)
+                                );
+                                setIsEditing(false);
+                            }
+                            setLoading(false);
+                        },
+                        progressToaster
+                    );
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
+                    setLoading(false);
+                });
+        }
     };
     const onDelete = () => {
         setLoading(true);
@@ -270,6 +281,7 @@ export default function ModelEntity({
                     updateEntity={updateModel}
                     entity={editedModel}
                     loading={loading}
+                    JSONError={JSONError}
                 />
             </div>
         </div>

@@ -38,6 +38,7 @@ export default function JSONEditor({
     schema = null,
     useMinimap = true,
     breaker = null,
+    JSONError,
 }) {
     const jsonString = JSON.stringify(jsonObject, null, 4);
     const editor = useRef();
@@ -92,6 +93,9 @@ export default function JSONEditor({
                     error = true;
                 }
             });
+            if (_.isObject(JSONError)) {
+                JSONError.current = error;
+            }
             setError(error);
             setDoc(v.state.doc.toString());
         }, 300),

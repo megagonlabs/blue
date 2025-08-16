@@ -25,12 +25,16 @@ import {
     EditableText,
     EntityTitle,
     H3,
+    Intent,
 } from "@blueprintjs/core";
-import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faBracketsCurly,
+    faPlus,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
@@ -56,7 +60,7 @@ export default function ServerEntity({
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
-    const { progressToaster, showAxiosErrorToast } = useToaster();
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             addContainer: state.addContainer,
@@ -80,6 +84,7 @@ export default function ServerEntity({
         [type, registry],
         type
     )}/${name}`;
+    const JSONError = useRef(false);
     useEffect(() => {
         setContainerHeader({
             id: gridContainerId,
@@ -118,48 +123,59 @@ export default function ServerEntity({
         setIsEditing(false);
     };
     const handleSave = () => {
-        setLoading(true);
-        axios
-            .put(url, {
-                name: editedServer.name,
-                description: editedServer.description,
-                icon: editedServer.icon,
-            })
-            .then(() => {
-                const properties = {
-                    ...editedServer.properties,
-                    ...mainProperties,
-                };
-                const diffs = shallowDiff(server.properties, properties);
-                const promises = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                    showAxiosErrorToast,
-                });
-                settlePromises(
-                    promises,
-                    ({ error }) => {
-                        if (!error) {
-                            const newServer = { ...editedServer, properties };
-                            setServer(newServer);
-                            setEditedServer(newServer);
-                            setTemplate(newServer);
-                            setMainProperties(
-                                getEntityMainProperties(properties)
-                            );
-                            setIsEditing(false);
-                        }
-                        setLoading(false);
-                    },
-                    progressToaster
-                );
-            })
-            .catch((error) => {
-                showAxiosErrorToast(error);
-                setLoading(false);
+        if (JSONError.current) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                icon: <FAIcon icon={faBracketsCurly} />,
+                message: "Invalid JSON",
             });
+        } else {
+            setLoading(true);
+            axios
+                .put(url, {
+                    name: editedServer.name,
+                    description: editedServer.description,
+                    icon: editedServer.icon,
+                })
+                .then(() => {
+                    const properties = {
+                        ...editedServer.properties,
+                        ...mainProperties,
+                    };
+                    const diffs = shallowDiff(server.properties, properties);
+                    const promises = getUpdatePropertyPromises({
+                        axios,
+                        url: `${url}/property`,
+                        diffs,
+                        properties,
+                        showAxiosErrorToast,
+                    });
+                    settlePromises(
+                        promises,
+                        ({ error }) => {
+                            if (!error) {
+                                const newServer = {
+                                    ...editedServer,
+                                    properties,
+                                };
+                                setServer(newServer);
+                                setEditedServer(newServer);
+                                setTemplate(newServer);
+                                setMainProperties(
+                                    getEntityMainProperties(properties)
+                                );
+                                setIsEditing(false);
+                            }
+                            setLoading(false);
+                        },
+                        progressToaster
+                    );
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
+                    setLoading(false);
+                });
+        }
     };
     const onDelete = () => {
         setLoading(true);
@@ -285,6 +301,7 @@ export default function ServerEntity({
                     updateEntity={updateServer}
                     entity={editedServer}
                     loading={loading}
+                    JSONError={JSONError}
                 />
             </div>
             <div style={{ marginTop: 20 }}>

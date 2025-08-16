@@ -8,10 +8,13 @@ import {
     Intent,
     Size,
 } from "@blueprintjs/core";
-import { faGrid2Plus } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faBracketsCurly,
+    faGrid2Plus,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     ENTITY_NAME_SEPARATOR,
     ENTITY_REGISTRY_LOOKUP,
@@ -53,111 +56,120 @@ export default function NewEntity({
         setMainProperties(newProperties);
     };
     const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
+    const JSONError = useRef(false);
     const updateEntity = ({ path, value }) => {
         let temp = _.cloneDeep(newEntity);
         _.set(temp, path, value);
         setNewEntity(temp);
     };
     const handleSave = () => {
-        setLoading(true);
-        let fullName = newEntity.name;
-        const prefix = _.get(parent, "name", "");
-        if (_.isEqual(calculatedType, "agent")) {
-            fullName = prefix;
-            if (!_.isEmpty(fullName)) {
-                fullName += ENTITY_NAME_SEPARATOR;
+        if (JSONError.current) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                icon: <FAIcon icon={faBracketsCurly} />,
+                message: "Invalid JSON",
+            });
+        } else {
+            setLoading(true);
+            let fullName = newEntity.name;
+            const prefix = _.get(parent, "name", "");
+            if (_.isEqual(calculatedType, "agent")) {
+                fullName = prefix;
+                if (!_.isEmpty(fullName)) {
+                    fullName += ENTITY_NAME_SEPARATOR;
+                }
+                fullName += newEntity.name;
             }
-            fullName += newEntity.name;
-        }
-        let url = `/registry/${ENTITY_REGISTRY_LOOKUP[calculatedType]}`;
-        let convertedType = _.get(
-            ENTITY_TYPE_URL_PREFIX_CONVERSION,
-            calculatedType,
-            calculatedType
-        );
-        if (_.isEqual(calculatedType, "server")) {
-            url = `/registry/${ENTITY_REGISTRY_LOOKUP[calculatedType][registry]}`;
-            convertedType = _.get(
+            let url = `/registry/${ENTITY_REGISTRY_LOOKUP[calculatedType]}`;
+            let convertedType = _.get(
                 ENTITY_TYPE_URL_PREFIX_CONVERSION,
-                [calculatedType, registry],
+                calculatedType,
                 calculatedType
             );
-        }
-        if (_.includes(["input", "output"], calculatedType)) {
-            url += `/agent/${prefix}/${convertedType}/${fullName}`;
-        } else if (_.isEqual(calculatedType, "tool")) {
-            url += `/tools/${prefix}/${convertedType}/${fullName}`;
-        } else if (_.isEqual(calculatedType, "operator")) {
-            url += `/operators/${prefix}/${convertedType}/${fullName}`;
-        } else {
-            url += `/${convertedType}/${fullName}`;
-        }
-        axios
-            .post(url, {
-                name: fullName,
-                description: newEntity.description,
-            })
-            .then(() => {
-                appToaster.show({
-                    intent: Intent.SUCCESS,
-                    message: `Created ${newEntity.name} ${calculatedType}`,
-                });
-                const properties = {
-                    ...newEntity.properties,
-                    ...mainProperties,
-                };
-                const diffs = shallowDiff({}, properties);
-                const promises = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                    showAxiosErrorToast,
-                });
-                settlePromises(
-                    promises,
-                    ({ error }) => {
-                        if (!error) {
-                            if (_.isFunction(callback)) {
-                                let scope = _.get(parent, "scope", "/");
-                                if (
-                                    !_.isEmpty(parent) &&
-                                    _.includes(
-                                        [
-                                            "agent",
-                                            "input",
-                                            "output",
-                                            "tool",
-                                            "operator",
-                                        ],
-                                        calculatedType
-                                    )
-                                ) {
-                                    if (!_.isEqual(scope.slice(-1), "/")) {
-                                        scope += "/";
-                                    }
-                                    scope += `${_.get(
-                                        parent,
-                                        "type"
-                                    )}/${prefix}`;
-                                }
-                                callback({
-                                    name: fullName,
-                                    type: calculatedType,
-                                    description: newEntity.description,
-                                    scope,
-                                });
-                                setLoading(false);
-                            }
-                        }
-                    },
-                    progressToaster
+            if (_.isEqual(calculatedType, "server")) {
+                url = `/registry/${ENTITY_REGISTRY_LOOKUP[calculatedType][registry]}`;
+                convertedType = _.get(
+                    ENTITY_TYPE_URL_PREFIX_CONVERSION,
+                    [calculatedType, registry],
+                    calculatedType
                 );
-            })
-            .catch((error) => {
-                showAxiosErrorToast(error);
-                setLoading(false);
-            });
+            }
+            if (_.includes(["input", "output"], calculatedType)) {
+                url += `/agent/${prefix}/${convertedType}/${fullName}`;
+            } else if (_.isEqual(calculatedType, "tool")) {
+                url += `/tools/${prefix}/${convertedType}/${fullName}`;
+            } else if (_.isEqual(calculatedType, "operator")) {
+                url += `/operators/${prefix}/${convertedType}/${fullName}`;
+            } else {
+                url += `/${convertedType}/${fullName}`;
+            }
+            axios
+                .post(url, {
+                    name: fullName,
+                    description: newEntity.description,
+                })
+                .then(() => {
+                    appToaster.show({
+                        intent: Intent.SUCCESS,
+                        message: `Created ${newEntity.name} ${calculatedType}`,
+                    });
+                    const properties = {
+                        ...newEntity.properties,
+                        ...mainProperties,
+                    };
+                    const diffs = shallowDiff({}, properties);
+                    const promises = getUpdatePropertyPromises({
+                        axios,
+                        url: `${url}/property`,
+                        diffs,
+                        properties,
+                        showAxiosErrorToast,
+                    });
+                    settlePromises(
+                        promises,
+                        ({ error }) => {
+                            if (!error) {
+                                if (_.isFunction(callback)) {
+                                    let scope = _.get(parent, "scope", "/");
+                                    if (
+                                        !_.isEmpty(parent) &&
+                                        _.includes(
+                                            [
+                                                "agent",
+                                                "input",
+                                                "output",
+                                                "tool",
+                                                "operator",
+                                            ],
+                                            calculatedType
+                                        )
+                                    ) {
+                                        if (!_.isEqual(scope.slice(-1), "/")) {
+                                            scope += "/";
+                                        }
+                                        scope += `${_.get(
+                                            parent,
+                                            "type"
+                                        )}/${prefix}`;
+                                    }
+                                    callback({
+                                        name: fullName,
+                                        type: calculatedType,
+                                        description: newEntity.description,
+                                        scope,
+                                    });
+                                    setLoading(false);
+                                }
+                            }
+                        },
+                        progressToaster
+                    );
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
+                    setLoading(false);
+                });
+        }
     };
     return (
         <div>
@@ -262,6 +274,7 @@ export default function NewEntity({
                         updateEntity={updateEntity}
                         entity={newEntity}
                         loading={loading}
+                        JSONError={JSONError}
                     />
                 </div>
             )}

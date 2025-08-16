@@ -30,6 +30,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faAngleRight,
+    faBracketsCurly,
     faEllipsisV,
     faSync,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -37,7 +38,7 @@ import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
@@ -64,7 +65,7 @@ export default function SourceEntity({
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
-    const { progressToaster, showAxiosErrorToast } = useToaster();
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             addContainer: state.addContainer,
@@ -94,6 +95,7 @@ export default function SourceEntity({
             setLoading(false);
         });
     };
+    const JSONError = useRef(false);
     useEffect(() => {
         setContainerHeader({
             id: gridContainerId,
@@ -130,48 +132,59 @@ export default function SourceEntity({
         setIcon(_.get(source, "icon", null));
     };
     const handleSave = () => {
-        setLoading(true);
-        axios
-            .put(url, {
-                name: editedSource.name,
-                description: editedSource.description,
-                icon: editedSource.icon,
-            })
-            .then(() => {
-                const properties = {
-                    ...editedSource.properties,
-                    ...mainProperties,
-                };
-                const diffs = shallowDiff(source.properties, properties);
-                const promises = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                    showAxiosErrorToast,
-                });
-                settlePromises(
-                    promises,
-                    ({ error }) => {
-                        if (!error) {
-                            const newSource = { ...editedSource, properties };
-                            setSource(newSource);
-                            setEditedSource(newSource);
-                            setTemplate(newSource);
-                            setMainProperties(
-                                getEntityMainProperties(properties)
-                            );
-                            setIsEditing(false);
-                        }
-                        setLoading(false);
-                    },
-                    progressToaster
-                );
-            })
-            .catch((error) => {
-                showAxiosErrorToast(error);
-                setLoading(false);
+        if (JSONError.current) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                icon: <FAIcon icon={faBracketsCurly} />,
+                message: "Invalid JSON",
             });
+        } else {
+            setLoading(true);
+            axios
+                .put(url, {
+                    name: editedSource.name,
+                    description: editedSource.description,
+                    icon: editedSource.icon,
+                })
+                .then(() => {
+                    const properties = {
+                        ...editedSource.properties,
+                        ...mainProperties,
+                    };
+                    const diffs = shallowDiff(source.properties, properties);
+                    const promises = getUpdatePropertyPromises({
+                        axios,
+                        url: `${url}/property`,
+                        diffs,
+                        properties,
+                        showAxiosErrorToast,
+                    });
+                    settlePromises(
+                        promises,
+                        ({ error }) => {
+                            if (!error) {
+                                const newSource = {
+                                    ...editedSource,
+                                    properties,
+                                };
+                                setSource(newSource);
+                                setEditedSource(newSource);
+                                setTemplate(newSource);
+                                setMainProperties(
+                                    getEntityMainProperties(properties)
+                                );
+                                setIsEditing(false);
+                            }
+                            setLoading(false);
+                        },
+                        progressToaster
+                    );
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
+                    setLoading(false);
+                });
+        }
     };
     const onDelete = () => {
         setLoading(true);
@@ -335,6 +348,7 @@ export default function SourceEntity({
                     updateEntity={updateSource}
                     entity={editedSource}
                     loading={loading}
+                    JSONError={JSONError}
                 />
             </div>
             <div style={{ marginTop: 20 }}>
