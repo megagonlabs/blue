@@ -31,7 +31,6 @@ const TAB_INDENT = "    ";
 export default function JSONEditor({
     jsonObject,
     loading,
-    setJSONError,
     controlStripProps = {},
     className = [],
     onSave = null,
@@ -94,9 +93,6 @@ export default function JSONEditor({
                 }
             });
             setError(error);
-            if (_.isFunction(setJSONError)) {
-                setJSONError(error);
-            }
             setDoc(v.state.doc.toString());
         }, 300),
         []

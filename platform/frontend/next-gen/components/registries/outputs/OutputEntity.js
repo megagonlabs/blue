@@ -32,7 +32,6 @@ export default function OutputEntity({ entity, backCrumb }) {
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { progressToaster, showAxiosErrorToast } = useToaster();
-    const [JSONError, setJSONError] = useState(false);
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -233,7 +232,6 @@ export default function OutputEntity({ entity, backCrumb }) {
                     updateEntity={updateOutput}
                     entity={editedOutput}
                     loading={loading}
-                    setJSONError={setJSONError}
                 />
             </div>
         </div>

@@ -100,7 +100,6 @@ export default function AgentEntity({
         _.set(newAgent, path, value);
         setEditedAgent(newAgent);
     };
-    const [JSONError, setJSONError] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
     const systemAgent = _.get(mainProperties, "system_agent", false);
     const displayName = _.get(mainProperties, "display_name", "");
@@ -379,7 +378,6 @@ export default function AgentEntity({
                     updateEntity={updateAgent}
                     entity={editedAgent}
                     loading={loading}
-                    setJSONError={setJSONError}
                 />
             </div>
             <div style={{ marginTop: 20 }} className="split-pane-container">

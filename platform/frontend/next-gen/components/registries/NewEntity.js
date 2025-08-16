@@ -46,7 +46,6 @@ export default function NewEntity({
     }, [duplicateEntity]);
     const darkMode = useAppStore((state) => state.dark_mode);
     const [loading, setLoading] = useState(false);
-    const [JSONError, setJSONError] = useState(false);
     const [mainProperties, setMainProperties] = useState({});
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
@@ -263,7 +262,6 @@ export default function NewEntity({
                         updateEntity={updateEntity}
                         entity={newEntity}
                         loading={loading}
-                        setJSONError={setJSONError}
                     />
                 </div>
             )}

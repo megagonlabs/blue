@@ -64,7 +64,6 @@ export default function SourceEntity({
     const [loading, setLoading] = useState(false);
     const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
-    const [JSONError, setJSONError] = useState(false);
     const { progressToaster, showAxiosErrorToast } = useToaster();
     const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
@@ -337,7 +336,6 @@ export default function SourceEntity({
                     updateEntity={updateSource}
                     entity={editedSource}
                     loading={loading}
-                    setJSONError={setJSONError}
                 />
             </div>
             <div style={{ marginTop: 20 }}>
