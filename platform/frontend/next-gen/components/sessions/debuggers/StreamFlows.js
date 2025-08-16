@@ -1,3 +1,4 @@
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import { getReactFlowLayoutedElements } from "@/components/helper";
 import { useSessionStore } from "@/stores/session-store";
@@ -7,14 +8,18 @@ import {
     ButtonVariant,
     Card,
     NonIdealState,
+    Size,
     Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowsMaximize,
+    faClipboard,
     faCompassDrafting,
+    faDownload,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Background, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -40,6 +45,7 @@ export default function StreamFlows({ sessionId }) {
         }));
     }, []);
     const [layoutInitialized, setLayoutInitialized] = useState(false);
+    const { appToaster } = useToaster();
     useEffect(() => {
         const allCurrentNodes = getNodes();
         const allNodesMeasured = allCurrentNodes.every((node) => {
@@ -258,13 +264,34 @@ export default function StreamFlows({ sessionId }) {
                 <Background />
                 <Panel position="top-left">
                     <Card style={{ padding: 5 }}>
-                        <ButtonGroup vertical variant={ButtonVariant.MINIMAL}>
+                        <ButtonGroup
+                            size={Size.LARGE}
+                            vertical
+                            variant={ButtonVariant.MINIMAL}
+                        >
                             <Tooltip content="Fit view" placement="right">
                                 <Button
                                     onClick={() => {
                                         fitView({ duration: 300 });
                                     }}
                                     icon={<FAIcon icon={faArrowsMaximize} />}
+                                />
+                            </Tooltip>
+                            <Tooltip content="Export" placement="right">
+                                <Button
+                                    onClick={() => {
+                                        copy(
+                                            JSON.stringify({
+                                                nodes: nodesWithHandlers,
+                                                edges,
+                                            })
+                                        );
+                                        appToaster.show({
+                                            icon: <FAIcon icon={faClipboard} />,
+                                            message: "Copied nodes and edges",
+                                        });
+                                    }}
+                                    icon={<FAIcon icon={faDownload} />}
                                 />
                             </Tooltip>
                         </ButtonGroup>
