@@ -207,7 +207,6 @@ export default function ServerEntity({
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
                             onDuplicate={onDuplicate}
-                            JSONError={JSONError}
                         />
                     </div>
                 )}

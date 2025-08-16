@@ -183,7 +183,6 @@ export default function ModelEntity({
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onDuplicate={onDuplicate}
-                            JSONError={JSONError}
                         />
                     </div>
                 )}

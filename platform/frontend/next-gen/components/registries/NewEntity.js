@@ -182,7 +182,7 @@ export default function NewEntity({
                     style={{ position: "absolute", right: 20 }}
                 >
                     <Button
-                        disabled={_.isEmpty(newEntity.name) || JSONError}
+                        disabled={_.isEmpty(newEntity.name)}
                         onClick={handleSave}
                         icon={<FAIcon icon={faGrid2Plus} />}
                         size={Size.LARGE}

@@ -40,7 +40,6 @@ export default function EntityActions({
     onDelete,
     onSynchronize,
     onDuplicate,
-    JSONError,
 }) {
     const { name, type, properties, created_by = null } = entity;
     const { user, permissions } = useAuthStore(
@@ -170,7 +169,7 @@ export default function EntityActions({
                     </Popover>
                 )}
                 <Button
-                    disabled={loading || JSONError}
+                    disabled={loading}
                     text="Save"
                     intent={Intent.SUCCESS}
                     onClick={handleSave}

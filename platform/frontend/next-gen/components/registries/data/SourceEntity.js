@@ -248,7 +248,6 @@ export default function SourceEntity({
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
                             onDuplicate={onDuplicate}
-                            JSONError={JSONError}
                         />
                     </div>
                 )}

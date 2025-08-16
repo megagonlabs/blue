@@ -145,7 +145,6 @@ export default function InputEntity({ entity, backCrumb }) {
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
-                            JSONError={JSONError}
                         />
                     </div>
                 )}

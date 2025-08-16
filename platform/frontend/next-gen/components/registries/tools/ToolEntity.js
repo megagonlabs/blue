@@ -173,7 +173,6 @@ export default function ToolEntity({ entity, backCrumb }) {
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
-                            JSONError={JSONError}
                         />
                     </div>
                 )}

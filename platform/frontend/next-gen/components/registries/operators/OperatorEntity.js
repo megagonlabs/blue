@@ -186,7 +186,6 @@ export default function OperatorEntity({
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
-                            JSONError={JSONError}
                         />
                     </div>
                 )}

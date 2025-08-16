@@ -224,7 +224,6 @@ export default function AgentEntity({
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onDuplicate={baseAgent && onDuplicate}
-                            JSONError={JSONError}
                         />
                     </div>
                 )}
