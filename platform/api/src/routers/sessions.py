@@ -199,8 +199,8 @@ async def update_session(request: Request, session_id):
 def get_session_debugger_information(request: Request, session_id):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), read=True)
-    debugger: dict = session.get_metadata('debugger')
-    return JSONResponse(content={"results": debugger})
+    debug_info = session.get_stream_debug_info()
+    return JSONResponse(content={"results": debug_info})
 
 
 ## members

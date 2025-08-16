@@ -20,7 +20,7 @@ from blue.utils import uuid_utils, log_utils
 ### Session
 #
 class Session(Entity):
-    def __init__(self, id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+    def __init__(self, id=None, sid=None, cid=None, prefix=None, suffix=None, properties=None):
         super().__init__(name="SESSION", id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix)
 
         self.connection = None
@@ -335,6 +335,16 @@ class Session(Entity):
 
     def to_dict(self):
         return {**self.get_metadata(), "id": self.sid}
+
+    def get_stream_debug_info(self):
+        streams_metadata_ids = self.connection.keys("*" + self.sid + "*:STREAM:METADATA")
+        debug_info = {}
+        for streams_metadata_id in streams_metadata_ids:
+            stream_id = streams_metadata_id[: -len("METADATA") + 1]
+            stream_metadata = self.connection.json().get(streams_metadata_id)
+            debug_info[stream_id] = stream_metadata
+
+        return debug_info
 
     ###### OPERATIONS
     def _start(self):
