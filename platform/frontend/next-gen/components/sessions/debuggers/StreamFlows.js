@@ -1,3 +1,4 @@
+import { ReactFlowCustomProvider } from "@/components/contexts/ReactFlowCustomContext";
 import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import { getReactFlowLayoutedElements } from "@/components/helper";
@@ -7,17 +8,27 @@ import {
     ButtonGroup,
     ButtonVariant,
     Card,
+    Divider,
     NonIdealState,
     Size,
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faArrowLeftArrowRight,
     faArrowsMaximize,
+    faArrowUpArrowDown,
     faClipboard,
     faCompassDrafting,
     faDownload,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import { Background, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
+import {
+    Background,
+    getConnectedEdges,
+    Panel,
+    ReactFlow,
+    useReactFlow,
+    useStore,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
@@ -32,9 +43,81 @@ const NODE_TYPES = {
     agent: AgentNode,
     tag: TagNode,
 };
+const traverseAndFindEdges = (
+    startNode,
+    allEdges,
+    allNodes,
+    targetNodeTypes
+) => {
+    const visitedEdges = new Set();
+    const queue = [startNode];
+    const visitedNodes = new Set();
+    visitedNodes.add(startNode.id);
+    while (queue.length > 0) {
+        const currentNode = queue.shift();
+        const connectedEdges = getConnectedEdges([currentNode], allEdges);
+        connectedEdges.forEach((edge) => {
+            if (!visitedEdges.has(edge.id)) {
+                const nextNodeId = _.isEqual(edge.source, currentNode.id)
+                    ? edge.target
+                    : edge.source;
+                const nextNode = allNodes.find((n) =>
+                    _.isEqual(n.id, nextNodeId)
+                );
+                if (nextNode && _.includes(targetNodeTypes, nextNode.type)) {
+                    visitedEdges.add(edge.id);
+                } else if (nextNode && !visitedNodes.has(nextNodeId)) {
+                    visitedEdges.add(edge.id);
+                    visitedNodes.add(nextNodeId);
+                    queue.push(nextNode);
+                }
+            }
+        });
+    }
+    return Array.from(visitedEdges);
+};
+const selector = (state) => ({ edges: state.edges, nodes: state.nodes });
 export default function StreamFlows({ sessionId }) {
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
+    const [direction, setDirection] = useState("TB");
+    const [selectedEdges, setSelectedEdges] = useState(new Set());
+    const { edges: latestEdges, nodes: latestNodes } = useStore(selector);
+    const onEdgeClick = useCallback((event, edge) => {
+        setSelectedEdges((prevSelected) => {
+            const newSelected = new Set(prevSelected);
+            newSelected.delete(edge.id);
+            return newSelected;
+        });
+    }, []);
+    const onNodeClick = useCallback(
+        (event, node) => {
+            const targetNodeTypes = ["stream", "agent"];
+            const foundEdges = traverseAndFindEdges(
+                node,
+                latestEdges,
+                latestNodes,
+                targetNodeTypes
+            );
+            setSelectedEdges(new Set(foundEdges));
+        },
+        [latestEdges, latestNodes]
+    );
+    useEffect(() => {
+        setEdges((prevEdges) =>
+            prevEdges.map((edge) => {
+                const isSelected = selectedEdges.has(edge.id);
+                const defaultStyle = { strokeWidth: 2 };
+                return {
+                    ...edge,
+                    style: isSelected
+                        ? { ...defaultStyle, stroke: "#2D72D2", strokeWidth: 4 }
+                        : defaultStyle,
+                    zIndex: isSelected ? 1000 : null,
+                };
+            })
+        );
+    }, [selectedEdges]);
     const { fitView, getNodes, getEdges } = useReactFlow();
     const [measuredDimensions, setMeasuredDimensions] = useState({});
     const nodesWithKnownDimensions = _.keys(measuredDimensions);
@@ -64,7 +147,7 @@ export default function StreamFlows({ sessionId }) {
             const { nodes: layoutedNodes } = getReactFlowLayoutedElements(
                 nodesToLayout,
                 getEdges(),
-                "LR"
+                direction
             );
             setNodes(layoutedNodes);
             fitView();
@@ -74,6 +157,7 @@ export default function StreamFlows({ sessionId }) {
         }
     }, [
         nodesWithKnownDimensions.length,
+        direction,
         getNodes,
         getEdges,
         setNodes,
@@ -250,54 +334,86 @@ export default function StreamFlows({ sessionId }) {
                     }
                 />
             )}
-            <ReactFlow
-                elevateEdgesOnSelect
-                fitView
-                nodesDraggable={false}
-                nodesConnectable={false}
-                nodesFocusable={false}
-                edgesFocusable={false}
-                nodes={nodesWithHandlers}
-                edges={edges}
-                nodeTypes={NODE_TYPES}
-            >
-                <Background />
-                <Panel position="top-left">
-                    <Card style={{ padding: 5 }}>
-                        <ButtonGroup
-                            size={Size.LARGE}
-                            vertical
-                            variant={ButtonVariant.MINIMAL}
-                        >
-                            <Tooltip content="Fit view" placement="right">
-                                <Button
-                                    onClick={() => {
-                                        fitView({ duration: 300 });
-                                    }}
-                                    icon={<FAIcon icon={faArrowsMaximize} />}
-                                />
-                            </Tooltip>
-                            <Tooltip content="Export" placement="right">
-                                <Button
-                                    onClick={() => {
-                                        copy(
-                                            JSON.stringify({
-                                                nodes: nodesWithHandlers,
-                                                edges,
-                                            })
-                                        );
-                                        appToaster.show({
-                                            icon: <FAIcon icon={faClipboard} />,
-                                            message: "Copied nodes and edges",
-                                        });
-                                    }}
-                                    icon={<FAIcon icon={faDownload} />}
-                                />
-                            </Tooltip>
-                        </ButtonGroup>
-                    </Card>
-                </Panel>
-            </ReactFlow>
+            <ReactFlowCustomProvider value={{ direction }}>
+                <ReactFlow
+                    elevateEdgesOnSelect
+                    fitView
+                    nodesDraggable={false}
+                    nodesConnectable={false}
+                    nodesFocusable={false}
+                    edgesFocusable={false}
+                    nodes={nodesWithHandlers}
+                    onNodeClick={onNodeClick}
+                    onEdgeClick={onEdgeClick}
+                    edges={edges}
+                    nodeTypes={NODE_TYPES}
+                >
+                    <Background />
+                    <Panel position="top-left">
+                        <Card style={{ padding: 5 }}>
+                            <ButtonGroup
+                                size={Size.LARGE}
+                                vertical
+                                variant={ButtonVariant.MINIMAL}
+                            >
+                                <Tooltip content="Fit view" placement="right">
+                                    <Button
+                                        onClick={() => {
+                                            fitView({ duration: 300 });
+                                        }}
+                                        icon={
+                                            <FAIcon icon={faArrowsMaximize} />
+                                        }
+                                    />
+                                </Tooltip>
+                                <Tooltip content="Direction" placement="right">
+                                    <Button
+                                        onClick={() => {
+                                            setDirection(
+                                                _.isEqual(direction, "TB")
+                                                    ? "LR"
+                                                    : "TB"
+                                            );
+                                        }}
+                                        icon={
+                                            <FAIcon
+                                                icon={
+                                                    _.isEqual(direction, "TB")
+                                                        ? faArrowUpArrowDown
+                                                        : faArrowLeftArrowRight
+                                                }
+                                            />
+                                        }
+                                    />
+                                </Tooltip>
+                                <Divider />
+                                <Tooltip content="Export" placement="right">
+                                    <Button
+                                        onClick={() => {
+                                            copy(
+                                                JSON.stringify({
+                                                    nodes: nodesWithHandlers,
+                                                    edges,
+                                                })
+                                            );
+                                            appToaster.show({
+                                                icon: (
+                                                    <FAIcon
+                                                        icon={faClipboard}
+                                                    />
+                                                ),
+                                                message:
+                                                    "Copied nodes and edges",
+                                            });
+                                        }}
+                                        icon={<FAIcon icon={faDownload} />}
+                                    />
+                                </Tooltip>
+                            </ButtonGroup>
+                        </Card>
+                    </Panel>
+                </ReactFlow>
+            </ReactFlowCustomProvider>
         </div>
     );
 }

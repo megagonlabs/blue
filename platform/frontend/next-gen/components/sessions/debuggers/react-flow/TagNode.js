@@ -1,8 +1,10 @@
+import { useReactFlowCustomContext } from "@/components/contexts/ReactFlowCustomContext";
 import { Tag } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
 import _ from "lodash";
 import BaseNode from "./BaseNode";
 export default function TagNode({ id, data }) {
+    const { direction } = useReactFlowCustomContext();
     return (
         <BaseNode card={false} id={id} data={data}>
             <div
@@ -12,9 +14,23 @@ export default function TagNode({ id, data }) {
                     justifyContent: "space-evenly",
                 }}
             >
-                <Handle type="target" position={Position.Left} />
+                <Handle
+                    type="target"
+                    position={
+                        _.isEqual(direction, "TB")
+                            ? Position.Top
+                            : Position.Left
+                    }
+                />
                 <Tag minimal>{_.get(data, "label", null)}</Tag>
-                <Handle type="source" position={Position.Right} />
+                <Handle
+                    type="source"
+                    position={
+                        _.isEqual(direction, "TB")
+                            ? Position.Bottom
+                            : Position.Right
+                    }
+                />
             </div>
         </BaseNode>
     );

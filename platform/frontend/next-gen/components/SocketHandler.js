@@ -50,10 +50,12 @@ export default function SocketHandler({ children }) {
                         ).toString()}`
                     );
                     newSocket.onopen = () => {
-                        appToaster.show({
-                            intent: Intent.SUCCESS,
-                            message: "Connection established",
-                        });
+                        if (appToaster) {
+                            appToaster.show({
+                                intent: Intent.SUCCESS,
+                                message: "Connection established",
+                            });
+                        }
                         setState({
                             key: "socketReadyState",
                             value: 1,
@@ -93,10 +95,12 @@ export default function SocketHandler({ children }) {
                         }
                     };
                     newSocket.onclose = () => {
-                        appToaster.show({
-                            intent: Intent.PRIMARY,
-                            message: "Connection closed",
-                        });
+                        if (appToaster) {
+                            appToaster.show({
+                                intent: Intent.PRIMARY,
+                                message: "Connection closed",
+                            });
+                        }
                         setState({
                             key: "socketReadyState",
                             value: 3,
@@ -112,12 +116,16 @@ export default function SocketHandler({ children }) {
                         );
                         reconnectDelay.current = delay;
                         reconnectAttempts.current++;
-                        appToaster.show({
-                            intent: Intent.PRIMARY,
-                            message: `Reconnecting in ${
-                                delay / 1000
-                            } seconds (attempt ${reconnectAttempts.current})`,
-                        });
+                        if (appToaster) {
+                            appToaster.show({
+                                intent: Intent.PRIMARY,
+                                message: `Reconnecting in ${
+                                    delay / 1000
+                                } seconds (attempt ${
+                                    reconnectAttempts.current
+                                })`,
+                            });
+                        }
                         // attempt reconnection
                         reconnectTimeout.current = setTimeout(
                             connectWebSocket,

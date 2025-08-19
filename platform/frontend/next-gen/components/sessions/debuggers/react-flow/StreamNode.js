@@ -1,4 +1,8 @@
-import { POPOVER_CONTENT_MAX_WIDTH } from "@/components/constants";
+import {
+    EMPTY_OBJECT,
+    POPOVER_CONTENT_MAX_WIDTH,
+} from "@/components/constants";
+import { useReactFlowCustomContext } from "@/components/contexts/ReactFlowCustomContext";
 import { useSessionStore } from "@/stores/session-store";
 import { Classes, Intent, Tag, Tooltip } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
@@ -7,9 +11,10 @@ import _ from "lodash";
 import { useShallow } from "zustand/react/shallow";
 import BaseNode from "./BaseNode";
 export default function StreamNode({ id, data }) {
+    const { direction } = useReactFlowCustomContext();
     const { session } = useSessionStore(
         useShallow((state) => ({
-            session: _.get(state, ["sessions", data.sessionId], {}),
+            session: _.get(state, ["sessions", data.sessionId], EMPTY_OBJECT),
         }))
     );
     const stream = _.get(session, ["streams", data.label], null);
@@ -51,9 +56,21 @@ export default function StreamNode({ id, data }) {
                     </div>
                 ))}
             </div>
-            <Handle type="target" position={Position.Left} />
+            <Handle
+                type="target"
+                position={
+                    _.isEqual(direction, "TB") ? Position.Top : Position.Left
+                }
+            />
             {_.get(data, "consumed", false) && (
-                <Handle type="source" position={Position.Right} />
+                <Handle
+                    type="source"
+                    position={
+                        _.isEqual(direction, "TB")
+                            ? Position.Bottom
+                            : Position.Right
+                    }
+                />
             )}
         </BaseNode>
     );
