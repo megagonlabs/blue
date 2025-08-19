@@ -54,9 +54,12 @@ class BlockingAgent(Agent):
 
 
             with self.lock:
-                if input in self.inputs_received:
-                    self.inputs_received[input] = True
+                from_agent = input.strip("FROM_")
+                if from_agent in self.inputs_received:
+                    self.inputs_received[from_agent] = True
                 ready_to_process =  all(self.inputs_received.values()) 
+
+            logging.info(f"Agent {self.agent_name} got INPUT {input}, ready to process:{ready_to_process}")
 
             if ready_to_process:
                 input_dict = worker.get_all_data()
@@ -73,13 +76,13 @@ class BlockingAgent(Agent):
         elif message.isBOS():
             # init stream to empty array
             if worker:
-                worker.set_data(f'FROM_{input}', [])
+                worker.set_data(f'{input}', [])
         elif message.isData():
             # store data value
             data = message.getData()
 
             if worker:
-                worker.append_data(f'FROM_{input}', data)
+                worker.append_data(f'{input}', data)
 
         return None
 
