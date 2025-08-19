@@ -272,26 +272,32 @@ Output:
 
     def _format_schema(self, schema):
         res = []
+        entities = schema['entities']
 
-        for entity in schema:
+        for entity in entities:
             table_name = entity['name']
-            properties = entity['properties']['properties']
+            attributes = entity['contents']['attribute']
 
-            entity_stats = entity['properties'].get('stats', {})
-            property_stats = entity_stats.get('property_stats', {})
-
+            
             columns = []
-            for col_name, col_info in properties.items():
+            for col_name, col_info in attributes.items():
+                col_entry = {"name": col_name, "type": "unknown"}
+
                 if isinstance(col_info, dict):
-                    col_entry = {"name": col_name, "type": col_info.get("type", "unknown")}
-                    if "enum" in col_info:
-                        col_entry["enum"] = col_info["enum"]
-                else:
-                    col_entry = {"name": col_name, "type": col_info}
+                    props = col_info.get("properties", {})
+                    info = props.get("info", {})
+                   
+                    col_entry["type"] = info.get("attr_type", col_info.get("type", "unknown"))
 
-                if col_name in property_stats:
-                    col_entry["stats"] = property_stats[col_name]
+                    if "enum" in info:
+                        col_entry["enum"] = info["enum"]
 
+                    if "values" in info:
+                        col_entry["values"] = info["values"]
+
+                    if "stats" in info:
+                        col_entry["stats"] = col_info["stats"]
+   
                 columns.append(col_entry)
 
             res.append({"table_name": table_name, "columns": columns})
