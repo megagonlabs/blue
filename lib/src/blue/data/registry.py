@@ -173,6 +173,62 @@ class DataRegistry(Registry):
     def set_source_database_collection_entity_property(self, source, database, collection, entity, key, value, rebuild=False):
         super().set_record_property(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', key, value, rebuild=rebuild)
 
+    
+    ######### source/database/collection/entity/attribute 
+    def register_source_database_collection_entity_attribute(
+        self, source, database, collection, entity, attribute,
+        description="", properties=None, rebuild=False):
+        if properties is None:
+            properties = {}
+        scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+        
+        super().register_record(
+            attribute, 'attribute', scope,
+            description=description, properties=properties, rebuild=rebuild
+        )
+
+    def update_source_database_collection_entity_attribute(
+        self, source, database, collection, entity, attribute,
+        description=None, properties=None, rebuild=False):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+        return super().update_record(
+            attribute, 'attribute', scope,
+            description=description, properties=properties, rebuild=rebuild
+        )
+
+    def deregister_source_database_collection_entity_attribute(
+        self, source, database, collection, entity, attribute, rebuild=False):
+        record = self.get_source_database_collection_entity_attribute(
+            source, database, collection, entity, attribute
+        )
+        super().deregister(record, rebuild=rebuild)
+
+    def get_source_database_collection_entity_attributes(
+        self, source, database, collection, entity):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+        return super().filter_record_contents(
+            entity, 'entity', scope, filter_type='attribute'
+        )
+
+    def get_source_database_collection_entity_attribute(
+        self, source, database, collection, entity, attribute):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+        return super().filter_record_contents(
+            entity, 'entity', scope,
+            filter_type='attribute', filter_name=attribute, single=True
+        )
+
+    
+    def set_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key, value, rebuild=False):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+        super().set_record_property(attribute, 'attribute', scope, key, value, rebuild=rebuild)
+
+
+    def get_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+        super().get_record_property(attribute, 'attribute', scope, key)
+
+    
     ######### source/database/collection/relation
     def register_source_database_collection_relation(self, source, database, collection, relation, description="", properties={}, rebuild=False):
         super().register_record(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild)
@@ -210,6 +266,45 @@ class DataRegistry(Registry):
     def set_source_database_collection_relation_property(self, source, database, collection, relation, key, value, rebuild=False):
         super().set_record_property(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', key, value, rebuild=rebuild)
 
+    
+
+    
+    ######### source/database/collection/relation/attribute 
+    def register_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, description="", properties={}, rebuild=False):
+        super().register_record(attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}', description=description, properties=properties, rebuild=rebuild)
+
+    
+    def update_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, description=None, properties=None, rebuild=False):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
+        return super().update_record(attribute, 'attribute', scope, description=description, properties=properties, rebuild=rebuild)
+
+
+    def deregister_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, rebuild=False):
+        record = self.get_source_database_collection_relation_attribute(source, database, collection, relation, attribute)
+        super().deregister(record, rebuild=rebuild)
+
+    
+    def get_source_database_collection_relation_attributes(
+        self, source, database, collection, relation):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
+        return super().filter_record_contents(relation, 'relation', scope, filter_type='attribute')
+
+    def get_source_database_collection_relation_attribute(
+        self, source, database, collection, relation, attribute):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
+        return super().filter_record_contents(relation, 'relation', scope, filter_type='attribute', filter_name=attribute, single=True)
+
+    def set_source_database_collection_relation_attribute_property(self, source, database, collection, relation, attribute, key, value, rebuild=False):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
+        super().set_record_property(attribute, 'attribute', scope, key, value, rebuild=rebuild)
+
+
+    def get_source_database_collection_relation_attribute_property(self, source, database, collection, relation, attribute, key):
+        scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
+        super().get_record_property(attribute, 'attribute', scope, key)
+
+    
+    
     ######### sync
     # source connection (part of properties)
     def get_source_connection(self, source):
@@ -448,17 +543,46 @@ class DataRegistry(Registry):
             for entity in merges:
                 self.update_source_database_collection_entity(source, database, collection, entity, description="", properties=entities[entity], rebuild=rebuild)
 
+            
+            # ---------------- entity attributes ---------------- #
+            for entity in fetched_entities_set:
+                entity_obj = entities[entity]
+                entity_properties = entity_obj.get("properties", {})
+                
+                fetched_attrs = entity_obj.get("contents", {}).get("attributes", {})
+                registry_attrs = self.get_source_database_collection_entity_attributes(source, database, collection, entity) or {}
+
+                registry_attrs_set = set(registry_attrs.keys())
+                fetched_attrs_set = set(fetched_attrs.keys())
+
+                attr_adds = fetched_attrs_set - registry_attrs_set
+                attr_removes = registry_attrs_set - fetched_attrs_set
+                attr_merges = fetched_attrs_set & registry_attrs_set
+
+                for attr in attr_adds:
+                    self.register_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
+                for attr in attr_removes:
+                    self.deregister_source_database_collection_entity_attribute(source, database, collection, entity, attr)
+                for attr in attr_merges:
+                    self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
+          
+            
             if collect_stats:
                 for entity, meta in schema.get("entities", {}).items():
                     ent_stats = {}
-                    ent_stats["stats"] = source_connection.fetch_entity_stats(database, collection, entity)
-
-                    props = meta.get("properties", {})
-                    ent_stats["property_stats"] = {}
-                    for prop in props:
-                        ent_stats["property_stats"][prop] = source_connection.fetch_property_stats(database, collection, entity, prop, sample_limit=sample_limit)
-
+                    ent_stats = source_connection.fetch_entity_stats(database, collection, entity)
                     self.set_source_database_collection_entity_property(source, database, collection, entity, "stats", ent_stats, rebuild=rebuild)
+
+                    # Collect property/attribute-level stats
+                    attributes = meta.get("contents", {}).get("attributes", {})
+                    
+                    for attr_name, attr_meta in attributes.items():
+                        attr_stats = source_connection.fetch_property_stats(
+                            database, collection, entity, attr_name, sample_limit=sample_limit)
+                         # Store stats under this attribute
+                        self.set_source_database_collection_entity_attribute_property(
+                            source, database, collection, entity, attr_name,  "stats", attr_stats, rebuild=rebuild)
+                    
 
             ## relations
             # get existing schema entities
@@ -491,3 +615,28 @@ class DataRegistry(Registry):
             # update
             for relation in merges:
                 self.update_source_database_collection_relation(source, database, collection, relation, description="", properties=relations[relation], rebuild=rebuild)
+
+
+            # ---------------- relation attributes ---------------- #
+            for relation in fetched_relations_set:
+                relation_obj = relations[relation]
+                relation_properties = relation_obj.get("properties", {})
+                
+                fetched_attrs = relation_obj.get("contents", {}).get("attributes", {})
+                registry_attrs = self.get_source_database_collection_relation_attributes(source, database, collection, relation) or {}
+
+                registry_attrs_set = set(registry_attrs.keys())
+                fetched_attrs_set = set(fetched_attrs.keys())
+
+                attr_adds = fetched_attrs_set - registry_attrs_set
+                attr_removes = registry_attrs_set - fetched_attrs_set
+                attr_merges = fetched_attrs_set & registry_attrs_set
+
+                for attr in attr_adds:
+                    self.register_source_database_collection_relation_attribute(source, database, collection, relation, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
+                for attr in attr_removes:
+                    self.deregister_source_database_collection_relation_attribute(source, database, collection, relation, attr)
+                for attr in attr_merges:
+                    self.update_source_database_collection_relation_attribute(source, database, collection, relation, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
+          
+            

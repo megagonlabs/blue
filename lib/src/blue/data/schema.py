@@ -21,20 +21,34 @@ class DataSchema():
         if index > 0:
             unique_key = key + "__" + str(index) 
 
-        entity_obj = {}
-        entity_obj['name'] = key 
-        entity_obj['index'] = index
-        entity_obj['properties'] = {}
-
+        entity_obj = {
+            'name': key,
+            'index': index,
+            'description': '',
+            'created_by': None,
+            'properties': {},     # type info only
+            'contents': {         # hierarchical child info
+                'attributes': {}   # attributes 
+            },
+            'icon': None
+        }
+        
         self.entities[unique_key] = entity_obj
 
         return key
 
-    def add_entity_property(self, key, property, type):
-        if key in self.entities:
-            entity_obj = self.entities[key]
-            properties_obj = entity_obj['properties']
-            properties_obj[property] = type
+    def add_entity_property(self, key, attribute, type):
+        if key not in self.entities:
+            return
+        entity_obj = self.entities[key]
+
+        entity_obj['contents']['attributes'][attribute] = {
+            'name': attribute,
+            'info': type,
+            'description': None,
+        }
+        
+        
     
     def _relation_encoding(self, source, relation, target):
         s = source + " " + relation + " " + target 
