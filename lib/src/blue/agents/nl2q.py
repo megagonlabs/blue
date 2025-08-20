@@ -295,8 +295,8 @@ Output:
                     if "values" in info:
                         col_entry["values"] = info["values"]
 
-                    if "stats" in info:
-                        col_entry["stats"] = col_info["stats"]
+                    if "stats" in props:
+                        col_entry["stats"] = props["stats"]
    
                 columns.append(col_entry)
 
