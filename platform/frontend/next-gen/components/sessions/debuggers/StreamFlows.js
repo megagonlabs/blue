@@ -47,12 +47,14 @@ const traverseAndFindEdges = (
     startNode,
     allEdges,
     allNodes,
-    targetNodeTypes
+    targetNodeTypes,
+    setSelectedNodes
 ) => {
     const visitedEdges = new Set();
     const queue = [startNode];
     const visitedNodes = new Set();
     visitedNodes.add(startNode.id);
+    const selectedNodes = new Set();
     while (queue.length > 0) {
         const currentNode = queue.shift();
         const connectedEdges = getConnectedEdges([currentNode], allEdges);
@@ -65,6 +67,7 @@ const traverseAndFindEdges = (
                     _.isEqual(n.id, nextNodeId)
                 );
                 if (nextNode && _.includes(targetNodeTypes, nextNode.type)) {
+                    selectedNodes.add(nextNodeId);
                     visitedEdges.add(edge.id);
                 } else if (nextNode && !visitedNodes.has(nextNodeId)) {
                     visitedEdges.add(edge.id);
@@ -74,6 +77,7 @@ const traverseAndFindEdges = (
             }
         });
     }
+    setSelectedNodes(selectedNodes);
     return Array.from(visitedEdges);
 };
 const selector = (state) => ({ edges: state.edges, nodes: state.nodes });
@@ -82,6 +86,8 @@ export default function StreamFlows({ sessionId }) {
     const [edges, setEdges] = useState([]);
     const [direction, setDirection] = useState("TB");
     const [selectedEdges, setSelectedEdges] = useState(new Set());
+    const [selectedNodes, setSelectedNodes] = useState(new Set());
+    const [clickedNode, setClickedNode] = useState(null);
     const { edges: latestEdges, nodes: latestNodes } = useStore(selector);
     const onEdgeClick = useCallback((event, edge) => {
         setSelectedEdges((prevSelected) => {
@@ -97,8 +103,10 @@ export default function StreamFlows({ sessionId }) {
                 node,
                 latestEdges,
                 latestNodes,
-                targetNodeTypes
+                targetNodeTypes,
+                setSelectedNodes
             );
+            setClickedNode(node);
             setSelectedEdges(new Set(foundEdges));
         },
         [latestEdges, latestNodes]
@@ -334,7 +342,9 @@ export default function StreamFlows({ sessionId }) {
                     }
                 />
             )}
-            <ReactFlowCustomProvider value={{ direction }}>
+            <ReactFlowCustomProvider
+                value={{ direction, selectedNodes, clickedNode }}
+            >
                 <ReactFlow
                     elevateEdgesOnSelect
                     fitView

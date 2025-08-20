@@ -2,10 +2,16 @@ import {
     POPOVER_CONTENT_MAX_WIDTH,
     REACT_FLOW_NODE,
 } from "@/components/constants";
+import { useReactFlowCustomContext } from "@/components/contexts/ReactFlowCustomContext";
+import { FAIcon } from "@/components/FAIcon";
+import { Classes, Colors } from "@blueprintjs/core";
+import { faCircleNodes } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { useUpdateNodeInternals } from "@xyflow/react";
+import classNames from "classnames";
 import _ from "lodash";
 import { memo, useEffect, useRef, useState } from "react";
 const BaseNode = memo(({ id, data, children, card = true }) => {
+    const { selectedNodes, clickedNode } = useReactFlowCustomContext();
     const nodeRef = useRef(null);
     const updateNodeInternals = useUpdateNodeInternals();
     const [currentDimensions, setCurrentDimensions] = useState({
@@ -40,7 +46,11 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
     }, [id, data.onDimensionsChange, updateNodeInternals, currentDimensions]);
     return (
         <div
-            className={card && "custom-card interactive-card-border"}
+            className={classNames({
+                "custom-card": card,
+                "interactive-card-border": card,
+                [Classes.ELEVATION_4]: selectedNodes.has(id),
+            })}
             ref={nodeRef}
             style={{
                 width: "auto",
@@ -50,8 +60,19 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
                 maxWidth: POPOVER_CONTENT_MAX_WIDTH,
                 display: "inline-block",
                 boxSizing: "border-box",
+                borderColor: selectedNodes.has(id) ? "transparent" : null,
             }}
         >
+            {_.isEqual(clickedNode?.id, id) &&
+                !_.isEqual(clickedNode?.type, "tag") && (
+                    <div style={{ position: "absolute", right: 10, top: 10 }}>
+                        <FAIcon
+                            icon={faCircleNodes}
+                            size={20}
+                            style={{ color: Colors.BLUE3 }}
+                        />
+                    </div>
+                )}
             <div style={{ padding: REACT_FLOW_NODE["padding"] }}>
                 {children}
             </div>
