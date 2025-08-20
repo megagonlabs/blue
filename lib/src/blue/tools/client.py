@@ -29,8 +29,8 @@ class ToolClient:
     def _initialize_properties(self):
         self.properties = {}
 
-        # server protocol
-        self.properties['protocol'] = "default"
+        # connection properties
+        self._initialize_connection_properties()
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -39,6 +39,12 @@ class ToolClient:
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_connection_properties(self):
+        connection_properties = {}
+
+        connection_properties['protocol'] = 'default'
+        self.properties['connection'] = connection_properties
 
     def _initialize_logger(self):
         self.logger = log_utils.CustomLogger()

@@ -26,12 +26,14 @@ class MCPToolClient(ToolClient):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
 
-    ###### initialization
-    def _initialize_properties(self):
-        super()._initialize_properties()
+    ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
 
-        # server protocol
-        self.properties['protocol'] = "mcp"
+        # set host, port, protocol
+        self.properties['connection']['host'] = 'localhost'
+        self.properties['connection']['protocol'] = 'mcp'
+        self.properties['connection']['subprotocol'] = 'http'
 
     ###### connection
     def _connect(self, **connection):
@@ -42,10 +44,16 @@ class MCPToolClient(ToolClient):
         if 'protocol' in c:
             del c['protocol']
 
+        subprotocol = 'http'
+        if 'subprotocol' in c:
+            subprotocol = c['subprotocol']
+            del c['subprotocol']
+
         # mcp server url
         host = c['host']
-        port = c['port']
-        self.server_url = "http://" + host + ":" + str(port) + "/mcp"
+        port = c['port'] if 'port' in c else None
+
+        self.server_url = subprotocol + "://" + host + (":" + str(port) if port else "") + "/mcp"
 
     async def _create_session(self):
         # Initialize session and client objects
