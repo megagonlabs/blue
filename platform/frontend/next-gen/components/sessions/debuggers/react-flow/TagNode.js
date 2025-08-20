@@ -1,5 +1,5 @@
 import { useReactFlowCustomContext } from "@/components/contexts/ReactFlowCustomContext";
-import { Tag } from "@blueprintjs/core";
+import { Size, Tag } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
 import _ from "lodash";
 import BaseNode from "./BaseNode";
@@ -22,7 +22,9 @@ export default function TagNode({ id, data }) {
                             : Position.Left
                     }
                 />
-                <Tag minimal>{_.get(data, "label", null)}</Tag>
+                <Tag size={Size.LARGE} minimal>
+                    {_.get(data, "label", null)}
+                </Tag>
                 <Handle
                     type="source"
                     position={

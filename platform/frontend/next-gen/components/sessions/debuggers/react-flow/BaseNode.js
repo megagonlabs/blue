@@ -5,7 +5,7 @@ import {
 import { useReactFlowCustomContext } from "@/components/contexts/ReactFlowCustomContext";
 import { FAIcon } from "@/components/FAIcon";
 import { Classes, Colors } from "@blueprintjs/core";
-import { faCircleNodes } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faMapLocationDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { useUpdateNodeInternals } from "@xyflow/react";
 import classNames from "classnames";
 import _ from "lodash";
@@ -67,7 +67,7 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
                 !_.isEqual(clickedNode?.type, "tag") && (
                     <div style={{ position: "absolute", right: 10, top: 10 }}>
                         <FAIcon
-                            icon={faCircleNodes}
+                            icon={faMapLocationDot}
                             size={20}
                             style={{ color: Colors.BLUE3 }}
                         />
