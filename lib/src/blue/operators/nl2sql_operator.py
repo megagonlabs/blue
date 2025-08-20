@@ -169,12 +169,13 @@ Output:
         "output_strip": True,
         "output_cast": "json",
         # connection
-        "connection": {"host": "localhost", "port": 5432, "protocol": "postgres", "user": "postgres", "password": "postgres"},
+        # "connection": {"host": "localhost", "port": 5432, "protocol": "postgres", "user": "postgres", "password": "postgres"},
     }
 
     name = "nl2sql"
     description = "Translates natural language questions into SQL queries using LLM models"
     default_attributes = {
+        "source": {"type": "str", "description": "Data source name", "required": True, "default": ""},
         "question": {"type": "str", "description": "Natural language question to translate to SQL", "required": True},
         "protocol": {"type": "str", "description": "Database protocol (postgres or mysql)", "required": True, "default": "postgres"},
         "database": {"type": "str", "description": "Database name", "required": True, "default": ""},
