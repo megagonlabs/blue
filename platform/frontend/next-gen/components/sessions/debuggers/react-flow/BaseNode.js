@@ -69,7 +69,7 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
                         <FAIcon
                             icon={faMapLocationDot}
                             size={20}
-                            style={{ color: Colors.BLUE3 }}
+                            style={{ "--fa-primary-color": Colors.RED3 }}
                         />
                     </div>
                 )}
