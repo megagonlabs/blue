@@ -10,6 +10,7 @@ import mysql.connector
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
 from blue.data.schema import DataSchema
+from blue.data.registry import DataRegistry
 
 ###############
 ### NL2SQL Operator
@@ -17,6 +18,7 @@ from blue.data.schema import DataSchema
 
 def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     question = attributes.get('question', '')
+    source = attributes.get('source', '')
     protocol = attributes.get('protocol', 'postgres')
     database = attributes.get('database', '')
     collection = attributes.get('collection', '')
@@ -27,14 +29,24 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     schema = attributes.get('schema', '')
 
     if not question or not question.strip():
-        return []
+        return [[]]
 
     # protocol, database, collection are required
     if not protocol or not database or not collection:
         raise ValueError("Protocol, database, and collection are required")
 
-    if not schema:
-        schema = _fetch_database_schema(protocol, database, collection, properties)
+    data_registry = _get_data_registry_from_properties(properties)
+    if not data_registry:
+        return [[]]
+
+    # get schema from data registry
+    schema = data_registry.get_data_source_schema(source, database, collection)
+    # convert schema to JSON string if it's a dictionary
+    if isinstance(schema, dict):
+        schema_str = json.dumps(schema, indent=2)
+    else:
+        schema_str = str(schema)
+
     execute_query = properties.get('execute_query', True) if properties else True
     validate_query_prefixes = properties.get('validate_query_prefixes', ['SELECT']) if properties else ['SELECT']
     if protocol not in ['postgres', 'mysql']:
@@ -79,56 +91,9 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
     # If execution is enabled, execute the generated SQL
     if execute_query and generated_query:
-        # Execute query directly using connection attributes
-        connection_attributes = properties.get('connection', {})
-        if connection_attributes:
-            try:
-                if protocol == 'postgres':
-
-                    conn = psycopg2.connect(
-                        host=connection_attributes.get('host'),
-                        port=connection_attributes.get('port'),
-                        database=database,
-                        user=connection_attributes.get('user'),
-                        password=connection_attributes.get('password'),
-                    )
-                    cursor = conn.cursor()
-                    cursor.execute(generated_query)
-                    data = cursor.fetchall()
-
-                    # Transform to JSON format
-                    columns = [desc[0] for desc in cursor.description]
-                    result = [dict(zip(columns, row)) for row in data]
-                    count = len(result)
-
-                    cursor.close()
-                    conn.close()
-
-                elif protocol == 'mysql':
-                    conn = mysql.connector.connect(
-                        host=connection_attributes.get('host'),
-                        port=connection_attributes.get('port'),
-                        database=database,
-                        user=connection_attributes.get('user'),
-                        password=connection_attributes.get('password'),
-                    )
-                    cursor = conn.cursor(buffered=True)
-                    cursor.execute(generated_query)
-                    data = cursor.fetchall()
-
-                    # Transform to JSON format
-                    columns = [desc[0] for desc in cursor.description]
-                    result = [dict(zip(columns, row)) for row in data]
-                    count = len(result)
-
-                    cursor.close()
-                    conn.close()
-                else:
-                    raise ValueError(f"Unsupported protocol: {protocol}")
-            except Exception as e:
-                raise ValueError(f"Error executing query: {str(e)}")
-        else:
-            raise ValueError("No connection attributes provided for query execution")
+        # use data registry to execute query
+        result = data_registry.execute_query(generated_query, source, database, collection)
+        result = _format_execution_result_format(result)
         return result
     # if execution is disabled, return the sql query only
     return [[{"sql": generated_query}]]
@@ -335,6 +300,23 @@ def _fetch_postgres_schema(database: str, collection: str, connection_attributes
         conn.close()
 
 
+def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Optional[DataRegistry]:
+    """Get data registry from properties."""
+    if not properties:
+        return None
+
+    if 'data_registry' in properties and isinstance(properties['data_registry'], DataRegistry):
+        return properties['data_registry']
+
+    platform_id = properties.get("platform.name")
+    data_registry_id = properties.get("data_registry.name")
+
+    if platform_id and data_registry_id:
+        prefix = 'PLATFORM:' + platform_id
+        return DataRegistry(id=data_registry_id, prefix=prefix, properties=properties)
+    return None
+
+
 def _fetch_mysql_schema(database: str, collection: str, connection_attributes: Dict[str, Any]) -> str:
     """Fetch MySQL schema."""
     # Connect to the database
@@ -369,30 +351,55 @@ def _fetch_mysql_schema(database: str, collection: str, connection_attributes: D
         conn.close()
 
 
+def _format_execution_result_format(result) -> List[List[Dict[str, Any]]]:
+    """Format execution result to match the expected output format."""
+    # case 1: result is list of list of dicts
+    if isinstance(result, list) and all(isinstance(item, list) for item in result) and all(isinstance(item, dict) for item in result[0]):
+        return result
+    # case 2: result is list of dicts
+    elif isinstance(result, list) and all(isinstance(item, dict) for item in result):
+        return [result]
+    # case 3: result is dict
+    elif isinstance(result, dict):
+        return [[result]]
+    else:
+        # unable to format result, raise error
+        raise ValueError("Invalid result format from data registry execution: " + str(result))
+
+
 if __name__ == "__main__":
-    ## calling example
+    ## calling example with data registry integration
+    ## Note: this example assumes a data registry is already running with the specified platform and registry names, and a postgres source is already registered with the data registry
 
     input_data = [[]]
     attributes = {
         "question": "what is the most frequently advertised manager role in jurong?",
         # "question": "what are the top 10 project manager jobs in jurong with a minimum salary of 4000?",
+        "source": "postgres_example",  # please udpate your data source name accordingly
         "protocol": "postgres",
         "database": "postgres",
         "collection": "public",
         "case_insensitive": True,
         "additional_requirements": "",
         "context": "This is a job database with information about job postings, skills, companies, and salaries",
-        # schema will be fetched automatically if not provided
+        # schema will be fetched automatically from data registry
     }
 
     print(f"=== NL2SQL attributes ===")
     print(attributes)
 
-    # just used to get the default properties
+    # Get default properties
     nl2sql_operator = NL2SQLOperator()
     properties = nl2sql_operator.properties
+    properties.update(
+        {
+            "service_url": "ws://localhost:8001",  # update this to your service url
+            "platform.name": "example_platform",
+            "data_registry.name": "example_registry",
+        }
+    )
+
     print(f"=== NL2SQL PROPERTIES ===")
-    properties['service_url'] = 'ws://localhost:8001'  # update this to your service url
     print(properties)
 
     # call the function

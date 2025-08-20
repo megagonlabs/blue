@@ -15,6 +15,7 @@ from blue.data.sources.postgres_source import PostgresDBSource
 from blue.data.sources.mysql_source import MySQLDBSource
 from blue.data.sources.openai_source import OpenAISource
 
+
 ###############
 ### DataRegistry
 #
@@ -102,7 +103,9 @@ class DataRegistry(Registry):
         super().register_record(collection, 'collection', f'/source/{source}/database/{database}', description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection(self, source, database, collection, description=None, properties=None, rebuild=False):
-        original_record, merged_record = super().update_record(collection, 'collection', f'/source/{source}/database/{database}', description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = super().update_record(
+            collection, 'collection', f'/source/{source}/database/{database}', description=description, properties=properties, rebuild=rebuild
+        )
         return original_record, merged_record
 
     def deregister_source_database_collection(self, source, database, collection, rebuild=False):
@@ -137,7 +140,9 @@ class DataRegistry(Registry):
         super().register_record(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection_entity(self, source, database, collection, entity, description=None, properties=None, rebuild=False):
-        original_record, merged_record = super().update_record(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = super().update_record(
+            entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild
+        )
         return original_record, merged_record
 
     def deregister_source_database_collection_entity(self, source, database, collection, entity, rebuild=False):
@@ -172,7 +177,9 @@ class DataRegistry(Registry):
         super().register_record(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection_relation(self, source, database, collection, relation, description=None, properties=None, rebuild=False):
-        original_record, merged_record = super().update_record(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = super().update_record(
+            relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild
+        )
         return original_record, merged_record
 
     def deregister_source_database_collection_relation(self, source, database, collection, relation, rebuild=False):
@@ -235,17 +242,11 @@ class DataRegistry(Registry):
         return source_connection
 
     def execute_query(self, query, source, database=None, collection=None, optional_properties={}):
-        """Execute a query against a data source. Currently separate for OpenAI and other sources.
-        """
+        """Execute a query against a data source. Currently separate for OpenAI and other sources."""
         # Connect to the source
         source_connection = self.connect_source(source)
         if source_connection:
-            return source_connection.execute_query(
-                query=query,
-                database=database,
-                collection=collection,
-                optional_properties=optional_properties
-            )
+            return source_connection.execute_query(query=query, database=database, collection=collection, optional_properties=optional_properties)
         return None
 
     def sync_all(self, recursive=False):
@@ -266,12 +267,11 @@ class DataRegistry(Registry):
                 description = metadata['description']
             self.update_source(source, description=description, properties=properties, rebuild=rebuild)
 
-            if collect_stats:    
+            if collect_stats:
                 source_stats = source_connection.fetch_source_stats()
                 if source_stats:
                     self.set_source_property(source, "stats", source_stats, rebuild=rebuild)
-                
-           
+
             # fetch databases
             fetched_dbs = source_connection.fetch_databases()
             fetched_dbs_set = set(fetched_dbs)
@@ -336,8 +336,7 @@ class DataRegistry(Registry):
                 db_stats = source_connection.fetch_database_stats(database)
                 if db_stats:
                     self.set_source_database_property(source, database, "stats", db_stats, rebuild=rebuild)
-            
-            
+
             # fetch collections
             fetched_collections = source_connection.fetch_database_collections(database)
             fetched_collections_set = set(fetched_collections)
@@ -404,10 +403,10 @@ class DataRegistry(Registry):
 
             if collect_stats:
                 collection_stats = source_connection.fetch_collection_stats(database, collection, schema, sample_limit=sample_limit)
-                
+
                 if collection_stats:
                     self.set_source_database_collection_property(source, database, collection, "stats", collection_stats, rebuild=rebuild)
-            
+
             entities = schema['entities']
             relations = schema['relations']
 
@@ -446,19 +445,18 @@ class DataRegistry(Registry):
             for collection in merges:
                 self.update_source_database_collection_entity(source, database, collection, entity, description="", properties=entities[entity], rebuild=rebuild)
 
-            
             if collect_stats:
                 for entity, meta in schema.get("entities", {}).items():
                     ent_stats = {}
                     ent_stats["stats"] = source_connection.fetch_entity_stats(database, collection, entity)
-         
+
                     props = meta.get("properties", {})
                     ent_stats["property_stats"] = {}
                     for prop in props:
                         ent_stats["property_stats"][prop] = source_connection.fetch_property_stats(database, collection, entity, prop, sample_limit=sample_limit)
 
                     self.set_source_database_collection_entity_property(source, database, collection, entity, "stats", ent_stats, rebuild=rebuild)
-         
+
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
@@ -490,3 +488,10 @@ class DataRegistry(Registry):
             # update
             for relation in merges:
                 self.update_source_database_collection_relation(source, database, collection, relation, description="", properties=relations[relation], rebuild=rebuild)
+
+    def get_data_source_schema(self, source, database, collection):
+        """Get the schema for a data source. The fetch database collection schema should be implemented in the data source."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            return source_connection.fetch_database_collection_schema(database, collection)
+        return None
