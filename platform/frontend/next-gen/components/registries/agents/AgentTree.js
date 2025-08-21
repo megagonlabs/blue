@@ -247,6 +247,7 @@ export default function AgentTree({ entity }) {
                             id: agent.name,
                             icon: (
                                 <RegistryEntityIcon
+                                    maxSize={20}
                                     type={"agent"}
                                     content={_.get(agent, "icon", null)}
                                 />

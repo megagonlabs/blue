@@ -37,6 +37,7 @@ const constructAgentTree = (agent) => {
         icon: (
             <RegistryEntityIcon
                 type={"agent"}
+                maxSize={20}
                 content={_.get(agent, "icon", null)}
             />
         ),

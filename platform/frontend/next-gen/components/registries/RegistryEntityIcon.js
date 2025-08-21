@@ -5,13 +5,20 @@ import _ from "lodash";
 import Image from "next/image";
 import { FAIcon } from "../FAIcon";
 import { ENTITY_TYPE_LOOKUP } from "../constants";
-export default function RegistryEntityIcon({ content, type }) {
+export default function RegistryEntityIcon({ content, type, maxSize = 40 }) {
     const isCanvas = _.isEqual(_.get(content, "type", null), "canvas");
     const [icon, color] = _.split(content, ":");
     if (isCanvas) {
         return content;
     } else if (_.startsWith(content, "data:image/")) {
-        return <Image width={40} height={40} src={content} alt="" />;
+        return (
+            <Image
+                width={Math.min(maxSize, 40)}
+                height={Math.min(maxSize, 40)}
+                src={content}
+                alt=""
+            />
+        );
     } else if (_.isEmpty(icon) || _.isEmpty(color)) {
         return (
             <FAIcon
