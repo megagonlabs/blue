@@ -7,7 +7,7 @@ import { JSONFORMS_RENDERERS } from "../renderers";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const EXAMPLE_SPECS = {
     "candidates-table": {
-        title: "Candidates table",
+        title: "1. Candidates table",
         uiSchemaJson: {
             type: "VerticalLayout",
             elements: [

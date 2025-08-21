@@ -133,6 +133,7 @@ function FormDesigner({ width, height }) {
                         onClick={() =>
                             addContainer({
                                 title: "Form Documentation",
+                                icon: faBookOpenCover,
                                 content: <DocContainer />,
                             })
                         }

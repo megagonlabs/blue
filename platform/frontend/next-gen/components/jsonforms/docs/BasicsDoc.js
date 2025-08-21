@@ -10,7 +10,7 @@ import {
     Intent,
     Pre,
 } from "@blueprintjs/core";
-import { faBookOpen } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faBookOpenCover } from "@fortawesome/sharp-duotone-solid-svg-icons";
 export default function BasicsDoc() {
     return (
         <div>
@@ -18,7 +18,7 @@ export default function BasicsDoc() {
                 <EntityTitle
                     title="Basics"
                     heading={H1}
-                    icon={<FAIcon icon={faBookOpen} size={30} />}
+                    icon={<FAIcon icon={faBookOpenCover} size={30} />}
                 />
             </div>
             <Callout intent={Intent.PRIMARY} icon={null}>

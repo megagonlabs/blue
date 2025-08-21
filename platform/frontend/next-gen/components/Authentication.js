@@ -1,11 +1,21 @@
+import { useAppStore } from "@/stores/app-store";
 import { useAuthStore } from "@/stores/auth-store";
-import { Button, ButtonVariant, Colors, H1, H3, Size } from "@blueprintjs/core";
+import {
+    Button,
+    ButtonVariant,
+    Classes,
+    Colors,
+    H1,
+    H3,
+    Size,
+} from "@blueprintjs/core";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
 import { Col, Container, Hidden, Row } from "react-grid-system";
 import { useShallow } from "zustand/react/shallow";
 export default function Authentication() {
+    const darkMode = useAppStore((state) => state.dark_mode);
     const { isPopupOpen, initialized, signInWithGoogle, fetchAccountProfile } =
         useAuthStore(
             useShallow((state) => ({
@@ -19,7 +29,15 @@ export default function Authentication() {
         fetchAccountProfile();
     }, [fetchAccountProfile]);
     return (
-        <Container fluid>
+        <Container
+            className={darkMode && Classes.DARK}
+            fluid
+            style={{
+                backgroundColor: darkMode
+                    ? Colors.DARK_GRAY1
+                    : Colors.LIGHT_GRAY5,
+            }}
+        >
             <Row style={{ height: "100vh" }} align="center">
                 <Hidden xs sm>
                     <Col
@@ -76,7 +94,7 @@ export default function Authentication() {
                             loading={!initialized || isPopupOpen}
                             onClick={signInWithGoogle}
                             size={Size.LARGE}
-                            style={{ marginTop: 20 }}
+                            style={{ marginTop: 20, borderRadius: 10 }}
                             variant={ButtonVariant.OUTLINED}
                             text="Sign in with Google"
                             icon={
