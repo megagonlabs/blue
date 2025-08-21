@@ -340,7 +340,7 @@ class Session(Entity):
         streams_metadata_ids = self.connection.keys("*" + self.sid + "*:STREAM:METADATA")
         debug_info = {}
         for streams_metadata_id in streams_metadata_ids:
-            stream_id = streams_metadata_id[: -len("METADATA") + 1]
+            stream_id = streams_metadata_id[: -len(":METADATA")]
             stream_metadata = self.connection.json().get(streams_metadata_id)
             debug_info[stream_id] = stream_metadata
 

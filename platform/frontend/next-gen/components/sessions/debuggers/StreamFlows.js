@@ -30,9 +30,10 @@ import {
     useStore,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import axios from "axios";
 import copy from "copy-to-clipboard";
-import _ from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import _, { debounce } from "lodash";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/react/shallow";
 import AgentNode from "./react-flow/AgentNode";
@@ -189,7 +190,24 @@ export default function StreamFlows({ sessionId }) {
         }))
     );
     const { messages } = session;
+    const currentStreamDebugger = useRef({});
+    const [streamDebugger, setStreamDebugger] = useState({});
+    const getSessionDebugger = useCallback(
+        debounce(() => {
+            axios
+                .get(`/sessions/session/${sessionId}/debugger`)
+                .then((response) => {
+                    const results = _.get(response, "data.results", {});
+                    if (!_.isEqual(currentStreamDebugger.current, results)) {
+                        currentStreamDebugger.current = results;
+                        setStreamDebugger(results);
+                    }
+                });
+        }, 5000),
+        []
+    );
     useEffect(() => {
+        getSessionDebugger();
         const nodes = [];
         const edges = [];
         const seenNodeIds = new Set();
@@ -215,7 +233,10 @@ export default function StreamFlows({ sessionId }) {
             }
             // consumers
             const consumers = _.keys(
-                _.get(messages, [i, "metadata", "consumers"], {})
+                _.merge(
+                    _.get(metadata, "consumers", {}),
+                    _.get(streamDebugger, [stream, "consumers"], {})
+                )
             ).filter((key) => !_.startsWith(key, "OBSERVER:"));
             for (let j = 0; j < _.size(consumers); j++) {
                 const agent = consumers[j];
@@ -270,7 +291,10 @@ export default function StreamFlows({ sessionId }) {
             }
             // producers
             const producers = _.keys(
-                _.get(messages, [i, "metadata", "producers"], {})
+                _.merge(
+                    _.get(metadata, "producers", {}),
+                    _.get(streamDebugger, [stream, "producers"], {})
+                )
             );
             for (let j = 0; j < _.size(producers); j++) {
                 const agent = producers[j];
@@ -324,7 +348,7 @@ export default function StreamFlows({ sessionId }) {
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
         setLayoutInitialized(false);
-    }, [messages]);
+    }, [messages, streamDebugger]);
     return (
         <div
             className="full-parent-dimension"
