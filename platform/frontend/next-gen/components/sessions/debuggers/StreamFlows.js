@@ -97,6 +97,9 @@ export default function StreamFlows({ sessionId }) {
             return newSelected;
         });
     }, []);
+    const { fitView, getNodes, getEdges, setViewport } = useReactFlow();
+    const initialRender = useRef(true);
+    const [lastViewport, setLastViewport] = useState(null);
     const onNodeClick = useCallback(
         (event, node) => {
             const targetNodeTypes = ["stream", "agent"];
@@ -127,7 +130,6 @@ export default function StreamFlows({ sessionId }) {
             })
         );
     }, [selectedEdges]);
-    const { fitView, getNodes, getEdges } = useReactFlow();
     const [measuredDimensions, setMeasuredDimensions] = useState({});
     const nodesWithKnownDimensions = _.keys(measuredDimensions);
     const handleNodeDimensionsChange = useCallback((nodeId, width, height) => {
@@ -159,7 +161,12 @@ export default function StreamFlows({ sessionId }) {
                 direction
             );
             setNodes(layoutedNodes);
-            fitView();
+            if (lastViewport && !initialRender.current) {
+                setViewport(lastViewport);
+            } else {
+                fitView();
+            }
+            initialRender.current = false;
             setTimeout(() => {
                 setLayoutInitialized(true);
             }, 300);
@@ -192,6 +199,9 @@ export default function StreamFlows({ sessionId }) {
     const { messages } = session;
     const currentStreamDebugger = useRef({});
     const [streamDebugger, setStreamDebugger] = useState({});
+    const handleViewportChange = useCallback((event, viewport) => {
+        setLastViewport(viewport);
+    }, []);
     const getSessionDebugger = useCallback(
         debounce(() => {
             axios
@@ -372,6 +382,7 @@ export default function StreamFlows({ sessionId }) {
                 <ReactFlow
                     elevateEdgesOnSelect
                     fitView
+                    onMove={handleViewportChange}
                     nodesDraggable={false}
                     nodesConnectable={false}
                     nodesFocusable={false}
