@@ -88,6 +88,12 @@ class DataSchema():
             properties_obj = relation_obj['properties']
             properties_obj[property] = type
 
+    def get_entities(self):
+        return self.entities
+
+    def get_relations(self):
+        return self.relations
+
     def to_json(self):
         s = {}
         s['entities'] = self.entities.copy()

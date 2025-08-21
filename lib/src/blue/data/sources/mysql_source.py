@@ -102,7 +102,7 @@ class MySQLDBSource(DataSource):
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    def fetch_database_collection_schema(self, database, collection):
+    def fetch_database_collection_entities(self, database, collection):
         # connect to specific database (not source directly)
         db_connection = self._db_connect(database)
 
@@ -121,7 +121,11 @@ class MySQLDBSource(DataSource):
         # disconnect
         self._db_disconnect(db_connection)
 
-        return schema.to_json()
+        return schema.get_entities()
+
+    def fetch_database_collection_relations(self, database, collection):
+        return {}
+    
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):

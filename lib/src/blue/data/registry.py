@@ -496,23 +496,21 @@ class DataRegistry(Registry):
 
             self.update_source_database_collection(source, database, collection, description=description, properties=properties, rebuild=rebuild)
 
-            #### fetch collection schema
-            schema = source_connection.fetch_database_collection_schema(database, collection)
+
+            entities = source_connection.fetch_database_collection_entities(database, collection)
+            relations = source_connection.fetch_database_collection_relations(database, collection)
 
             if collect_stats:
-                collection_stats = source_connection.fetch_collection_stats(database, collection, schema, sample_limit=sample_limit)
+                collection_stats = source_connection.fetch_collection_stats(database, collection, entities, relations)
 
                 if collection_stats:
                     self.set_source_database_collection_property(source, database, collection, "stats", collection_stats, rebuild=rebuild)
 
-            entities = schema['entities']
-            relations = schema['relations']
-
+           
             fetched_entities_set = set(entities.keys())
             fetched_relations_set = set(relations.keys())
 
             ## entities
-            # get existing schema entities
             registry_entities = self.get_source_database_collection_entities(source, database, collection)
             registry_entities_set = set(json_utils.json_query(registry_entities, '$.name', single=False))
 
@@ -568,7 +566,7 @@ class DataRegistry(Registry):
           
             
             if collect_stats:
-                for entity, meta in schema.get("entities", {}).items():
+                for entity, meta in entities.items():
                     ent_stats = {}
                     ent_stats = source_connection.fetch_entity_stats(database, collection, entity)
                     self.set_source_database_collection_entity_property(source, database, collection, entity, "stats", ent_stats, rebuild=rebuild)

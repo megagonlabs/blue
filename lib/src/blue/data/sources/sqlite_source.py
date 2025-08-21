@@ -165,7 +165,7 @@ class SQLiteDBSource(DataSource):
         # TODO
         return []
 
-    def fetch_database_collection_schema(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
+    def fetch_database_collection_entities(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
 
         db_connection = self._db_connect(database)
 
@@ -187,7 +187,11 @@ class SQLiteDBSource(DataSource):
 
         self._db_disconnect(db_connection)
 
-        return schema.to_json()
+        return schema.get_entities()
+
+    def fetch_database_collection_relations(self, database, collection):
+        return {}
+    
 
     def create_database_collection(self, database, collection, properties={}):
         return {}

@@ -16,6 +16,8 @@ from blue.data.schema import DataSchema
 class MongoDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
+        self._schema_cache = {}
+       
 
     ###### connection
     def _initialize_connection_properties(self):
@@ -63,12 +65,31 @@ class MongoDBSource(DataSource):
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    def fetch_database_collection_schema(self, database, collection):
+    def _get_collection_schema(self, database, collection):
+        """
+        Internal helper: return cached schema object for a collection.
+        """
+        cache_key = (database, collection)
+        if cache_key in self._schema_cache:
+            return self._schema_cache[cache_key]
+
         coll = self.connection[database][collection]
         sample = coll.find_one()
-
+        
         schema = self.extract_schema(sample)
-        return schema.to_json()
+
+        self._schema_cache[cache_key] = schema
+        return schema
+
+
+    def fetch_database_collection_entities(self, database, collection):
+        schema = self._get_collection_schema(database, collection)
+        return schema.get_entities()
+
+
+    def fetch_database_collection_relations(self, database, collection):
+        schema = self._get_collection_schema(database, collection)
+        return schema.get_relations()
 
     def extract_schema(self, sample, schema=None, source=None):
         if schema is None:

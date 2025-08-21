@@ -139,7 +139,8 @@ class PostgresDBSource(DataSource):
 
         return enum_types
 
-    def fetch_database_collection_schema(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
+
+    def fetch_database_collection_entities(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
         db_connection = self._db_connect(database)
 
         query = """
@@ -199,8 +200,12 @@ class PostgresDBSource(DataSource):
             schema.add_entity_property(table_name, column_name, property_def)
 
         self._db_disconnect(db_connection)
+        return schema.get_entities()
 
-        return schema.to_json()
+    ### TODO 
+    def fetch_database_collection_relations(self, database, collection):
+        return {}
+    
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
@@ -284,17 +289,14 @@ class PostgresDBSource(DataSource):
 
         return stats
 
-    def fetch_collection_stats(self, database, collection_name, schema_json=None, sample_limit=10):
+    def fetch_collection_stats(self, database, collection_name, entities, relations):
 
-        if isinstance(schema_json, str):
-            schema_json = json.loads(schema_json)
-
+        
         stats = {}
-
-        num_entities = len(schema_json.get("entities", {}))
+        num_entities = len(entities)
+        num_relations = len(relations)
+        
         stats["num_entities"] = num_entities
-
-        num_relations = len(schema_json.get("relations", {}))
         stats["num_relations"] = num_relations
 
         return stats

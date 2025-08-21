@@ -108,7 +108,10 @@ class DataSource:
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    def fetch_database_collection_schema(self, database, collection):
+    def fetch_database_collection_entities(self, database, collection):
+        return {}
+
+    def fetch_database_collection_relations(self, database, collection):
         return {}
 
     def create_database_collection(self, database, collection, properties={}):
