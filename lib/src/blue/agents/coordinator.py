@@ -279,7 +279,7 @@ class CoordinatorAgent(Agent):
 
                     # if from an agent output capture
                     if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
-                        from_agent_node = plan.get_parent_node(node_id)
+                        from_agent_node = plan.get_node_agent(node_id)
                         from_agent = from_agent_node.get_data('canonical_name')
                         from_agent_param = node.get_data('name')
                         f = (from_agent, from_agent_param)
@@ -302,7 +302,7 @@ class CoordinatorAgent(Agent):
                         to_agent_param = None
 
                         if plan.get_node_type(next_node_id) == NodeType.AGENT_INPUT:
-                            to_agent_node = plan.get_parent_node(next_node_id)
+                            to_agent_node = plan.get_node_agent(next_node_id)
                             to_agent = to_agent_node.get_data('canonical_name')
                             to_agent_id = to_agent_node.get_id()
                             to_agent_param = next_node.get_data('name')

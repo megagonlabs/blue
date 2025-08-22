@@ -74,7 +74,7 @@ class Base:
 
     def append_data(self, key, value, sync=None):
         l = self.get_data(key)
-        if type(l) is list:
+        if isinstance(l,list):
             l.append(value)
 
             # sync
@@ -296,6 +296,11 @@ class DAG(Base):
         return self.get_data("nodes")
 
     def get_node(self, n, cls=None):
+        if cls is None:
+            cls = Node
+
+        if isinstance(n, cls):
+            return n
         node = self.get_node_by_id(n, cls=cls)
         if node is None:
             node = self.get_node_by_label(n, cls=cls)
@@ -318,6 +323,30 @@ class DAG(Base):
             node_id = map[node_label]
             node = self.get_node_by_id(node_id)
         return node
+
+    def get_prev_nodes(self, n):
+        node = self.get_node(n)
+        prev_nodes = []
+        if node:
+            prev_ids = node.get_data('prev')
+            for prev_id in prev_ids:
+                prev_node = self.get_node_by_id(prev_id)
+                if prev_node:
+                    prev_nodes.append(prev_node)
+
+        return prev_nodes
+
+    def get_next_nodes(self, n):
+        node = self.get_node(n)
+        next_nodes = []
+        if node:
+            next_ids = node.get_data('next')
+            for next_id in next_ids:
+                next_node = self.get_node_by_id(next_id)
+                if next_node:
+                    next_nodes.append(next_node)
+
+        return next_nodes
 
     def filter_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
         filtered_nodes = {}
@@ -383,3 +412,167 @@ class DAG(Base):
             dv['map'] = {}
 
         return dv
+
+
+class EntityDAG(DAG):
+    def __init__(self, id=None, label=None, type="DAG", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
+
+    def _init_data(self, sync=None):
+        super()._init_data(sync=sync)
+
+        self.set_data("entities", {}, sync=sync)
+
+    def verify_entity(self, label=None, type=None, properties=None):
+        # verify if label is unique
+        if label and self.is_mapped(label):
+            return False
+
+        return True
+
+    def create_entity(self, id=None, label=None, type=None, properties=None, sync=None):
+        # verify entity
+        if not self.verify_entity(label=label, type=type, properties=properties):
+            raise Exception("Cannot create entity due to failed varification")
+
+        # check type, add if necessary
+        if not self.has_entity_type(type):
+            self.add_entity_type(type, sync=sync)
+
+        # create entity
+        entity = Entity(
+            label=label,
+            type=type,
+            properties=properties,
+            path=self.path + "." + self.get_id() + ".entities." + type,
+            synchronizer=self.synchronizer,
+            auto_sync=self.auto_sync,
+            sync=sync,
+        )
+        entity_id = entity.get_id()
+        entity_label = entity.get_label()
+
+        entities = self.get_entities(type=type)
+        entities[entity_id] = entity.get_data()
+
+        # set nodes
+        entity.set_data("nodes", [])
+
+        # add to map
+        if label:
+            self.map(entity_label, entity_id, sync=sync)
+
+        return entity
+
+    def has_entity_type(self, type):
+        entities = self.get_data("entities")
+        return type in entities
+
+    def add_entity_type(self, type, sync=None):
+        entities = self.get_data("entities")
+        if type in entities:
+            return
+        entities[type] = {}
+
+        self.synchronize(key="entities." + type, value=entities[type], sync=sync)
+
+    def get_entities(self, type=None):
+        entities = self.get_data("entities")
+        if type and type in entities:
+            return entities[type]
+        return entities
+
+    def get_entity(self, e, type=None, cls=None):
+        if cls is None:
+            cls = Entity
+
+        if isinstance(e, cls):
+            return e
+
+        entity = self.get_entity_by_id(e, type=type, cls=cls)
+        if entity is None:
+            entity = self.get_entity_by_label(e, type=type, cls=cls)
+        return entity
+
+    def get_entity_by_id(self, entity_id, type=None, cls=None):
+        entities = self.get_entities(type=type)
+
+        entity_data = None
+        if type:
+            if entity_id in entities:
+                entity_data = entities[entity_id]
+        else:
+            for type in entities:
+                if entity_id in entities[type]:
+                    entity_data = entities[type][entity_id]
+
+        if entity_data:
+            if cls is None:
+                cls = Entity
+            return cls.from_dict(entity_data, path=self.path + "." + self.get_id() + ".entities." + type, synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=False)
+        else:
+            return None
+
+    def get_entity_by_label(self, entity_label, type=None, cls=None):
+        map = self.get_data("map")
+        entity = None
+        if entity_label in map:
+            entity_id = map[entity_label]
+            entity = self.get_entity_by_id(entity_id, type=type, cls=cls)
+        return entity
+
+    def get_nodes_by_entity(self, e, type=None, cls=None, node_type=None):
+        entity = self.get_entity(e, type=type, cls=cls)
+        if entity is None:
+            return []
+        nodes = []
+
+        ids = entity.get_data("nodes")
+        for id in ids:
+            node = self.get_node(id)
+            if node_type:
+                if isinstance(node_type, list):
+                    if node.get_type() in node_type:
+                        nodes.append(node)
+                else:
+                    if node.get_type() == node_type:
+                        nodes.append(node)
+            else:
+                nodes.append(node)
+        return nodes
+
+    def set_node_entity(self, n, e, field=None, sync=None):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Entity for non-existing node cannot be set")
+
+        node_id = node.get_id()
+
+        entity = None
+        if e is None:
+            if field is None:
+                field = "Entity"
+            node.set_data(field, None, sync=sync)
+        else:
+            entity = self.get_entity(e)
+            if field is None:
+                field = entity.get_type()
+            if field is None:
+                field = "Entity"
+
+            if entity:
+                entity.append_data("nodes", node_id, sync=sync)
+                node.set_data(field, entity.get_id(), sync=sync)
+
+    def get_node_entity(self, n, type=None, cls=None, field=None):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Entity for non-existing node cannot be get")
+
+        if field is None:
+            field = type
+        if field is None:
+            field = "Entity"
+
+        entity_id = node.get_data(field)
+        return self.get_entity(entity_id, type=type, cls=cls)
