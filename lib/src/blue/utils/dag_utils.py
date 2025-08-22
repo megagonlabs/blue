@@ -74,7 +74,7 @@ class Base:
 
     def append_data(self, key, value, sync=None):
         l = self.get_data(key)
-        if isinstance(l,list):
+        if isinstance(l, list):
             l.append(value)
 
             # sync
@@ -576,3 +576,24 @@ class EntityDAG(DAG):
 
         entity_id = node.get_data(field)
         return self.get_entity(entity_id, type=type, cls=cls)
+
+    @classmethod
+    def _validate(cls, d):
+        dv = super(EntityDAG, cls)._validate(d)
+        if dv is None:
+            return None
+        if 'context' not in dv:
+            return None
+        else:
+            context = dv['context']
+            if 'scope' not in context:
+                return None
+        if 'entities' not in dv:
+            dv['entities'] = {}
+
+        return dv
+
+
+class Plan(EntityDAG):
+    def __init__(self, id=None, label=None, type="PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)

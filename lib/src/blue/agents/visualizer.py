@@ -5,7 +5,7 @@ import json
 ###### Blue
 from blue.agent import Agent
 from blue.stream import ControlCode
-from blue.plan import Plan
+from blue.agents.plan import AgenticPlan
 from blue.utils import string_utils, uuid_utils
 
 
@@ -65,7 +65,7 @@ class VisualizerAgent(Agent):
         worker.write_progress(progress_id=progress_id, label='Issuing question:' + question, value=self.current_step / self.num_steps)
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(name, value=question)
         # set plan
@@ -87,7 +87,7 @@ class VisualizerAgent(Agent):
         worker.write_progress(progress_id=progress_id, label='Issuing query:' + query, value=self.current_step / self.num_steps)
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(name, value=query)
         # set plan
@@ -108,7 +108,7 @@ class VisualizerAgent(Agent):
         worker.write_progress(progress_id=progress_id, label='Visualizing :' + str(query_results), value=self.current_step / self.num_steps)
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(name, value=query_results)
         # set plan

@@ -15,7 +15,7 @@ from blue.pubsub import Consumer, Producer
 from blue.session import Session
 from blue.tracker import PerformanceTracker, SystemPerformanceTracker, Metric, MetricGroup
 from blue.utils import json_utils, uuid_utils, log_utils
-from blue.plan import Plan
+from blue.agents.plan import AgenticPlan
 from blue.constant import Separator
 
 # system tracker
@@ -1105,7 +1105,7 @@ class Agent:
             self.logger.error("No current session to submit.")
             return
 
-        if not isinstance(plan, Plan):
+        if not isinstance(plan, AgenticPlan):
             self.logger.error("Incorrect plan type")
             return
 

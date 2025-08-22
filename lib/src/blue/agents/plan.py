@@ -48,11 +48,11 @@ EntityType.STREAM = Constant("STREAM")
 
 
 ##############
-### Plan
+### Agentic Plan
 #
-class Plan(dag_utils.EntityDAG):
+class AgenticPlan(dag_utils.Plan):
 
-    def __init__(self, scope=None, id=None, label=None, type="PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+    def __init__(self, scope=None, id=None, label=None, type="AGENTIC_PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
         self.leaves = None
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
@@ -576,21 +576,3 @@ class Plan(dag_utils.EntityDAG):
 
         # write plan
         self._write_plan(worker)
-
-    @classmethod
-    def _validate(cls, d):
-        dv = super(Plan, cls)._validate(d)
-        if dv is None:
-            return None
-        if 'context' not in dv:
-            return None
-        else:
-            context = dv['context']
-            if 'scope' not in context:
-                return None
-        if 'agents' not in dv:
-            dv['agents'] = {}
-        if 'streams' not in dv:
-            dv['streams'] = {}
-
-        return dv

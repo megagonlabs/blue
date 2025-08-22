@@ -8,7 +8,7 @@ import json
 from blue.agent import Agent
 from blue.agents.registry import AgentRegistry
 from blue.platform import Platform
-from blue.plan import Plan, Status, NodeType
+from blue.agents.plan import AgenticPlan, Status, NodeType
 from blue.stream import ControlCode
 from blue.utils import uuid_utils, json_utils
 from blue.data.planner import DataPlanner
@@ -214,7 +214,7 @@ class CoordinatorAgent(Agent):
 
                 plan = None
                 try:
-                    plan = Plan.from_dict(p)
+                    plan = AgenticPlan.from_dict(p)
                 except Exception:
                     self.logger.info("Error reading valid plan")
 
