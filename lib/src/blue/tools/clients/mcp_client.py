@@ -75,8 +75,6 @@ class MCPToolClient(ToolClient):
     async def _release_session(self):
         if self._session_context:
             await self._session_context.__aexit__(None, None, None)
-        if self._streams_context:  # pylint: disable=W0125
-            await self._streams_context.__aexit__(None, None, None)
 
     def _disconnect(self):
         asyncio.run(self._release_session())
