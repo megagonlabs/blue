@@ -121,7 +121,7 @@ export default function EntityActions({
                 });
                 setTimeout(() => {
                     getAgents();
-                }, 800);
+                }, 1000);
             })
             .catch((error) => {
                 showAxiosErrorToast(error);
