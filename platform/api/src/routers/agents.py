@@ -527,6 +527,16 @@ def update_agent_group(request: Request, group_name, group: AgentGroupSchema):
     return JSONResponse(content={"message": "Success"})
 
 
+@router.post("/agent_group/{group_name}/property/{property_name}")
+def set_agent_group_property(request: Request, group_name, property_name, property: JSONStructure):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    agent_registry.set_agent_group_property(group_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.delete('/agent_group/{group_name}')
 def delete_agent_group(request: Request, group_name):
     agent_group_db = agent_registry.get_agent_group(group_name)

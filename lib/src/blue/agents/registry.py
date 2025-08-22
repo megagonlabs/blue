@@ -44,6 +44,10 @@ class AgentRegistry(Registry):
     def set_agent_group_description(self, agent_group, description, rebuild=False):
         super().set_record_description(agent_group, 'agent_group', '/', description, rebuild=rebuild)
 
+    def set_agent_group_property(self, agent_group, key, value, rebuild=False):
+        scope = self._derive_scope_from_name(agent_group, full=False)
+        super().set_record_property(agent_group, 'agent_group', scope, key, value, rebuild=rebuild)
+
     def get_agent_group_agents(self, agent_group):
         return super().filter_record_contents(agent_group, 'agent_group', '/', filter_type='agent')
 
