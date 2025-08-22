@@ -38,13 +38,7 @@ export default function CollectionEntity({ entity, addCrumb }) {
         "/source/",
         "/data/"
     );
-    const onSynchronize = () => {
-        setLoading(true);
-        axios.put(`${url}/sync`).finally(() => {
-            setLoading(false);
-        });
-    };
-    useEffect(() => {
+    const fetchCollection = () => {
         setLoading(true);
         axios
             .get(url)
@@ -56,6 +50,16 @@ export default function CollectionEntity({ entity, addCrumb }) {
             .finally(() => {
                 setLoading(false);
             });
+    };
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+            fetchCollection();
+        });
+    };
+    useEffect(() => {
+        fetchCollection();
     }, [entity]);
     const handleDiscard = () => {
         setEditedCollection(collection);
