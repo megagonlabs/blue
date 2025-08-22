@@ -89,21 +89,7 @@ export default function SourceEntity({
         type,
         type
     )}/${name}`;
-    const onSynchronize = () => {
-        setLoading(true);
-        axios.put(`${url}/sync`).finally(() => {
-            setLoading(false);
-        });
-    };
-    const JSONError = useRef(false);
-    useEffect(() => {
-        setContainerHeader({
-            id: gridContainerId,
-            title: <EntityDisplayName entity={source} />,
-            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
-        });
-    }, [source]);
-    useEffect(() => {
+    const fetchSource = () => {
         setLoading(true);
         axios
             .get(url)
@@ -119,6 +105,24 @@ export default function SourceEntity({
             .finally(() => {
                 setLoading(false);
             });
+    };
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+            fetchSource();
+        });
+    };
+    const JSONError = useRef(false);
+    useEffect(() => {
+        setContainerHeader({
+            id: gridContainerId,
+            title: <EntityDisplayName entity={source} />,
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+        });
+    }, [source]);
+    useEffect(() => {
+        fetchSource();
     }, [entity]);
     useEffect(() => {
         updateSource({ path: "icon", value: icon });

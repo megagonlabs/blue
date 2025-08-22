@@ -25,6 +25,7 @@ import {
     faBarsFilter,
     faEraser,
     faPlus,
+    faRefresh,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _, { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -170,6 +171,12 @@ function AgentList({ width, height }) {
                 </FilterPane>
                 <ControlGroup>
                     <Button
+                        size={Size.LARGE}
+                        icon={<FAIcon icon={faRefresh} />}
+                        variant={ButtonVariant.MINIMAL}
+                        onClick={getAgents}
+                    />
+                    <Button
                         onClick={() => {
                             setShowFilter(true);
                         }}
@@ -177,34 +184,39 @@ function AgentList({ width, height }) {
                         icon={<FAIcon icon={faBarsFilter} />}
                         variant={ButtonVariant.OUTLINED}
                         intent={Intent.PRIMARY}
-                        text="Filter"
                     />
-                    <InputGroup
-                        rightElement={
-                            <Tooltip
-                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                                boundary={elementRef.current}
-                                content="Clear search"
-                            >
-                                <Button
-                                    onClick={() => {
-                                        setFilterValue({
-                                            key: "keywords",
-                                            value: "",
-                                        });
-                                    }}
-                                    variant={ButtonVariant.MINIMAL}
-                                    icon={<FAIcon icon={faEraser} />}
-                                />
-                            </Tooltip>
-                        }
-                        value={_.get(filter, "keywords", "")}
-                        onValueChange={(value) => {
-                            setFilterValue({ key: "keywords", value });
-                        }}
-                        leftIcon={<FAIcon icon={faSearch} />}
-                        size={Size.LARGE}
-                    />
+
+                    <div style={{ width: 257, maxWidth: "calc(100% - 84px)" }}>
+                        <InputGroup
+                            fill
+                            rightElement={
+                                !_.isEmpty(_.get(filter, "keywords", "")) && (
+                                    <Tooltip
+                                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                        boundary={elementRef.current}
+                                        content="Clear search"
+                                    >
+                                        <Button
+                                            onClick={() => {
+                                                setFilterValue({
+                                                    key: "keywords",
+                                                    value: "",
+                                                });
+                                            }}
+                                            variant={ButtonVariant.MINIMAL}
+                                            icon={<FAIcon icon={faEraser} />}
+                                        />
+                                    </Tooltip>
+                                )
+                            }
+                            value={_.get(filter, "keywords", "")}
+                            onValueChange={(value) => {
+                                setFilterValue({ key: "keywords", value });
+                            }}
+                            leftIcon={<FAIcon icon={faSearch} />}
+                            size={Size.LARGE}
+                        />
+                    </div>
                 </ControlGroup>
                 <div style={{ marginTop: 20 }}>
                     <CardListCallout />

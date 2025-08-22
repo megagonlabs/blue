@@ -134,10 +134,13 @@ export default function SocketHandler({ children }) {
                     };
                     newSocket.onerror = (error) => {
                         console.log(error);
-                        appToaster.show({
-                            intent: Intent.DANGER,
-                            message: "Failed to connect to websocket (onerror)",
-                        });
+                        if (appToaster) {
+                            appToaster.show({
+                                intent: Intent.DANGER,
+                                message:
+                                    "Failed to connect to websocket (onerror)",
+                            });
+                        }
                         newSocket.close();
                     };
                     setState({ key: "socket", value: newSocket });

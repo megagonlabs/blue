@@ -1,3 +1,4 @@
+import { useAgentStore } from "@/stores/agent-store";
 import { useAuthStore } from "@/stores/auth-store";
 import {
     Button,
@@ -107,6 +108,9 @@ export default function EntityActions({
         );
     }, [user, permissions, containerStatus]);
     const { appToaster, showAxiosErrorToast } = useToaster();
+    const { getAgents } = useAgentStore(
+        useShallow((state) => ({ getAgents: state.getAgents }))
+    );
     const onDeploy = () => {
         axios
             .post(`/containers/agents/agent/${name}`)
@@ -115,6 +119,9 @@ export default function EntityActions({
                     intent: Intent.SUCCESS,
                     message: `Deployed ${name} ${type}`,
                 });
+                setTimeout(() => {
+                    getAgents();
+                }, 1000);
             })
             .catch((error) => {
                 showAxiosErrorToast(error);

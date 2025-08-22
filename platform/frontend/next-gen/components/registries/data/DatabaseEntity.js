@@ -38,7 +38,7 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
         "/source/",
         "/data/"
     );
-    useEffect(() => {
+    const fetchDatabase = () => {
         setLoading(true);
         axios
             .get(url)
@@ -50,6 +50,9 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
             .finally(() => {
                 setLoading(false);
             });
+    };
+    useEffect(() => {
+        fetchDatabase();
     }, [entity]);
     const handleDiscard = () => {
         setEditedDatabase(database);
@@ -77,6 +80,7 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
         setLoading(true);
         axios.put(`${url}/sync`).finally(() => {
             setLoading(false);
+            fetchDatabase();
         });
     };
     return (
