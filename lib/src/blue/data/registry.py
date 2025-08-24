@@ -21,12 +21,110 @@ from blue.data.sources.openai_source import OpenAISource
 ### DataRegistry
 #
 class DataRegistry(Registry):
-    def __init__(self, name="DATA_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+    def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+        self.platform_name = platform_id
         super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
+
+        if self.platform_name:
+            self.properties['service_url'] = f"ws://blue_service_{self.platform_name}-openai-1:8001"
+        else:
+            logging.warning("platform_name is missing! Falling back to default 'blue'")
+            self.properties['service_url'] = "ws://blue_service_blue-openai-1:8001"
+
+        self.properties['openai.api'] = 'ChatCompletion'
+        self.properties['openai.model'] = "gpt-4o"
+        self.properties['input_json'] = "[{\"role\": \"user\"}]"
+        self.properties['input_context'] = "$[0]"
+        self.properties['input_context_field'] = "content"
+        self.properties['input_field'] = "messages"
+        self.properties['input_template'] = "${input}"
+        self.properties['output_path'] = '$.choices[0].message.content'
+        self.properties['openai.stream'] = False
+        self.properties['openai.max_tokens'] = 300
+
+        # prefix for service specific properties
+        self.properties['service_prefix'] = 'openai'
+
+
+    ##### need this to call openti to enrich registry entries, such as entity/attribute     
+    async def call_openai(self, prompt):
+        request = {
+            "api": self.properties["openai.api"],          
+            "model": self.properties["openai.model"],      
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": self.properties.get("openai.max_tokens", 300),
+            "stream": self.properties.get("openai.stream", False)
+        }
+
+        async with websockets.connect(self.properties["service_url"]) as ws:
+            await ws.send(json.dumps(request))
+            response = await ws.recv()
+            response_json = json.loads(response)
+            content = response_json["choices"][0]["message"]["content"]
+            return content
+
+
+    def build_entity_description_prompt(self, entity_obj, attributes):
+        
+        name = entity_obj.get("name", "Unknown")
+        scope = entity_obj.get("scope", "Unknown")
+        etype = entity_obj.get("type", "Unknown")
+
+        attr_lines = []
+
+        for attr in attributes:
+            
+            attr_properties = attr.get("properties", {})
+            attr_properties_info = attr_properties.get("info", {})
+            attr_type = attr_properties_info.get("type", "unknown")
+            attr_name = attr.get("name")
+            attr_stats =  attr_properties.get("stats", {})
+            
+            sample_values = (
+                attr_stats
+                .get("sample_values", [])
+            )
+
+            attr_lines.append(
+                f"- {attr_name} ({attr_type}), samples: {', '.join(map(str, sample_values[:3]))}"
+            )
+
+        # Build the final prompt
+        prompt = f"""
+        You are given a database entity definition with its attributes and metadata.
+        Your task is to generate a structured JSON output with:
+        1. A concise human-readable description of what this table/entity represents.
+        2. Concise descriptions of each attribute.
+
+        Entity Name: {name}
+        Scope: {scope}
+        Type: {etype}
+
+        Attributes:
+        {chr(10).join(attr_lines)}
+
+        Output JSON format (do not include extra commentary, only valid JSON):
+
+        {{
+        "table_description": "string",
+        "attributes": {{
+            "attr_name": "description of attribute",
+            ...
+        }}
+        }}
+        """
+
+        return prompt
+
+    def enrich_entity(self, entity, attributes):
+        entity_prompt = self.build_entity_description_prompt(entity, attributes)
+        return asyncio.run(self.call_openai(entity_prompt))
 
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
@@ -227,6 +325,14 @@ class DataRegistry(Registry):
     def get_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key):
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
         super().get_record_property(attribute, 'attribute', scope, key)
+
+    
+    # description
+    def get_source_database_collection_entity_attribute_description(self, source, database, collection, entity, attribute):
+        return super().get_record_description(attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}')
+
+    def set_source_database_collection_entity_attribute_description(self, source, database, collection, entity, attribute, description, rebuild=False):
+        super().set_record_description(attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}', description, rebuild=rebuild)
 
     
     ######### source/database/collection/relation
@@ -582,6 +688,34 @@ class DataRegistry(Registry):
                             source, database, collection, entity, attr_name,  "stats", attr_stats, rebuild=rebuild)
                     
 
+            #### enriching description #############################
+            # ---------------- entity attributes ---------------- #
+            for entity in fetched_entities_set:
+                entity_obj = entities[entity]
+                attributes = self.get_source_database_collection_entity_attributes(source, database, collection, entity)
+               
+                entity_attribute_description = self.enrich_entity(entity_obj, attributes)
+                
+                try:
+                    parsed = json_utils.safe_json_parse(entity_attribute_description)
+                    if not parsed:
+                        logging.warning(f"Entity {entity} returned invalid or empty JSON.")
+                        continue
+                except json.JSONDecodeError:
+                    logging.warning("LLM did not return valid JSON. Skipping entity enrichment.")
+                    parsed = {}
+
+                table_desc = parsed.get("table_description", "")
+                attribute_descs = parsed.get("attributes", {})
+
+                self.set_source_database_collection_entity_description(
+                    source, database, collection, entity, table_desc, rebuild=rebuild)
+
+                for attr, desc in attribute_descs.items():
+                    self.set_source_database_collection_entity_attribute_description(
+                        source, database, collection, entity, attr, desc, rebuild=rebuild)
+            
+            
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
