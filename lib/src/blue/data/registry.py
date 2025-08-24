@@ -3,6 +3,8 @@ import argparse
 import logging
 import json
 
+import asyncio
+import websockets
 
 ###### Blue
 from blue.utils import json_utils
