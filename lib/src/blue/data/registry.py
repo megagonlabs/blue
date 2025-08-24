@@ -531,7 +531,7 @@ class DataRegistry(Registry):
             # update registry
             # add
             for entity in adds:
-                self.register_source_database_collection_entity(source, database, collection, entity, description="", properties=entities[entity], rebuild=rebuild)
+                self.register_source_database_collection_entity(source, database, collection, entity, description="", properties={}, rebuild=rebuild)
 
             # remove
             for entity in removes:
@@ -539,7 +539,7 @@ class DataRegistry(Registry):
 
             # update
             for entity in merges:
-                self.update_source_database_collection_entity(source, database, collection, entity, description="", properties=entities[entity], rebuild=rebuild)
+                self.update_source_database_collection_entity(source, database, collection, entity, description="", properties={}, rebuild=rebuild)
 
             
             # ---------------- entity attributes ---------------- #
