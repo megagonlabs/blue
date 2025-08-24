@@ -205,14 +205,14 @@ class DataRegistry(Registry):
 
     def get_source_database_collection_entity_attributes(
         self, source, database, collection, entity):
-        scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+        scope = f'/source/{source}/database/{database}/collection/{collection}'
         return super().filter_record_contents(
             entity, 'entity', scope, filter_type='attribute'
         )
 
     def get_source_database_collection_entity_attribute(
         self, source, database, collection, entity, attribute):
-        scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+        scope = f'/source/{source}/database/{database}/collection/{collection}'
         return super().filter_record_contents(
             entity, 'entity', scope,
             filter_type='attribute', filter_name=attribute, single=True
