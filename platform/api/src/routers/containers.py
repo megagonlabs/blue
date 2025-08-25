@@ -227,6 +227,22 @@ def deploy_agent_container(request: Request, agent_name):
     # override with registry properties
     agent_properties = json_utils.merge_json(agent_properties, agent_registry_properties)
 
+    exist = False
+    hostname = "blue_agent_" + agent_registry_id + "_" + agent_name
+    # check for container existence
+    if PROPERTIES["platform.deploy.target"] == "localhost":
+        containers = client.containers.list(all=True)
+        for container in containers:
+            if pydash.is_equal(container.attrs["Config"]["Hostname"], hostname):
+                exist = True
+    elif PROPERTIES["platform.deploy.target"] == "swarm":
+        services = client.services.list()
+        for service in services:
+            if pydash.is_equal(service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Hostname"], hostname):
+                exist = True
+    if exist:
+        return JSONResponse(content={"message": f"\"{agent_name}\" already exists"}, status_code=409)
+
     # deploy agent container based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
@@ -234,7 +250,7 @@ def deploy_agent_container(request: Request, agent_name):
             ["--serve", agent_name, "--platform", platform_id, "--registry", agent_registry_id, "--properties", json.dumps(agent_properties)],
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             # name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
-            hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
+            hostname=hostname,
             volumes=["blue_" + platform_id + "_data:/blue_data"],
             labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
             stdout=True,
@@ -248,7 +264,7 @@ def deploy_agent_container(request: Request, agent_name):
             networks=["blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"],
             constraints=constraints,
             # name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
-            hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
+            hostname=hostname,
             mounts=["blue_" + platform_id + "_data:/blue_data"],
             container_labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
         )
