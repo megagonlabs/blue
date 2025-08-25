@@ -9,6 +9,9 @@ import json
 from blue.utils import json_utils, uuid_utils, log_utils
 
 
+###############
+### Entity
+#
 class Entity:
     def __init__(self, name=None, id=None, sid=None, cid=None, prefix=None, suffix=None):
 

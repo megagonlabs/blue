@@ -16,7 +16,7 @@ import {
     Column,
     ColumnHeaderCell,
     RowHeaderCell,
-    Table2,
+    Table,
     TableLoadingOption,
     Utils,
 } from "@blueprintjs/table";
@@ -25,6 +25,7 @@ import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { TABLE_CELL_HEIGHT, USER_ROLES_LOOKUP } from "../constants";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import UserAvatar from "../sessions/UserAvatar";
@@ -45,6 +46,7 @@ function PlatformUsers({ width, height }) {
     const getUserProfileById = useDedupStore(
         (state) => state.getUserProfileById
     );
+    const { showAxiosErrorToast } = useToaster();
     const columns = useMemo(() => {
         return _.sortBy(
             [
@@ -65,7 +67,7 @@ function PlatformUsers({ width, height }) {
                     key: "name",
                     cellRenderer: (rowIndex) => {
                         const uid = _.get(list, [rowIndex, "uid"], null);
-                        getUserProfileById(uid);
+                        getUserProfileById(uid, showAxiosErrorToast);
                         const name = _.get(list, [rowIndex, "name"], "-");
                         return (
                             <Cell
@@ -191,7 +193,7 @@ function PlatformUsers({ width, height }) {
                 </ButtonGroup>
             </div>
             <div style={{ width, height: height - 60 }}>
-                <Table2
+                <Table
                     key={tableKey}
                     loadingOptions={
                         loading
@@ -251,7 +253,7 @@ function PlatformUsers({ width, height }) {
                             />
                         );
                     })}
-                </Table2>
+                </Table>
             </div>
         </div>
     );

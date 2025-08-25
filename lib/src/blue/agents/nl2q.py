@@ -27,7 +27,7 @@ Here are the requirements:
   - "query": the SQL query that is translated from the natural language question
 - When interpreting the "question" use additional context provided, if available. Ignore information in the context if the question overrides it.
 - The SQL query should be compatible with the schema of the datasource.
-- The SQL query should be compatible with the syntax of the corresponding database's protocol. Examples of protocol include "mysql" and "postgres".
+- The SQL query should be compatible with the syntax of the corresponding database's protocol. Examples of protocol include "mysql", "postgres", and "sqlite".
 - Always do case-${sensitivity} matching for string comparison.
 - The query should starts with any of the following prefixes: ${force_query_prefixes}
 - Output the JSON directly. Do not generate explanation or other additional output.
@@ -65,7 +65,7 @@ Output:
         "nl2q_source_database": None,
         "nl2q_discovery": False,
         "nl2q_discovery_similarity_threshold": 0.2,
-        "nl2q_discovery_source_protocols": ["postgres", "mysql"],
+        "nl2q_discovery_source_protocols": ["postgres", "mysql", "sqlite"],
         "nl2q_execute": True,
         "nl2q_case_insensitive": True,
         "nl2q_valid_query_prefixes": ["SELECT"],
@@ -184,7 +184,7 @@ Output:
                 databases = self.registry.get_source_databases(source=source)
 
                 if databases is None:
-                    database = []
+                    databases = []
                 # set schemas for each database
                 for database in databases:
                     self._set_schemas(schemas, source=source, database=database['name'])
@@ -192,7 +192,7 @@ Output:
             # get sources
             sources = self.registry.get_sources()
 
-            if source is None:
+            if sources is None:
                 sources = []
             # set schemas for each source
             for source in sources:
@@ -272,26 +272,32 @@ Output:
 
     def _format_schema(self, schema):
         res = []
+        entities = schema['entities']
 
-        for entity in schema:
+        for entity in entities:
             table_name = entity['name']
-            properties = entity['properties']['properties']
+            attributes = entity['contents']['attribute']
 
-            entity_stats = entity['properties'].get('stats', {})
-            property_stats = entity_stats.get('property_stats', {})
-
+            
             columns = []
-            for col_name, col_info in properties.items():
+            for col_name, col_info in attributes.items():
+                col_entry = {"name": col_name, "type": "unknown"}
+
                 if isinstance(col_info, dict):
-                    col_entry = {"name": col_name, "type": col_info.get("type", "unknown")}
-                    if "enum" in col_info:
-                        col_entry["enum"] = col_info["enum"]
-                else:
-                    col_entry = {"name": col_name, "type": col_info}
+                    props = col_info.get("properties", {})
+                    info = props.get("info", {})
+                   
+                    col_entry["type"] = info.get("attr_type", col_info.get("type", "unknown"))
 
-                if col_name in property_stats:
-                    col_entry["stats"] = property_stats[col_name]
+                    if "enum" in info:
+                        col_entry["enum"] = info["enum"]
 
+                    if "values" in info:
+                        col_entry["values"] = info["values"]
+
+                    if "stats" in props:
+                        col_entry["stats"] = props["stats"]
+   
                 columns.append(col_entry)
 
             res.append({"table_name": table_name, "columns": columns})
@@ -311,14 +317,14 @@ Output:
             if self.properties["nl2q_discovery"]:
                 # set scope, if selected
                 scope = None
+                
                 if self.selected_source:
-                    scope = ""
-                    scope = scope + "/" + self.selected_source
+                    scope = "/source/" + self.selected_source
                     if self.selected_database:
-                        scope = scope + "/" + self.selected_database
+                        scope += "/database/" + self.selected_database
                         if self.selected_collection:
-                            scope = scope + "/" + self.selected_collection
-                    scope = scope + "*"
+                            scope += "/collection/" + self.selected_collection
+                    scope += "*"
                 # search registry to suggest schema
                 schemas = self._search_schemas(question, scope=scope)
             else:

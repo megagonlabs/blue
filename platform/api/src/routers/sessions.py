@@ -194,6 +194,15 @@ async def update_session(request: Request, session_id):
     return JSONResponse(content={"message": "Success"})
 
 
+## debugger
+@router.get('/session/{session_id}/debugger')
+def get_session_debugger_information(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    debug_info = session.get_stream_debug_info()
+    return JSONResponse(content={"results": debug_info})
+
+
 ## members
 @router.get("/session/{session_id}/members")
 def list_session_members(request: Request, session_id):

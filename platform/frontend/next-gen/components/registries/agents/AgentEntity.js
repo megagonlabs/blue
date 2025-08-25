@@ -1,17 +1,18 @@
 import {
     ENTITY_TYPE_LOOKUP,
+    GREEN_CHECK,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import { UICallout } from "@/components/ux/UICallout";
 import { useAppStore } from "@/stores/app-store";
@@ -20,21 +21,24 @@ import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
     ButtonVariant,
+    Callout,
+    Checkbox,
     Classes,
     Colors,
     EditableText,
     EntityTitle,
     H3,
+    Intent,
 } from "@blueprintjs/core";
 import {
-    faCheckCircle,
+    faBracketsCurly,
     faPlus,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
@@ -111,6 +115,7 @@ export default function AgentEntity({
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
     }, [agent]);
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     useEffect(() => {
         setLoading(true);
         axios
@@ -132,6 +137,7 @@ export default function AgentEntity({
     useEffect(() => {
         updateAgent({ path: "icon", value: icon });
     }, [icon]);
+    const JSONError = useRef(false);
     const handleDiscard = () => {
         setEditedAgent(agent);
         setMainProperties(
@@ -141,39 +147,57 @@ export default function AgentEntity({
         setIcon(_.get(agent, "icon", null));
     };
     const handleSave = () => {
-        setLoading(true);
-        axios
-            .put(url, {
-                name,
-                description: editedAgent.description,
-                icon: editedAgent.icon,
-            })
-            .then(() => {
-                let updated = _.cloneDeep(mainProperties);
-                const properties = { ...editedAgent.properties, ...updated };
-                const diffs = shallowDiff(agent.properties, properties);
-                const promises = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        const newAgent = { ...editedAgent, properties };
-                        setEditedAgent(newAgent);
-                        setAgent(newAgent);
-                        setTemplate(newAgent);
-                        setMainProperties(getEntityMainProperties(properties));
-                        setIsEditing(false);
-                    }
+        if (JSONError.current) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                icon: <FAIcon icon={faBracketsCurly} />,
+                message: "Invalid JSON",
+            });
+        } else {
+            setLoading(true);
+            axios
+                .put(url, {
+                    name,
+                    description: editedAgent.description,
+                    icon: editedAgent.icon,
+                })
+                .then(() => {
+                    let updated = _.cloneDeep(mainProperties);
+                    const properties = {
+                        ...editedAgent.properties,
+                        ...updated,
+                    };
+                    const diffs = shallowDiff(agent.properties, properties);
+                    const promises = getUpdatePropertyPromises({
+                        axios,
+                        url: `${url}/property`,
+                        diffs,
+                        properties,
+                        showAxiosErrorToast,
+                    });
+                    settlePromises(
+                        promises,
+                        ({ error }) => {
+                            if (!error) {
+                                const newAgent = { ...editedAgent, properties };
+                                setEditedAgent(newAgent);
+                                setAgent(newAgent);
+                                setTemplate(newAgent);
+                                setMainProperties(
+                                    getEntityMainProperties(properties)
+                                );
+                                setIsEditing(false);
+                            }
+                            setLoading(false);
+                        },
+                        progressToaster
+                    );
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
                     setLoading(false);
                 });
-            })
-            .catch((error) => {
-                showAxiosErrorToast(error);
-                setLoading(false);
-            });
+        }
     };
     const onDelete = () => {
         setLoading(true);
@@ -269,11 +293,23 @@ export default function AgentEntity({
                         </div>
                     </div>
                     <MainPropertyBlock loading={loading} label="System agent">
-                        {systemAgent ? (
-                            <FAIcon
-                                style={{ color: Colors.GREEN3 }}
-                                icon={faCheckCircle}
+                        {isEditing &&
+                        _.isEqual(
+                            _.get(user, "role", null),
+                            "administrator"
+                        ) ? (
+                            <Checkbox
+                                className="margin-0"
+                                checked={systemAgent}
+                                onChange={(event) => {
+                                    updateMainProperties({
+                                        path: "system_agent",
+                                        value: event.target.checked,
+                                    });
+                                }}
                             />
+                        ) : systemAgent ? (
+                            GREEN_CHECK
                         ) : (
                             "-"
                         )}
@@ -316,6 +352,16 @@ export default function AgentEntity({
                     </MainPropertyBlock>
                 </div>
             </div>
+            {systemAgent && (
+                <Callout
+                    icon={null}
+                    intent={Intent.WARNING}
+                    style={{ marginTop: 10 }}
+                >
+                    Changes to this agent can only be made by the owner or
+                    administrators.
+                </Callout>
+            )}
             <div style={{ marginTop: 20 }}>
                 <AgentMainProperties
                     updateMainProperties={updateMainProperties}
@@ -323,137 +369,58 @@ export default function AgentEntity({
                     properties={mainProperties}
                     loading={loading}
                 />
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <EntityDescription
+                    isEditing={isEditing}
+                    updateEntity={updateAgent}
+                    entity={editedAgent}
+                    loading={loading}
+                />
+            </div>
+            {!baseAgent && (
                 <div style={{ marginTop: 20 }}>
-                    <EntityDescription
-                        isEditing={isEditing}
-                        updateEntity={updateAgent}
-                        entity={editedAgent}
-                        loading={loading}
+                    <UICallout
+                        id="derived_agents_configurations_override"
+                        content="Derived agents inherit configurations from their parent agent (inherited configurations that are not overridden are not shown). You can override inherited properties, inputs, and outputs by specifying them here."
                     />
                 </div>
-                {!baseAgent && (
-                    <div style={{ marginTop: 20 }}>
-                        <UICallout
-                            id="derived_agents_configurations_override"
-                            content="Derived agents inherit configurations from their parent agent (inherited configurations that are not overridden are not shown). You can override inherited properties, inputs, and outputs by specifying them here."
-                        />
-                    </div>
-                )}
-                <div style={{ marginTop: 20 }}>
-                    <EntityProperties
-                        isEditing={isEditing}
-                        updateEntity={updateAgent}
-                        entity={editedAgent}
-                        loading={loading}
-                    />
-                </div>
-                <div style={{ marginTop: 20 }} className="split-pane-container">
-                    <div className="pane-item">
-                        <div style={{ marginBottom: 10 }}>
-                            <EntityTitle
-                                icon={
-                                    <FAIcon
-                                        icon={ENTITY_TYPE_LOOKUP["input"].icon}
-                                        size={25}
-                                    />
-                                }
-                                heading={H3}
-                                title="Inputs"
-                            />
-                        </div>
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: 10,
-                                flexDirection: "column",
-                            }}
-                        >
-                            <Leaves
-                                isEditing={isEditing}
-                                loading={loading}
-                                addCrumb={addCrumb}
-                                list={_.values(
-                                    _.get(agent, "contents.input", {})
-                                )}
-                            />
-                            {!isEditing && canEditEntity && (
-                                <Button
-                                    disabled={loading}
-                                    variant={ButtonVariant.MINIMAL}
-                                    icon={<FAIcon icon={faPlus} />}
-                                    fill
-                                    text="Add input"
-                                    onClick={() => {
-                                        setShowNewEntity(true);
-                                        setNewEntityType("input");
-                                    }}
-                                />
-                            )}
-                        </div>
-                    </div>
-                    <div className="pane-item">
-                        <div style={{ marginBottom: 10 }}>
-                            <EntityTitle
-                                icon={
-                                    <FAIcon
-                                        icon={ENTITY_TYPE_LOOKUP["output"].icon}
-                                        size={25}
-                                    />
-                                }
-                                heading={H3}
-                                title="Outputs"
-                            />
-                        </div>
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: 10,
-                                flexDirection: "column",
-                            }}
-                        >
-                            <Leaves
-                                isEditing={isEditing}
-                                loading={loading}
-                                addCrumb={addCrumb}
-                                list={_.values(
-                                    _.get(agent, "contents.output", {})
-                                )}
-                            />
-                            {!isEditing && canEditEntity && (
-                                <Button
-                                    disabled={loading}
-                                    variant={ButtonVariant.MINIMAL}
-                                    icon={<FAIcon icon={faPlus} />}
-                                    fill
-                                    text="Add output"
-                                    onClick={() => {
-                                        setShowNewEntity(true);
-                                        setNewEntityType("output");
-                                    }}
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
-                <div style={{ marginTop: 20 }}>
+            )}
+            <div style={{ marginTop: 20 }}>
+                <EntityProperties
+                    isEditing={isEditing}
+                    updateEntity={updateAgent}
+                    entity={editedAgent}
+                    loading={loading}
+                    JSONError={JSONError}
+                />
+            </div>
+            <div style={{ marginTop: 20 }} className="split-pane-container">
+                <div className="pane-item">
                     <div style={{ marginBottom: 10 }}>
                         <EntityTitle
                             icon={
                                 <FAIcon
-                                    icon={ENTITY_TYPE_LOOKUP["agent"].icon}
+                                    icon={ENTITY_TYPE_LOOKUP["input"].icon}
                                     size={25}
                                 />
                             }
                             heading={H3}
-                            title="Derived Agents"
+                            title="Inputs"
                         />
                     </div>
-                    <div className="responsive-grid-container">
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: 10,
+                            flexDirection: "column",
+                        }}
+                    >
                         <Leaves
                             isEditing={isEditing}
                             loading={loading}
                             addCrumb={addCrumb}
-                            list={_.values(_.get(agent, "contents.agent", {}))}
+                            list={_.values(_.get(agent, "contents.input", {}))}
                         />
                         {!isEditing && canEditEntity && (
                             <Button
@@ -461,14 +428,90 @@ export default function AgentEntity({
                                 variant={ButtonVariant.MINIMAL}
                                 icon={<FAIcon icon={faPlus} />}
                                 fill
-                                text="Add derived agent"
+                                text="Add input"
                                 onClick={() => {
                                     setShowNewEntity(true);
-                                    setNewEntityType("agent");
+                                    setNewEntityType("input");
                                 }}
                             />
                         )}
                     </div>
+                </div>
+                <div className="pane-item">
+                    <div style={{ marginBottom: 10 }}>
+                        <EntityTitle
+                            icon={
+                                <FAIcon
+                                    icon={ENTITY_TYPE_LOOKUP["output"].icon}
+                                    size={25}
+                                />
+                            }
+                            heading={H3}
+                            title="Outputs"
+                        />
+                    </div>
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: 10,
+                            flexDirection: "column",
+                        }}
+                    >
+                        <Leaves
+                            isEditing={isEditing}
+                            loading={loading}
+                            addCrumb={addCrumb}
+                            list={_.values(_.get(agent, "contents.output", {}))}
+                        />
+                        {!isEditing && canEditEntity && (
+                            <Button
+                                disabled={loading}
+                                variant={ButtonVariant.MINIMAL}
+                                icon={<FAIcon icon={faPlus} />}
+                                fill
+                                text="Add output"
+                                onClick={() => {
+                                    setShowNewEntity(true);
+                                    setNewEntityType("output");
+                                }}
+                            />
+                        )}
+                    </div>
+                </div>
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <div style={{ marginBottom: 10 }}>
+                    <EntityTitle
+                        icon={
+                            <FAIcon
+                                icon={ENTITY_TYPE_LOOKUP["agent"].icon}
+                                size={25}
+                            />
+                        }
+                        heading={H3}
+                        title="Derived Agents"
+                    />
+                </div>
+                <div className="responsive-grid-container">
+                    <Leaves
+                        isEditing={isEditing}
+                        loading={loading}
+                        addCrumb={addCrumb}
+                        list={_.values(_.get(agent, "contents.agent", {}))}
+                    />
+                    {!isEditing && canEditEntity && (
+                        <Button
+                            disabled={loading}
+                            variant={ButtonVariant.MINIMAL}
+                            icon={<FAIcon icon={faPlus} />}
+                            fill
+                            text="Add derived agent"
+                            onClick={() => {
+                                setShowNewEntity(true);
+                                setNewEntityType("agent");
+                            }}
+                        />
+                    )}
                 </div>
             </div>
         </div>

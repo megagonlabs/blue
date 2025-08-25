@@ -50,6 +50,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 from blue.agent import Agent
 from blue.platform import Platform
 from blue.agents.registry import AgentRegistry
+from blue.constant import Separator
 
 
 ###### Properties
@@ -159,7 +160,7 @@ def merge_container_results(registry_results):
             else:
                 # check if parent has a container running
                 # TODO: REVISIT AFTER #186
-                name = name.split(Agent.SEPARATOR)[0]
+                name = name.split(Separator.AGENT)[0]
                 if name in containers:
                     registry_result['container'] = containers[name]
                 else:
@@ -176,11 +177,16 @@ def agent_acl_enforce(request: Request, agent: dict, write=False, throw=True):
     user_role = request.state.user['role']
     uid = request.state.user['uid']
     allow = False
+    own = pydash.objects.get(agent, 'created_by', None) == uid
+    system_agent = pydash.objects.get(agent, 'properties.system_agent', False)
     if write and user_role in write_all_roles:
         allow = True
     elif write and user_role in write_own_roles:
-        if pydash.objects.get(agent, 'created_by', None) == uid:
+        if own:
             allow = True
+    if system_agent and user_role != 'administrator':
+        if not own:
+            allow = False
     if throw and not allow:
         raise PermissionDenied
     return allow
@@ -516,6 +522,16 @@ def update_agent_group(request: Request, group_name, group: AgentGroupSchema):
     agent_group_acl_enforce(request, agent_group_db, write=True)
     # TODO: properties
     agent_registry.update_agent_group(group_name, description=group.description, icon=group.icon, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.post("/agent_group/{group_name}/property/{property_name}")
+def set_agent_group_property(request: Request, group_name, property_name, property: JSONStructure):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    agent_registry.set_agent_group_property(group_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})

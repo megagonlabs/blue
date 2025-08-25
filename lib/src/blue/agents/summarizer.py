@@ -5,7 +5,7 @@ import json
 ###### Blue
 from blue.agent import Agent
 from blue.agents.openai import OpenAIAgent
-from blue.plan import Plan
+from blue.agents.plan import AgenticPlan
 from blue.utils import string_utils, uuid_utils
 
 
@@ -71,7 +71,7 @@ class SummarizerAgent(OpenAIAgent):
         worker.write_progress(progress_id=progress_id, label='Issuing question:' + question, value=self.current_step / self.num_steps)
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(name, value=question)
         # set plan
@@ -93,7 +93,7 @@ class SummarizerAgent(OpenAIAgent):
         worker.write_progress(progress_id=progress_id, label='Issuing query:' + query, value=self.current_step / self.num_steps)
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(name, value=query)
         # set plan

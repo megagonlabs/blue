@@ -22,10 +22,10 @@ import { useCallback, useMemo } from "react";
 import { FAIcon } from "../FAIcon";
 import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "../constants";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
+import { useToaster } from "../contexts/ToasterContext";
 import EntityDisplayName from "../registries/EntityDisplayName";
 import RegistryEntityContainer from "../registries/RegistryEntityContainer";
 import RegistryEntityIcon from "../registries/RegistryEntityIcon";
-import { AppToaster } from "../toaster";
 export default function AgentGroupCard({ agentGroup }) {
     const type = _.get(agentGroup, "type", null);
     const addContainer = useGridStore((state) => state.addContainer);
@@ -69,13 +69,14 @@ export default function AgentGroupCard({ agentGroup }) {
         [handleClose, menu, darkMode]
     );
     const createNewSession = useSessionStore((state) => state.createNewSession);
+    const { appToaster } = useToaster();
     const launchAgentGroupSession = () => {
         createNewSession({
             agentGroup: agentGroup.name,
             replace: true,
             gridContainerId,
         });
-        AppToaster.show({
+        appToaster.show({
             message: (
                 <div>
                     Launching <EntityDisplayName entity={agentGroup} />

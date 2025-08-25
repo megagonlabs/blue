@@ -1,4 +1,5 @@
 import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "@/components/constants";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import RegistryEntityIcon from "@/components/registries/RegistryEntityIcon";
 import { useAgentStore } from "@/stores/agent-store";
 import { useDedupStore } from "@/stores/dedup-store";
@@ -17,9 +18,10 @@ export default function MessageIcon({ metadata }) {
         }))
     );
     const agentMetadata = useAgentStore((state) => state.metadata);
+    const { showAxiosErrorToast } = useToaster();
     useEffect(() => {
         if (isUser) {
-            getUserProfileById(id);
+            getUserProfileById(id, showAxiosErrorToast);
         } else {
             getAgentMetadata(createdBy);
         }

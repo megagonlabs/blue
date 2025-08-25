@@ -10,9 +10,9 @@ import { allEnv } from "next-runtime-env";
 import { useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { useShallow } from "zustand/react/shallow";
+import { useToaster } from "./contexts/ToasterContext";
 import { FAIcon } from "./FAIcon";
 import withAutoSizer from "./hocs/withAutoSizer";
-import { AppToaster } from "./toaster";
 const { NEXT_PUBLIC_GIT_LONG, NEXT_PUBLIC_GIT_BRANCH, NEXT_PUBLIC_GIT_SHORT } =
     allEnv();
 function NerdStatsContainer({ width, height }) {
@@ -23,6 +23,7 @@ function NerdStatsContainer({ width, height }) {
     );
     const darkMode = useAppStore((state) => state.dark_mode);
     const elementRef = useRef(null);
+    const { appToaster } = useToaster();
     return (
         <div
             ref={elementRef}
@@ -75,7 +76,7 @@ function NerdStatsContainer({ width, height }) {
                                                 }
                                                 onClick={() => {
                                                     copy(NEXT_PUBLIC_GIT_LONG);
-                                                    AppToaster.show({
+                                                    appToaster.show({
                                                         icon: (
                                                             <FAIcon
                                                                 icon={
@@ -102,7 +103,7 @@ function NerdStatsContainer({ width, height }) {
                                             endIcon={<FAIcon icon={faCopy} />}
                                             onClick={() => {
                                                 copy(connectionId);
-                                                AppToaster.show({
+                                                appToaster.show({
                                                     icon: (
                                                         <FAIcon
                                                             icon={faClipboard}

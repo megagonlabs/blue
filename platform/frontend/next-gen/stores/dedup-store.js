@@ -1,4 +1,3 @@
-import { showAxiosErrorToast } from "@/components/helper";
 import axios from "axios";
 import { differenceInMinutes } from "date-fns";
 import _ from "lodash";
@@ -51,7 +50,7 @@ export const useDedupStore = create((set, get) => ({
             users: { ...state.users, ...newProfile },
         }));
     },
-    getUserProfileByEmail: (email) => {
+    getUserProfileByEmail: (email, showAxiosErrorToast) => {
         const key = `getUserProfileByEmail ${email}`;
         const { queue, cachedTime, addUserProfile } = get();
         const diff = differenceInMinutes(Date.now(), cachedTime[key]);
@@ -78,7 +77,7 @@ export const useDedupStore = create((set, get) => ({
                 });
         }
     },
-    getUserProfileById: (userId) => {
+    getUserProfileById: (userId, showAxiosErrorToast) => {
         const key = `getUserProfileById ${userId}`;
         const { queue, cachedTime, addUserProfile } = get();
         const diff = differenceInMinutes(Date.now(), cachedTime[key]);

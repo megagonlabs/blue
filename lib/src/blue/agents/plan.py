@@ -6,12 +6,10 @@ import logging
 from redis.commands.json.path import Path
 
 ###### Blue
-from blue.agent import Agent
 from blue.session import Session
-from blue.stream import Constant, ControlCode, ConstantEncoder
-from blue.pubsub import Producer
-from blue.connection import PooledConnectionFactory
-from blue.utils import uuid_utils, json_utils, dag_utils
+from blue.constant import Constant
+from blue.utils import dag_utils
+from blue.constant import Separator
 
 
 ###############
@@ -50,11 +48,11 @@ EntityType.STREAM = Constant("STREAM")
 
 
 ##############
-### Plan
+### Agentic Plan
 #
-class Plan(dag_utils.DAG):
+class AgenticPlan(dag_utils.Plan):
 
-    def __init__(self, scope=None, id=None, label=None, type="PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+    def __init__(self, scope=None, id=None, label=None, type="AGENTIC_PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
         self.leaves = None
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
@@ -69,8 +67,6 @@ class Plan(dag_utils.DAG):
 
         self.set_data("context", {"scope": None}, sync=sync)
         self.set_status(Status.INACTIVE, sync=sync)
-        self.set_data("agents", {}, sync=sync)
-        self.set_data("streams", {}, sync=sync)
 
     # properties
     def _initialize_properties(self, sync=None):
@@ -148,17 +144,17 @@ class Plan(dag_utils.DAG):
         # checks
         if name is None:
             raise Exception("Name is not specified")
-        if label and Agent.SEPARATOR in label:
-            raise Exception("Label cannot contain: " + Agent.SEPARATOR)
+        if label and Separator.AGENT in label:
+            raise Exception("Label cannot contain: " + Separator.AGENT)
 
         if label is None:
             label = name
+
         agent = self.create_agent(label=label, properties=properties, sync=sync)
 
         agent.set_data("name", name)
-        canonical_name = name if label == name else name + Agent.SEPARATOR + label
+        canonical_name = name if label == name else name + Separator.AGENT + label
         agent.set_data("canonical_name", canonical_name)
-        agent.set_data('children', [])
 
         # add canonical_name to map
         self.map(canonical_name, agent.get_id(), sync=sync)
@@ -188,11 +184,8 @@ class Plan(dag_utils.DAG):
         agent_input_node.set_data("name", name, sync=sync)
         agent_input_node.set_data("canonical_name", label, sync=sync)
         agent_input_node.set_data("value", None, sync=sync)
-        agent_input_node.set_data("stream", None, sync=sync)
-        agent_input_node.set_data("parent", agent_id, sync=sync)
 
-        # agent
-        agent.append_data('children', agent_input_node.get_id(), sync=sync)
+        self.set_node_entity(agent_input_node.get_id(), agent_id, sync=sync)
 
         # add stream, if assigned
         if stream:
@@ -223,70 +216,26 @@ class Plan(dag_utils.DAG):
         agent_output_node.set_data("name", name, sync=sync)
         agent_output_node.set_data("canonical_name", label, sync=sync)
         agent_output_node.set_data("value", None, sync=sync)
-        agent_output_node.set_data("stream", None, sync=sync)
-        agent_output_node.set_data("parent", agent_id, sync=sync)
 
-        # agent
-        agent.append_data('children', agent_output_node.get_id(), sync=sync)
+        self.set_node_entity(agent_output_node.get_id(), agent_id, sync=sync)
 
         return agent_output_node
 
     ### agent
-    def _verify_agent(self, label=None, properties=None):
-        # verify if label is unique
-        if label and self.is_mapped(label):
-            return False
-
-        return True
-
     def create_agent(self, label=None, properties=None, sync=None):
-        # verify agent, first
-        if not self._verify_agent(label=label, properties=properties):
-            raise Exception("Cannot create agent due to failed varification")
-
-        # create agent entity
-        agent = dag_utils.Entity(
-            label=label, type=str(EntityType.AGENT), properties=properties, path=self.path + "." + self.get_id() + ".agents", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=sync
-        )
-        agent_id = agent.get_id()
-        agent_label = agent.get_label()
-
-        # add to agents
-        agents = self.get_agents()
-        agents[agent_id] = agent.get_data()
-
-        # add to map
-        if label:
-            self.map(agent_label, agent_id, sync=sync)
-
-        return agent
+        return self.create_entity(label=label, type=str(EntityType.AGENT), properties=properties, sync=sync)
 
     def get_agents(self):
-        return self.get_data("agents")
+        return self.get_entities(type=str(EntityType.AGENT))
 
     def get_agent(self, a, cls=None):
-        agent = self.get_agent_by_id(a, cls=cls)
-        if agent is None:
-            agent = self.get_agent_by_label(a, cls=cls)
-        return agent
+        return self.get_entity(a, type=str(EntityType.AGENT))
 
     def get_agent_by_id(self, agent_id, cls=None):
-        agents = self.get_agents()
-        if agent_id in agents:
-            agent_data = agents[agent_id]
-            if cls is None:
-                cls = dag_utils.Entity
-            return cls.from_dict(agent_data, path=self.path + "." + self.get_id() + ".agents", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=False)
-        else:
-            return None
+        return self.get_entity_by_id(agent_id, type=str(EntityType.AGENT), cls=cls)
 
     def get_agent_by_label(self, agent_label, cls=None):
-        map = self.get_data("map")
-        agent = None
-        if agent_label in map:
-            agent_id = map[agent_label]
-            agent = self.get_agent_by_id(agent_id)
-        return agent
+        return self.get_entity_by_label(agent_label, type=str(EntityType.AGENT), cls=cls)
 
     def get_agent_properties(self, a):
         agent = self.get_agent(a)
@@ -295,87 +244,23 @@ class Plan(dag_utils.DAG):
         return {}
 
     ### stream
-    def _verify_stream(self, label=None, type=None, properties=None):
-        # verify if label is unique
-        if label and self.is_mapped(label):
-            return False
-
-        return True
-
     def create_stream(self, label=None, properties=None, sync=None):
-        # verify stream, first
-        if not self._verify_stream(label=label, type=type, properties=properties):
-            raise Exception("Cannot create stream due to failed varification")
-
-        # create stream
-        stream = dag_utils.Entity(
-            label=label,
-            type=str(EntityType.STREAM),
-            properties=properties,
-            path=self.path + "." + self.get_id() + ".streams",
-            synchronizer=self.synchronizer,
-            auto_sync=self.auto_sync,
-            sync=sync,
-        )
-        stream_id = stream.get_id()
-        stream_label = stream.get_label()
-
-        # add to streams
-        streams = self.get_streams()
-        streams[stream_id] = stream.get_data()
-
-        # add to map
-        if label:
-            self.map(stream_label, stream_id, sync=sync)
-
-        return stream
+        return self.create_entity(label=label, type=str(EntityType.STREAM), properties=properties, sync=sync)
 
     def get_streams(self):
-        return self.get_data("streams")
+        return self.get_entities(type=str(EntityType.STREAM))
 
     def get_stream(self, a, cls=None):
-        stream = self.get_stream_by_id(a, cls=cls)
-        if stream is None:
-            stream = self.get_stream_by_label(a, cls=cls)
-        return stream
+        return self.get_entity(a, type=str(EntityType.STREAM))
 
     def get_stream_by_id(self, stream_id, cls=None):
-        streams = self.get_streams()
-        if stream_id in streams:
-            stream_data = streams[stream_id]
-            if cls is None:
-                cls = dag_utils.Entity
-            return cls.from_dict(stream_data, path=self.path + "." + self.get_id() + ".streams", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=False)
-        else:
-            return None
+        return self.get_entity_by_id(stream_id, type=str(EntityType.STREAM), cls=cls)
 
     def get_stream_by_label(self, stream_label, cls=None):
-        map = self.get_data("map")
-        stream = None
-        if stream_label in map:
-            stream_id = map[stream_label]
-            stream = self.get_stream_by_id(stream_id)
-        return stream
+        return self.get_entity_by_label(stream_label, type=str(EntityType.STREAM), cls=cls)
 
     def get_nodes_by_stream(self, s, node_type=None):
-        stream = self.get_stream(s)
-        if stream is None:
-            return []
-        nodes = []
-
-        ids = stream.get_data("nodes")
-        for id in ids:
-            node = self.get_node(id)
-            if node_type:
-                if type(node_type) == list:
-                    if node.get_type() in node_type:
-                        nodes.append(node)
-                else:
-                    if node.get_type() == node_type:
-                        nodes.append(node)
-            else:
-                nodes.append(node)
-        return nodes
+        return self.get_nodes_by_entity(s, type=str(EntityType.STREAM), node_type=node_type)
 
     def count_streams(self, filter_status=None):
         count = 0
@@ -392,6 +277,7 @@ class Plan(dag_utils.DAG):
 
         return count
 
+    # node
     def get_node_value(self, n):
         node = self.get_node(n)
         if node is None:
@@ -415,8 +301,8 @@ class Plan(dag_utils.DAG):
             raise Exception("Value for non-existing node cannot be get")
 
         # get from stream
-        stream_id = node.get_data("stream")
-        stream = self.get_stream(stream_id)
+        stream = self.get_node_entity(n, type=str(EntityType.STREAM))
+
         stream_status = stream.get_data("status")
         if stream_status == Status.FINISHED:
             return self.get_stream_value(stream)
@@ -424,31 +310,16 @@ class Plan(dag_utils.DAG):
         return None
 
     def set_node_stream(self, n, stream, sync=None):
-        node = self.get_node(n)
-        if node is None:
-            raise Exception("Stream for non-existing node cannot be set")
+        stream_node = self.get_stream(stream)
+        if stream_node is None:
+            stream_node = self.create_stream(label=stream, sync=sync)
+            stream_node.set_data("status", str(Status.INITED), sync=sync)
+            stream_node.set_data("value", None, sync=sync)
 
-        node_id = node.get_id()
-
-        if stream is None:
-            node.set_data("stream", None, sync=sync)
-        else:
-            stream_node = self.get_stream(stream)
-            if stream_node is None:
-                stream_node = self.create_stream(label=stream, sync=sync)
-                stream_node.set_data("nodes", [], sync=sync)
-                stream_node.set_data("status", str(Status.INITED), sync=sync)
-                stream_node.set_data("value", None, sync=sync)
-
-            stream_node.append_data("nodes", node_id, sync=sync)
-            node.set_data("stream", stream_node.get_id(), sync=sync)
+        self.set_node_entity(n, stream, sync=sync)
 
     def get_node_stream(self, n):
-        node = self.get_node(n)
-        if node is None:
-            raise Exception("Stream for non-existing node cannot be get")
-
-        return node.get_data("stream")
+        return self.get_node_entity(n, type=str(EntityType.STREAM))
 
     # status, value
     def set_stream_status(self, s, status, sync=None):
@@ -541,37 +412,8 @@ class Plan(dag_utils.DAG):
 
         return node.get_type()
 
-    def get_parent_node(self, n):
-        node = self.get_node(n)
-
-        parent_id = node.get_data("parent")
-        parent_node = self.get_agent(parent_id)
-
-        return parent_node
-
-    def get_prev_nodes(self, n):
-        node = self.get_node(n)
-        prev_nodes = []
-        if node:
-            prev_ids = node.get_data('prev')
-            for prev_id in prev_ids:
-                prev_node = self.get_node_by_id(prev_id)
-                if prev_node:
-                    prev_nodes.append(prev_node)
-
-        return prev_nodes
-
-    def get_next_nodes(self, n):
-        node = self.get_node(n)
-        next_nodes = []
-        if node:
-            next_ids = node.get_data('next')
-            for next_id in next_ids:
-                next_node = self.get_node_by_id(next_id)
-                if next_node:
-                    next_nodes.append(next_node)
-
-        return next_nodes
+    def get_node_agent(self, n):
+        return self.get_node_entity(n, type=str(EntityType.AGENT))
 
     ## connections
     def _resolve_input_output_node_id(self, input=None, output=None, sync=None):
@@ -691,8 +533,7 @@ class Plan(dag_utils.DAG):
         status = Status.FINISHED
 
         for leaf_id in self.leaves:
-            leaf_node = self.get_node(leaf_id)
-            leaf_stream = leaf_node.get_data("stream")
+            leaf_stream = self.get_node_stream(leaf_id)
             if leaf_stream is None:
                 status = Status.RUNNING
                 break
@@ -735,21 +576,3 @@ class Plan(dag_utils.DAG):
 
         # write plan
         self._write_plan(worker)
-
-    @classmethod
-    def _validate(cls, d):
-        dv = super(Plan, cls)._validate(d)
-        if dv is None:
-            return None
-        if 'context' not in dv:
-            return None
-        else:
-            context = dv['context']
-            if 'scope' not in context:
-                return None
-        if 'agents' not in dv:
-            dv['agents'] = {}
-        if 'streams' not in dv:
-            dv['streams'] = {}
-
-        return dv

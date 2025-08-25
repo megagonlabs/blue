@@ -271,3 +271,21 @@ def _is_list_index(s, num_marker='$$$'):
             return s
     except ValueError:
         return s
+
+def safe_json_parse(text):
+    """
+    Handles cases where JSON is wrapped in ```json ... ```
+    """
+    if text is None:
+        return {}
+
+    # Remove markdown code block wrappers
+    cleaned = re.sub(r"^```[a-zA-Z]*\n", "", text.strip())
+    cleaned = re.sub(r"\n```$", "", cleaned.strip())
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        logging.warning(f"Failed to parse JSON: {e}")
+        return {}
+

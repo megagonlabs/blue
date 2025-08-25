@@ -8,7 +8,7 @@ import json
 from blue.agent import Agent
 from blue.agents.registry import AgentRegistry
 from blue.platform import Platform
-from blue.plan import Plan, Status, NodeType
+from blue.agents.plan import AgenticPlan, Status, NodeType
 from blue.stream import ControlCode
 from blue.utils import uuid_utils, json_utils
 from blue.data.planner import DataPlanner
@@ -214,7 +214,7 @@ class CoordinatorAgent(Agent):
 
                 plan = None
                 try:
-                    plan = Plan.from_dict(p)
+                    plan = AgenticPlan.from_dict(p)
                 except Exception:
                     self.logger.info("Error reading valid plan")
 
@@ -279,7 +279,7 @@ class CoordinatorAgent(Agent):
 
                     # if from an agent output capture
                     if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
-                        from_agent_node = plan.get_parent_node(node_id)
+                        from_agent_node = plan.get_node_agent(node_id)
                         from_agent = from_agent_node.get_data('canonical_name')
                         from_agent_param = node.get_data('name')
                         f = (from_agent, from_agent_param)
@@ -302,7 +302,7 @@ class CoordinatorAgent(Agent):
                         to_agent_param = None
 
                         if plan.get_node_type(next_node_id) == NodeType.AGENT_INPUT:
-                            to_agent_node = plan.get_parent_node(next_node_id)
+                            to_agent_node = plan.get_node_agent(next_node_id)
                             to_agent = to_agent_node.get_data('canonical_name')
                             to_agent_id = to_agent_node.get_id()
                             to_agent_param = next_node.get_data('name')

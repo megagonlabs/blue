@@ -18,6 +18,7 @@ import {
     faInputText,
     faListDropdown,
     faListUl,
+    faM,
     faObjectGroup,
     faPalletBoxes,
     faParagraph,
@@ -27,7 +28,6 @@ import {
     faQuoteLeft,
     faRectanglesMixed,
     faSquareCheck,
-    faSquareM,
     faTable,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
@@ -72,7 +72,7 @@ const DOC_MENU = [
     { text: "Integer", icon: faInputNumeric },
     { text: "Label", icon: faParagraph },
     { text: "Layout", icon: faRectanglesMixed },
-    { text: "Markdown", icon: faSquareM },
+    { text: "Markdown", icon: faM },
     { text: "Number", icon: faInputNumeric },
     { text: "String", icon: faInputText },
     { text: "Table", icon: faTable },

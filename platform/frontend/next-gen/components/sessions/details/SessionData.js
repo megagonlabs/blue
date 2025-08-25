@@ -1,4 +1,5 @@
 import JSONEditor from "@/components/codemirror/JSONEditor";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import {
     getUpdatePropertyPromises,
     settlePromises,
@@ -12,6 +13,7 @@ export default function SessionData({ sessionId }) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState({});
     const breaker = useRef(true);
+    const { progressToaster, showAxiosErrorToast } = useToaster();
     useEffect(() => {
         setLoading(true);
         axios
@@ -32,13 +34,18 @@ export default function SessionData({ sessionId }) {
             url: `/sessions/session/${sessionId}/data`,
             diffs,
             properties: value,
+            showAxiosErrorToast,
         });
-        settlePromises(promises, ({ error }) => {
-            if (!error) {
-                setData(value);
-            }
-            setLoading(false);
-        });
+        settlePromises(
+            promises,
+            ({ error }) => {
+                if (!error) {
+                    setData(value);
+                }
+                setLoading(false);
+            },
+            progressToaster
+        );
     };
     return (
         <div className="full-parent-dimension" style={{ padding: 20 }}>

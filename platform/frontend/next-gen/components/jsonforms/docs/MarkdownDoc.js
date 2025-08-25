@@ -10,7 +10,7 @@ import {
     Size,
     Tag,
 } from "@blueprintjs/core";
-import { faSquareM } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faM } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const uiSchemaJson = {
     type: "Markdown",
@@ -27,7 +27,7 @@ export default function MarkdownDoc() {
                 <EntityTitle
                     title="Markdown"
                     heading={H1}
-                    icon={<FAIcon icon={faSquareM} size={30} />}
+                    icon={<FAIcon icon={faM} size={30} />}
                 />
             </div>
             <H2>Example</H2>

@@ -6,7 +6,7 @@ import json
 ###### Blue
 from blue.agent import Agent
 from blue.stream import ControlCode
-from blue.plan import Plan
+from blue.agents.plan import AgenticPlan
 from blue.utils import string_utils, uuid_utils
 
 
@@ -50,7 +50,7 @@ class DocumenterAgent(Agent):
         worker.write_progress(progress_id=progress_id, label='Issuing question:' + question, value=self.current_step / self.num_steps)
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(name, value=question)
         # set plan
@@ -72,7 +72,7 @@ class DocumenterAgent(Agent):
         worker.write_progress(progress_id=progress_id, label='Issuing query:' + query, value=self.current_step / self.num_steps)
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(name, value=query)
         # set plan
@@ -110,7 +110,7 @@ class DocumenterAgent(Agent):
             hilite_contents_json = json.dumps(hilite_contents, indent=3)
 
             # plan
-            p = Plan(scope=worker.prefix)
+            p = AgenticPlan(scope=worker.prefix)
             # set input
             p.define_input("doc", value=hilite_contents_json)
             # set plan

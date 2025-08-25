@@ -17,7 +17,7 @@ import umap
 from blue.agent import Agent, AgentFactory
 from blue.session import Session
 from blue.utils import string_utils, uuid_utils
-from blue.plan import Plan
+from blue.agents.plan import AgenticPlan
 from blue.stream import ControlCode
 
 ###### Agent Specific
@@ -53,7 +53,7 @@ class ClustererAgent(Agent):
             worker = self.create_worker(None)
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(name, value=query)
         # set plan
@@ -66,7 +66,7 @@ class ClustererAgent(Agent):
     def issue_agent_call(self, value, worker, agent, output, input, id=None):
 
         # plan
-        p = Plan(scope=worker.prefix)
+        p = AgenticPlan(scope=worker.prefix)
         # set input
         p.define_input(input, value=value)
         # set plan

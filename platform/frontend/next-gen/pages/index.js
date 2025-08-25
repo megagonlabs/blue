@@ -1,4 +1,4 @@
-import { GridContainerContextProvider } from "@/components/contexts/GridContainerContext";
+import { GridContainerProvider } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import GridContainerWrapper from "@/components/GridContainerWrapper";
 import UITip from "@/components/ux/UITip";
@@ -302,7 +302,7 @@ export default function Home() {
                             className="overflow-hidden"
                             style={{ height: "calc(100% - 45px)" }}
                         >
-                            <GridContainerContextProvider
+                            <GridContainerProvider
                                 value={{ gridContainerId: element.i }}
                             >
                                 <GridContainerWrapper gridRef={gridRef}>
@@ -312,7 +312,7 @@ export default function Home() {
                                         null
                                     )}
                                 </GridContainerWrapper>
-                            </GridContainerContextProvider>
+                            </GridContainerProvider>
                         </div>
                     </div>
                 ))}

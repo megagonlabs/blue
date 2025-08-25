@@ -14,22 +14,26 @@ from blue.data.source import DataSource
 from blue.data.schema import DataSchema
 
 
-
 ###############
 ### PostgresDBSource
 #
 class PostgresDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
-        
+
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # source protocol 
-        self.properties['protocol'] = "postgres"
-        
     ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
+
+        # set host, port, protocol
+        self.properties['connection']['host'] = 'localhost'
+        self.properties['connection']['port'] = 5432
+        self.properties['connection']['protocol'] = 'postgres'
+
     def _connect(self, **connection):
         c = copy.deepcopy(connection)
         if 'protocol' in c:
@@ -105,7 +109,6 @@ class PostgresDBSource(DataSource):
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    
     def fetch_enum_types(self, db_connection):
         query = """
         SELECT
@@ -127,17 +130,17 @@ class PostgresDBSource(DataSource):
         cursor.execute(query)
         data = cursor.fetchall()
 
-        enum_types = {}  
+        enum_types = {}
 
         for schema, type_name, enum_value in data:
             if type_name not in enum_types:
                 enum_types[type_name] = []
             enum_types[type_name].append(enum_value)
-        
+
         return enum_types
 
-        
-    def fetch_database_collection_schema(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
+
+    def fetch_database_collection_entities(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
         db_connection = self._db_connect(database)
 
         query = """
@@ -156,52 +159,59 @@ class PostgresDBSource(DataSource):
             if not schema.has_entity(table_name):
                 schema.add_entity(table_name)
 
-            
             property_def = {"type": data_type}
 
             if enum_types and udt_name in enum_types:
                 property_def["enum"] = enum_types[udt_name]
 
             if data_type.lower() in ("character varying", "varchar", "character", "text", "name"):
-                
-                cursor.execute(f"""
+
+                cursor.execute(
+                    f"""
                   SELECT COUNT(DISTINCT "{column_name}"), COUNT(*) 
                   FROM "{collection}"."{table_name}"
                   WHERE "{column_name}" IS NOT NULL
-                 """)
-            
+                 """
+                )
+
                 distinct_count, total_count = cursor.fetchone()
-                
-                cursor.execute(f'''
+
+                cursor.execute(
+                    f'''
                     SELECT AVG(LENGTH("{column_name}"))
                     FROM "{collection}"."{table_name}"
                     WHERE "{column_name}" IS NOT NULL
-                ''')
+                '''
+                )
                 avg_length = cursor.fetchone()[0] or 0
 
-
-                if (distinct_count <= max_distinct and (total_count == 0 or distinct_count / total_count <= max_ratio) and avg_length <= max_length):
-                    cursor.execute(f"""
+                if distinct_count <= max_distinct and (total_count == 0 or distinct_count / total_count <= max_ratio) and avg_length <= max_length:
+                    cursor.execute(
+                        f"""
                         SELECT DISTINCT "{column_name}"
                         FROM "{collection}"."{table_name}"
                         WHERE "{column_name}" IS NOT NULL
                         LIMIT {max_distinct};
-                    """)
+                    """
+                    )
                     values = [row[0] for row in cursor.fetchall()]
                     property_def["values"] = values
-        
+
             schema.add_entity_property(table_name, column_name, property_def)
 
-            
         self._db_disconnect(db_connection)
+        return schema.get_entities()
 
-        return schema.to_json()
+    ### TODO 
+    def fetch_database_collection_relations(self, database, collection):
+        return {}
+    
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
         if database is None:
             raise Exception("No database provided")
-        
+
         # create connection to db
         db_connection = self._db_connect(database)
 
@@ -223,7 +233,7 @@ class PostgresDBSource(DataSource):
     ######### stats
 
     def fetch_source_stats(self):
-            
+
         stats = {}
 
         try:
@@ -235,10 +245,12 @@ class PostgresDBSource(DataSource):
                 cur.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
                 databases = [row[0] for row in cur.fetchall()]
                 stats["database_count"] = len(databases)
-                
-                cur.execute("""
+
+                cur.execute(
+                    """
                     SELECT now() - pg_postmaster_start_time() AS uptime;
-                """)
+                """
+                )
                 stats["uptime"] = str(cur.fetchone()[0])
 
         except Exception as e:
@@ -248,10 +260,10 @@ class PostgresDBSource(DataSource):
         return stats
 
     def fetch_database_stats(self, database):
-            
+
         conn = self._db_connect(database)
         cur = conn.cursor()
-        
+
         stats = {}
         try:
             # Size of database in bytes
@@ -259,15 +271,17 @@ class PostgresDBSource(DataSource):
             size = cur.fetchone()
             stats["size_bytes"] = size[0] if size else None
 
-            cur.execute("""
+            cur.execute(
+                """
             SELECT COUNT(*) 
             FROM information_schema.tables 
             WHERE table_schema NOT IN ('pg_catalog', 'information_schema') 
             AND table_type = 'BASE TABLE';
-            """)
-            
+            """
+            )
+
             stats["table_count"] = cur.fetchone()[0]
-            
+
         except Exception as e:
             logging.warning(f"Error fetching database stats for {database}: {e}")
         finally:
@@ -275,24 +289,20 @@ class PostgresDBSource(DataSource):
 
         return stats
 
-    def fetch_collection_stats(self, database, collection_name, schema_json=None, sample_limit=10):
-            
-        if isinstance(schema_json, str):
-            schema_json = json.loads(schema_json)
+    def fetch_collection_stats(self, database, collection_name, entities, relations):
 
-        stats = {}
         
-        num_entities = len(schema_json.get("entities", {}))
+        stats = {}
+        num_entities = len(entities)
+        num_relations = len(relations)
+        
         stats["num_entities"] = num_entities
-
-        num_relations = len(schema_json.get("relations", {}))
         stats["num_relations"] = num_relations
-    
+
         return stats
 
-
     def fetch_entity_stats(self, database, collection, entity):
-        
+
         conn = self._db_connect(database)
         cursor = conn.cursor()
 
@@ -313,28 +323,39 @@ class PostgresDBSource(DataSource):
         return stats
 
     def fetch_property_stats(self, database, collection, table, property_name, sample_limit=10):
-    
+
         conn = self._db_connect(database)
         cursor = conn.cursor()
 
-        schema = collection 
-  
-        column = f'"{property_name}"'  
-        
+        schema = collection
+
+        column = f'"{property_name}"'
+
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT data_type
                 FROM information_schema.columns
                 WHERE table_schema = %s AND table_name = %s AND column_name = %s;
-            """, (schema, table, property_name))
+            """,
+                (schema, table, property_name),
+            )
             type_result = cursor.fetchone()
             column_type = type_result[0] if type_result else None
 
             # Set flags for whether to compute min/max
             include_min_max = column_type in (
-            'integer', 'bigint', 'smallint', 'numeric', 'real', 'double precision',
-            'date', 'timestamp without time zone', 'timestamp with time zone',
-            'boolean', 'enum'
+                'integer',
+                'bigint',
+                'smallint',
+                'numeric',
+                'real',
+                'double precision',
+                'date',
+                'timestamp without time zone',
+                'timestamp with time zone',
+                'boolean',
+                'enum',
             )
 
             # Build query dynamically
@@ -363,7 +384,7 @@ class PostgresDBSource(DataSource):
 
             cursor.execute(query)
             row = cursor.fetchone()
-            
+
             stats = {
                 "count": row[0],
                 "distinct_count": row[1],
@@ -374,19 +395,22 @@ class PostgresDBSource(DataSource):
             }
 
             # Additional query for most_common_vals from pg_stats
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT most_common_vals
                 FROM pg_stats
                 WHERE schemaname = %s AND tablename = %s AND attname = %s;
-            """, (schema, table, property_name))
+            """,
+                (schema, table, property_name),
+            )
 
             mc_row = cursor.fetchone()
-            
+
             if mc_row and mc_row[0]:
                 stats["most_common_vals"] = mc_row[0]
             else:
                 stats["most_common_vals"] = []
-                
+
             return stats
 
         except Exception as e:
@@ -394,4 +418,3 @@ class PostgresDBSource(DataSource):
             return {}
         finally:
             self._db_disconnect(conn)
-         

@@ -49,8 +49,8 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
     execute_query = properties.get('execute_query', True) if properties else True
     validate_query_prefixes = properties.get('validate_query_prefixes', ['SELECT']) if properties else ['SELECT']
-    if protocol not in ['postgres', 'mysql']:
-        raise ValueError(f"Unsupported protocol: {protocol}. Supported protocols are: postgres, mysql")
+    if protocol not in ['postgres', 'mysql', 'sqlite']:
+        raise ValueError(f"Unsupported protocol: {protocol}. Supported protocols are: postgres, mysql, sqlite")
 
     service_client = ServiceClient(name="nl2sql_operator_service_client", properties=properties)
     # Convert schema to JSON string if it's a dictionary

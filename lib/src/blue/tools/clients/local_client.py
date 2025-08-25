@@ -21,12 +21,12 @@ class LocalToolClient(ToolClient):
 
         self.tools = tools
 
-    ###### initialization
-    def _initialize_properties(self):
-        super()._initialize_properties()
+    ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
 
-        # server protocol
-        self.properties['protocol'] = "local"
+        # set host, port, protocol
+        self.properties['connection']['protocol'] = 'local'
 
     ###### connection
     def _connect(self, **connection):

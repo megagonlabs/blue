@@ -1,5 +1,6 @@
 import AuthErrorHandler from "@/components/AuthErrorHandler";
 import Blue from "@/components/Blue";
+import { ToasterProvider } from "@/components/contexts/ToasterContext";
 import { TourProvider } from "@/components/contexts/TourContext";
 import TourPopup from "@/components/navigation/TourPopup";
 import SocketHandler from "@/components/SocketHandler";
@@ -43,28 +44,30 @@ library.add(...iconList.map((icon) => Icons[icon]));
 const App = ({ Component, pageProps }) => {
     if (_.isEqual(typeof window, "object")) {
         return (
-            <AuthErrorHandler>
-                <Head>
-                    <title>
-                        Blue&nbsp;&#91;{NEXT_PUBLIC_PLATFORM_NAME}&#93;
-                    </title>
-                    <link rel="icon" href="/favicon.ico" />
-                    <meta
-                        name="viewport"
-                        content="width=device-width, initial-scale=1.0"
-                    />
-                </Head>
-                <SocketHandler>
-                    <SystemStatusHandler>
-                        <TourProvider>
-                            <Blue>
-                                <Component {...pageProps} />
-                            </Blue>
-                            <TourPopup />
-                        </TourProvider>
-                    </SystemStatusHandler>
-                </SocketHandler>
-            </AuthErrorHandler>
+            <ToasterProvider>
+                <AuthErrorHandler>
+                    <Head>
+                        <title>
+                            Blue&nbsp;&#91;{NEXT_PUBLIC_PLATFORM_NAME}&#93;
+                        </title>
+                        <link rel="icon" href="/favicon.ico" />
+                        <meta
+                            name="viewport"
+                            content="width=device-width, initial-scale=1.0"
+                        />
+                    </Head>
+                    <SocketHandler>
+                        <SystemStatusHandler>
+                            <TourProvider>
+                                <Blue>
+                                    <Component {...pageProps} />
+                                </Blue>
+                                <TourPopup />
+                            </TourProvider>
+                        </SystemStatusHandler>
+                    </SocketHandler>
+                </AuthErrorHandler>
+            </ToasterProvider>
         );
     }
     return null;

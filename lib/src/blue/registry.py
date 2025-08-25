@@ -10,6 +10,7 @@ from redis.commands.json.path import Path
 from redis.commands.search.field import TextField, VectorField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from redis.commands.search.query import Query
+from blue.constant import Separator
 
 #######
 import numpy as np
@@ -23,7 +24,7 @@ from blue.utils import json_utils, uuid_utils, log_utils
 ### Registry
 #
 class Registry:
-    SEPARATOR = '___'
+    SEPARATOR = Separator.ENTITY
 
     def __init__(self, name="REGISTRY", type=None, id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 

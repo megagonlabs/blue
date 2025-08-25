@@ -26,12 +26,18 @@ export default function AuthErrorHandler({ children }) {
     }, [clearUser]);
     const timeoutIdRef = useRef(null); // ref to store the timeoutId
     useEffect(() => {
-        const checkSession = async () => {
-            axios.get("/accounts/profile").then(() => {
-                timeoutIdRef.current = setTimeout(checkSession, 2 * 60 * 1000);
-            });
+        const checkAuthSession = async () => {
+            axios
+                .get("/accounts/profile")
+                .then(() => {
+                    timeoutIdRef.current = setTimeout(
+                        checkAuthSession,
+                        2 * 60 * 1000
+                    );
+                })
+                .catch((error) => {});
         };
-        checkSession();
+        checkAuthSession();
         return () => {
             // clear the latest timeout using the ref
             if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);

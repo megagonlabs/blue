@@ -1,6 +1,8 @@
 import { createContext, useContext, useState } from "react";
 const TourContext = createContext();
-export const useTour = () => useContext(TourContext);
+export const useTour = () => {
+    return useContext(TourContext);
+};
 export const TourProvider = ({ children }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [isTourActive, setIsTourActive] = useState(false);

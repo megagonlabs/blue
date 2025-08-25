@@ -51,7 +51,7 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
-data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROPERTIES)
+data_registry = DataRegistry(id=data_registry_id, platform_id = platform_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data", dependencies=[Depends(account_id_header)])

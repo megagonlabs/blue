@@ -14,9 +14,9 @@ import { faFlag } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { useToaster } from "../contexts/ToasterContext";
 import { useTour } from "../contexts/TourContext";
 import { FAIcon } from "../FAIcon";
-import { AppToaster } from "../toaster";
 export default function UITour() {
     const { startTour } = useTour();
     const id = "platform-onboarding-tour";
@@ -30,9 +30,10 @@ export default function UITour() {
     const onChange = (event) => {
         setVisibility({ id, value: !event.target.checked });
     };
+    const { appToaster } = useToaster();
     useEffect(() => {
         if (_.get(UIVisibility, id, true)) {
-            AppToaster.show({
+            appToaster.show({
                 timeout: 10000,
                 intent: Intent.PRIMARY,
                 icon: <FAIcon icon={faFlag} />,
@@ -40,7 +41,7 @@ export default function UITour() {
                     "To start a basic tour, select the flag in the top-left corner.",
             });
         }
-    }, [UIVisibility]);
+    }, [UIVisibility[id]]);
     if (!_.get(UIVisibility, id, true)) {
         return null;
     }

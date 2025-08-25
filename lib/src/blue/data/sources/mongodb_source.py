@@ -16,21 +16,23 @@ from blue.data.schema import DataSchema
 class MongoDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
-        
-
-    ###### initialization
-    def _initialize_properties(self):
-        super()._initialize_properties()
-
-        # source protocol 
-        self.properties['protocol'] = "mongodb"
+        self._schema_cache = {}
+       
 
     ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
+
+        # set host, port, protocol
+        self.properties['connection']['host'] = 'localhost'
+        self.properties['connection']['port'] = 27017
+        self.properties['connection']['protocol'] = 'mongodb'
+
     def _connect(self, **connection):
         host = connection['host']
         port = connection['port']
-        
-        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)    
+
+        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)
         return MongoClient(connection_url)
 
     def _disconnect(self):
@@ -55,8 +57,6 @@ class MongoDBSource(DataSource):
     def fetch_database_schema(self, database):
         return {}
 
-
-
     ######### database/collection
     def fetch_database_collections(self, database):
         collections = self.connection[database].list_collection_names()
@@ -65,12 +65,31 @@ class MongoDBSource(DataSource):
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    def fetch_database_collection_schema(self, database, collection):
+    def _get_collection_schema(self, database, collection):
+        """
+        Internal helper: return cached schema object for a collection.
+        """
+        cache_key = (database, collection)
+        if cache_key in self._schema_cache:
+            return self._schema_cache[cache_key]
+
         coll = self.connection[database][collection]
         sample = coll.find_one()
-
+        
         schema = self.extract_schema(sample)
-        return schema.to_json()
+
+        self._schema_cache[cache_key] = schema
+        return schema
+
+
+    def fetch_database_collection_entities(self, database, collection):
+        schema = self._get_collection_schema(database, collection)
+        return schema.get_entities()
+
+
+    def fetch_database_collection_relations(self, database, collection):
+        schema = self._get_collection_schema(database, collection)
+        return schema.get_relations()
 
     def extract_schema(self, sample, schema=None, source=None):
         if schema is None:
@@ -95,15 +114,14 @@ class MongoDBSource(DataSource):
                     self.extract_schema(value, schema=schema, source=target)
                 else:
                     schema.add_entity_property(source, key, value.__class__.__name__)
-                
-        return schema
 
+        return schema
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
         if database is None:
             raise Exception("No database provided")
-        
+
         if collection is None:
             raise Exception("No collection provided")
 
@@ -121,4 +139,3 @@ class MongoDBSource(DataSource):
             result_list.append(doc)
 
         return result_list
-    

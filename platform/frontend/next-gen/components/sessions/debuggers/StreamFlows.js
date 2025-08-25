@@ -1,3 +1,5 @@
+import { ReactFlowCustomProvider } from "@/components/contexts/ReactFlowCustomContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import { getReactFlowLayoutedElements } from "@/components/helper";
 import { useSessionStore } from "@/stores/session-store";
@@ -6,17 +8,32 @@ import {
     ButtonGroup,
     ButtonVariant,
     Card,
+    Divider,
     NonIdealState,
+    Size,
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faArrowLeftArrowRight,
     faArrowsMaximize,
+    faArrowUpArrowDown,
+    faClipboard,
     faCompassDrafting,
+    faDownload,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import { Background, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
+import {
+    Background,
+    getConnectedEdges,
+    Panel,
+    ReactFlow,
+    useReactFlow,
+    useStore,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import _ from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import copy from "copy-to-clipboard";
+import _, { debounce } from "lodash";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/react/shallow";
 import AgentNode from "./react-flow/AgentNode";
@@ -27,10 +44,92 @@ const NODE_TYPES = {
     agent: AgentNode,
     tag: TagNode,
 };
+const traverseAndFindEdges = (
+    startNode,
+    allEdges,
+    allNodes,
+    targetNodeTypes,
+    setSelectedNodes
+) => {
+    const visitedEdges = new Set();
+    const queue = [startNode];
+    const visitedNodes = new Set();
+    visitedNodes.add(startNode.id);
+    const selectedNodes = new Set();
+    while (queue.length > 0) {
+        const currentNode = queue.shift();
+        const connectedEdges = getConnectedEdges([currentNode], allEdges);
+        connectedEdges.forEach((edge) => {
+            if (!visitedEdges.has(edge.id)) {
+                const nextNodeId = _.isEqual(edge.source, currentNode.id)
+                    ? edge.target
+                    : edge.source;
+                const nextNode = allNodes.find((n) =>
+                    _.isEqual(n.id, nextNodeId)
+                );
+                if (nextNode && _.includes(targetNodeTypes, nextNode.type)) {
+                    selectedNodes.add(nextNodeId);
+                    visitedEdges.add(edge.id);
+                } else if (nextNode && !visitedNodes.has(nextNodeId)) {
+                    visitedEdges.add(edge.id);
+                    visitedNodes.add(nextNodeId);
+                    queue.push(nextNode);
+                }
+            }
+        });
+    }
+    setSelectedNodes(selectedNodes);
+    return Array.from(visitedEdges);
+};
+const selector = (state) => ({ edges: state.edges, nodes: state.nodes });
 export default function StreamFlows({ sessionId }) {
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
-    const { fitView, getNodes, getEdges } = useReactFlow();
+    const [direction, setDirection] = useState("TB");
+    const [selectedEdges, setSelectedEdges] = useState(new Set());
+    const [selectedNodes, setSelectedNodes] = useState(new Set());
+    const [clickedNode, setClickedNode] = useState(null);
+    const { edges: latestEdges, nodes: latestNodes } = useStore(selector);
+    const onEdgeClick = useCallback((event, edge) => {
+        setSelectedEdges((prevSelected) => {
+            const newSelected = new Set(prevSelected);
+            newSelected.delete(edge.id);
+            return newSelected;
+        });
+    }, []);
+    const { fitView, getNodes, getEdges, setViewport } = useReactFlow();
+    const initialRender = useRef(true);
+    const [lastViewport, setLastViewport] = useState(null);
+    const onNodeClick = useCallback(
+        (event, node) => {
+            const targetNodeTypes = ["stream", "agent"];
+            const foundEdges = traverseAndFindEdges(
+                node,
+                latestEdges,
+                latestNodes,
+                targetNodeTypes,
+                setSelectedNodes
+            );
+            setClickedNode(node);
+            setSelectedEdges(new Set(foundEdges));
+        },
+        [latestEdges, latestNodes]
+    );
+    useEffect(() => {
+        setEdges((prevEdges) =>
+            prevEdges.map((edge) => {
+                const isSelected = selectedEdges.has(edge.id);
+                const defaultStyle = { strokeWidth: 2 };
+                return {
+                    ...edge,
+                    style: isSelected
+                        ? { ...defaultStyle, stroke: "#2D72D2", strokeWidth: 4 }
+                        : defaultStyle,
+                    zIndex: isSelected ? 1000 : null,
+                };
+            })
+        );
+    }, [selectedEdges]);
     const [measuredDimensions, setMeasuredDimensions] = useState({});
     const nodesWithKnownDimensions = _.keys(measuredDimensions);
     const handleNodeDimensionsChange = useCallback((nodeId, width, height) => {
@@ -40,6 +139,7 @@ export default function StreamFlows({ sessionId }) {
         }));
     }, []);
     const [layoutInitialized, setLayoutInitialized] = useState(false);
+    const { appToaster } = useToaster();
     useEffect(() => {
         const allCurrentNodes = getNodes();
         const allNodesMeasured = allCurrentNodes.every((node) => {
@@ -58,16 +158,22 @@ export default function StreamFlows({ sessionId }) {
             const { nodes: layoutedNodes } = getReactFlowLayoutedElements(
                 nodesToLayout,
                 getEdges(),
-                "LR"
+                direction
             );
             setNodes(layoutedNodes);
-            fitView();
+            if (lastViewport && !initialRender.current) {
+                setViewport(lastViewport);
+            } else {
+                fitView();
+            }
+            initialRender.current = false;
             setTimeout(() => {
                 setLayoutInitialized(true);
             }, 300);
         }
     }, [
         nodesWithKnownDimensions.length,
+        direction,
         getNodes,
         getEdges,
         setNodes,
@@ -91,7 +197,27 @@ export default function StreamFlows({ sessionId }) {
         }))
     );
     const { messages } = session;
+    const currentStreamDebugger = useRef({});
+    const [streamDebugger, setStreamDebugger] = useState({});
+    const handleViewportChange = useCallback((event, viewport) => {
+        setLastViewport(viewport);
+    }, []);
+    const getSessionDebugger = useCallback(
+        debounce(() => {
+            axios
+                .get(`/sessions/session/${sessionId}/debugger`)
+                .then((response) => {
+                    const results = _.get(response, "data.results", {});
+                    if (!_.isEqual(currentStreamDebugger.current, results)) {
+                        currentStreamDebugger.current = results;
+                        setStreamDebugger(results);
+                    }
+                });
+        }, 5000),
+        []
+    );
     useEffect(() => {
+        getSessionDebugger();
         const nodes = [];
         const edges = [];
         const seenNodeIds = new Set();
@@ -117,7 +243,10 @@ export default function StreamFlows({ sessionId }) {
             }
             // consumers
             const consumers = _.keys(
-                _.get(messages, [i, "metadata", "consumers"], {})
+                _.merge(
+                    _.get(metadata, "consumers", {}),
+                    _.get(streamDebugger, [stream, "consumers"], {})
+                )
             ).filter((key) => !_.startsWith(key, "OBSERVER:"));
             for (let j = 0; j < _.size(consumers); j++) {
                 const agent = consumers[j];
@@ -172,7 +301,10 @@ export default function StreamFlows({ sessionId }) {
             }
             // producers
             const producers = _.keys(
-                _.get(messages, [i, "metadata", "producers"], {})
+                _.merge(
+                    _.get(metadata, "producers", {}),
+                    _.get(streamDebugger, [stream, "producers"], {})
+                )
             );
             for (let j = 0; j < _.size(producers); j++) {
                 const agent = producers[j];
@@ -226,7 +358,7 @@ export default function StreamFlows({ sessionId }) {
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
         setLayoutInitialized(false);
-    }, [messages]);
+    }, [messages, streamDebugger]);
     return (
         <div
             className="full-parent-dimension"
@@ -244,33 +376,89 @@ export default function StreamFlows({ sessionId }) {
                     }
                 />
             )}
-            <ReactFlow
-                elevateEdgesOnSelect
-                fitView
-                nodesDraggable={false}
-                nodesConnectable={false}
-                nodesFocusable={false}
-                edgesFocusable={false}
-                nodes={nodesWithHandlers}
-                edges={edges}
-                nodeTypes={NODE_TYPES}
+            <ReactFlowCustomProvider
+                value={{ direction, selectedNodes, clickedNode }}
             >
-                <Background />
-                <Panel position="top-left">
-                    <Card style={{ padding: 5 }}>
-                        <ButtonGroup vertical variant={ButtonVariant.MINIMAL}>
-                            <Tooltip content="Fit view" placement="right">
-                                <Button
-                                    onClick={() => {
-                                        fitView({ duration: 300 });
-                                    }}
-                                    icon={<FAIcon icon={faArrowsMaximize} />}
-                                />
-                            </Tooltip>
-                        </ButtonGroup>
-                    </Card>
-                </Panel>
-            </ReactFlow>
+                <ReactFlow
+                    elevateEdgesOnSelect
+                    fitView
+                    onMove={handleViewportChange}
+                    nodesDraggable={false}
+                    nodesConnectable={false}
+                    nodesFocusable={false}
+                    edgesFocusable={false}
+                    nodes={nodesWithHandlers}
+                    onNodeClick={onNodeClick}
+                    onEdgeClick={onEdgeClick}
+                    edges={edges}
+                    nodeTypes={NODE_TYPES}
+                >
+                    <Background />
+                    <Panel position="top-left">
+                        <Card style={{ padding: 5 }}>
+                            <ButtonGroup
+                                size={Size.LARGE}
+                                vertical
+                                variant={ButtonVariant.MINIMAL}
+                            >
+                                <Tooltip content="Fit view" placement="right">
+                                    <Button
+                                        onClick={() => {
+                                            fitView({ duration: 300 });
+                                        }}
+                                        icon={
+                                            <FAIcon icon={faArrowsMaximize} />
+                                        }
+                                    />
+                                </Tooltip>
+                                <Tooltip content="Direction" placement="right">
+                                    <Button
+                                        onClick={() => {
+                                            setDirection(
+                                                _.isEqual(direction, "TB")
+                                                    ? "LR"
+                                                    : "TB"
+                                            );
+                                        }}
+                                        icon={
+                                            <FAIcon
+                                                icon={
+                                                    _.isEqual(direction, "TB")
+                                                        ? faArrowUpArrowDown
+                                                        : faArrowLeftArrowRight
+                                                }
+                                            />
+                                        }
+                                    />
+                                </Tooltip>
+                                <Divider />
+                                <Tooltip content="Export" placement="right">
+                                    <Button
+                                        onClick={() => {
+                                            copy(
+                                                JSON.stringify({
+                                                    nodes: nodesWithHandlers,
+                                                    edges,
+                                                })
+                                            );
+                                            appToaster.show({
+                                                icon: (
+                                                    <FAIcon
+                                                        icon={faClipboard}
+                                                    />
+                                                ),
+                                                message:
+                                                    "Copied nodes and edges",
+                                            });
+                                        }}
+                                        icon={<FAIcon icon={faDownload} />}
+                                    />
+                                </Tooltip>
+                            </ButtonGroup>
+                        </Card>
+                    </Panel>
+                </ReactFlow>
+            </ReactFlowCustomProvider>
         </div>
     );
 }

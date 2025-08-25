@@ -23,12 +23,14 @@ class RayToolClient(ToolClient):
 
         self.tools = tools
 
-    ###### initialization
-    def _initialize_properties(self):
-        super()._initialize_properties()
+    ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
 
-        # server protocol
-        self.properties['protocol'] = "ray"
+        # set host, port, protocol
+        self.properties['connection']['host'] = 'localhost'
+        self.properties['connection']['port'] = 10001
+        self.properties['connection']['protocol'] = 'ray'
 
     ###### connection
     def _connect(self, **connection):

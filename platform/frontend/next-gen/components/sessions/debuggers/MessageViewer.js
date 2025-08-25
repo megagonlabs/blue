@@ -1,6 +1,6 @@
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import Timestamp from "@/components/Timestamp";
-import { AppToaster } from "@/components/toaster";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
@@ -32,6 +32,7 @@ export default function MessageViewer({ sessionId, message }) {
     const tags = _.entries(_.get(message, "metadata.tags", {}))
         .filter((tag) => tag[1])
         .map((tag) => tag[0]);
+    const { appToaster } = useToaster();
     return (
         <div
             className="full-parent-dimension"
@@ -66,7 +67,7 @@ export default function MessageViewer({ sessionId, message }) {
                     <Button
                         onClick={() => {
                             copy(message.stream);
-                            AppToaster.show({
+                            appToaster.show({
                                 message: "Stream key name copied",
                             });
                         }}

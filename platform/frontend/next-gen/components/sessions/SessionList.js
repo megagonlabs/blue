@@ -19,6 +19,7 @@ import {
     faBarsFilter,
     faEraser,
     faInboxArrowUp,
+    faRefresh,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -170,6 +171,12 @@ function SessionList({ width, height }) {
                 </FilterPane>
                 <ControlGroup>
                     <Button
+                        size={Size.LARGE}
+                        icon={<FAIcon icon={faRefresh} />}
+                        variant={ButtonVariant.MINIMAL}
+                        onClick={getSessions}
+                    />
+                    <Button
                         onClick={() => {
                             setShowFilter(true);
                         }}
@@ -177,34 +184,37 @@ function SessionList({ width, height }) {
                         icon={<FAIcon icon={faBarsFilter} />}
                         variant={ButtonVariant.OUTLINED}
                         intent={Intent.PRIMARY}
-                        text="Filter"
                     />
-                    <InputGroup
-                        leftIcon={<FAIcon icon={faSearch} />}
-                        size={Size.LARGE}
-                        rightElement={
-                            <Tooltip
-                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                                content="Clear search"
-                                boundary={elementRef.current}
-                            >
-                                <Button
-                                    onClick={() => {
-                                        setFilterValue({
-                                            key: "keywords",
-                                            value: "",
-                                        });
-                                    }}
-                                    variant={ButtonVariant.MINIMAL}
-                                    icon={<FAIcon icon={faEraser} />}
-                                />
-                            </Tooltip>
-                        }
-                        value={_.get(filter, "keywords", "")}
-                        onValueChange={(value) => {
-                            setFilterValue({ key: "keywords", value });
-                        }}
-                    />
+                    <div style={{ width: 257, maxWidth: "calc(100% - 84px)" }}>
+                        <InputGroup
+                            leftIcon={<FAIcon icon={faSearch} />}
+                            size={Size.LARGE}
+                            rightElement={
+                                !_.isEmpty(_.get(filter, "keywords", "")) && (
+                                    <Tooltip
+                                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                        content="Clear search"
+                                        boundary={elementRef.current}
+                                    >
+                                        <Button
+                                            onClick={() => {
+                                                setFilterValue({
+                                                    key: "keywords",
+                                                    value: "",
+                                                });
+                                            }}
+                                            variant={ButtonVariant.MINIMAL}
+                                            icon={<FAIcon icon={faEraser} />}
+                                        />
+                                    </Tooltip>
+                                )
+                            }
+                            value={_.get(filter, "keywords", "")}
+                            onValueChange={(value) => {
+                                setFilterValue({ key: "keywords", value });
+                            }}
+                        />
+                    </div>
                 </ControlGroup>
                 <div style={{ marginTop: 20 }}>
                     <CardListCallout />

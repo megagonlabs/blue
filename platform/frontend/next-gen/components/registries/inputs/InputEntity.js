@@ -3,20 +3,22 @@ import {
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
+import { useToaster } from "@/components/contexts/ToasterContext";
+import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
     settlePromises,
     shallowDiff,
-    showAxiosErrorToast,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
-import { Classes, Colors, EditableText } from "@blueprintjs/core";
+import { Classes, Colors, EditableText, Intent } from "@blueprintjs/core";
+import { faBracketsCurly } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
@@ -31,6 +33,7 @@ export default function InputEntity({ entity, backCrumb }) {
     const [editedInput, setEditedInput] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
+    const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -63,6 +66,7 @@ export default function InputEntity({ entity, backCrumb }) {
                 setLoading(false);
             });
     }, [entity]);
+    const JSONError = useRef(false);
     const handleDiscard = () => {
         setEditedInput(input);
         setMainProperties(
@@ -71,39 +75,54 @@ export default function InputEntity({ entity, backCrumb }) {
         setIsEditing(false);
     };
     const handleSave = () => {
-        setLoading(true);
-        axios
-            .put(url, {
-                name: editedInput.name,
-                description: editedInput.description,
-            })
-            .then(() => {
-                const properties = {
-                    ...editedInput.properties,
-                    ...mainProperties,
-                };
-                const diffs = shallowDiff(input.properties, properties);
-                const promises = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                });
-                settlePromises(promises, ({ error }) => {
-                    if (!error) {
-                        const newInput = { ...editedInput, properties };
-                        setInput(newInput);
-                        setEditedInput(newInput);
-                        setMainProperties(getEntityMainProperties(properties));
-                        setIsEditing(false);
-                    }
+        if (JSONError.current) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                icon: <FAIcon icon={faBracketsCurly} />,
+                message: "Invalid JSON",
+            });
+        } else {
+            setLoading(true);
+            axios
+                .put(url, {
+                    name: editedInput.name,
+                    description: editedInput.description,
+                })
+                .then(() => {
+                    const properties = {
+                        ...editedInput.properties,
+                        ...mainProperties,
+                    };
+                    const diffs = shallowDiff(input.properties, properties);
+                    const promises = getUpdatePropertyPromises({
+                        axios,
+                        url: `${url}/property`,
+                        diffs,
+                        properties,
+                        showAxiosErrorToast,
+                    });
+                    settlePromises(
+                        promises,
+                        ({ error }) => {
+                            if (!error) {
+                                const newInput = { ...editedInput, properties };
+                                setInput(newInput);
+                                setEditedInput(newInput);
+                                setMainProperties(
+                                    getEntityMainProperties(properties)
+                                );
+                                setIsEditing(false);
+                            }
+                            setLoading(false);
+                        },
+                        progressToaster
+                    );
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
                     setLoading(false);
                 });
-            })
-            .catch((error) => {
-                showAxiosErrorToast(error);
-                setLoading(false);
-            });
+        }
     };
     const onDelete = () => {
         setLoading(true);
@@ -223,6 +242,7 @@ export default function InputEntity({ entity, backCrumb }) {
                     updateEntity={updateInput}
                     entity={editedInput}
                     loading={loading}
+                    JSONError={JSONError}
                 />
             </div>
         </div>

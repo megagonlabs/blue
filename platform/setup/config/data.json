@@ -17,6 +17,20 @@
         "icon": null
     },
     {
+        "name": "internal",
+        "type": "source",
+        "scope": "/",
+        "description": "",
+        "properties": {
+            "connection": {
+                "database_directory": "/blue_data/sqlite/internal",
+                "protocol": "sqlite"
+            },
+            "metadata": {}
+        },
+        "icon": null
+    },
+    {
         "name": "openai_example",
         "type": "source",
         "scope": "/",

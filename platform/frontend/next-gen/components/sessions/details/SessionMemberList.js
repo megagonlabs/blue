@@ -1,5 +1,5 @@
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
-import { showAxiosErrorToast } from "@/components/helper";
 import NoResultsFound from "@/components/nonidealstates/NoResultsFound";
 import { useAppStore } from "@/stores/app-store";
 import { useDedupStore } from "@/stores/dedup-store";
@@ -52,10 +52,11 @@ export default function SessionMemberList({ sessionId }) {
     );
 
     const [searchKeyword, setSearchKeyword] = useState("");
+    const { showAxiosErrorToast } = useToaster();
     useEffect(() => {
-        getUserProfileById(owner);
+        getUserProfileById(owner, showAxiosErrorToast);
         for (let i = 0; i < _.size(members); i++) {
-            getUserProfileById(members[i]);
+            getUserProfileById(members[i], showAxiosErrorToast);
         }
     }, [members]);
     const [showSearch, setShowSearch] = useState(false);

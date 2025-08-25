@@ -1,7 +1,6 @@
 import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
-import { showAxiosErrorToast } from "@/components/helper";
-import { AppToaster } from "@/components/toaster";
 import { useAppStore } from "@/stores/app-store";
 import { usePlatformStore } from "@/stores/platform-store";
 import {
@@ -49,6 +48,7 @@ export default function SessionConfigurations() {
     useEffect(() => {
         setDuration(durationValue);
     }, [durationValue]);
+    const { appToaster, showAxiosErrorToast } = useToaster();
     const handleDurationSave = () => {
         setSaving(true);
         axios
@@ -56,7 +56,7 @@ export default function SessionConfigurations() {
                 value: durationNumber,
             })
             .then(() => {
-                AppToaster.show({
+                appToaster.show({
                     message: "Expiration duration has been updated.",
                     intent: Intent.SUCCESS,
                 });

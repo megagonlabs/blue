@@ -77,23 +77,19 @@ Output:
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # source protocol
-        ## if the platform only support protocal (the following line needs to be removed after github issue #945)
-        self.properties['protocol'] = "openai"
-
-        ## if the platform support protocal + variant
-        # self.properties['protocol'] = "llm"
-        # self.properties['protocol_variant'] = "openai"
-
         # Initialize default properties
         for key in OpenAISource.PROPERTIES:
             self.properties[key] = OpenAISource.PROPERTIES[key]
 
     ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
+
+        # set host, port, protocol
+        self.properties['connection']['protocol'] = 'openai'
+
+    ###### connection
     def _connect(self, **connection):
-        self.host = connection.get('host')
-        self.port = connection.get('port')
-        # self.logger.debug(f"OpenAI source connected to {self.host}:{self.port}")
         return {}
 
     def _disconnect(self):
@@ -124,8 +120,12 @@ Output:
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    def fetch_database_collection_schema(self, database, collection):
+    def fetch_database_collection_entities(self, database, collection):
         return {}
+
+    def fetch_database_collection_relations(self, database, collection):
+        return {}
+
 
     def get_service_address(self, properties=None):
         service_address = f"ws://{self.host}:{self.port}"

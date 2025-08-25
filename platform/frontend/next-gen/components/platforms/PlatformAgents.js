@@ -17,7 +17,7 @@ import {
     Column,
     ColumnHeaderCell,
     RowHeaderCell,
-    Table2,
+    Table,
     TableLoadingOption,
     Utils,
 } from "@blueprintjs/table";
@@ -38,11 +38,10 @@ import {
     HEX_TRANSPARENCY,
     TABLE_CELL_HEIGHT,
 } from "../constants";
+import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
-import { showAxiosErrorToast } from "../helper";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Timestamp from "../Timestamp";
-import { AppToaster } from "../toaster";
 import AgentCheckbox from "./AgentCheckbox";
 import LogPane from "./LogPane";
 function PlatformAgents({ width, height }) {
@@ -70,6 +69,7 @@ function PlatformAgents({ width, height }) {
     const [tableKey, setTableKey] = useState(Date.now());
     const [deleting, setDeleting] = useState(false);
     const [containerId, setContainerId] = useState(null);
+    const { appToaster, showAxiosErrorToast } = useToaster();
     const columns = useMemo(() => {
         return _.sortBy(
             [
@@ -244,7 +244,7 @@ function PlatformAgents({ width, height }) {
                 if (_.isEqual(size, 1)) {
                     message = `Updated ${_.first(_.toArray(updated))} agent`;
                 }
-                AppToaster.show({ message, intent: Intent.SUCCESS });
+                appToaster.show({ message, intent: Intent.SUCCESS });
                 removeServiceFromList({ ids: updated });
             }
         });
@@ -289,7 +289,7 @@ function PlatformAgents({ width, height }) {
                             _.toArray(deleted)
                         )} agent`;
                     }
-                    AppToaster.show({ message, intent: Intent.SUCCESS });
+                    appToaster.show({ message, intent: Intent.SUCCESS });
                     removeServiceFromList({ ids: deleted });
                 }
             })
@@ -365,7 +365,7 @@ function PlatformAgents({ width, height }) {
                         icon={<FAIcon icon={faCircleA} size={50} />}
                     />
                 ) : (
-                    <Table2
+                    <Table
                         key={tableKey}
                         loadingOptions={
                             loading
@@ -428,7 +428,7 @@ function PlatformAgents({ width, height }) {
                                 />
                             );
                         })}
-                    </Table2>
+                    </Table>
                 )}
             </div>
         </div>

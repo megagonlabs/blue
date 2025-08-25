@@ -9,13 +9,14 @@ import {
     Classes,
     Colors,
     HotkeysProvider,
-    HotkeysTarget2,
+    HotkeysTarget,
     Intent,
     Menu,
     MenuDivider,
     MenuItem,
     OverlaysProvider,
     Size,
+    Spinner,
     Tag,
 } from "@blueprintjs/core";
 import { Omnibar } from "@blueprintjs/select";
@@ -40,6 +41,7 @@ import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
 import Authentication from "./Authentication";
 import { CIRCLE_DOT_WITH_FADE, ENTITY_TYPE_LOOKUP } from "./constants";
+import { useToaster } from "./contexts/ToasterContext";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import Dock from "./navigation/Dock";
@@ -200,13 +202,21 @@ export default function Blue({ children }) {
             visible: permissions.canWritePlatformSettings,
         },
     };
+    const { initialized } = useToaster();
+    if (!initialized) {
+        return (
+            <div className="center-center">
+                <Spinner intent={Intent.PRIMARY} />
+            </div>
+        );
+    }
     if (_.isNull(user)) {
         return <Authentication />;
     }
     return (
         <OverlaysProvider>
             <HotkeysProvider dialogProps={{ className: darkModeClassName }}>
-                <HotkeysTarget2 hotkeys={hotkeys}>
+                <HotkeysTarget hotkeys={hotkeys}>
                     <div
                         className={darkModeClassName}
                         style={{
@@ -485,6 +495,9 @@ export default function Blue({ children }) {
                                                                             return (
                                                                                 visible && (
                                                                                     <MenuItem
+                                                                                        key={
+                                                                                            type
+                                                                                        }
                                                                                         onClick={() => {
                                                                                             addContainer(
                                                                                                 {
@@ -672,7 +685,7 @@ export default function Blue({ children }) {
                             </div>
                         </div>
                     </div>
-                </HotkeysTarget2>
+                </HotkeysTarget>
             </HotkeysProvider>
         </OverlaysProvider>
     );

@@ -15,7 +15,8 @@ from blue.pubsub import Consumer, Producer
 from blue.session import Session
 from blue.tracker import PerformanceTracker, SystemPerformanceTracker, Metric, MetricGroup
 from blue.utils import json_utils, uuid_utils, log_utils
-
+from blue.agents.plan import AgenticPlan
+from blue.constant import Separator
 
 # system tracker
 system_tracker = None
@@ -550,8 +551,6 @@ class Worker:
 ### Agent
 #
 class Agent:
-    SEPARATOR = '___'
-
     def __init__(
         self,
         name="AGENT",
@@ -693,6 +692,9 @@ class Agent:
 
         includes = []
         excludes = []
+
+        if properties is None:
+            properties = {}
         if 'listens' in properties:
             listens = properties['listens']
             if 'includes' in listens:
@@ -706,6 +708,9 @@ class Agent:
             return
 
         tags = []
+        if properties is None:
+            properties = {}
+
         if 'tags' in properties:
             tags = properties['tags']
 
@@ -1075,6 +1080,7 @@ class Agent:
 
         return matched_inputs
 
+    # interact
     def interact(self, data, output="DEFAULT", unique=True, eos=True):
         if self.session is None:
             self.logger.error("No current session to interact with.")
@@ -1092,6 +1098,22 @@ class Agent:
 
         if eos:
             worker.write_eos(output=output)
+
+    # plan
+    def submit_plan(self, plan):
+        if self.session is None:
+            self.logger.error("No current session to submit.")
+            return
+
+        if not isinstance(plan, AgenticPlan):
+            self.logger.error("Incorrect plan type")
+            return
+
+        # create worker to submit plan for session
+        worker = self.create_worker(None)
+
+        # write plan, automatically notify session on BOS
+        plan.submit(worker)
 
     ## data
     def set_data(self, key, value):
@@ -1151,13 +1173,15 @@ class Agent:
 
         # leave session
         self.leave_session()
+        if self.session_consumer is not None and isinstance(self.session_consumer, Consumer):
+            self.session_consumer.stop()
 
         # send stop to each worker
         for worker_input_stream in self.workers:
             worker = self.workers[worker_input_stream]
             worker.stop()
 
-        for worker_input_stream in self.workers:
+        for worker_input_stream in list(self.workers.keys()):
             del self.workers[worker_input_stream]
 
     def wait(self):
@@ -1330,7 +1354,7 @@ class AgentFactory:
 
             # check match in canonical name space, i.e.
             # <base_name> or <base_name>___<derivative__name>___<derivative__name>...
-            ca = agent.split(Agent.SEPARATOR)
+            ca = agent.split(Separator.AGENT)
             base_name = ca[0]
 
             if self._name == base_name:

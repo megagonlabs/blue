@@ -29,8 +29,8 @@ class DataSource:
     def _initialize_properties(self):
         self.properties = {}
 
-        # source protocol
-        self.properties['protocol'] = "default"
+        # connection properties
+        self._initialize_connection_properties()
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -39,6 +39,12 @@ class DataSource:
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_connection_properties(self):
+        connection_properties = {}
+
+        connection_properties['protocol'] = 'default'
+        self.properties['connection'] = connection_properties
 
     def _initialize_logger(self):
         self.logger = log_utils.CustomLogger()
@@ -82,7 +88,7 @@ class DataSource:
     def fetch_schema(self):
         return {}
 
-    ######### database
+    ######### source/database
     def fetch_databases(self):
         return []
 
@@ -92,16 +98,45 @@ class DataSource:
     def fetch_database_schema(self, database):
         return {}
 
-    ######### database/collection
+    def create_database(self, database, properties={}):
+        return {}
+
+    ######### source/database/collection
     def fetch_database_collections(self, database):
         return []
 
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    def fetch_database_collection_schema(self, database, collection):
+    def fetch_database_collection_entities(self, database, collection):
         return {}
 
+    def fetch_database_collection_relations(self, database, collection):
+        return {}
+
+    def create_database_collection(self, database, collection, properties={}):
+        return {}
+
+    ######### source/database/collection/entity
+    # properties: {
+    #     "properties": [    <--- entity properties
+    #         {
+    #             "name": "",
+    #             "type": "",
+    #             "misc":
+    #         }
+    #      ]
+    # }
+    # note: misc can include primary key, etc. features that are db specific
+    #
+    def create_database_collection_entity(self, database, collection, entity, properties={}):
+        return {}
+
+    ######### source/database/collection/relation
+    def create_database_collection_relation(self, database, collection, relation, properties={}):
+        return {}
+
+    ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
         return [{}]
 
@@ -111,7 +146,7 @@ class DataSource:
 
     def fetch_database_stats(self, database):
         return None
-    
+
     def fetch_collection_stats(self, database, collection_name, schema_json=None, sample_limit=None):
         return None
 
@@ -119,5 +154,4 @@ class DataSource:
         return None
 
     def fetch_property_stats(self, database, collection, entity, property_name, sample_limit=None):
-        return None 
-
+        return None
