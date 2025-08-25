@@ -119,12 +119,14 @@ export default function EntityActions({
                     intent: Intent.SUCCESS,
                     message: `Deployed ${name} ${type}`,
                 });
-                setTimeout(() => {
-                    getAgents();
-                }, 1000);
             })
             .catch((error) => {
                 showAxiosErrorToast(error);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    getAgents();
+                }, 1000);
             });
     };
     const onPull = () => {
