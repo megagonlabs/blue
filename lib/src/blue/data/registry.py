@@ -773,4 +773,10 @@ class DataRegistry(Registry):
                 for attr in attr_merges:
                     self.update_source_database_collection_relation_attribute(source, database, collection, relation, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
           
-            
+
+    def get_data_source_schema(self, source, database, collection):
+        """Get the schema for a data source. The fetch database collection schema should be implemented in the data source."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            return source_connection.fetch_database_collection_schema(database, collection)
+        return None         
