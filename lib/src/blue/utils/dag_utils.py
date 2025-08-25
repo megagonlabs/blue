@@ -255,13 +255,13 @@ class DAG(Base):
             return False
         return True
 
-    def create_node(self, label=None, type=None, properties=None, sync=None):
+    def create_node(self, id=None, label=None, type=None, properties=None, sync=None):
         # verify node, first
         if not self._verify_node(label=label, type=type, properties=properties):
             raise Exception("Cannot create node due to failed varification")
 
         # create node
-        node = Node(label=label, type=type, properties=properties, path=self.path + "." + self.get_id() + ".nodes", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=sync)
+        node = Node(id=id, label=label, type=type, properties=properties, path=self.path + "." + self.get_id() + ".nodes", synchronizer=self.synchronizer, auto_sync=self.auto_sync, sync=sync)
         node_id = node.get_id()
         node_label = node.get_label()
 
@@ -441,6 +441,7 @@ class EntityDAG(DAG):
 
         # create entity
         entity = Entity(
+            id=id,
             label=label,
             type=type,
             properties=properties,
@@ -597,3 +598,53 @@ class EntityDAG(DAG):
 class Plan(EntityDAG):
     def __init__(self, id=None, label=None, type="PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
+
+    def merge(self, merge_plan, sync=None):
+        nodes = self.get_nodes()
+        entities = self.get_entities()
+
+        ### extract from merge plan
+        merge_plan_id = merge_plan.get_id()
+        merge_plan_nodes = merge_plan.get_nodes()
+        merge_plan_entities = merge_plan.get_entities()
+        merge_plan_map = merge_plan.get_data("map")
+        merge_plan_data = merge_plan.get_data()
+
+        ### inject merge_plan as entity
+        merge_plan_entity = self.create_entity(id=merge_plan.get_id(), label=merge_plan.get_label(), type=merge_plan.get_type(), properties=merge_plan.get_properties(), sync=sync)
+
+        e = self.get_entity(merge_plan_id)
+        print(e.get_data())
+        print(e.get_type())
+        ### merge nodes
+        merge_plan_nodes = merge_plan.get_nodes()
+        for merge_plan_node_id in merge_plan_nodes:
+            merge_plan_node_data = merge_plan_nodes[merge_plan_node_id]
+
+            merge_plan_node_label = merge_plan_node_data['label']
+            nodes[merge_plan_node_id] = merge_plan_node_data
+
+            # sync
+            self.synchronize(key="nodes." + merge_plan_node_id, value=merge_plan_node_data, sync=sync)
+
+            # add plan entity
+            self.set_node_entity(merge_plan_node_id, merge_plan_id, sync=sync)
+
+            # add to map
+            if merge_plan_node_label:
+                self.map(merge_plan_node_label, merge_plan_node_id, sync=sync)
+
+        ### merge entities
+        for merge_plan_entity_type in merge_plan_entities:
+            if not merge_plan_entity_type in entities:
+                self.add_entity_type(merge_plan_entity_type, sync=sync)
+
+            for merge_plan_entity_id in merge_plan_entities[merge_plan_entity_type]:
+                merge_plan_entity = merge_plan.get_entity(merge_plan_entity_id, type=merge_plan_entity_type)
+                merge_plan_entity_label = merge_plan_entity.get_label()
+
+                entities[merge_plan_entity_type][merge_plan_entity_id] = merge_plan_entities[merge_plan_entity_type][merge_plan_entity_id]
+
+                # add to map
+                if merge_plan_entity_label:
+                    self.map(merge_plan_entity_label, merge_plan_entity_id, sync=sync)
