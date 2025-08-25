@@ -52,25 +52,32 @@ class BlockingAgent(Agent):
         
         if message.isEOS():
 
+            try:
+                with self.lock:
+                    from_agent = input.strip("FROM_")
+                    if from_agent in self.inputs_received:
+                        self.inputs_received[from_agent] = True
+                    ready_to_process =  all(self.inputs_received.values()) 
 
-            with self.lock:
-                from_agent = input.strip("FROM_")
-                if from_agent in self.inputs_received:
-                    self.inputs_received[from_agent] = True
-                ready_to_process =  all(self.inputs_received.values()) 
+                    logging.info(f"Agent {self.agent_name} got INPUT {input}, ready to process:{ready_to_process}, inputs:{str(self.inputs_received)} ")
 
-            logging.info(f"Agent {self.agent_name} got INPUT {input}, ready to process:{ready_to_process}")
+                    if ready_to_process:
+                        input_dict = worker.get_all_data()
+                        # remove extrat input per configuration
+                        # concatenate data in stream
+                        if not self.include_extra_input:
+                            input_dict = {k: ' '.join(v) for k, v in input_dict.items() if k.strip("FROM_") in self.wait_for_inputs}
+                        else:
+                            input_dict = {k: ' '.join(v) for k, v in input_dict.items()}
 
-            if ready_to_process:
-                input_dict = worker.get_all_data()
-                # remove extrat input per configuration
-                # concatenate data in stream
-                if not self.include_extra_input:
-                    input_dict = {k: ' '.join(v) for k, v in input_dict.items() if k.strip("FROM_") in self.wait_for_inputs}
-                else:
-                    input_dict = {k: ' '.join(v) for k, v in input_dict.items()}
+                        return [self.process_logic(input_dict, worker), Message.EOS]
 
-                return [self.process_logic(input_dict, worker), Message.EOS]
+            except Exception as e:
+                logging.error(f"Agent {self.agent_name} execution failed: {e}")
+                return [
+                    f"Agent {self.agent_name} execution failed: {e}",
+                    Message.EOS,
+                ]
 
 
         elif message.isBOS():
