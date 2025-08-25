@@ -210,6 +210,7 @@ def get_agent_container(request: Request, agent_name: str = ""):
 def deploy_agent_container(request: Request, agent_name):
     agent = agent_registry.get_agent(agent_name)
     container_acl_enforce(request, agent, write=True)
+    name = pydash.objects.get(agent, 'name', None)
     agent_registry_properties = agent_registry.get_agent_properties(agent_name)
     if 'image' not in agent_registry_properties:
         return JSONResponse(content={"message": "\"image\" is not defined in the properties"}, status_code=400)
@@ -228,22 +229,30 @@ def deploy_agent_container(request: Request, agent_name):
     agent_properties = json_utils.merge_json(agent_properties, agent_registry_properties)
 
     exist = False
-    hostname = "blue_agent_" + agent_registry_id + "_" + agent_name
     # check for container existence
     if PROPERTIES["platform.deploy.target"] == "localhost":
         containers = client.containers.list(all=True)
         for container in containers:
-            if pydash.is_equal(container.attrs["Config"]["Hostname"], hostname):
-                exist = True
+            labels = container.attrs["Config"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                if la[0] == platform_id and la[2] == name:
+                    exist = True
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         for service in services:
-            if pydash.is_equal(service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Hostname"], hostname):
-                exist = True
+            labels = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                if la[0] == platform_id and la[2] == name:
+                    exist = True
     if exist:
         return JSONResponse(content={"message": f"\"{agent_name}\" already exists"}, status_code=409)
 
     # deploy agent container based on deploy target
+    hostname = "blue_agent_" + agent_registry_id + "_" + agent_name
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
