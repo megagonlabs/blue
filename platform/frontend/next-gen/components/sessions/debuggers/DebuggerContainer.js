@@ -411,6 +411,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                 }}
                             >
                                 <UITip
+                                    id="debugger_stream_flows_nodes"
                                     content={
                                         <div>
                                             Clicking a node selects it,
