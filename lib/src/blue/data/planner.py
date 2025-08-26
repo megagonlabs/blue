@@ -4,6 +4,8 @@ import uuid
 
 ###### Blue
 from blue.connection import PooledConnectionFactory
+from blue.operators.registry import OperatorRegistry
+from blue.data.pipeline import DataPipeline
 
 
 ###############
@@ -59,11 +61,18 @@ class DataPlanner:
         for p in properties:
             self.properties[p] = properties[p]
 
-    def plan(self, input_data, task, context):
-        return None
+    def plan(self, input_data, task, context, approximate=False):
+        # create a pipeline
+        pipeline = DataPipeline()
 
-    def optimize(self, plan, budget):
-        return None
+        # always create a plan with input, search, and output
+
+        # refine
+        return pipeline
+
+    def optimize(self, pipeline, budget):
+        # no optimization
+        return pipeline
 
     ######
     def _start_connection(self):
@@ -72,3 +81,13 @@ class DataPlanner:
 
     def _start(self):
         self._start_connection()
+
+        # initialize registry
+        self._init_registry()
+
+    def _init_registry(self):
+        # create instance of agent registry
+        platform_id = self.properties["platform.name"]
+        prefix = 'PLATFORM:' + platform_id
+
+        self.registry = OperatorRegistry(id=self.properties['operator_registry.name'], prefix=prefix, properties=self.properties)
