@@ -543,14 +543,10 @@ export default function SessionMessages({
                                         flexWrap: "wrap",
                                     }}
                                 >
-                                    To debug a session, open the debugger{" "}
-                                    <span>by clicking</span>
+                                    To debug a session, open the debugger&nbsp;
+                                    <span>by clicking on</span>
                                     <Button
                                         className="pointer-events-none"
-                                        style={{
-                                            marginLeft: 5,
-                                            marginRight: 5,
-                                        }}
                                         icon={<FAIcon icon={faEllipsisV} />}
                                         variant={ButtonVariant.MINIMAL}
                                     />

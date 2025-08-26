@@ -217,7 +217,7 @@ export default function SourceEntity({
                                 flexWrap: "wrap",
                             }}
                         >
-                            Synchronize the data source by{" "}
+                            Synchronize the data source by&nbsp;
                             <span>clicking on</span>
                             <Button
                                 className="pointer-events-none"
