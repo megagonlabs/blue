@@ -9,16 +9,16 @@ export const TourProvider = ({ children }) => {
     const [isTourActive, setIsTourActive] = useState(false);
     const [currentTourId, setCurrentTourId] = useState(null);
     const tours = {
-        onboarding: [
+        platform_onboarding_tour: [
             {
-                elementQuery: "#platform-onboarding-tour-navigation-menu",
+                elementQuery: "#navigation-menu",
                 title: "Welcome to Blue!",
                 content:
                     "Welcome to the tour! We'll show you the main features, starting with the navigation menu, where you can access various Apps.",
                 position: "right-start",
             },
             {
-                elementQuery: "#platform-onboarding-tour-navigation-menu",
+                elementQuery: "#navigation-menu",
                 title: "Sessions",
                 content:
                     'A session is a live application instance with a group of agents. Click on "All Sessions" to view a list of sessions available to you.',
@@ -32,7 +32,7 @@ export const TourProvider = ({ children }) => {
                 position: "top",
             },
             {
-                elementQuery: "#platform-onboarding-tour-user-settings",
+                elementQuery: "#user-settings",
                 title: "User Settings",
                 content:
                     "Your personal settings and account sign-out are available here.",
@@ -70,6 +70,7 @@ export const TourProvider = ({ children }) => {
         nextStep,
         prevStep,
         currentStep,
+        currentTourId,
         steps: currentSteps,
     };
     return (
