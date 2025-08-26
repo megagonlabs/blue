@@ -55,7 +55,9 @@ export default function UITour() {
                             fill
                             className={Classes.POPOVER_DISMISS}
                             size={Size.LARGE}
-                            onClick={startTour}
+                            onClick={() => {
+                                startTour("onboarding");
+                            }}
                             text="Start the tour"
                             intent={Intent.PRIMARY}
                         />
