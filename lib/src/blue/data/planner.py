@@ -53,6 +53,9 @@ class DataPlanner:
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
 
+        # search operator
+        self.properties['search_operator'] = '/server/blue_ray/operator/operator_discover'
+
     def _update_properties(self, properties=None):
         if properties is None:
             return
@@ -63,16 +66,21 @@ class DataPlanner:
 
     def plan(self, input_data, task, context, approximate=False):
         # create a pipeline
-        pipeline = DataPipeline()
+        p = DataPipeline()
 
         # always create a plan with input, search, and output
+        i = p.define_input(label="I", value=input_data)
+        r = p.define_output(label="R")
+        o = p.define_operator(name="operator_discover", label="OD")
+        p.connect_nodes(i, o)
+        p.connect_nodes(o, r)
 
         # refine
-        return pipeline
+        return p
 
-    def optimize(self, pipeline, budget):
+    def optimize(self, p, budget):
         # no optimization
-        return pipeline
+        return p
 
     ######
     def _start_connection(self):
