@@ -775,8 +775,14 @@ class DataRegistry(Registry):
           
 
     def get_data_source_schema(self, source, database, collection):
-        """Get the schema for a data source. The fetch database collection schema should be implemented in the data source."""
-        source_connection = self.connect_source(source)
-        if source_connection:
-            return source_connection.fetch_database_collection_schema(database, collection)
-        return None         
+        schema = {}
+        
+        entities = self.get_source_database_collection_entities(source, database, collection)
+        relations = self.get_source_database_collection_relations(source, database, collection)
+        
+        schema['entities'] = entities
+        schema['relations'] = relations
+        
+        return schema
+        
+        
