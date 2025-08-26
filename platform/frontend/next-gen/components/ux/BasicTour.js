@@ -17,7 +17,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useToaster } from "../contexts/ToasterContext";
 import { useTour } from "../contexts/TourContext";
 import { FAIcon } from "../FAIcon";
-export default function UITour() {
+export default function BasicTour() {
     const { startTour } = useTour();
     const id = "platform_onboarding_tour";
     const { UIVisibility, setVisibility, queue } = useUIVisibilityStore(
@@ -56,7 +56,7 @@ export default function UITour() {
                             className={Classes.POPOVER_DISMISS}
                             size={Size.LARGE}
                             onClick={() => {
-                                startTour("onboarding");
+                                startTour("platform_onboarding_tour");
                             }}
                             text="Start the tour"
                             intent={Intent.PRIMARY}

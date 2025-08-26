@@ -1,3 +1,4 @@
+import { useUIVisibilityStore } from "@/stores/ui-visibility-store";
 import {
     Button,
     ButtonVariant,
@@ -16,6 +17,7 @@ import {
 import _ from "lodash";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePopper } from "react-popper";
+import { useShallow } from "zustand/react/shallow";
 import { useTour } from "../contexts/TourContext";
 import { FAIcon } from "../FAIcon";
 const ArrowPointer = ({ elementQuery }) => {
@@ -82,8 +84,18 @@ const ArrowPointer = ({ elementQuery }) => {
     );
 };
 const TourPopup = () => {
-    const { isTourActive, currentStep, steps, nextStep, prevStep, endTour } =
-        useTour();
+    const {
+        isTourActive,
+        currentStep,
+        steps,
+        nextStep,
+        prevStep,
+        endTour,
+        currentTourId,
+    } = useTour();
+    const { setVisibility } = useUIVisibilityStore(
+        useShallow((state) => ({ setVisibility: state.setVisibility }))
+    );
     const [referenceElement, setReferenceElement] = useState(null);
     const [popperElement, setPopperElement] = useState(null);
     const { styles, attributes, update } = usePopper(
@@ -182,8 +194,9 @@ const TourPopup = () => {
                 <div
                     style={{
                         marginBottom: 10,
+                        height: 30,
                         display: "flex",
-                        justifyContent: "space-between",
+                        alignContent: "center",
                     }}
                 >
                     <EntityTitle
@@ -195,12 +208,15 @@ const TourPopup = () => {
                             />
                         }
                     />
+                </div>
+                {!isLastStep && (
                     <Button
+                        style={{ position: "absolute", top: 20, right: 20 }}
                         onClick={endTour}
                         variant={ButtonVariant.MINIMAL}
                         icon={<FAIcon icon={faXmarkLarge} />}
                     />
-                </div>
+                )}
                 <p>{currentStepData.content}</p>
                 <div
                     style={{
@@ -225,6 +241,12 @@ const TourPopup = () => {
                             onClick={() => {
                                 skipped.current = 0;
                                 nextStep();
+                                if (isLastStep) {
+                                    setVisibility({
+                                        id: currentTourId,
+                                        value: false,
+                                    });
+                                }
                             }}
                             intent={Intent.PRIMARY}
                             disabled={!allowNext && !isLastStep}

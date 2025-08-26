@@ -60,7 +60,7 @@ import ToolList from "./registries/tools/ToolList";
 import ApplicationContainer from "./sessions/ApplicationContainer";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
-import UITour from "./ux/UITour";
+import BasicTour from "./ux/BasicTour";
 import VerticalScrollable from "./VerticalScrollable";
 const { NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 const AGENT_GROUP_ICON = _.get(ENTITY_TYPE_LOOKUP, "agent_group.icon", null);
@@ -239,7 +239,7 @@ export default function Blue({ children }) {
                             items={omnibarItems}
                         />
                         <div
-                            id="platform-onboarding-tour-user-settings"
+                            id="user-settings"
                             style={{
                                 position: "absolute",
                                 bottom: 20,
@@ -259,7 +259,7 @@ export default function Blue({ children }) {
                             </ExpandingBox>
                         </div>
                         <div
-                            id="platform-onboarding-tour-navigation-menu"
+                            id="navigation-menu"
                             style={{
                                 position: "absolute",
                                 top: 20,
@@ -653,7 +653,7 @@ export default function Blue({ children }) {
                                 }
                             >
                                 <div style={{ padding: "21px 0px" }}>
-                                    <UITour />
+                                    <BasicTour />
                                     <WSConnectionIndicator />
                                     <TopSessions />
                                     <Dock />
