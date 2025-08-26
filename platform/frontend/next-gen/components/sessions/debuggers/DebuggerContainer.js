@@ -2,12 +2,14 @@ import {
     EMPTY_OBJECT,
     MIN_ALLOTMENT_PANE_SIZE,
     POPOVER_CONTENT_MAX_WIDTH,
+    REACT_FLOW_NODE,
 } from "@/components/constants";
 import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import { insertBetween } from "@/components/helper";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
 import Timestamp from "@/components/Timestamp";
+import UITip from "@/components/ux/UITip";
 import { useAppStore } from "@/stores/app-store";
 import { useSessionStore } from "@/stores/session-store";
 import { useSocketStore } from "@/stores/socket-store";
@@ -393,6 +395,97 @@ function DebuggerContainer({ width, height, sessionId }) {
                                     icon={<FAIcon icon={faDiagramSuccessor} />}
                                 />
                             </Tooltip>
+                            <div
+                                style={{
+                                    display: _.isEqual(
+                                        visibleSection,
+                                        "stream_flows"
+                                    )
+                                        ? "flex"
+                                        : "none",
+                                    alignItems: "center",
+                                    width: 40,
+                                    height: 40,
+                                    justifyContent: "space-evenly",
+                                    marginLeft: 20,
+                                }}
+                            >
+                                <UITip
+                                    content={
+                                        <div>
+                                            Clicking a node selects it,
+                                            highlights its immediate neighbors,
+                                            and illuminates all edges directly
+                                            connected to it.
+                                            <div style={{ marginTop: 10 }}>
+                                                Nodes:
+                                            </div>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexWrap: "wrap",
+                                                    gap: 10,
+                                                }}
+                                            >
+                                                <div
+                                                    className="custom-card"
+                                                    style={{
+                                                        padding:
+                                                            REACT_FLOW_NODE[
+                                                                "padding"
+                                                            ],
+                                                    }}
+                                                >
+                                                    <Tag
+                                                        intent={Intent.PRIMARY}
+                                                        minimal
+                                                    >
+                                                        Stream
+                                                    </Tag>
+                                                    <div
+                                                        style={{
+                                                            marginTop: 10,
+                                                        }}
+                                                    >
+                                                        PLATFORM:...
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    className="custom-card"
+                                                    style={{
+                                                        padding:
+                                                            REACT_FLOW_NODE[
+                                                                "padding"
+                                                            ],
+                                                    }}
+                                                >
+                                                    <Tag
+                                                        intent={Intent.PRIMARY}
+                                                        minimal
+                                                    >
+                                                        Agent
+                                                    </Tag>
+                                                    <div
+                                                        style={{
+                                                            marginTop: 10,
+                                                        }}
+                                                    >
+                                                        USER:...
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Tag
+                                                        size={Size.LARGE}
+                                                        minimal
+                                                    >
+                                                        produced / consumed by
+                                                    </Tag>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                />
+                            </div>
                         </ButtonGroup>
                         {_.isEqual(visibleSection, "messages") && (
                             <ButtonGroup
