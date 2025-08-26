@@ -5,6 +5,7 @@ import json
 
 import asyncio
 import websockets
+import yaml
 
 ###### Blue
 from blue.utils import json_utils
@@ -772,17 +773,24 @@ class DataRegistry(Registry):
                     self.deregister_source_database_collection_relation_attribute(source, database, collection, relation, attr)
                 for attr in attr_merges:
                     self.update_source_database_collection_relation_attribute(source, database, collection, relation, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
-          
 
-    def get_data_source_schema(self, source, database, collection):
+
+    ###############
+    ##  data sources search
+    def get_data_source_schema(self, source, database, collection, format="dict"):
+        """Return the schema by combining entities and relations, default in dict format"""
+        ## Note: this is a temporary solution to make get schema work under new metadata design.
+        ## TODO: get DataSchema instead of entities and relations, then implement schema formats/variants in DataSchema class like __str__
         schema = {}
-        
         entities = self.get_source_database_collection_entities(source, database, collection)
         relations = self.get_source_database_collection_relations(source, database, collection)
-        
         schema['entities'] = entities
         schema['relations'] = relations
-        
-        return schema
-        
-        
+        if format == "dict":
+            return schema
+        elif format == "json":
+            return json.dumps(schema, indent=2)
+        elif format == "yaml":
+            return yaml.dump(schema)
+        else:
+            return schema
