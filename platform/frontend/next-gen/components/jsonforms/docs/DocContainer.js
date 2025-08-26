@@ -78,7 +78,7 @@ const DOC_MENU = [
     { text: "Table", icon: faTable },
     { text: "Tabs", icon: faPause, iconClass: "fa-rotate-90" },
     { text: "Vega", icon: faPresentationScreen, label: "Vega-Lite" },
-    { text: "Mermaid", icon: faFish, label: "Diagram and chart" },
+    { text: "Mermaid", icon: faFish, label: "Diagram & chart" },
 ];
 const DOCS = {
     basics: <BasicsDoc />,

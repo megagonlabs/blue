@@ -42,7 +42,7 @@ export default function ResetSection() {
         let promises = [];
         for (let i = 0; i < _.size(ids); i++) {
             promises.push(
-                new Promise((resolve) => {
+                new Promise((resolve, reject) => {
                     axios
                         .put(`/accounts/profile/ui_visibility/${ids[i]}`, {
                             value: true,
@@ -52,7 +52,7 @@ export default function ResetSection() {
                         })
                         .catch((error) => {
                             showAxiosErrorToast(error);
-                            reject(agentName);
+                            reject();
                         });
                 })
             );
