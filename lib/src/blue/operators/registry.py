@@ -13,9 +13,6 @@ from blue.operators.clients.local_client import LocalOperatorClient
 from blue.operators.clients.ray_client import RayOperatorClient
 from blue.operators.clients.mcp_client import MCPOperatorClient
 
-###### Local, Ray Operators
-from blue.operators.clients import local_operators, ray_operators
-
 
 ###############
 ### OperatorRegistry
@@ -101,8 +98,14 @@ class OperatorRegistry(ToolRegistry):
                 protocol = connection_properties["protocol"]
                 if protocol:
                     if protocol == "local":
+                        # import on demand
+                        from blue.operators.clients import local_operators
+
                         connection = LocalOperatorClient(server, operators=local_operators.operators_dict, properties=properties)
                     elif protocol == "ray":
+                        # import on demand
+                        from blue.operators.clients import ray_operators
+
                         connection = RayOperatorClient(server, operators=ray_operators.operators_dict, properties=properties)
                     elif protocol == "mcp":
                         connection = MCPOperatorClient(server, properties=properties)
