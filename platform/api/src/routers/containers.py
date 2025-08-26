@@ -30,6 +30,7 @@ from APIRouter import APIRouter
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi import Query
 
+from blue.constant import Separator
 
 ###### Schema
 JSONObject = Dict[str, Any]
@@ -155,7 +156,7 @@ def list_agent_containers(request: Request):
 
 @router.get('/agents/agent/{agent_name}')
 def get_agent_container(request: Request, agent_name: str = ""):
-    agent = agent_registry.get_agent(agent_name.split('___')[0])
+    agent = agent_registry.get_agent(agent_name.split(Separator.AGENT)[0])
     container_acl_enforce(request, agent, write=True)
     name = pydash.objects.get(agent, 'name', None)
     client = docker.from_env()
@@ -208,7 +209,7 @@ def get_agent_container(request: Request, agent_name: str = ""):
 @router.post("/agents/agent/{agent_name}")
 # deploy an agent container with the name {agent_name} to the agent registry with the name
 def deploy_agent_container(request: Request, agent_name):
-    agent = agent_registry.get_agent(agent_name)
+    agent = agent_registry.get_agent(agent_name.split(Separator.AGENT)[0])
     container_acl_enforce(request, agent, write=True)
     name = pydash.objects.get(agent, 'name', None)
     agent_registry_properties = agent_registry.get_agent_properties(agent_name)
@@ -288,7 +289,7 @@ def deploy_agent_container(request: Request, agent_name):
 @router.put("/agents/agent/{agent_name}")
 # update the agent container with the name {agent_name} in the agent registry with the name, pulling in new image
 def update_agent_container(request: Request, agent_name):
-    agent = agent_registry.get_agent(agent_name)
+    agent = agent_registry.get_agent(agent_name.split(Separator.AGENT)[0])
     container_acl_enforce(request, agent, write=True)
     properties = agent_registry.get_agent_properties(agent_name)
     if 'image' in properties:
@@ -318,7 +319,7 @@ def update_agent_container(request: Request, agent_name):
 @router.delete("/agents/agent/{agent_name}")
 # shutdown the agent container with the name {agent_name} from the agent registry with the name
 def shutdown_agent_container(request: Request, agent_name):
-    agent = agent_registry.get_agent(agent_name)
+    agent = agent_registry.get_agent(agent_name.split(Separator.AGENT)[0])
     container_acl_enforce(request, agent, write=True)
 
     # connect to docker
