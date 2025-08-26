@@ -10,6 +10,7 @@ import yaml
 ###### Blue
 from blue.utils import json_utils
 from blue.registry import Registry
+from blue.data.schema import DataSchema
 
 ###### Supported Data Sources
 from blue.data.sources.mongodb_source import MongoDBSource
@@ -779,8 +780,6 @@ class DataRegistry(Registry):
     ##  data sources search
     def get_data_source_schema(self, source, database, collection, format="dict"):
         """Return the schema by combining entities and relations, default in dict format"""
-        ## Note: this is a temporary solution to make get schema work under new metadata design.
-        ## TODO: get DataSchema instead of entities and relations, then implement schema formats/variants in DataSchema class like __str__
         schema = {}
         entities = self.get_source_database_collection_entities(source, database, collection)
         relations = self.get_source_database_collection_relations(source, database, collection)
@@ -792,5 +791,10 @@ class DataRegistry(Registry):
             return json.dumps(schema, indent=2)
         elif format == "yaml":
             return yaml.dump(schema)
-        else:
-            return schema
+        
+        # build DataSchema class and return string representation
+        schema = DataSchema()
+        schema.entities = entities
+        schema.relations = relations
+        # note: please update the schema representation in DataSchema class if the default __str__ doesn't satisfy your needs
+        return str(schema)
