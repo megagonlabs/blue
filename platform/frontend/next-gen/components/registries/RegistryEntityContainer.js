@@ -106,16 +106,25 @@ function RegistryEntityContainer({
         },
         [registryCrumb]
     );
+    const scrollableRef = useRef(null);
+    const scrollToTop = () => {
+        if (scrollableRef.current) {
+            scrollableRef.current.scrollTop = 0;
+        }
+    };
     const toCrumb = (index) => {
         setBreadcrumbs(normalizeCrumbs(_.slice(breadcrumbs, 0, index + 1)));
+        scrollToTop();
     };
     const addCrumb = (entity) => {
         setBreadcrumbs(normalizeCrumbs([...breadcrumbs, entity]));
+        scrollToTop();
     };
     const backCrumb = () => {
         if (_.size(breadcrumbs) > 1) {
             const index = Math.max(0, _.size(breadcrumbs) - 1);
             setBreadcrumbs(normalizeCrumbs(_.slice(breadcrumbs, 0, index)));
+            scrollToTop();
         } else {
             removeContainer(gridContainerId);
         }
@@ -206,6 +215,7 @@ function RegistryEntityContainer({
             </Overlay2>
             <div
                 className="full-parent-dimension"
+                ref={scrollableRef}
                 style={{
                     padding: 20,
                     position: "relative",
