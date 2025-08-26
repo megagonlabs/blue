@@ -10,164 +10,90 @@ import pydash
 from redis.commands.json.path import Path
 
 ###### Blue
+from blue.constant import Constant
 from blue.pubsub import Producer
 from blue.stream import Message, MessageType, ContentType, ControlCode
 from blue.connection import PooledConnectionFactory
-from blue.utils import uuid_utils, log_utils
+from blue.utils import uuid_utils, log_utils, dag_utils
+
+
+###############
+### Status
+class Status(Constant):
+    def __init__(self, c):
+        super().__init__(c)
+
+
+Status.INITED = Status("INITED")
+Status.RUNNING = Status("REFINED")
+Status.PLANNED = Status("EXECUTED")
+
+
+class NodeType(Constant):
+    def __init__(self, c):
+        super().__init__(c)
+
+
+NodeType.INPUT = Constant("INPUT")
+NodeType.OUTPUT = Constant("OUTPUT")
+NodeType.OPERATOR = Constant("OPERATOR")
+
+
+class EntityType(Constant):
+    def __init__(self, c):
+        super().__init__(c)
+
+
+EntityType.OPERATOR = Constant("OPERATOR")
 
 
 ###############
 ### DataPipeline
 #
-class DataPipeline:
-    def __init__(self, name="PIPELINE", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+class DataPipeline(dag_utils.Plan):
+    def __init__(self, id=None, label=None, type="DATA_PIPELINE", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
-        self.name = name
-        if id:
-            self.id = id
-        else:
-            self.id = uuid_utils.create_uuid()
+    # nodes
+    def define_input(self, label=None, value=None, stream=None, properties={}, sync=None):
+        if label is None:
+            raise Exception("Label is not specified")
+        input_node = self.create_node(label=label, type=str(NodeType.INPUT), properties=properties, sync=sync)
 
-        if sid:
-            self.sid = sid
-        else:
-            self.sid = self.name + ":" + self.id
+        # input value/stream
+        input_node.set_data('value', value, sync=sync)
 
-        self.prefix = prefix
-        self.suffix = suffix
-        self.cid = cid
+        return input_node
 
-        if self.cid == None:
-            self.cid = self.sid
+    def define_output(self, label=None, value=None, stream=None, properties={}, sync=None):
+        if label is None:
+            raise Exception("Label is not specified")
+        output_node = self.create_node(label=label, type=str(NodeType.OUTPUT), properties=properties, sync=sync)
 
-            if self.prefix:
-                self.cid = self.prefix + ":" + self.cid
-            if self.suffix:
-                self.cid = self.cid + ":" + self.suffix
+        # output value/stream
+        output_node.set_data('value', value, sync=sync)
 
-        # pipeline stream
-        self.producer = None
+        return output_node
 
-        self.agents = {}
+    def define_operator(self, name=None, label=None, properties={}, sync=None):
+        # checks
+        if name is None:
+            raise Exception("Name is not specified")
+        if label is None:
+            label = name
 
-        self._initialize(properties=properties)
+        operator_node = self.create_node(label=label, type=str(NodeType.OPERATOR), properties=properties, sync=sync)
 
-        self._start()
+        operator = self.create_operator(properties=properties, sync=sync)
+        operator.set_data("name", name)
 
-    ###### INITIALIZATION
-    def _initialize(self, properties=None):
-        self._initialize_properties()
-        self._update_properties(properties=properties)
+        self.set_node_entity(operator_node, operator, sync=sync)
 
-        self._initialize_logger()
+        return operator_node
 
-    def _initialize_properties(self):
-        self.properties = {}
+    ### operator
+    def create_operator(self, label=None, properties=None, sync=None):
+        return self.create_entity(label=label, type=str(EntityType.OPERATOR), properties=properties, sync=sync)
 
-        # db connectivity
-        self.properties['db.host'] = 'localhost'
-        self.properties['db.port'] = 6379
-
-    def _update_properties(self, properties=None):
-        if properties is None:
-            return
-
-        # override
-        for p in properties:
-            self.properties[p] = properties[p]
-
-    def _initialize_logger(self):
-        self.logger = log_utils.CustomLogger()
-        # customize log
-        self.logger.set_config_data(
-            "stack",
-            "%(call_stack)s",
-        )
-        self.logger.set_config_data("pipeline", self.sid, -1)
-
-    def get_stream(self):
-        return self.producer.get_stream()
-
-    ###### DATA/METADATA RELATED
-    def __get_json_value(self, value):
-        if value is None:
-            return None
-        if type(value) is list:
-            if len(value) == 0:
-                return None
-            else:
-                return value[0]
-        else:
-            return value
-
-    ## pipeline metadata
-    def _init_metadata_namespace(self):
-        # create namespaces for any pipeline common data
-        self.connection.json().set(
-            self._get_metadata_namespace(),
-            "$",
-            {"members": {}},
-            nx=True,
-        )
-
-        # add created_date
-        self.set_metadata("created_date", int(time.time()), nx=True)
-
-    def _get_metadata_namespace(self):
-        return self.cid + ":METADATA"
-
-    def set_metadata(self, key, value, nx=False):
-        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
-
-    def get_metadata(self, key=""):
-        value = self.connection.json().get(
-            self._get_metadata_namespace(),
-            Path("$" + ("" if pydash.is_empty(key) else ".") + key),
-        )
-        return self.__get_json_value(value)
-
-    def to_dict(self):
-        metadata = self.get_metadata()
-        return {
-            "id": self.sid,
-            "name": pydash.objects.get(metadata, "name", self.sid),
-            "description": pydash.objects.get(metadata, "description", ""),
-            "created_date": pydash.objects.get(metadata, "created_date", None),
-            "created_by": pydash.objects.get(metadata, "created_by", None),
-        }
-
-    # TODO:
-    def execute(self, plan, budget):
+    def execute(self, budget):
         return None
-
-    ###### OPERATIONS
-    def _start(self):
-        self._start_connection()
-
-        # initialize pipeline metadata
-        self._init_metadata_namespace()
-
-        # start  producer to emit pipeline events
-        self._start_producer()
-
-        self.logger.info("Started pipeline {cid}".format(cid=self.cid))
-
-    def _start_connection(self):
-        self.connection_factory = PooledConnectionFactory(properties=self.properties)
-        self.connection = self.connection_factory.get_connection()
-
-    def _start_producer(self):
-        # start, if not started
-        if self.producer == None:
-
-            producer = Producer(sid="PIPELINE", prefix=self.cid, properties=self.properties, owner=self.sid)
-            producer.start()
-            self.producer = producer
-
-    def stop(self):
-        # put EOS to stream
-        self.producer.write_eos()
-
-    def wait(self):
-        while True:
-            time.sleep(1)

@@ -165,12 +165,11 @@ class CoordinatorAgent(Agent):
         # # TODO: call data planner, plan, optimize given budget
         pid = uuid_utils.create_uuid()
         dp = DataPlanner(id=pid, properties=self.properties)
-        plan = dp.plan(input_data, "TRANSFORM", context)
-        plan = dp.optimize(plan, budget)
+        pipeline = dp.plan(input_data, "TRANSFORM", context)
+        pipeline = dp.optimize(pipeline, budget)
 
-        # # TODO: execute plan, update budget
-        pipeline = DataPipeline(id=pid, properties=self.properties)
-        output_data = pipeline.execute(plan, budget)
+        # # TODO: execute pipeline, update budget
+        output_data = pipeline.execute(budget)
 
         # # # persist data to stream
         output_stream = self.persist_stream_data(output_data)
