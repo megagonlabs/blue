@@ -16,6 +16,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faComments,
+    faHistory,
     faPaintRoller,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
@@ -24,9 +25,11 @@ import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
+import ResetSection from "./ResetSection";
 const SECTIONS = [
     { icon: faPaintRoller, text: "Appearance" },
     { icon: faComments, text: "Sessions & Messages" },
+    { icon: faHistory, text: "Reset" },
 ];
 function SettingsContainer({ width, height }) {
     const {
@@ -268,6 +271,12 @@ function SettingsContainer({ width, height }) {
                                 />
                             </FormGroup>
                         </div>
+                    </div>
+                    <div
+                        id={`container-${gridContainerId}-section-2`}
+                        style={{ marginTop: 20 }}
+                    >
+                        <ResetSection />
                     </div>
                 </div>
             </div>

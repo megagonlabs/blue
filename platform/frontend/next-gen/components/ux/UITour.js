@@ -19,7 +19,7 @@ import { useTour } from "../contexts/TourContext";
 import { FAIcon } from "../FAIcon";
 export default function UITour() {
     const { startTour } = useTour();
-    const id = "platform-onboarding-tour";
+    const id = "platform_onboarding_tour";
     const { UIVisibility, setVisibility, queue } = useUIVisibilityStore(
         useShallow((state) => ({
             UIVisibility: state.UIVisibility,

@@ -332,7 +332,7 @@ export default function AuthenticationConfigurations() {
                 <FormGroup
                     className="margin-0"
                     label="Default user settings & role"
-                    subLabel="First-time users are granted these settings and this role when they
+                    subLabel="First-time users are granted these settings and this user role when they
                             sign in."
                 >
                     <div
@@ -476,8 +476,8 @@ export default function AuthenticationConfigurations() {
                 <FormGroup
                     className="margin-0"
                     label="Allowed emails"
-                    subLabel="Google account with email address
-                    whitelisted below can sign in on the platform regardless of its domain."
+                    subLabel="Google accounts with email address
+                    whitelisted below can sign in on the platform regardless of their domains."
                 >
                     <div
                         className={loading ? Classes.SKELETON : null}
