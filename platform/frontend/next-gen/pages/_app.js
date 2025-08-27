@@ -8,6 +8,8 @@ import SystemStatusHandler from "@/components/SystemStatusHandler";
 import "@/styles/custom.css";
 import "@/styles/docs.css";
 import "@/styles/global.css";
+import "@/styles/markdown-dark.css";
+import "@/styles/markdown-light.css";
 import { FocusStyleManager } from "@blueprintjs/core";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";

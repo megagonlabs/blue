@@ -216,7 +216,9 @@
 .react-markdown-content details summary {
     cursor: pointer;
 }
-
+.react-markdown-content details p {
+    margin-bottom: 0px;
+}
 .react-markdown-content a:focus,
 .react-markdown-content [role="button"]:focus,
 .react-markdown-content input[type="radio"]:focus,

@@ -215,7 +215,9 @@
 .bp6-dark .react-markdown-content details summary {
     cursor: pointer;
 }
-
+.bp6-dark .react-markdown-content details p {
+    margin-bottom: 0px;
+}
 .bp6-dark .react-markdown-content a:focus,
 .bp6-dark .react-markdown-content [role="button"]:focus,
 .bp6-dark .react-markdown-content input[type="radio"]:focus,
