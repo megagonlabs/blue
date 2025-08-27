@@ -75,7 +75,7 @@ class DataPipeline(dag_utils.Plan):
 
         return output_node
 
-    def define_operator(self, name=None, label=None, properties={}, sync=None):
+    def define_operator(self, name, label=None, attributes={}, properties={}, sync=None):
         # checks
         if name is None:
             raise Exception("Name is not specified")
@@ -84,16 +84,19 @@ class DataPipeline(dag_utils.Plan):
 
         operator_node = self.create_node(label=label, type=str(NodeType.OPERATOR), properties=properties, sync=sync)
 
-        operator = self.create_operator(properties=properties, sync=sync)
-        operator.set_data("name", name)
+        operator = self.create_operator(name, attributes=attributes, properties=properties, sync=sync)
 
         self.set_node_entity(operator_node, operator, sync=sync)
 
         return operator_node
 
     ### operator
-    def create_operator(self, label=None, properties=None, sync=None):
-        return self.create_entity(label=label, type=str(EntityType.OPERATOR), properties=properties, sync=sync)
+    def create_operator(self, name, label=None, attributes={}, properties={}, sync=None):
+        operator = self.create_entity(label=label, type=str(EntityType.OPERATOR), properties=properties, sync=sync)
+        operator.set_data("name", name)
+        operator.set_data("attributes", attributes)
+
+        return operator
 
     def execute(self, budget):
         return None

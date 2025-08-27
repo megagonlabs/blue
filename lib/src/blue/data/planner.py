@@ -69,9 +69,9 @@ class DataPlanner:
         p = DataPipeline()
 
         # always create a plan with input, search, and output
-        i = p.define_input(label="I", value=input_data)
+        i = p.define_input(label="I", value=[[{"data": input_data}]])
         r = p.define_output(label="R")
-        o = p.define_operator(name="operator_discover", label="OD")
+        o = p.define_operator("operator_discover", label="OD", attributes={"search_query": task})
         p.connect_nodes(i, o)
         p.connect_nodes(o, r)
 
