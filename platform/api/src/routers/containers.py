@@ -101,7 +101,7 @@ def list_agent_containers(request: Request):
     results = []
     # get list of docker containers based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
-        containers = client.containers.list(all=True)
+        containers = client.containers.list()
         for container in containers:
             c = {}
             c["id"] = container.attrs["Id"]
@@ -232,7 +232,7 @@ def deploy_agent_container(request: Request, agent_name):
     exist = False
     # check for container existence
     if PROPERTIES["platform.deploy.target"] == "localhost":
-        containers = client.containers.list(all=True)
+        containers = client.containers.list()
         for container in containers:
             labels = container.attrs["Config"]["Labels"]
             if 'blue.agent' in labels:
