@@ -256,6 +256,8 @@ const TourPopup = () => {
                     </div>
                     <div>
                         <Spinner
+                            intent={Intent.PRIMARY}
+                            style={{ marginRight: 5 }}
                             size={20}
                             value={(currentStep + 1) / _.size(steps)}
                         />
