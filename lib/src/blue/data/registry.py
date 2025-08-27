@@ -11,6 +11,8 @@ import yaml
 from blue.utils import json_utils
 from blue.registry import Registry
 from blue.data.schema import DataSchema
+from blue.utils.service_utils import ServiceClient
+from blue.data.prompt_templates import AGGREGATION_PROMPT
 
 ###### Supported Data Sources
 from blue.data.sources.mongodb_source import MongoDBSource
@@ -20,11 +22,17 @@ from blue.data.sources.mysql_source import MySQLDBSource
 from blue.data.sources.sqlite_source import SQLiteDBSource
 from blue.data.sources.openai_source import OpenAISource
 
+###### Backend, Databases
+from redis.commands.json.path import Path
+from redis.commands.search.field import TextField, VectorField
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+from redis.commands.search.query import Query
+
 
 ###############
 ### DataRegistry
 #
-class DataRegistry(Registry):
+class DataRegistry(Registry, ServiceClient):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         self.platform_name = platform_id
         super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
@@ -52,7 +60,13 @@ class DataRegistry(Registry):
 
         # prefix for service specific properties
         self.properties['service_prefix'] = 'openai'
-
+        self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
+        self.properties['output_strip'] = True
+        
+        # Description aggregation from children
+        self.properties['aggregation_prompt'] = AGGREGATION_PROMPT
+        self.properties['enable_database_description_generation'] = True
+        self.properties['enable_collection_description_generation'] = True
 
     ##### need this to call openti to enrich registry entries, such as entity/attribute     
     async def call_openai(self, prompt):
@@ -457,9 +471,12 @@ class DataRegistry(Registry):
             return source_connection.execute_query(query=query, database=database, collection=collection, optional_properties=optional_properties)
         return None
 
-    def sync_all(self, recursive=False):
-        # TODO
-        pass
+    def sync_all(self, recursive=False, rebuild=False, collect_stats=False):
+        sources = self.get_sources()
+        for source in sources:
+            source_name = source.get('name')
+            if source_name:
+                self.sync_source(source_name, recursive=recursive, rebuild=rebuild, collect_stats=collect_stats)
 
     def sync_source(self, source, recursive=False, rebuild=False, collect_stats=False):
         source_connection = self.connect_source(source)
@@ -577,17 +594,46 @@ class DataRegistry(Registry):
                 self.deregister_source_database_collection(source, database, collection)
 
             ## recurse
+            collection_descriptions = {}
             if recursive:
                 for collection in fetched_collections_set:
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
+                    # Get collection description for database enrichment
+                    collection_desc = self.get_source_database_collection_description(source, database, collection)
+                    if collection_desc:
+                        collection_descriptions[collection] = collection_desc
             else:
                 for collection in adds:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
+                    # Get collection description for database enrichment
+                    collection_desc = self.get_source_database_collection_description(source, database, collection)
+                    if collection_desc:
+                        collection_descriptions[collection] = collection_desc
 
                 for collection in merges:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
+                    # Get collection description for database enrichment
+                    collection_desc = self.get_source_database_collection_description(source, database, collection)
+                    if collection_desc:
+                        collection_descriptions[collection] = collection_desc
+            
+            ## database description enrichment
+            if collection_descriptions and self.properties.get('enable_database_description_generation', True):
+                current_description = self.get_source_database_description(source, database)
+                if not current_description or current_description.strip() == "":
+                    try:
+                        if not metadata:
+                            metadata = {
+                                "name": database,
+                                "type": "database"
+                            }
+                        database_description = self.enrich_database_description(database, collection_descriptions, metadata)
+                        if database_description:
+                            self.set_source_database_description(source, database, database_description, rebuild=True)
+                    except Exception as e:
+                        self.logger.warning(f"Failed to enrich database description for {database}: {e}")
 
     def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, collect_stats=False, sample_limit=10):
         if source_connection is None:
@@ -694,6 +740,7 @@ class DataRegistry(Registry):
 
             #### enriching description #############################
             # ---------------- entity attributes ---------------- #
+            entity_descriptions = {}
             for entity in fetched_entities_set:
                 entity_obj = entities[entity]
                 attributes = self.get_source_database_collection_entity_attributes(source, database, collection, entity)
@@ -703,22 +750,40 @@ class DataRegistry(Registry):
                 try:
                     parsed = json_utils.safe_json_parse(entity_attribute_description)
                     if not parsed:
-                        logging.warning(f"Entity {entity} returned invalid or empty JSON.")
+                        self.logger.warning(f"Entity {entity} returned invalid or empty JSON.")
                         continue
                 except json.JSONDecodeError:
-                    logging.warning("LLM did not return valid JSON. Skipping entity enrichment.")
+                    self.logger.warning("LLM did not return valid JSON. Skipping entity enrichment.")
                     parsed = {}
 
                 table_desc = parsed.get("table_description", "")
                 attribute_descs = parsed.get("attributes", {})
 
+                # Store entity description for collection enrichment
+                entity_descriptions[entity] = table_desc
+
                 self.set_source_database_collection_entity_description(
-                    source, database, collection, entity, table_desc, rebuild=rebuild)
+                    source, database, collection, entity, table_desc, rebuild=True)
 
                 for attr, desc in attribute_descs.items():
                     self.set_source_database_collection_entity_attribute_description(
-                        source, database, collection, entity, attr, desc, rebuild=rebuild)
+                        source, database, collection, entity, attr, desc, rebuild=True)
             
+            ## collection description enrichment
+            if entity_descriptions and self.properties.get('enable_collection_description_generation', True):
+                current_description = self.get_source_database_collection_description(source, database, collection)
+                if not current_description or current_description.strip() == "":
+                    try:
+                        if not metadata:
+                            metadata = {
+                                "name": collection,
+                                "type": "collection"
+                            }
+                        collection_description = self.enrich_collection_description(collection, entity_descriptions, metadata)
+                        if collection_description:
+                            self.set_source_database_collection_description(source, database, collection, collection_description, rebuild=True)
+                    except Exception as e:
+                        self.logger.warning(f"Failed to enrich collection description for {collection}: {e}")
             
             ## relations
             # get existing schema entities
@@ -798,3 +863,36 @@ class DataRegistry(Registry):
         schema.relations = relations
         # note: please update the schema representation in DataSchema class if the default __str__ doesn't satisfy your needs
         return str(schema)
+    
+    ###### Aggregation
+    def build_collection_description_prompt(self, collection_name, entity_descriptions, collection_metadata):
+        child_descriptions = [f"{name}: {desc}" for name, desc in entity_descriptions.items() if desc]
+        if not child_descriptions:
+            child_descriptions = ["No entity descriptions available"]
+        
+        return self.properties['aggregation_prompt'].format(
+            child_type='entity',
+            parent_type='collection',
+            child_descriptions='\n'.join(child_descriptions),
+            parent_metadata=f"Collection name: {collection_name}\nMetadata: {collection_metadata}"
+        )
+
+    def build_database_description_prompt(self, database_name, collection_descriptions, database_metadata):
+        child_descriptions = [f"{name}: {desc}" for name, desc in collection_descriptions.items() if desc]
+        if not child_descriptions:
+            child_descriptions = ["No collection descriptions available"]
+        
+        return self.properties['aggregation_prompt'].format(
+            child_type='collection',
+            parent_type='database',
+            child_descriptions='\n'.join(child_descriptions),
+            parent_metadata=f"Database name: {database_name}\nMetadata: {database_metadata}"
+        )
+
+    def enrich_collection_description(self, collection_name, entity_descriptions, collection_metadata):
+        prompt = self.build_collection_description_prompt(collection_name, entity_descriptions, collection_metadata)
+        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+    def enrich_database_description(self, database_name, collection_descriptions, database_metadata):
+        prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
+        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
