@@ -371,11 +371,7 @@ export default function StreamFlows({ sessionId }) {
         setLayoutInitialized(false);
     }, [messages, streamDebugger]);
     return (
-        <div
-            className="full-parent-dimension"
-            style={{ position: "relative" }}
-            // style={{ overflow: !layoutInitialized && "hidden" }}
-        >
+        <div className="full-parent-dimension" style={{ position: "relative" }}>
             {!layoutInitialized && (
                 <div
                     className="full-parent-dimension"
