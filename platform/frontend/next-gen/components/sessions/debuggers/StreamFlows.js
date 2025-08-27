@@ -2,12 +2,14 @@ import { ReactFlowCustomProvider } from "@/components/contexts/ReactFlowCustomCo
 import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import { getReactFlowLayoutedElements } from "@/components/helper";
+import { useAppStore } from "@/stores/app-store";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
     ButtonGroup,
     ButtonVariant,
     Card,
+    Colors,
     Divider,
     NonIdealState,
     Size,
@@ -83,6 +85,7 @@ const traverseAndFindEdges = (
 };
 const selector = (state) => ({ edges: state.edges, nodes: state.nodes });
 export default function StreamFlows({ sessionId }) {
+    const darkMode = useAppStore((state) => state.dark_mode);
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
     const [direction, setDirection] = useState("TB");
@@ -202,9 +205,14 @@ export default function StreamFlows({ sessionId }) {
     const { messages } = session;
     const currentStreamDebugger = useRef({});
     const [streamDebugger, setStreamDebugger] = useState({});
-    const handleViewportChange = useCallback((event, viewport) => {
-        setLastViewport(viewport);
-    }, []);
+    const handleViewportChange = useCallback(
+        (event, viewport) => {
+            if (layoutInitialized) {
+                setLastViewport(viewport);
+            }
+        },
+        [layoutInitialized]
+    );
     const getSessionDebugger = useCallback(
         debounce(() => {
             axios
@@ -365,19 +373,31 @@ export default function StreamFlows({ sessionId }) {
     return (
         <div
             className="full-parent-dimension"
-            style={{ overflow: !layoutInitialized && "hidden" }}
+            style={{ position: "relative" }}
+            // style={{ overflow: !layoutInitialized && "hidden" }}
         >
             {!layoutInitialized && (
-                <NonIdealState
-                    title={_.isEmpty(nodes) ? "No Data" : "Rendering"}
-                    icon={
-                        <FAIcon
-                            size={50}
-                            className={!_.isEmpty(nodes) && "fa-fade"}
-                            icon={faCompassDrafting}
-                        />
-                    }
-                />
+                <div
+                    className="full-parent-dimension"
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        backgroundColor: darkMode ? Colors.BLACK : Colors.WHITE,
+                        zIndex: 1,
+                    }}
+                >
+                    <NonIdealState
+                        title={_.isEmpty(nodes) ? "No Data" : "Rendering"}
+                        icon={
+                            <FAIcon
+                                size={50}
+                                className={!_.isEmpty(nodes) && "fa-fade"}
+                                icon={faCompassDrafting}
+                            />
+                        }
+                    />
+                </div>
             )}
             <ReactFlowCustomProvider
                 value={{ direction, selectedNodes, clickedNode }}
