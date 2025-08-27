@@ -438,6 +438,9 @@ export default function StreamFlows({ sessionId }) {
                                                     ? "LR"
                                                     : "TB"
                                             );
+                                            setTimeout(() => {
+                                                fitView();
+                                            }, 0);
                                         }}
                                         icon={
                                             <FAIcon
