@@ -44,26 +44,27 @@ export default function SessionSettings({ sessionId }) {
                         ,&nbsp;<Code>DATA</Code> and <Code>METADATA</Code> will
                         be removed.
                     </div>
-                    <div style={{ marginTop: 20 }}></div>
-                    <Popover
-                        placement="right"
-                        content={
-                            <div style={{ padding: 10 }}>
-                                <Button
-                                    className={Classes.POPOVER_DISMISS}
-                                    intent={Intent.DANGER}
-                                    onClick={deleteSession}
-                                    text="Confirm"
-                                />
-                            </div>
-                        }
-                    >
-                        <Button
-                            loading={loading}
-                            intent={Intent.DANGER}
-                            text="Delete this session"
-                        />
-                    </Popover>
+                    <div style={{ marginTop: 10 }}>
+                        <Popover
+                            placement="right"
+                            content={
+                                <div style={{ padding: 10 }}>
+                                    <Button
+                                        className={Classes.POPOVER_DISMISS}
+                                        intent={Intent.DANGER}
+                                        onClick={deleteSession}
+                                        text="Confirm"
+                                    />
+                                </div>
+                            }
+                        >
+                            <Button
+                                loading={loading}
+                                intent={Intent.DANGER}
+                                text="Delete this session"
+                            />
+                        </Popover>
+                    </div>
                 </div>
             </div>
         </div>

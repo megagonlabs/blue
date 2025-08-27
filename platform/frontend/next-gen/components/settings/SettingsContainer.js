@@ -159,7 +159,7 @@ function SettingsContainer({ width, height }) {
                                     checked={windowsControlButtons}
                                     size={Size.LARGE}
                                     style={{ margin: "0px 0px 5px 0px" }}
-                                    label="Windows style control buttons"
+                                    label="Right-aligned window control buttons"
                                 />
                             </FormGroup>
                             <FormGroup
