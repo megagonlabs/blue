@@ -206,7 +206,7 @@ class OpenAIAgent(RequestorAgent):
         if 'use_tools' in properties and properties['use_tools']:
 
             # Explain tool use
-            self.write_explanation("Using tools...")
+            self.write_explanation("Using tools...\n")
 
             # create message from input
             message = self.create_message(input, properties=properties, additional_data=additional_data)
@@ -239,13 +239,14 @@ class OpenAIAgent(RequestorAgent):
                         server_name, function_name = self._extract_canonical(canonical_name)
                         # execute tool
                         self.logger.info("Executing tool: " + function_name)
-                        self.write_explanation("Executing tool: " + function_name)
+                        self.write_explanation("Executing tool: " + function_name + "\n")
 
                         self.logger.info("Arguments: " + json.dumps(kwargs))
-                        self.write_explanation("Arguments: " + json.dumps(kwargs))
+                        self.write_explanation("Arguments: " + json.dumps(kwargs) + "\n"))
                         result = self.registry.execute_tool(function_name, server_name, None, kwargs)
-                        self.logger.info("Result: " + str(result))
-                        self.write_explanation("Result: " + str(result))
+                        self.logger.info("Result: " + str(result) + "\n")
+                        self.write_explanation("Result: " + str(result) + "\n")
+                        self.write_explanation("------------")
                         # append result to message
                         message["messages"].append(
                             {
