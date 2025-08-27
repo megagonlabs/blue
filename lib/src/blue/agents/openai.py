@@ -5,7 +5,7 @@ import json
 ###### Blue
 from blue.agent import Agent
 from blue.agents.requestor import RequestorAgent
-from blue.utils import string_utils, json_utils
+from blue.utils import uuid_utils, string_utils, json_utils
 from blue.tools.registry import ToolRegistry
 from blue.constant import Separator
 
@@ -58,6 +58,8 @@ class OpenAIAgent(RequestorAgent):
 
         # initialize registry
         self._init_registry()
+
+        self.explanation_worker = None
 
     def _init_registry(self):
         # create instance of tool registry
@@ -191,8 +193,21 @@ class OpenAIAgent(RequestorAgent):
         else:
             return cs[0], None
 
+    def write_explanation(self, explanation, eos=False):
+        if self.explanation_worker is None:
+            self.explanation_worker = self.create_worker(None)
+            self.explanation_id = uuid_utils.create_uuid()
+
+        self.explanation_worker.write_data(explanation, output="EXPLANATION", id=self.explanation_id, tags=['EXPLANATION'], scope="worker")
+        if eos:
+            self.explanation_worker.write_eos(output="EXPLANATION", id=id, scope="worker")
+
     def execute_api_call(self, input, properties=None, additional_data=None):
         if 'use_tools' in properties and properties['use_tools']:
+
+            # Explain tool use
+            self.write_explanation("Using tools...")
+
             # create message from input
             message = self.create_message(input, properties=properties, additional_data=additional_data)
 
@@ -224,9 +239,13 @@ class OpenAIAgent(RequestorAgent):
                         server_name, function_name = self._extract_canonical(canonical_name)
                         # execute tool
                         self.logger.info("Executing tool: " + function_name)
+                        self.write_explanation("Executing tool: " + function_name)
+
                         self.logger.info("Arguments: " + json.dumps(kwargs))
+                        self.write_explanation("Arguments: " + json.dumps(kwargs))
                         result = self.registry.execute_tool(function_name, server_name, None, kwargs)
                         self.logger.info("Result: " + str(result))
+                        self.write_explanation("Result: " + str(result))
                         # append result to message
                         message["messages"].append(
                             {
@@ -237,6 +256,8 @@ class OpenAIAgent(RequestorAgent):
                             }
                         )
                 else:
+                    self.write_explanation("Done.", eos=True)
+
                     # create output from response
                     output = self.create_output(response, properties=properties)
 
