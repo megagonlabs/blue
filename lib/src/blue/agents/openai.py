@@ -242,7 +242,7 @@ class OpenAIAgent(RequestorAgent):
                         self.write_explanation("Executing tool: " + function_name + "\n")
 
                         self.logger.info("Arguments: " + json.dumps(kwargs))
-                        self.write_explanation("Arguments: " + json.dumps(kwargs) + "\n"))
+                        self.write_explanation("Arguments: " + json.dumps(kwargs) + "\n")
                         result = self.registry.execute_tool(function_name, server_name, None, kwargs)
                         self.logger.info("Result: " + str(result) + "\n")
                         self.write_explanation("Result: " + str(result) + "\n")
