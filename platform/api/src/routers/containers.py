@@ -344,6 +344,7 @@ def shutdown_agent_container(request: Request, agent_name):
             # TODO:
             print(service)
             # service.remove()
+        return JSONResponse(status_code=501, content={"message": "The server lacks the ability to fulfill the request."})
 
     result = ""
 
