@@ -216,7 +216,7 @@ class OpenAIAgent(RequestorAgent):
         tool_call += "<summary>" + "Tool: " + tool + "</summary>"
         tool_call += "Arguments: " + arguments + "\n"
         tool_call += "Result: " + result + "\n"
-        toll_call += "</details>"
+        tool_call += "</details>"
 
         explanation.append(tool_call)
         # form
@@ -224,13 +224,13 @@ class OpenAIAgent(RequestorAgent):
             "form_id": str(self.explanation_id),
             "schema": {},
             "uischema": {"type": "Markdown", "scope": "#/properties/markdown", "props": {"style": {}}},
-            "data": "### Tool Calls\n" + "\n".join(explanation),
+            "data": {"markdown": "### Tool Calls\n" + "\n".join(explanation)},
         }
         # write markdown
         if update:
-            self.explanation_worker.write_control(ControlCode.UPDATE_FORM, form, output="EXPLANATION", id=str(self.explanation_id), scope="agent")
+            self.explanation_worker.write_control(ControlCode.UPDATE_FORM, form, output="EXPLANATION")
         else:
-            self.explanation_worker.write_control(ControlCode.CREATE_FORM, form, output="EXPLANATION", id=str(self.explanation_id), scope="agent")
+            self.explanation_worker.write_control(ControlCode.CREATE_FORM, form, output="EXPLANATION")
 
     def execute_api_call(self, input, properties=None, additional_data=None):
 

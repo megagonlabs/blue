@@ -687,8 +687,8 @@ class Agent:
                 self.update_output(output, description=d, properties=p)
 
     def update_input(self, name, description=None, properties=None):
-        if name not in self.inputs:
-            return
+        # if name not in self.inputs:
+        #     return
 
         includes = []
         excludes = []
@@ -704,8 +704,8 @@ class Agent:
         self.add_input(name, description=description, includes=includes, excludes=excludes)
 
     def update_output(self, name, description=None, properties=None):
-        if name not in self.outputs:
-            return
+        # if name not in self.outputs:
+        #     return
 
         tags = []
         if properties is None:
