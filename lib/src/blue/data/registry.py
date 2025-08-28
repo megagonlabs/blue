@@ -3,12 +3,11 @@ import argparse
 import logging
 import json
 
-import asyncio
-import websockets
 import yaml
 
 ###### Blue
 from blue.utils import json_utils
+from blue.utils.service_utils import ServiceClient
 from blue.registry import Registry
 from blue.data.schema import DataSchema
 
@@ -24,7 +23,7 @@ from blue.data.sources.openai_source import OpenAISource
 ###############
 ### DataRegistry
 #
-class DataRegistry(Registry):
+class DataRegistry(Registry, ServiceClient):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         self.platform_name = platform_id
         super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
@@ -52,26 +51,8 @@ class DataRegistry(Registry):
 
         # prefix for service specific properties
         self.properties['service_prefix'] = 'openai'
-
-
-    ##### need this to call openti to enrich registry entries, such as entity/attribute     
-    async def call_openai(self, prompt):
-        request = {
-            "api": self.properties["openai.api"],          
-            "model": self.properties["openai.model"],      
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "max_tokens": self.properties.get("openai.max_tokens", 300),
-            "stream": self.properties.get("openai.stream", False)
-        }
-
-        async with websockets.connect(self.properties["service_url"]) as ws:
-            await ws.send(json.dumps(request))
-            response = await ws.recv()
-            response_json = json.loads(response)
-            content = response_json["choices"][0]["message"]["content"]
-            return content
+        self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
+        self.properties['output_strip'] = True
 
 
     def build_entity_description_prompt(self, entity_obj, attributes):
@@ -128,8 +109,8 @@ class DataRegistry(Registry):
 
     def enrich_entity(self, entity, attributes):
         entity_prompt = self.build_entity_description_prompt(entity, attributes)
-        return asyncio.run(self.call_openai(entity_prompt))
-
+        return self.execute_api_call(entity_prompt, properties=self.properties, additional_data={})
+    
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
         super().register_record(source, 'source', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
