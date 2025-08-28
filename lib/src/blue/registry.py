@@ -474,6 +474,15 @@ class Registry:
         # return original and merged
         return original_record, merged_record
 
+    def parse_path(self, path):
+        pa = path.split("/")[1:]
+        o = {}
+        keys = pa[::2]
+        values = pa[1:][::2]
+        for i, key in enumerate(keys):
+            o[key] = values[i]
+        return o
+
     def _extract_shortname(self, name):
         # use name to identify scope, short name
         s = name.split(self.SEPARATOR)
