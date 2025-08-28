@@ -220,17 +220,18 @@ class OpenAIAgent(RequestorAgent):
 
         explanation.append(tool_call)
         # form
+        form_id = str(self.explanation_id)
         form = {
-            "form_id": str(self.explanation_id),
+            "form_id": form_id,
             "schema": {},
             "uischema": {"type": "Markdown", "scope": "#/properties/markdown", "props": {"style": {}}},
             "data": {"markdown": "### Tool Calls\n" + "\n".join(explanation)},
         }
         # write markdown
         if update:
-            self.explanation_worker.write_control(ControlCode.UPDATE_FORM, form, output="EXPLANATION")
+            self.explanation_worker.write_control(ControlCode.UPDATE_FORM, form, output="EXPLANATION", id=form_id)
         else:
-            self.explanation_worker.write_control(ControlCode.CREATE_FORM, form, output="EXPLANATION")
+            self.explanation_worker.write_control(ControlCode.CREATE_FORM, form, output="EXPLANATION", id=form_id)
 
     def execute_api_call(self, input, properties=None, additional_data=None):
 
