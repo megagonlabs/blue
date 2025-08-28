@@ -11,8 +11,9 @@ from blue.platform import Platform
 from blue.agents.plan import AgenticPlan, Status, NodeType
 from blue.stream import ControlCode
 from blue.utils import uuid_utils, json_utils
-from blue.data.planner import DataPlanner
-from blue.data.pipeline import DataPipeline
+
+# from blue.data.planner import DataPlanner
+# from blue.data.pipeline import DataPipeline
 
 
 ##########################
@@ -40,7 +41,7 @@ class CoordinatorAgent(Agent):
     def _start(self):
         super()._start()
 
-        # initialize platform
+        # initialize platformgi
         self._init_platform()
 
         # initialize registry
@@ -160,19 +161,19 @@ class CoordinatorAgent(Agent):
         # TODO: TEMPORARY
 
         # fetch data from stream
-        input_data = self.fetch_stream_data(input_stream)
+        # input_data = self.fetch_stream_data(input_stream)
 
         # # TODO: call data planner, plan, optimize given budget
-        pid = uuid_utils.create_uuid()
-        dp = DataPlanner(id=pid, properties=self.properties)
-        pipeline = dp.plan(input_data, "TRANSFORM", context)
-        pipeline = dp.optimize(pipeline, budget)
+        # pid = uuid_utils.create_uuid()
+        # dp = DataPlanner(id=pid, properties=self.properties)
+        # pipeline = dp.plan(input_data, "TRANSFORM", context)
+        # pipeline = dp.optimize(pipeline, budget)
 
         # # TODO: execute pipeline, update budget
-        output_data = pipeline.execute(budget)
+        # output_data = pipeline.execute(budget)
 
         # # # persist data to stream
-        output_stream = self.persist_stream_data(output_data)
+        # output_stream = self.persist_stream_data(output_data)
 
         # # TODO: update session budget
 
