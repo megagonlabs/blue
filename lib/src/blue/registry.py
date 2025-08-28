@@ -299,12 +299,17 @@ class Registry:
         # define key
         doc_key = self.__doc_key(name, type, scope)
 
+        fields = ["name", "type", "scope", "description", "vector"]
+
+
         if pipe:
-            pipe.hdel(doc_key, 1)
+            for field in fields:
+                pipe.hdel(doc_key, field)
         else:
             pipe = self.connection.pipeline()
-            for field in ["name", "type", "scope", "description", "vector"]:
+            for field in fields:
                 pipe.hdel(doc_key, field)
+            
             res = pipe.execute()
 
     def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10):

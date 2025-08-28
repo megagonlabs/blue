@@ -19,7 +19,7 @@ export default function JSONForm({ content, hasError }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const id = _.get(content, "form_id", null);
     const specifications = _.get(forms, [id, "content"], {});
-    const closed = _.get(forms, [id, "closed"], {});
+    const closed = _.get(forms, [id, "closed"], false);
     const [error] = useErrorBoundary();
     useEffect(() => {
         if (hasError) {

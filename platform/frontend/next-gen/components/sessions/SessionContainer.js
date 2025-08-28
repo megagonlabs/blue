@@ -104,6 +104,11 @@ function SessionContainer({ width, height, sessionId }) {
             setShowAddSessionAgent(true);
         }
     }, [triggers, sessionId]);
+    useEffect(() => {
+        if (!showAddSessionAgent) {
+            resetTrigger(["addSessionAgent", sessionId]);
+        }
+    }, [showAddSessionAgent]);
     return (
         <div style={{ width, height }}>
             <div
@@ -118,7 +123,6 @@ function SessionContainer({ width, height, sessionId }) {
                     onClose={() => {
                         setShowAddSessionAgent(false);
                         setSkippable(false);
-                        resetTrigger(["addSessionAgent", sessionId]);
                     }}
                     isOpen={showAddSessionAgent}
                     usePortal={false}
