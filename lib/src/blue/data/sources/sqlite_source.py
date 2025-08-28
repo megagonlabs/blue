@@ -88,34 +88,7 @@ class SQLiteDBSource(DataSource):
     def fetch_database_metadata(self, database):
         return {}
 
-    def fetch_database_schema(self, database):
-        collections = self.fetch_database_collections(database)
-
-        db_connection = self._db_connect(database)
-        schema = DataSchema()
-        for collection in collections:
-            # add collection as entity
-            schema.add_entity(collection)
-
-            query = "PRAGMA table_info(" + collection + ");"
-            cursor = db_connection.cursor()
-            cursor.execute(query)
-            data = cursor.fetchall()
-
-            schema = DataSchema()
-            schema.add_entity(collection)
-
-            for _, column_name, data_type, _, _, _ in data:
-                property_def = {"type": data_type}
-
-                # TODO: add enum, values to property_def
-                property_def["values"] = []
-
-                schema.add_entity_property(collection, column_name, property_def)
-
-        self._db_disconnect(db_connection)
-        return schema.to_json()
-
+    
     def create_database(self, database, properties={}):
         # connect and close
         db_connection = self._db_connect(database)
@@ -139,24 +112,10 @@ class SQLiteDBSource(DataSource):
 
     ######### database/collection
     def fetch_database_collections(self, database):
+        ## for sqlite, collection is the database, so we ignore the database parameter here 
         databases = self.fetch_databases()
-        if database not in databases:
-            return None
+        return databases
 
-        # connect to specific database (not source directly)
-        db_connection = self._db_connect(database)
-
-        query = "SELECT name FROM sqlite_master WHERE type='table';"
-        cursor = db_connection.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
-        collections = []
-        for datum in data:
-            collections.append(datum[0])
-
-        # disconnect
-        self._db_disconnect(db_connection)
-        return collections
 
     def fetch_database_collection_metadata(self, database, collection):
         return {}
@@ -165,30 +124,47 @@ class SQLiteDBSource(DataSource):
         # TODO
         return []
 
+    
     def fetch_database_collection_entities(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
-
-        db_connection = self._db_connect(database)
-
-        query = "PRAGMA table_info(" + collection + ");"
+        ## for sqlite, database and collection is same     
+        """
+        For SQLite: since database == collection, we ignore `collection`.
+        Returns tables and their column metadata.
+        """
+        db_connection =  self._db_connect(database)
         cursor = db_connection.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
 
+        # 1. Get all tables
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = [row[0] for row in cursor.fetchall()]
+
+        
+        result = []
         schema = DataSchema()
-        schema.add_entity(collection)
+          
+        for table in tables:
+            # 2. Get all columns for this table
+        
+            if not schema.has_entity(table):
+                schema.add_entity(table)
 
-        for _, column_name, data_type, _, _, _ in data:
-            property_def = {"type": data_type}
+            cursor.execute(f"PRAGMA table_info({table});")
+            columns = cursor.fetchall()
 
-            # TODO: add enum, values to property_def
-            property_def["values"] = []
-
-            schema.add_entity_property(collection, column_name, property_def)
-
+            for col in columns:
+                # columns schema: (cid, name, type, notnull, dflt_value, pk)
+                data_type = col[2]
+                column_name = col[1]
+                property_def = {"type": data_type}
+                
+                # TODO: add enum, values to property_def
+                property_def["values"] = []
+                schema.add_entity_property(table, column_name, property_def)
+    
         self._db_disconnect(db_connection)
 
-        return schema.get_entities()
 
+    
     def fetch_database_collection_relations(self, database, collection):
         return {}
     
