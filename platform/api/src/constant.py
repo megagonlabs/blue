@@ -6,6 +6,7 @@ from jsonschema.validators import Draft7Validator
 import pydash
 import jwt
 from jwt.algorithms import RSAAlgorithm
+from fastapi.responses import JSONResponse
 import requests
 from settings import ACL, EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES
 from datetime import timedelta
@@ -16,6 +17,9 @@ END_OF_EVENT_SIGNAL = 'END_OF_EVENT_SIGNAL'
 platform_id = PROPERTIES["platform.name"]
 p = Platform(id=platform_id, properties=PROPERTIES)
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
+
+# responses
+RESPONSE_501 = JSONResponse(status_code=501, content={"message": "The server lacks the ability to fulfill the request."})
 
 
 def account_id_header(X_accountId: str = Header(None)):

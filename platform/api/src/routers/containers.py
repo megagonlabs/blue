@@ -11,7 +11,7 @@ import time
 import docker.errors
 from fastapi import Depends, Request
 import pydash
-from constant import END_OF_EVENT_SIGNAL, PermissionDenied, account_id_header, acl_enforce
+from constant import END_OF_EVENT_SIGNAL, PermissionDenied, account_id_header, acl_enforce, RESPONSE_501
 from server import should_stop
 
 
@@ -303,7 +303,7 @@ def update_agent_container(request: Request, agent_name):
             pulled = client.images.pull(image)
         elif PROPERTIES["platform.deploy.target"] == "swarm":
             # TODO: pull image on all nodes where label.target==agent
-            return JSONResponse(status_code=501, content={"message": "The server lacks the ability to fulfill the request."})
+            return RESPONSE_501
 
         # close connection
         client.close()
@@ -344,7 +344,7 @@ def shutdown_agent_container(request: Request, agent_name):
             # TODO:
             print(service)
             # service.remove()
-        return JSONResponse(status_code=501, content={"message": "The server lacks the ability to fulfill the request."})
+        return RESPONSE_501
 
     result = ""
 

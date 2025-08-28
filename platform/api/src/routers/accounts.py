@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce, is_email_allowed, verify_google_id_token
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce, is_email_allowed, verify_google_id_token, RESPONSE_501
 from fastapi import Depends, Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
@@ -221,9 +221,7 @@ def get_profile_by_email(request: Request, email):
                 user_record = auth.get_user_by_email(email)
                 user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
             else:
-                return JSONResponse(
-                    status_code=501, content={"message": 'The server lacks the ability to fulfill the request because environment variable "FIREBASE_SERVICE_CRED" is not configured.'}
-                )
+                return RESPONSE_501
     except auth.UserNotFoundError as ex:
         return JSONResponse(content={"message": f'No user record found for the given identifier: "{email}".'}, status_code=400)
     except ValueError as ex:
