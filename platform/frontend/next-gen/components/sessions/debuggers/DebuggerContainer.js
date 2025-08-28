@@ -474,14 +474,12 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                         USER:...
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <Tag
-                                                        size={Size.LARGE}
-                                                        minimal
-                                                    >
-                                                        produced / consumed by
-                                                    </Tag>
-                                                </div>
+                                                <Tag size={Size.LARGE} minimal>
+                                                    produced
+                                                </Tag>
+                                                <Tag size={Size.LARGE} minimal>
+                                                    consumed by
+                                                </Tag>
                                             </div>
                                         </div>
                                     }
