@@ -308,11 +308,10 @@ export const useSessionStore = create((set, get) => ({
                         true
                     );
                 } else if (
-                    _.includes([
-                        "CREATE_FORM",
-                        "UPDATE_FORM",
-                        messageContentsCode,
-                    ])
+                    _.includes(
+                        ["CREATE_FORM", "UPDATE_FORM"],
+                        messageContentsCode
+                    )
                 ) {
                     for (let i = _.size(messages) - 1; i >= 0; i--) {
                         if (_.isEqual(messages[i].stream, stream)) {

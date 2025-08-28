@@ -76,7 +76,6 @@ const Row = ({ index, data, style }) => {
             getAgentMetadata: state.getAgentMetadata,
         }))
     );
-
     const {
         streams,
         messages,
