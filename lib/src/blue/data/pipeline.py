@@ -25,7 +25,9 @@ class Status(Constant):
 
 
 Status.INITED = Status("INITED")
-Status.RUNNING = Status("REFINED")
+Status.REFINED = Status("REFINED")
+Status.EXECUTING = Status("EXECUTING")
+Status.EXECUTED = Status("EXECUTED")
 Status.PLANNED = Status("EXECUTED")
 
 
@@ -34,9 +36,9 @@ class NodeType(Constant):
         super().__init__(c)
 
 
-NodeType.INPUT = Constant("INPUT")
-NodeType.OUTPUT = Constant("OUTPUT")
-NodeType.OPERATOR = Constant("OPERATOR")
+NodeType.INPUT = NodeType("INPUT")
+NodeType.OUTPUT = NodeType("OUTPUT")
+NodeType.OPERATOR = NodeType("OPERATOR")
 
 
 class EntityType(Constant):
@@ -44,7 +46,7 @@ class EntityType(Constant):
         super().__init__(c)
 
 
-EntityType.OPERATOR = Constant("OPERATOR")
+EntityType.OPERATOR = EntityType("OPERATOR")
 
 
 ###############
