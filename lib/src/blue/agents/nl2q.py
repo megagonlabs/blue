@@ -154,7 +154,7 @@ Output:
         # preset schema if any selected
         self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
 
-    def _set_schemas(self, schemas, source=None, database=None, collection=None):
+    def _set_schemas(self, schemas, source=None, database=None, collection=None, entity=None, relation=None, attribute=None):
         if source:
             source_properties = self.registry.get_source_properties(source)
             source_protocol = source_properties['connection']['protocol']
@@ -166,14 +166,96 @@ Output:
 
             if database:
                 if collection:
-                    entities = self.registry.get_source_database_collection_entities(source, database, collection)
-                    if entities:
-                        key = f'/source/{source}/database/{database}/collection/{collection}'
-                        schemas[key] = entities
+                    key = f'/source/{source}/database/{database}/collection/{collection}'
+                    if key not in schemas:
+                        schemas[key] = {'entities': [], 'relations': []}
+
+                    if entity:
+                        # look for entity in existing list
+                        existing_entity = next((e for e in schemas[key]['entities'] if e['name'] == entity), None)
+
+                        if existing_entity:
+                            entity_dict = existing_entity
+                        else:
+                            entity_dict = self.registry.get_source_database_collection_entity(source, database, collection, entity)
+                        
+                            # Initialize attributes list from contents if attribute=None
+                            if attribute is None and 'contents' in entity_dict and 'attribute' in entity_dict['contents']:
+                                entity_dict['attributes'] = list(entity_dict['contents']['attribute'].values())
+                            else:
+                                entity_dict['attributes'] = []
+
+                            if 'contents' in entity_dict and 'attribute' in entity_dict['contents']:
+                                del entity_dict['contents']['attribute']
+                            
+                            schemas[key]['entities'].append(entity_dict)
+                            
+                         # Add only the specified attribute
+                        if attribute:
+                            attribute_dict = self.registry.get_source_database_collection_entity_attribute(
+                                source, database, collection, entity, attribute)
+
+                            if entity_dict:
+                                if all(attr['name'] != attribute_dict['name'] for attr in entity_dict['attributes']):
+                                    entity_dict['attributes'].append(attribute_dict)
+
+                    if relation:
+                        # look for relation in existing list
+                        existing_relation = next((r for r in schemas[key]['relations'] if r['name'] == relation), None)
+
+                        if existing_relation:
+                            relation_dict = existing_relation
+                        else:
+                            relation_dict = self.registry.get_source_database_collection_relation(source, database, collection, relation)
+
+                            if attribute is None and 'contents' in relation_dict and 'attribute' in relation_dict['contents']:
+                                relation_dict['attributes'] = list(relation_dict['contents']['attribute'].values())
+                            else:
+                                relation_dict['attributes'] = []    
+                        
+                            if 'contents' in relation_dict and 'attribute' in relation_dict['contents']:
+                                del relation_dict['contents']['attribute']
+                            
+                            schemas[key]['relations'].append(relation_dict)
+                     
+                        if attribute:
+                            attribute_dict = self.registry.get_source_database_collection_relation_attribute(
+                                source, database, collection, relation, attribute)
+                     
+                            if relation_dict:
+                                if all(attr['name'] != attribute_dict['name'] for attr in relation_dict['attributes']):
+                                    relation_dict['attributes'].append(attribute_dict)
+                                            
+                    if entity is None:
+                        entities = self.registry.get_source_database_collection_entities(source, database, collection)
+                        if entities:
+                            normalized_entities = []
+                            for e in entities:
+                                if 'contents' in e and 'attribute' in e['contents']:
+                                    e['attributes'] = list(e['contents']['attribute'].values())
+                                    del e['contents']['attribute']
+                                else:
+                                    e['attributes'] = []
+                                normalized_entities.append(e)
+                            schemas[key]['entities'] = normalized_entities
+                                            
+                           
+                    if relation is None:
+                        relations = self.registry.get_source_database_collection_relations(source, database, collection)
+                        if relations:
+                            normalized_relations = []
+                            for r in relations:
+                                if 'contents' in r and 'attribute' in r['contents']:
+                                    r['attributes'] = list(r['contents']['attribute'].values())
+                                    del r['contents']['attribute']
+                                else:
+                                    r['attributes'] = []
+                                normalized_relations.append(r)
+                            schemas[key]['relations'] = normalized_relations 
+                        
                 else:
                     # get collections
                     collections = self.registry.get_source_database_collections(source=source, database=database)
-
                     # set schemas for each collection
                     if collections is None:
                         collections = []
@@ -185,43 +267,73 @@ Output:
 
                 if databases is None:
                     databases = []
+                    
                 # set schemas for each database
                 for database in databases:
                     self._set_schemas(schemas, source=source, database=database['name'])
+                
         else:
             # get sources
             sources = self.registry.get_sources()
 
             if sources is None:
                 sources = []
-            # set schemas for each source
+                # set schemas for each source
             for source in sources:
                 self._set_schemas(schemas, source=source['name'])
 
     def _parse_data_scope(self, scope):
-
         source = None
         database = None
         collection = None
+        entity = None
+        relation = None
 
         if scope:
-            sa = scope.split("/")
-            if len(sa) > 2:
-                source = sa[2]
-                if source == '':
-                    source = None
-            if len(sa) > 4:
-                database = sa[4]
-                if database == '':
-                    database = None
-            if len(sa) > 6:
-                collection = sa[6]
-                if collection == '':
-                    collection = None
+            parts = scope.strip("/").split("/")
 
-        return source, database, collection
+            it = iter(parts)
 
-    def _search_schemas(self, question, scope=None):
+            for key in it:
+                val = next(it, None)  # default to None if no more items
+                if key == "source":
+                    source = val or None
+                elif key == "database":
+                    database = val or None
+                elif key == "collection":
+                    collection = val or None
+                elif key == "entity":
+                    entity = val or None
+                elif key == "relation":
+                    relation = val or None
+            
+        return source, database, collection, entity, relation
+
+    
+    def _derive_thresholds(self, global_threshold,
+                      mode = "hybrid",
+                      delta = 0.10,
+                      factor = 1.25,
+                      max_limit = 1.0):
+        """
+        Returns (global_threshold, local_threshold).
+        - similarity is distance-based: lower is better.
+        - local_threshold >= global_threshold (i.e. more relaxed).
+        """
+        g = float(global_threshold)
+        if mode == "add":
+            local = min(g + delta, max_limit)
+        elif mode == "mul":
+            local = min(g * factor, max_limit)
+        else:  # hybrid
+            local = min(max(g * factor, g + delta), max_limit)
+
+        # sanity: local must be >= global
+        if local < g:
+            local = g
+        return g, local
+
+    def _search_schemas(self, question, scope=None, discovery_depth_collection="some", discovery_depth_entity_relation="some"):
         schemas = {}
 
         if "nl2q_discovery_similarity_threshold" in self.properties and self.properties["nl2q_discovery_similarity_threshold"]:
@@ -229,59 +341,187 @@ Output:
         else:
             similarity_threshold = 0.2
 
-        # search matches below similarity threshold
+        
+        similarity_threshold_global, similarity_threshold_local = self._derive_thresholds(similarity_threshold)
+
+        # Step 1: Initial search to find matches
         matches = []
         page = 0
-
-        # progressively get more pages within similarity threshold
+        
         while True:
-            results = self.registry.search_records(question, scope=scope, approximate=True, page=page, page_size=5, page_limit=10)
-
-            if len(results) == 0:
+            results = self.registry.search_records(
+                question, scope=scope, approximate=True, page=page, page_size=5, page_limit=10)
+        
+            if not results:
                 break
+
+            page_has_match = False
+            
             for result in results:
                 score = float(result['score'])
-                if score < similarity_threshold:
+                if score < similarity_threshold_global:
                     matches.append(result)
-                else:
-                    break
-            if score > similarity_threshold:
+                    page_has_match = True
+
+            if not page_has_match:
                 break
-            else:
-                page = page + 1
+            page += 1
 
-        # process matches
+        
+        # Step 2: Upwards expansion - include parents for entity/relation/attribute
+        expanded_matches = []
+        seen = set()  # dedupe (type, name, scope)
+
+        def _add_expanded(name, typ, sc):
+            key = (typ, name, sc)
+            if key not in seen:
+                expanded_matches.append({"name": name, "type": typ, "scope": sc})
+                seen.add(key)
+
         for match in matches:
-
             n = match["name"]
             t = match["type"]
             s = match["scope"]
+            source, database, collection, entity, relation = self._parse_data_scope(s)
 
-            source, database, collection = self._parse_data_scope(s)
+            # Expand upwards
+            if t == "attribute":
+                if entity and source is not None and database is not None and collection is not None:
+                    parent_scope_entity = f'/source/{source}/database/{database}/collection/{collection}'
+                    _add_expanded(entity, "entity", parent_scope_entity)
+                if relation and source is not None and database is not None and collection is not None:
+                    parent_scope_relation = f'/source/{source}/database/{database}/collection/{collection}'
+                    _add_expanded(relation, "relation", parent_scope_relation)
+                if collection and source is not None and database is not None:
+                    parent_scope_collection = f'/source/{source}/database/{database}'
+                    _add_expanded(collection, "collection", parent_scope_collection)
+            elif t in ("entity", "relation"):
+                if collection and source is not None and database is not None:
+                    parent_scope_collection = f'/source/{source}/database/{database}'
+                    _add_expanded(collection, "collection", parent_scope_collection)
 
-            if t == "source":
-                source = n
-            elif t == "database":
-                database = n
-            elif t == "collection":
+            # Always include the original match
+            _add_expanded(n, t, s)
+
+        # Step 3: Downward processing (all / some)
+        for match in expanded_matches:
+            n = match["name"]
+            t = match["type"]
+            s = match["scope"]
+            source, database, collection, entity, relation = self._parse_data_scope(s)
+            
+            if t == "collection":
                 collection = n
+                if discovery_depth_collection == "all":
+                    self._set_schemas(schemas, source=source, database=database, collection=collection)
+                    
+                elif discovery_depth_collection == "some":
+                    child_scope = f'/source/{source}/database/{database}/collection/{collection}'
+                    page = 0
+                    while True:
+                        results = self.registry.search_records(
+                            question, scope=child_scope, approximate=True, page=page, page_size=5, page_limit=10
+                        )
+                        if not results:
+                            break
+                        page_has_match = False
 
-            self._set_schemas(schemas, source=source, database=database, collection=collection)
+                        for result in results:
+                            score = float(result['score'])
+                            result_type = result["type"]
+                            if score < similarity_threshold_local:
+                                page_has_match = True
+                                if result_type == "entity":
+                                    self._set_schemas(
+                                        schemas, source=source, database=database,
+                                        collection=collection, entity=result["name"]
+                                    )
+                                elif result_type == "relation":
+                                    self._set_schemas(
+                                        schemas, source=source, database=database,
+                                        collection=collection, relation=result["name"]
+                                    )
+                        if not page_has_match:
+                            break
+                        page += 1
+
+            elif t == "entity":
+                entity = n
+                if discovery_depth_entity_relation == "all":
+                    self._set_schemas(schemas, source=source, database=database, collection=collection, entity=entity)
+                elif discovery_depth_entity_relation == "some":
+                    child_scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
+                    page = 0
+                    while True:
+                        results = self.registry.search_records(
+                            question, scope=child_scope, approximate=True, page=page, page_size=5, page_limit=10
+                        )
+                        if not results:
+                            break
+                        page_has_match = False
+                        for result in results:
+                            score = float(result['score'])
+                            result_type = result["type"]
+
+                            if score < similarity_threshold_local and result_type == "attribute":
+                                self._set_schemas(
+                                    schemas, source=source, database=database,
+                                    collection=collection, entity=entity, attribute=result["name"]
+                                )
+                                page_has_match = True
+                        if not page_has_match:
+                            break
+                        page += 1
+
+            elif t == "relation":
+                relation = n
+                if discovery_depth_entity_relation == "all":
+                    self._set_schemas(schemas, source=source, database=database, collection=collection, relation=relation)
+                elif discovery_depth_entity_relation == "some":
+                    child_scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
+                    page = 0
+                    while True:
+                        results = self.registry.search_records(
+                            question, scope=child_scope, approximate=True, page=page, page_size=5, page_limit=10
+                        )
+                        if not results:
+                            break
+                        page_has_match = False
+                        for result in results:
+                            score = float(result['score'])
+                            result_type = result["type"]
+
+                            if score < similarity_threshold_local and result_type == "attribute":
+                                self._set_schemas(
+                                    schemas, source=source, database=database,
+                                    collection=collection, relation=relation, attribute=result["name"]
+                                )
+                                page_has_match = True
+                        if not page_has_match:
+                            break
+                        page += 1
+
+            elif t == "attribute":
+                attribute = n
+                if entity:
+                    self._set_schemas(schemas, source=source, database=database, collection=collection, entity=entity, attribute=attribute)
+                elif relation:
+                    self._set_schemas(schemas, source=source, database=database, collection=collection, relation=relation, attribute=attribute)
 
         return schemas
-
+    
+    
     def _format_schema(self, schema):
         res = []
         entities = schema['entities']
 
         for entity in entities:
             table_name = entity['name']
-            attributes = entity['contents']['attribute']
-
+            attributes = entity['attributes']
             
             columns = []
-            for col_name, col_info in attributes.items():
-                col_entry = {"name": col_name, "type": "unknown"}
+            for col_info in attributes:
+                col_entry = {"name": col_info.get("name"), "type": "unknown"}
 
                 if isinstance(col_info, dict):
                     props = col_info.get("properties", {})
@@ -420,8 +660,8 @@ Output:
             if not any(query.upper().startswith(prefix.upper()) for prefix in properties['nl2q_valid_query_prefixes']):
                 raise ValueError(f'Invalid query prefix: {query}')
 
-            # extract source, database, collection
-            source, database, collection = self._parse_data_scope(key)
+            # extract source, database, collection, entity, relation
+            source, database, collection, entity, relation = self._parse_data_scope(key)
 
             result = None
 

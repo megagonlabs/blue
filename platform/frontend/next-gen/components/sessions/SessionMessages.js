@@ -56,7 +56,12 @@ import MessageMetadata from "./messages/MessageMetadata";
 import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
-    const { setRowHeight, sessionId, addInspectionContainer } = data;
+    const {
+        setRowHeight,
+        sessionId,
+        addInspectionContainer,
+        setShowWorkspace,
+    } = data;
     const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
             darkMode: state.dark_mode,
@@ -207,13 +212,14 @@ const Row = ({ index, data, style }) => {
                         <Tooltip placement="bottom" content="Add to Workspace">
                             <Button
                                 icon={<FAIcon icon={faSidebar} />}
-                                onClick={() =>
+                                onClick={() => {
                                     addToWorkspace({
                                         type: "session",
                                         message,
                                         sessionId,
-                                    })
-                                }
+                                    });
+                                    setShowWorkspace(true);
+                                }}
                             />
                         </Tooltip>
                         <Tooltip placement="bottom-end" content="Inspect">
@@ -579,6 +585,7 @@ export default function SessionMessages({
                             setRowHeight,
                             sessionId,
                             addInspectionContainer,
+                            setShowWorkspace,
                         }}
                         itemSize={getRowHeight}
                         itemCount={_.size(filteredMessages)}
