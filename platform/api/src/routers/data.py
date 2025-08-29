@@ -284,30 +284,62 @@ def get_data_source_database_collection_relation(request: Request, source_name, 
 
 ### sync entities
 @router.put('/{source_name}/sync')
-def sync_source(request: Request, source_name, recursive: bool = False,  collect_stats: bool = False):
+def sync_source(request: Request, source_name, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
-    data_registry.sync_source(source_name, recursive=recursive, rebuild=True, collect_stats=collect_stats)
+    data_registry.sync_source(source_name, recursive=recursive, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
 
 
 @router.put("/{source_name}/database/{database_name}/sync")
-def sync_source_database(request: Request, source_name, database_name, recursive: bool = False, collect_stats: bool = False):
+def sync_source_database(request: Request, source_name, database_name, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
-    data_registry.sync_source_database(source_name, database_name, recursive=recursive, rebuild=True, collect_stats=collect_stats)
+    data_registry.sync_source_database(source_name, database_name, recursive=recursive, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
 
 
 @router.put("/{source_name}/database/{database_name}/collection/{collection_name}/sync")
-def sync_source_database_collection(request: Request, source_name, database_name, collection_name, recursive: bool = False, collect_stats: bool = False, sample_limit=10):
+def sync_source_database_collection(request: Request, source_name, database_name, collection_name, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
-    data_registry.sync_source_database_collection(source_name, database_name, collection_name, recursive=recursive, rebuild=True, collect_stats=collect_stats, sample_limit=sample_limit)
+    data_registry.sync_source_database_collection(source_name, database_name, collection_name, recursive=recursive, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
+
+
+### stat collection  
+@router.put('/{source_name}/stats')
+def collect_source_stats(request: Request, source_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_source_stats(source_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/stats")
+def collect_source_database_stats(request: Request, source_name, database_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_source_database_stats(source_name, database_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/collection/{collection_name}/stats")
+def collect_source_database_collection_stats(request: Request, source_name, database_name, collection_name, recursive: bool = False, sample_limit=10):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_source_database_collection_stats(source_name, database_name, collection_name, recursive=recursive, rebuild=True, sample_limit=sample_limit)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+

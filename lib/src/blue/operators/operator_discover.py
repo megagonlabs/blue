@@ -38,7 +38,7 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
                     'name': result['name'],
                     'id': result['id'],
                     'scope': result['scope'],
-                    'path': f"{result['name']}/operator/{result['name']}",
+                    'path': f"{result['scope']}/operator/{result['name']}",
                 }
                 if 'score' in result:
                     transformed_result['score'] = float(result['score'])
@@ -76,7 +76,7 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
                     score = float(result['score'])
                     if score <= threshold:
                         transformed_result = {
-                            'type': 'source',
+                            'type': 'operator',
                             'name': result['name'],
                             'id': result['id'],
                             'scope': result['scope'],
