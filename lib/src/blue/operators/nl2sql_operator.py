@@ -53,12 +53,8 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
         raise ValueError(f"Unsupported protocol: {protocol}. Supported protocols are: postgres, mysql, sqlite")
 
     service_client = ServiceClient(name="nl2sql_operator_service_client", properties=properties)
-    # Convert schema to JSON string if it's a dictionary
-    if isinstance(schema, dict):
-        schema_str = json.dumps(schema, indent=2)
-    else:
-        schema_str = str(schema)
-
+    
+    
     additional_data = {
         'question': question,
         'schema': schema_str,
