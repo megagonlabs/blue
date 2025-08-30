@@ -498,34 +498,36 @@ class DataRegistry(Registry, ServiceClient):
     def collect_source_database_collection_stats(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, sample_limit=10):
         
         entities = self.get_source_database_collection_entities(source, database, collection)
-        
-        if entities is None:
-            entities = {}
-        
         relations = self.get_source_database_collection_relations(source, database, collection)
 
-        if relations is None:
-            relations = {}
+        if entities is None: 
+            entities = []
         
+        if relations is None: 
+            relations = []
+        
+
         if source_connection is None:
             source_connection = self.connect_source(source)
         if source_connection:
+            
             collection_stats = source_connection.fetch_collection_stats(database, collection, entities, relations)
             
             if collection_stats:
                 self.set_source_database_collection_property(source, database, collection, "stats", collection_stats, rebuild=rebuild)
 
             if entities:
-                for entity in entities:
+                for entity_dict in entities:
+                    entity = entity_dict.get("name")
+                
                     ent_stats = source_connection.fetch_entity_stats(database, collection, entity)
                     
                     self.set_source_database_collection_entity_property(source, database, collection, entity, "stats", ent_stats, rebuild=rebuild)
 
-                    # Collect property/attribute-level stats
-                    attributes = entity.get("contents", {}).get("attributes", {})
+                    contents = entity_dict.get("contents", {})
+                    attributes = contents.get("attribute", {})  
                 
-                    
-                    for attr_name in attributes:
+                    for attr_name, attr_info in attributes.items():    
                         attr_stats = source_connection.fetch_property_stats(
                             database, collection, entity, attr_name, sample_limit=sample_limit)
                         
@@ -682,7 +684,7 @@ class DataRegistry(Registry, ServiceClient):
             entities = source_connection.fetch_database_collection_entities(database, collection)
             relations = source_connection.fetch_database_collection_relations(database, collection)
 
-            
+            ### there are separate APIs for them, however still calling from here since UI is not enabled to call those APIs
             self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
             self.collect_source_database_collection_metadata(source, database, collection, recursive=recursive, rebuild=rebuild) 
             
