@@ -554,6 +554,7 @@ class DataRegistry(Registry, ServiceClient):
                 description = metadata['description']
             self.update_source(source, description=description, properties=properties, rebuild=rebuild)
 
+            ### this call will be removed once UI supports calling source stats 
             self.collect_source_stats(source, recursive=recursive, rebuild=rebuild)
         
     
@@ -617,6 +618,7 @@ class DataRegistry(Registry, ServiceClient):
                 description = metadata['description']
             self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
 
+            ### this call will be removed from here, when UI supports callign corresponding API
             self.collect_source_database_stats(source, database, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
          
             # fetch collections
@@ -684,9 +686,6 @@ class DataRegistry(Registry, ServiceClient):
             entities = source_connection.fetch_database_collection_entities(database, collection)
             relations = source_connection.fetch_database_collection_relations(database, collection)
 
-            ### there are separate APIs for them, however still calling from here since UI is not enabled to call those APIs
-            self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
-            self.collect_source_database_collection_metadata(source, database, collection, recursive=recursive, rebuild=rebuild) 
             
             
             fetched_entities_set = set(entities.keys())
@@ -747,6 +746,12 @@ class DataRegistry(Registry, ServiceClient):
                     self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
           
             
+            
+            ### there are separate APIs for these, however still calling from here since UI is not enabled to call those APIs. These calls will be removed from here when UI supports 
+            ### corresponding API calling 
+            self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
+            self.collect_source_database_collection_metadata(source, database, collection, recursive=recursive, rebuild=rebuild) 
+          
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
