@@ -72,7 +72,7 @@ class DataPlanner:
         i = p.define_input(label="I", value=[[{"data": input_data}]])
         i.set_data("status", str(Status.EXECUTED))
         r = p.define_output(label="R")
-        o = p.define_operator(self.properties['operator_search'], label="OD", attributes={"search_query": task})
+        o = p.define_operator(self.properties['operator_search'], label="OD", attributes={"search_query": task, "approximate": True, "threshold": 0.8}, properties=self.properties)
         o.set_data("status", str(Status.INITED))
         p.connect_nodes(i, o)
         p.connect_nodes(o, r)
