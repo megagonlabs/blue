@@ -33,7 +33,7 @@ def load_json_array(json_file, single=False):
 
 
 ## save json objects as an array from a file 
-# def save_json_array(file_path, json_array):
+def save_json_array(file_path, json_array):
     with open(file_path, "w") as fp:
         for json_element in json_array:
             line = json.dumps(json_element)
