@@ -343,3 +343,33 @@ def collect_source_database_collection_stats(request: Request, source_name, data
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
 
+### metadata collection  
+@router.put('/{source_name}/metadata')
+def collect_source_metadata(request: Request, source_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_metadata(source_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/metadata")
+def collect_source_database_metadata(request: Request, source_name, database_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_source_database_metadata(source_name, database_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/collection/{collection_name}/metadata")
+def collect_source_database_collection_metadata(request: Request, source_name, database_name, collection_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_source_database_collection_metadata(source_name, database_name, collection_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
