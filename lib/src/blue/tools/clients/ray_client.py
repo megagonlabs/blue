@@ -84,7 +84,7 @@ class RayToolClient(ToolClient):
         if tool in self.tools:
             tool_obj = self.tools[tool]
 
-            valid = tool_obj.validator(kwargs)
+            valid = tool_obj.validator(**kwargs)
             if valid:
                 remote_function = ray.remote(tool_obj.function)
                 result_ref = remote_function.remote(**kwargs)
