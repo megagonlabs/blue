@@ -213,21 +213,17 @@ class OperatorDiscoverOperator(Operator):
 
 def _get_operator_registry_from_properties(properties: Dict[str, Any] = None) -> Optional[OperatorRegistry]:
     """Get data registry from properties."""
-    print("1")
     if not properties:
         return None
 
-    print("2")
     if 'operator_registry' in properties and isinstance(properties['operator_registry'], OperatorRegistry):
         return properties['operator_registry']
 
     platform_id = properties.get("platform.name")
     operator_registry_id = properties.get("operator_registry.name")
 
-    print("3")
     if platform_id and operator_registry_id:
         prefix = 'PLATFORM:' + platform_id
         return OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=properties)
 
-    print("4")
     return None

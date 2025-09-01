@@ -11,7 +11,6 @@ from blue.platform import Platform
 from blue.agents.plan import AgenticPlan, Status, NodeType
 from blue.stream import ControlCode
 from blue.utils import uuid_utils, json_utils
-
 from blue.data.planner import DataPlanner
 from blue.data.pipeline import DataPipeline
 
@@ -41,7 +40,7 @@ class CoordinatorAgent(Agent):
     def _start(self):
         super()._start()
 
-        # initialize platformgi
+        # initialize platform
         self._init_platform()
 
         # initialize registry
@@ -153,29 +152,30 @@ class CoordinatorAgent(Agent):
         # self.logger.info("BUDGET:")
         # self.logger.info(json.dumps(budget, indent=3))
 
-        # context = {}
-        # # TODO: get registry info on from_agent, from_agent_param
+        context = {}
+        # TODO: get registry info on from_agent, from_agent_param
 
-        # # TODO: get registry info on to_agent, to_agent_param
+        # TODO: get registry info on to_agent, to_agent_param
 
-        # # TODO: TEMPORARY
+        # TODO: TEMPORARY
 
-        # # fetch data from stream
-        # input_data = self.fetch_stream_data(input_stream)
+        # fetch data from stream
+        input_data = self.fetch_stream_data(input_stream)
 
-        # # # TODO: call data planner, plan, optimize given budget
-        # pid = uuid_utils.create_uuid()
-        # dp = DataPlanner(id=pid, properties=self.properties)
-        # pipeline = dp.plan(input_data, "TRANSFORM", context)
-        # pipeline = dp.optimize(pipeline, budget)
+        # # TODO: call data planner, plan, optimize given budget
+        pid = uuid_utils.create_uuid()
+        dp = DataPlanner(id=pid, properties=self.properties)
+        plan = dp.plan(input_data, "TRANSFORM", context)
+        plan = dp.optimize(plan, budget)
 
-        # # # TODO: execute pipeline, update budget
-        # output_data = pipeline.execute(budget)
+        # # TODO: execute plan, update budget
+        pipeline = DataPipeline(id=pid, properties=self.properties)
+        output_data = pipeline.execute(plan, budget)
 
-        # # # # persist data to stream
-        # output_stream = self.persist_stream_data(output_data)
+        # # # persist data to stream
+        output_stream = self.persist_stream_data(output_data)
 
-        # # # TODO: update session budget
+        # # TODO: update session budget
 
         # # TODO: OVERRIDE TEMPORARILY
         output_stream = input_stream
