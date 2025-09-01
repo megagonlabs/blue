@@ -34,10 +34,10 @@ def select_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     return [result]
 
 
-def select_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+def select_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate select operator attributes."""
     try:
-        if not default_operator_validator(attributes, properties):
+        if not default_operator_validator(input_data, attributes, properties):
             return False
     except Exception:
         return False

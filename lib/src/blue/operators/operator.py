@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Callable, Union, Optional, Any
 from dataclasses import dataclass
 from pydantic import BaseModel, ValidationError
 import copy
+import json
 
 ###### Blue
 from blue.tools.tool import Tool
@@ -19,7 +20,7 @@ def default_operator_function(input_data: List[List[Dict[str, Any]]], attributes
     return []
 
 
-def default_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+def default_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Default validator for operator attributes."""
     try:
         return default_attributes_validator(attributes, properties)
@@ -41,6 +42,10 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
         # check if required attribute is present
         required = attrib_def.get("required", False)
         if required and attrib_name not in attributes:
+            print("VALIDATE REQUIRED")
+            print(required)
+            print(attrib_name)
+            print(json.dumps(attributes))
             return False
 
         # validate attribute type
@@ -50,6 +55,9 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
             if attrib_type:
                 try:
                     if not validate_parameter_type(attrib_value, attrib_type):
+                        print("VALIDATE PARAMETER")
+                        print(attrib_name)
+                        print(json.dumps(attributes))
                         return False
                 except Exception as e:
                     # System failure in validation - handle based on configuration

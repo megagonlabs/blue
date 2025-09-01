@@ -1,6 +1,8 @@
 ###### Formats
 from typing import List, Dict, Any, Callable, Optional
 
+import traceback
+
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.operators.registry import OperatorRegistry
@@ -80,7 +82,7 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
                             'name': result['name'],
                             'id': result['id'],
                             'scope': result['scope'],
-                            'path': f"{result['name']}/operator/{result['name']}",
+                            'path': f"{result['scope']}/operator/{result['name']}",
                             'score': result['score'],
                         }
 
@@ -109,15 +111,17 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
                 current_page += 1
 
     except Exception as e:
+        print("EXCEPTION")
+        print(traceback.format_exc())
         return [[]]
 
     return [results]
 
 
-def operator_discover_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+def operator_discover_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate operator discover operator attributes."""
     try:
-        if not default_operator_validator(attributes, properties):
+        if not default_operator_validator(input_data, attributes, properties):
             return False
     except Exception:
         return False
@@ -209,17 +213,21 @@ class OperatorDiscoverOperator(Operator):
 
 def _get_operator_registry_from_properties(properties: Dict[str, Any] = None) -> Optional[OperatorRegistry]:
     """Get data registry from properties."""
+    print("1")
     if not properties:
         return None
 
+    print("2")
     if 'operator_registry' in properties and isinstance(properties['operator_registry'], OperatorRegistry):
         return properties['operator_registry']
 
     platform_id = properties.get("platform.name")
     operator_registry_id = properties.get("operator_registry.name")
 
+    print("3")
     if platform_id and operator_registry_id:
         prefix = 'PLATFORM:' + platform_id
         return OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=properties)
 
+    print("4")
     return None

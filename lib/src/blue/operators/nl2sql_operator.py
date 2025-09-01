@@ -53,8 +53,7 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
         raise ValueError(f"Unsupported protocol: {protocol}. Supported protocols are: postgres, mysql, sqlite")
 
     service_client = ServiceClient(name="nl2sql_operator_service_client", properties=properties)
-    
-    
+
     additional_data = {
         'question': question,
         'schema': schema_str,
@@ -95,9 +94,9 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     return [[{"sql": generated_query}]]
 
 
-def nl2sql_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+def nl2sql_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate nl2sql operator attributes."""
-    return default_operator_validator(attributes, properties)
+    return default_operator_validator(input_data, attributes, properties)
 
 
 def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
@@ -205,6 +204,7 @@ Output:
             return input_data
         return {}
 
+
 def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Optional[DataRegistry]:
     """Get data registry from properties."""
     if not properties:
@@ -220,6 +220,7 @@ def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Opt
         prefix = 'PLATFORM:' + platform_id
         return DataRegistry(id=data_registry_id, prefix=prefix, properties=properties)
     return None
+
 
 def _format_execution_result_format(result) -> List[List[Dict[str, Any]]]:
     """Format execution result to match the expected output format."""

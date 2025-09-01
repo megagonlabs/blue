@@ -30,9 +30,9 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     return [service_client.execute_api_call({}, properties=properties, additional_data=additional_data)]
 
 
-def nl2llm_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+def nl2llm_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate nl2llm operator attributes."""
-    return default_operator_validator(attributes, properties)
+    return default_operator_validator(input_data, attributes, properties)
 
 
 def nl2llm_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
