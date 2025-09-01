@@ -153,29 +153,29 @@ class CoordinatorAgent(Agent):
         # self.logger.info("BUDGET:")
         # self.logger.info(json.dumps(budget, indent=3))
 
-        context = {}
-        # TODO: get registry info on from_agent, from_agent_param
+        # context = {}
+        # # TODO: get registry info on from_agent, from_agent_param
 
-        # TODO: get registry info on to_agent, to_agent_param
+        # # TODO: get registry info on to_agent, to_agent_param
 
-        # TODO: TEMPORARY
+        # # TODO: TEMPORARY
 
-        # fetch data from stream
-        input_data = self.fetch_stream_data(input_stream)
+        # # fetch data from stream
+        # input_data = self.fetch_stream_data(input_stream)
 
-        # # TODO: call data planner, plan, optimize given budget
-        pid = uuid_utils.create_uuid()
-        dp = DataPlanner(id=pid, properties=self.properties)
-        pipeline = dp.plan(input_data, "TRANSFORM", context)
-        pipeline = dp.optimize(pipeline, budget)
+        # # # TODO: call data planner, plan, optimize given budget
+        # pid = uuid_utils.create_uuid()
+        # dp = DataPlanner(id=pid, properties=self.properties)
+        # pipeline = dp.plan(input_data, "TRANSFORM", context)
+        # pipeline = dp.optimize(pipeline, budget)
 
-        # # TODO: execute pipeline, update budget
-        output_data = pipeline.execute(budget)
+        # # # TODO: execute pipeline, update budget
+        # output_data = pipeline.execute(budget)
 
-        # # # persist data to stream
-        output_stream = self.persist_stream_data(output_data)
+        # # # # persist data to stream
+        # output_stream = self.persist_stream_data(output_data)
 
-        # # TODO: update session budget
+        # # # TODO: update session budget
 
         # # TODO: OVERRIDE TEMPORARILY
         output_stream = input_stream
