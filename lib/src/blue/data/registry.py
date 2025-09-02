@@ -8,8 +8,7 @@ import yaml
 ###### Blue
 from blue.utils import json_utils
 from blue.registry import Registry
-from blue.metadata import MetaData 
-
+ 
 from blue.data.schema import DataSchema
 
 ###### Supported Data Sources
@@ -26,10 +25,7 @@ from blue.data.sources.openai_source import OpenAISource
 #
 class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
-        self.platform_name = platform_id
-        self.metadata = MetaData(platform_id=platform_id)
-      
-        super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
+        super().__init__(name=name, id=id, platform_id=platform_id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 
     ###### initialization
     def _initialize_properties(self):
