@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import json
 import copy
+import re
 
 ###### Source specific libs
 import mysql.connector as cpy
@@ -98,16 +99,25 @@ class MySQLDBSource(DataSource):
         db_connection = self._db_connect(database)
 
         # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
-        query = "SELECT table_name, column_name, data_type  from information_schema.columns WHERE table_schema = '{}'".format(database)
+        
+        query = "SELECT table_name, column_name, data_type, column_type " \
+        "FROM information_schema.columns " \
+        "WHERE table_schema = '{}'".format(database)
+
         cursor = db_connection.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
         schema = DataSchema()
 
-        for table_name, column_name, data_type in data:
+        for table_name, column_name, data_type, column_type in data:
             if not schema.has_entity(table_name):
                 schema.add_entity(table_name)
             property_def = {"type": data_type}
+
+            if data_type.lower() == "enum":
+                enum_values = re.findall(r"'(.*?)'", column_type)
+                property_def["enum"] = enum_values
+            
 
             schema.add_entity_property(table_name, column_name, property_def)
 
