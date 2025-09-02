@@ -4,6 +4,7 @@ import logging
 
 import jsonpath_ng as jp
 from jsonmerge import merge
+import decimal 
 
 ### json utility functions
 ## load json objects as an array from a file 
@@ -33,7 +34,7 @@ def load_json_array(json_file, single=False):
 
 
 ## save json objects as an array from a file 
-# def save_json_array(file_path, json_array):
+def save_json_array(file_path, json_array):
     with open(file_path, "w") as fp:
         for json_element in json_array:
             line = json.dumps(json_element)
@@ -291,3 +292,12 @@ def safe_json_parse(text):
         logging.warning(f"Failed to parse JSON: {e}")
         return {}
 
+def json_safe(obj):
+    if isinstance(obj, decimal.Decimal):
+        # Convert to int if whole number, else float
+        return int(obj) if obj % 1 == 0 else float(obj)
+    elif isinstance(obj, (list, tuple)):
+        return [json_safe(v) for v in obj]
+    elif isinstance(obj, dict):
+        return {k: json_safe(v) for k, v in obj.items()}
+    return obj
