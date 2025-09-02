@@ -163,7 +163,6 @@ export default function NewEntity({
                                         description: newEntity.description,
                                         scope,
                                     });
-                                    console.log(calculatedType);
                                     if (_.isEqual(calculatedType, "agent")) {
                                         getAgents();
                                     }
