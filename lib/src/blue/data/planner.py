@@ -5,7 +5,7 @@ import uuid
 ###### Blue
 from blue.connection import PooledConnectionFactory
 from blue.operators.registry import OperatorRegistry
-from blue.data.pipeline import DataPipeline
+from blue.data.pipeline import DataPipeline, NodeType, EntityType, Status
 
 
 ###############
@@ -54,7 +54,7 @@ class DataPlanner:
         self.properties['db.port'] = 6379
 
         # search operator
-        self.properties['search_operator'] = '/server/blue_ray/operator/operator_discover'
+        self.properties['operator_search'] = '/server/blue_ray/operator/operator_discover'
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -70,12 +70,60 @@ class DataPlanner:
 
         # always create a plan with input, search, and output
         i = p.define_input(label="I", value=[[{"data": input_data}]])
+        i.set_data("status", str(Status.EXECUTED))
         r = p.define_output(label="R")
-        o = p.define_operator("operator_discover", label="OD", attributes={"search_query": task})
+        o = p.define_operator(self.properties['operator_search'], label="OD", attributes={"search_query": task, "approximate": True, "threshold": 0.8}, properties=self.properties)
+        o.set_data("status", str(Status.INITED))
         p.connect_nodes(i, o)
         p.connect_nodes(o, r)
 
         # refine
+        p = self.refine(p)
+
+        return p
+
+    def refine(self, p):
+        operator_nodes = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
+
+        for operator_id in operator_nodes:
+            operator_node = p.get_node(operator_id)
+            if operator_node.get_data("status") not in [Status.REFINED, Status.EXECUTING, Status.EXECUTED]:
+                operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+                operator_name = operator_entity.get_data("name")
+                parsed = self.registry.parse_path(operator_name)
+
+                # get input from previous
+                ready = True
+                prev_nodes = p.get_prev_nodes(operator_node)
+                for prev_node in prev_nodes:
+                    prev_node_status = prev_node.get_data("status")
+                    if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
+                        ready = False
+                        break
+
+                if not ready:
+                    continue
+
+                # aggregate inputs form each prev node
+                input_data = []
+                prev_nodes = p.get_prev_nodes(operator_node)
+                for prev_node in prev_nodes:
+                    prev_node_status = prev_node.get_data("status")
+                    prev_node_value = prev_node.get_data("value")
+
+                    # TODO: check value fit
+                    # TODO: mapping...
+                    input_data += prev_node_value
+
+                # refine
+                kwargs = {"input_data": input_data, "attributes": operator_entity.get_data("attributes"), "properties": operator_entity.get_data("properties")}
+
+                print(kwargs)
+                # TODO: replace with refine function
+                refinement = self.registry.execute_operator(parsed['operator'], parsed['server'], None, kwargs)
+                print(refinement)
+                # update status as refined
+
         return p
 
     def optimize(self, p, budget):

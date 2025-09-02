@@ -53,11 +53,6 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
         raise ValueError(f"Unsupported protocol: {protocol}. Supported protocols are: postgres, mysql, sqlite")
 
     service_client = ServiceClient(name="nl2sql_operator_service_client", properties=properties)
-    # Convert schema to JSON string if it's a dictionary
-    if isinstance(schema, dict):
-        schema_str = json.dumps(schema, indent=2)
-    else:
-        schema_str = str(schema)
 
     additional_data = {
         'question': question,
@@ -99,9 +94,9 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     return [[{"sql": generated_query}]]
 
 
-def nl2sql_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+def nl2sql_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate nl2sql operator attributes."""
-    return default_operator_validator(attributes, properties)
+    return default_operator_validator(input_data, attributes, properties)
 
 
 def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
@@ -210,97 +205,6 @@ Output:
         return {}
 
 
-###############
-### Helper Functions of NL2SQL Operator
-def _fetch_database_schema(protocol: str, database: str, collection: str, properties: Dict[str, Any]) -> str:
-    """Fetch database schema directly from the database."""
-    connection_attributes = properties.get('connection', {})
-    if not connection_attributes:
-        raise ValueError("No connection attributes provided for schema fetching")
-
-    try:
-        if protocol == 'postgres':
-            return _fetch_postgres_schema(database, collection, connection_attributes)
-        elif protocol == 'mysql':
-            return _fetch_mysql_schema(database, collection, connection_attributes)
-        else:
-            raise ValueError(f"Unsupported protocol for schema fetching: {protocol}")
-    except Exception as e:
-        raise ValueError(f"Error fetching schema: {str(e)}")
-
-
-def _fetch_postgres_schema(database: str, collection: str, connection_attributes: Dict[str, Any]) -> str:
-    """Fetch PostgreSQL schema."""
-    # Connect to the database
-    conn = psycopg2.connect(
-        host=connection_attributes.get('host'),
-        port=connection_attributes.get('port'),
-        database=database,
-        user=connection_attributes.get('user'),
-        password=connection_attributes.get('password'),
-    )
-
-    try:
-        cursor = conn.cursor()
-
-        # fallback to use the "public" schema in PostgreSQL if collection is not provided
-        schema_name = collection if collection else 'public'
-
-        # Get enum types
-        enum_query = """
-        SELECT
-          n.nspname AS schema,
-          t.typname AS type_name,
-          e.enumlabel AS enum_value
-        FROM
-          pg_type t
-        JOIN
-          pg_enum e ON t.oid = e.enumtypid
-        JOIN
-          pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-        WHERE
-          n.nspname NOT IN ('pg_catalog', 'information_schema')
-        ORDER BY
-          t.typname, e.enumsortorder;
-        """
-        cursor.execute(enum_query)
-        enum_data = cursor.fetchall()
-
-        # Build enum types dictionary
-        enum_types = {}
-        for schema, type_name, enum_value in enum_data:
-            if type_name not in enum_types:
-                enum_types[type_name] = []
-            enum_types[type_name].append(enum_value)
-
-        # Get columns (same as original)
-        query = """
-        SELECT table_name, column_name, data_type, udt_name
-        FROM information_schema.columns
-        WHERE table_schema = %s
-        """
-        cursor.execute(query, (schema_name,))
-        data = cursor.fetchall()
-
-        # Use DataSchema like the original
-        schema = DataSchema()
-
-        for table_name, column_name, data_type, udt_name in data:
-            if not schema.has_entity(table_name):
-                schema.add_entity(table_name)
-
-            if enum_types and udt_name in enum_types:
-                schema.add_entity_property(table_name, column_name, {"type": data_type, "enum": enum_types[udt_name]})
-            else:
-                schema.add_entity_property(table_name, column_name, data_type)
-
-        return schema.to_json()
-
-    finally:
-        cursor.close()
-        conn.close()
-
-
 def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Optional[DataRegistry]:
     """Get data registry from properties."""
     if not properties:
@@ -316,40 +220,6 @@ def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Opt
         prefix = 'PLATFORM:' + platform_id
         return DataRegistry(id=data_registry_id, prefix=prefix, properties=properties)
     return None
-
-
-def _fetch_mysql_schema(database: str, collection: str, connection_attributes: Dict[str, Any]) -> str:
-    """Fetch MySQL schema."""
-    # Connect to the database
-    conn = mysql.connector.connect(
-        host=connection_attributes.get('host'),
-        port=connection_attributes.get('port'),
-        database=database,
-        user=connection_attributes.get('user'),
-        password=connection_attributes.get('password'),
-    )
-
-    try:
-        cursor = conn.cursor(buffered=True)
-
-        # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
-        query = "SELECT table_name, column_name, data_type from information_schema.columns WHERE table_schema = '{}'".format(database)
-        cursor.execute(query)
-        data = cursor.fetchall()
-
-        # Use DataSchema like the original
-        schema = DataSchema()
-
-        for table_name, column_name, data_type in data:
-            if not schema.has_entity(table_name):
-                schema.add_entity(table_name)
-            schema.add_entity_property(table_name, column_name, data_type)
-
-        return schema.to_json()
-
-    finally:
-        cursor.close()
-        conn.close()
 
 
 def _format_execution_result_format(result) -> List[List[Dict[str, Any]]]:

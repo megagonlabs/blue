@@ -42,10 +42,10 @@ def insert_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
         return [_build_result_with_multiple_inserts(base_data, insert_records, insert_positions)]
 
 
-def insert_operator_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+def insert_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate insert operator attributes."""
     try:
-        if not default_operator_validator(attributes, properties):
+        if not default_operator_validator(input_data, attributes, properties):
             return False
     except Exception:
         return False

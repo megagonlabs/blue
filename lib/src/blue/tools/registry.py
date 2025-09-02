@@ -8,14 +8,6 @@ import json
 from blue.utils import json_utils
 from blue.registry import Registry
 
-###### Supported Tool Clients
-from blue.tools.clients.local_client import LocalToolClient
-from blue.tools.clients.ray_client import RayToolClient
-from blue.tools.clients.mcp_client import MCPToolClient
-
-###### Local, Ray Tools
-from blue.tools.clients import local_tools, ray_tools
-
 
 ###############
 ### ToolRegistry
@@ -119,10 +111,18 @@ class ToolRegistry(Registry):
                 protocol = connection_properties["protocol"]
                 if protocol:
                     if protocol == "local":
+                        from blue.tools.clients.local_client import LocalToolClient
+                        from blue.tools.clients import local_tools
+
                         connection = LocalToolClient(server, tools=local_tools.tools_dict, properties=properties)
                     elif protocol == "ray":
+                        from blue.tools.clients.ray_client import RayToolClient
+                        from blue.tools.clients import ray_tools
+
                         connection = RayToolClient(server, tools=ray_tools.tools_dict, properties=properties)
                     elif protocol == "mcp":
+                        from blue.tools.clients.mcp_client import MCPToolClient
+
                         connection = MCPToolClient(server, properties=properties)
 
         return connection

@@ -8,11 +8,6 @@ import json
 from blue.utils import json_utils
 from blue.tools.registry import ToolRegistry
 
-###### Supported Tool Clients
-from blue.operators.clients.local_client import LocalOperatorClient
-from blue.operators.clients.ray_client import RayOperatorClient
-from blue.operators.clients.mcp_client import MCPOperatorClient
-
 
 ###############
 ### OperatorRegistry
@@ -99,15 +94,18 @@ class OperatorRegistry(ToolRegistry):
                 if protocol:
                     if protocol == "local":
                         # import on demand
+                        from blue.operators.clients.local_client import LocalOperatorClient
                         from blue.operators.clients import local_operators
 
                         connection = LocalOperatorClient(server, operators=local_operators.operators_dict, properties=properties)
                     elif protocol == "ray":
-                        # import on demand
+                        from blue.operators.clients.ray_client import RayOperatorClient
                         from blue.operators.clients import ray_operators
 
                         connection = RayOperatorClient(server, operators=ray_operators.operators_dict, properties=properties)
                     elif protocol == "mcp":
+                        from blue.operators.clients.mcp_client import MCPOperatorClient
+
                         connection = MCPOperatorClient(server, properties=properties)
 
         return connection

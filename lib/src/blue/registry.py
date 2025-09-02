@@ -180,6 +180,8 @@ class Registry:
             TextField("scope"),
             # description text
             TextField("description"),
+            # values (for attribute example values)
+            TextField("values"),
             # description embedding
             VectorField(
                 "vector",
@@ -229,8 +231,17 @@ class Registry:
         scope = record['scope']
         description = record['description']
 
-        # index description
-        self._create_index_doc(name, type, scope, description, pipe=pipe)
+        if type == "attribute":
+            props = record.get("properties", {})
+            info = props.get("info", {})
+            values = info.get("values", [])
+            if isinstance(values, list) and values:
+                self._create_index_doc(name, type, scope, description, values, pipe=pipe)
+            else:
+                 self._create_index_doc(name, type, scope, description, pipe=pipe)
+        else:
+                self._create_index_doc(name, type, scope, description, pipe=pipe)
+        
 
         # index contents
         if recursive:
@@ -241,19 +252,30 @@ class Registry:
                     r = contents_by_type[record_key]
                     self._set_index_record(r, recursive=recursive, pipe=pipe)
 
-    def _create_index_doc(self, name, type, scope, description, pipe=None):
+    def _create_index_doc(self, name, type, scope, description, values=None, pipe=None):
 
         # deferred initialization
         if self.embeddings_model is None:
             self._init_search_index()
 
         # TODO: Identify the best way to compute embedding vector, for now name + description
+        # added values when available
         text = name
         if description:
             text += ' ' + description
+
+        values_str = None
+
+        if values:
+            text += " " + " ".join(map(str, values))
+            values_str = json.dumps(values, ensure_ascii=False)
+        
         vector = self._compute_embedding_vector(text)
 
         doc = {'name': name, 'type': type, 'scope': scope, 'description': description, 'vector': vector}
+
+        if values_str:
+            doc["values"] = values_str
 
         # define key
         doc_key = self.__doc_key(name, type, scope)
@@ -299,7 +321,7 @@ class Registry:
         # define key
         doc_key = self.__doc_key(name, type, scope)
 
-        fields = ["name", "type", "scope", "description", "vector"]
+        fields = ["name", "type", "scope", "description", "values", "vector"]
 
 
         if pipe:
@@ -478,6 +500,15 @@ class Registry:
 
         # return original and merged
         return original_record, merged_record
+
+    def parse_path(self, path):
+        pa = path.split("/")[1:]
+        o = {}
+        keys = pa[::2]
+        values = pa[1:][::2]
+        for i, key in enumerate(keys):
+            o[key] = values[i]
+        return o
 
     def _extract_shortname(self, name):
         # use name to identify scope, short name

@@ -71,7 +71,7 @@ class LocalToolClient(ToolClient):
         if tool in self.tools:
             tool_obj = self.tools[tool]
 
-            valid = tool_obj.validator(kwargs)
+            valid = tool_obj.validator(**kwargs)
             if valid:
                 return tool_obj.function(**kwargs)
             else:

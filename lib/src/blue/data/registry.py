@@ -438,11 +438,109 @@ class DataRegistry(Registry, ServiceClient):
             return source_connection.execute_query(query=query, database=database, collection=collection, optional_properties=optional_properties)
         return None
 
+    
+    def collect_source_metadata(self, source, recursive=False, rebuild=False):
+        # TODO
+        pass
+
+    
+    def collect_source_database_metadata(self, source, database, recursive=False, rebuild=False):
+        ## TODO
+        pass
+
+    def collect_source_database_collection_metadata(self, source, database, collection, recursive=False, rebuild=False):
+        entities = self.get_source_database_collection_entities(source, database, collection)
+        
+        #### enriching description #############################
+        for entity in entities:
+            entity_name = entity.get("name")
+            
+            attributes = self.get_source_database_collection_entity_attributes(source, database, collection, entity_name)
+            entity_attribute_description = self.enrich_entity(entity, attributes)
+        
+            try:
+                parsed = json_utils.safe_json_parse(entity_attribute_description)
+                if not parsed:
+                    logging.warning(f"Entity {entity} returned invalid or empty JSON.")
+                    continue
+            except json.JSONDecodeError:
+                logging.warning("LLM did not return valid JSON. Skipping entity enrichment.")
+                parsed = {}
+
+            table_desc = parsed.get("table_description", "")
+            attribute_descs = parsed.get("attributes", {})
+    
+            self.set_source_database_collection_entity_description(
+                source, database, collection, entity_name, table_desc, rebuild=rebuild)
+
+            for attr, desc in attribute_descs.items():
+                self.set_source_database_collection_entity_attribute_description(
+                    source, database, collection, entity_name, attr, desc, rebuild=rebuild)
+        
+    
+    def collect_source_stats(self, source, recursive=False, rebuild=False):
+        source_connection = self.connect_source(source)
+        if source_connection:
+            source_stats = source_connection.fetch_source_stats()
+            if source_stats:
+                self.set_source_property(source, "stats", source_stats, rebuild=rebuild)
+
+    
+    def collect_source_database_stats(self, source, database, source_connection=None, recursive=False, rebuild=False):
+        if source_connection is None:
+            source_connection = self.connect_source(source)
+        if source_connection:
+            db_stats = source_connection.fetch_database_stats(database)
+            if db_stats:
+                self.set_source_database_property(source, database, "stats", db_stats, rebuild=rebuild)
+
+    
+    def collect_source_database_collection_stats(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, sample_limit=10):
+        
+        entities = self.get_source_database_collection_entities(source, database, collection)
+        relations = self.get_source_database_collection_relations(source, database, collection)
+
+        if entities is None: 
+            entities = []
+        
+        if relations is None: 
+            relations = []
+        
+
+        if source_connection is None:
+            source_connection = self.connect_source(source)
+        if source_connection:
+            
+            collection_stats = source_connection.fetch_collection_stats(database, collection, entities, relations)
+            
+            if collection_stats:
+                self.set_source_database_collection_property(source, database, collection, "stats", collection_stats, rebuild=rebuild)
+
+            if entities:
+                for entity_dict in entities:
+                    entity = entity_dict.get("name")
+                
+                    ent_stats = source_connection.fetch_entity_stats(database, collection, entity)
+                    
+                    self.set_source_database_collection_entity_property(source, database, collection, entity, "stats", ent_stats, rebuild=rebuild)
+
+                    contents = entity_dict.get("contents", {})
+                    attributes = contents.get("attribute", {})  
+                
+                    for attr_name, attr_info in attributes.items():    
+                        attr_stats = source_connection.fetch_property_stats(
+                            database, collection, entity, attr_name, sample_limit=sample_limit)
+                        
+                        # Store stats under this attribute
+                        self.set_source_database_collection_entity_attribute_property(
+                            source, database, collection, entity, attr_name,  "stats", attr_stats, rebuild=rebuild)
+                
+    
     def sync_all(self, recursive=False):
         # TODO
         pass
 
-    def sync_source(self, source, recursive=False, rebuild=False, collect_stats=False):
+    def sync_source(self, source, recursive=False, rebuild=False):
         source_connection = self.connect_source(source)
         if source_connection:
             # fetch source metadata
@@ -456,11 +554,10 @@ class DataRegistry(Registry, ServiceClient):
                 description = metadata['description']
             self.update_source(source, description=description, properties=properties, rebuild=rebuild)
 
-            if collect_stats:
-                source_stats = source_connection.fetch_source_stats()
-                if source_stats:
-                    self.set_source_property(source, "stats", source_stats, rebuild=rebuild)
-
+            ### this call will be removed once UI supports calling source stats 
+            self.collect_source_stats(source, recursive=recursive, rebuild=rebuild)
+        
+    
             # fetch databases
             fetched_dbs = source_connection.fetch_databases()
             fetched_dbs_set = set(fetched_dbs)
@@ -505,7 +602,7 @@ class DataRegistry(Registry, ServiceClient):
                     #  sync to update description, properties, schema
                     self.sync_source_database(source, db, source_connection=source_connection, recursive=False, rebuild=rebuild)
 
-    def sync_source_database(self, source, database, source_connection=None, recursive=False, rebuild=False, collect_stats=False):
+    def sync_source_database(self, source, database, source_connection=None, recursive=False, rebuild=False):
         if source_connection is None:
             source_connection = self.connect_source(source)
 
@@ -521,11 +618,9 @@ class DataRegistry(Registry, ServiceClient):
                 description = metadata['description']
             self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
 
-            if collect_stats:
-                db_stats = source_connection.fetch_database_stats(database)
-                if db_stats:
-                    self.set_source_database_property(source, database, "stats", db_stats, rebuild=rebuild)
-
+            ### this call will be removed from here, when UI supports callign corresponding API
+            self.collect_source_database_stats(source, database, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
+         
             # fetch collections
             fetched_collections = source_connection.fetch_database_collections(database)
             fetched_collections_set = set(fetched_collections)
@@ -570,7 +665,7 @@ class DataRegistry(Registry, ServiceClient):
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
 
-    def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, collect_stats=False, sample_limit=10):
+    def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False):
         if source_connection is None:
             source_connection = self.connect_source(source)
 
@@ -591,13 +686,8 @@ class DataRegistry(Registry, ServiceClient):
             entities = source_connection.fetch_database_collection_entities(database, collection)
             relations = source_connection.fetch_database_collection_relations(database, collection)
 
-            if collect_stats:
-                collection_stats = source_connection.fetch_collection_stats(database, collection, entities, relations)
-
-                if collection_stats:
-                    self.set_source_database_collection_property(source, database, collection, "stats", collection_stats, rebuild=rebuild)
-
-           
+            
+            
             fetched_entities_set = set(entities.keys())
             fetched_relations_set = set(relations.keys())
 
@@ -656,51 +746,12 @@ class DataRegistry(Registry, ServiceClient):
                     self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
           
             
-            if collect_stats:
-                for entity, meta in entities.items():
-                    ent_stats = {}
-                    ent_stats = source_connection.fetch_entity_stats(database, collection, entity)
-                    self.set_source_database_collection_entity_property(source, database, collection, entity, "stats", ent_stats, rebuild=rebuild)
-
-                    # Collect property/attribute-level stats
-                    attributes = meta.get("contents", {}).get("attributes", {})
-                    
-                    for attr_name, attr_meta in attributes.items():
-                        attr_stats = source_connection.fetch_property_stats(
-                            database, collection, entity, attr_name, sample_limit=sample_limit)
-                         # Store stats under this attribute
-                        self.set_source_database_collection_entity_attribute_property(
-                            source, database, collection, entity, attr_name,  "stats", attr_stats, rebuild=rebuild)
-                    
-
-            #### enriching description #############################
-            # ---------------- entity attributes ---------------- #
-            for entity in fetched_entities_set:
-                entity_obj = entities[entity]
-                attributes = self.get_source_database_collection_entity_attributes(source, database, collection, entity)
-               
-                entity_attribute_description = self.enrich_entity(entity_obj, attributes)
-                
-                try:
-                    parsed = json_utils.safe_json_parse(entity_attribute_description)
-                    if not parsed:
-                        logging.warning(f"Entity {entity} returned invalid or empty JSON.")
-                        continue
-                except json.JSONDecodeError:
-                    logging.warning("LLM did not return valid JSON. Skipping entity enrichment.")
-                    parsed = {}
-
-                table_desc = parsed.get("table_description", "")
-                attribute_descs = parsed.get("attributes", {})
-
-                self.set_source_database_collection_entity_description(
-                    source, database, collection, entity, table_desc, rebuild=rebuild)
-
-                for attr, desc in attribute_descs.items():
-                    self.set_source_database_collection_entity_attribute_description(
-                        source, database, collection, entity, attr, desc, rebuild=rebuild)
             
-            
+            ### there are separate APIs for these, however still calling from here since UI is not enabled to call those APIs. These calls will be removed from here when UI supports 
+            ### corresponding API calling 
+            self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
+            self.collect_source_database_collection_metadata(source, database, collection, recursive=recursive, rebuild=rebuild) 
+          
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
@@ -757,6 +808,8 @@ class DataRegistry(Registry, ServiceClient):
                     self.update_source_database_collection_relation_attribute(source, database, collection, relation, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
 
 
+    
+    
     ###############
     ##  data sources search
     def get_data_source_schema(self, source, database, collection, format="dict"):
