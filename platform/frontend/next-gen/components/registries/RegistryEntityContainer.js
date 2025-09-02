@@ -133,30 +133,26 @@ function RegistryEntityContainer({
         if (_.isEmpty(newCrumbs)) {
             removeContainer(gridContainerId);
         } else {
-            if (_.isEqual(_.size(newCrumbs), 1)) {
-                const {
-                    type: crumbType,
+            const isSingleRegistryCrumb =
+                _.isEqual(_.size(newCrumbs), 1) &&
+                _.isEqual(newCrumbs[0].type, "registry");
+            if (isSingleRegistryCrumb) {
+                const { content, title, listType } = newCrumbs[0];
+                const icon = _.get(
+                    ENTITY_TYPE_LOOKUP,
+                    [listType, "icon"],
+                    null
+                );
+                replaceContainer({
+                    id: gridContainerId,
                     content,
+                    icon,
                     title,
-                    listType,
-                } = newCrumbs[0];
-                if (_.isEqual(crumbType, "registry")) {
-                    const icon = _.get(
-                        ENTITY_TYPE_LOOKUP,
-                        [listType, "icon"],
-                        null
-                    );
-                    replaceContainer({
-                        id: gridContainerId,
-                        content,
-                        icon,
-                        title,
-                    });
-                    return;
-                }
+                });
+            } else {
+                scrollToTop();
+                setBreadcrumbs(newCrumbs);
             }
-            scrollToTop();
-            setBreadcrumbs(normalizeCrumbs(_.slice(breadcrumbs, 0, index)));
         }
     };
     const current = _.last(breadcrumbs);
