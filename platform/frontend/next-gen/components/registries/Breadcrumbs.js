@@ -26,7 +26,7 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
     const { replaceContainer } = useGridStore(
         useShallow((state) => ({ replaceContainer: state.replaceContainer }))
     );
-    const { gridContainerId: id } = useGridContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     if (_.isEmpty(crumbs)) {
         return null;
     }
@@ -63,7 +63,7 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                                 const onClick = () => {
                                     if (_.isEqual(type, "registry")) {
                                         replaceContainer({
-                                            id,
+                                            id: gridContainerId,
                                             content,
                                             icon,
                                             title,
@@ -108,7 +108,7 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                 const onClick = () => {
                     if (_.isEqual(type, "registry")) {
                         replaceContainer({
-                            id,
+                            id: gridContainerId,
                             content,
                             icon,
                             title,
