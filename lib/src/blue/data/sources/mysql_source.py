@@ -84,20 +84,9 @@ class MySQLDBSource(DataSource):
         return None
 
     def fetch_database_collections(self, database):
-        # connect to specific database (not source directly)
-        db_connection = self._db_connect(database)
-
-        query = "SHOW TABLES;"
-        cursor = db_connection.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
-        collections = []
-        for datum in data:
-            collections.append(datum[0])
-
-        # disconnect
-        self._db_disconnect(db_connection)
-        return collections
+        ## for mysql, collection is the database, so we ignore the database parameter here 
+        databases = self.fetch_databases()
+        return databases
 
     def fetch_database_collection_metadata(self, database, collection):
         return {}
@@ -116,7 +105,9 @@ class MySQLDBSource(DataSource):
         for table_name, column_name, data_type in data:
             if not schema.has_entity(table_name):
                 schema.add_entity(table_name)
-            schema.add_entity_property(table_name, column_name, data_type)
+            property_def = {"type": data_type}
+
+            schema.add_entity_property(table_name, column_name, property_def)
 
         # disconnect
         self._db_disconnect(db_connection)
