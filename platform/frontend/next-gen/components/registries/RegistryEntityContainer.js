@@ -121,7 +121,7 @@ function RegistryEntityContainer({
         scrollToTop();
     };
     const backCrumb = () => {
-        if (_.size(breadcrumbs) > 1) {
+        if (_.size(breadcrumbs) > 2) {
             const index = Math.max(0, _.size(breadcrumbs) - 1);
             setBreadcrumbs(normalizeCrumbs(_.slice(breadcrumbs, 0, index)));
             scrollToTop();
