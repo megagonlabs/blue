@@ -32,6 +32,7 @@ Here are the requirements:
 - The query should starts with any of the following prefixes: ${force_query_prefixes}
 - Output the JSON directly. Do not generate explanation or other additional output.
 ${additional_requirements}
+${fuzzy_matching_block}
 
 Protocol:
 ```
@@ -74,6 +75,7 @@ Output:
         "nl2q_context": [],
         "nl2q_output_filters": ["all"],
         "nl2q_output_max_results": None,
+        "nl2q_fuzzy_match": True, 
         "output_transformations": [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}],
         "output_strip": True,
         "output_cast": "json",
@@ -90,6 +92,15 @@ Output:
         # intialize defatult properties
         for key in NL2SQLAgent.PROPERTIES:
             self.properties[key] = NL2SQLAgent.PROPERTIES[key]
+
+        if self.properties.get("nl2q_fuzzy_match"):
+            self.properties["fuzzy_matching_block"] = """When comparing text fields, use fuzzy matching:
+            - Use ILIKE '%value%' for partial string matching.
+            - Avoid exact '=' unless comparing enum fields, codes, or IDs.
+            """
+        else:
+            self.properties["fuzzy_matching_block"] = """Use exact matching for all fields unless otherwise specified."""
+
 
     ####### inputs / outputs
     def _initialize_inputs(self):
