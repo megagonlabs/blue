@@ -113,8 +113,6 @@ class AgenticPlan(dag_utils.Plan):
         return label
 
     def define_input(self, label=None, value=None, stream=None, properties={}, sync=None):
-        if label is None:
-            raise Exception("Label is not specified")
         input_node = self.create_node(label=label, type=str(NodeType.INPUT), properties=properties, sync=sync)
 
         # input value/stream
@@ -127,8 +125,6 @@ class AgenticPlan(dag_utils.Plan):
         return input_node
 
     def define_output(self, label=None, value=None, stream=None, properties={}, sync=None):
-        if label is None:
-            raise Exception("Label is not specified")
         output_node = self.create_node(label=label, type=str(NodeType.OUTPUT), properties=properties, sync=sync)
 
         # output value/stream
