@@ -119,3 +119,10 @@ class OperatorRegistry(ToolRegistry):
 
     def execute_tool(self, tool, server, args, kwargs):
         return self.execute_operator(tool, server, args, kwargs)
+
+    def refine_operator(self, operator, server, args, kwargs):
+        connection = self.connect_server(server)
+        if connection:
+            return connection.refine_operator(operator, args, kwargs)
+        else:
+            return None

@@ -20,6 +20,11 @@ def default_operator_function(input_data: List[List[Dict[str, Any]]], attributes
     return []
 
 
+def default_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Default refiner for operator. It should be overridden by each operator."""
+    return []
+
+
 def default_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Default validator for operator attributes."""
     try:
@@ -42,10 +47,6 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
         # check if required attribute is present
         required = attrib_def.get("required", False)
         if required and attrib_name not in attributes:
-            print("VALIDATE REQUIRED")
-            print(required)
-            print(attrib_name)
-            print(json.dumps(attributes))
             return False
 
         # validate attribute type
@@ -55,9 +56,6 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
             if attrib_type:
                 try:
                     if not validate_parameter_type(attrib_value, attrib_type):
-                        print("VALIDATE PARAMETER")
-                        print(attrib_name)
-                        print(json.dumps(attributes))
                         return False
                 except Exception as e:
                     # System failure in validation - handle based on configuration
@@ -109,6 +107,7 @@ class Operator(Tool):
         properties: Dict[str, Any] = None,
         validator: Callable = None,
         explainer: Callable = None,
+        refiner: Callable = None,
     ):
 
         if function is None:
@@ -119,6 +118,10 @@ class Operator(Tool):
             explainer = default_operator_explainer
 
         super().__init__(name, function, description=description, properties=properties, validator=validator, explainer=explainer)
+
+        if refiner is None:
+            refiner = default_operator_refiner
+        self.refiner = refiner
 
     def _initialize_properties(self):
         super()._initialize_properties()

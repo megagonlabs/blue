@@ -30,3 +30,16 @@ class LocalOperatorClient(LocalToolClient, OperatorClient):
     ######### execute operator
     def execute_operator(self, operator, args, kwargs):
         return self.execute_tool(operator, args, kwargs)
+
+    ######### refine operator
+    def refine_operator(self, operator, args, kwargs):
+        if operator is None:
+            raise Exception("No operator matching...")
+
+        result = []
+
+        if operator in self.tools:
+            operator_obj = self.tools[operator]
+            result = operator_obj.refiner(**kwargs)
+
+        return result

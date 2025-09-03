@@ -38,3 +38,7 @@ class OperatorClient(ToolClient):
 
     def execute_operator(self, operator, args=None, kwargs=None):
         return self.execute_tool(operator, args=args, kwargs=kwargs)
+
+    def refine_operator(self, operator, args=None, kwargs=None):
+        return []
+
