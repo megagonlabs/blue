@@ -167,7 +167,6 @@ export default function StreamFlows({ sessionId }) {
             if (lastViewport && !initialRender.current) {
                 setViewport(lastViewport);
             } else {
-                console.log("fitView");
                 setTimeout(() => {
                     fitView();
                 }, 300);

@@ -154,15 +154,21 @@ function ModelList({ width, height }) {
                         variant={ButtonVariant.MINIMAL}
                         onClick={getModels}
                     />
-                    <Button
-                        onClick={() => {
-                            setShowFilter(true);
-                        }}
-                        size={Size.LARGE}
-                        icon={<FAIcon icon={faBarsFilter} />}
-                        variant={ButtonVariant.OUTLINED}
-                        intent={Intent.PRIMARY}
-                    />
+                    <Tooltip
+                        openOnTargetFocus={false}
+                        placement="bottom"
+                        content="Filter"
+                    >
+                        <Button
+                            onClick={() => {
+                                setShowFilter(true);
+                            }}
+                            size={Size.LARGE}
+                            icon={<FAIcon icon={faBarsFilter} />}
+                            variant={ButtonVariant.OUTLINED}
+                            intent={Intent.PRIMARY}
+                        />
+                    </Tooltip>
                     <div style={{ width: 257, maxWidth: "calc(100% - 84px)" }}>
                         <InputGroup
                             rightElement={

@@ -3,7 +3,9 @@ import { useGridStore } from "@/stores/grid-layout-store";
 import { Colors, Overlay2 } from "@blueprintjs/core";
 import _ from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import IconEditor from "../IconEditor";
+import { ENTITY_TYPE_LOOKUP } from "../constants";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Breadcrumbs from "./Breadcrumbs";
@@ -39,7 +41,12 @@ function RegistryEntityContainer({
     const [duplicated, setDuplicated] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
     const { gridContainerId } = useGridContainerContext();
-    const removeContainer = useGridStore((state) => state.removeContainer);
+    const { replaceContainer, removeContainer } = useGridStore(
+        useShallow((state) => ({
+            replaceContainer: state.replaceContainer,
+            removeContainer: state.removeContainer,
+        }))
+    );
     useEffect(() => {
         const { type } = entity;
         let crumbs = [];
@@ -121,12 +128,31 @@ function RegistryEntityContainer({
         scrollToTop();
     };
     const backCrumb = () => {
-        if (_.size(breadcrumbs) > 1) {
-            const index = Math.max(0, _.size(breadcrumbs) - 1);
-            setBreadcrumbs(normalizeCrumbs(_.slice(breadcrumbs, 0, index)));
-            scrollToTop();
-        } else {
+        const index = Math.max(0, _.size(breadcrumbs) - 1);
+        const newCrumbs = normalizeCrumbs(_.slice(breadcrumbs, 0, index));
+        if (_.isEmpty(newCrumbs)) {
             removeContainer(gridContainerId);
+        } else {
+            const isSingleRegistryCrumb =
+                _.isEqual(_.size(newCrumbs), 1) &&
+                _.isEqual(newCrumbs[0].type, "registry");
+            if (isSingleRegistryCrumb) {
+                const { content, title, listType } = newCrumbs[0];
+                const icon = _.get(
+                    ENTITY_TYPE_LOOKUP,
+                    [listType, "icon"],
+                    null
+                );
+                replaceContainer({
+                    id: gridContainerId,
+                    content,
+                    icon,
+                    title,
+                });
+            } else {
+                scrollToTop();
+                setBreadcrumbs(newCrumbs);
+            }
         }
     };
     const current = _.last(breadcrumbs);

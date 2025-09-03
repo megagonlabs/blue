@@ -1,3 +1,4 @@
+import { useAgentStore } from "@/stores/agent-store";
 import { useAppStore } from "@/stores/app-store";
 import {
     Button,
@@ -15,6 +16,7 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import {
     ENTITY_NAME_SEPARATOR,
     ENTITY_REGISTRY_LOOKUP,
@@ -38,6 +40,9 @@ export default function NewEntity({
     duplicateEntity,
     registry,
 }) {
+    const { getAgents } = useAgentStore(
+        useShallow((state) => ({ getAgents: state.getAgents }))
+    );
     const [newEntity, setNewEntity] = useState({ type, description: "" });
     const calculatedType = !_.isEmpty(duplicateEntity)
         ? duplicateEntity.type
@@ -158,6 +163,9 @@ export default function NewEntity({
                                         description: newEntity.description,
                                         scope,
                                     });
+                                    if (_.isEqual(calculatedType, "agent")) {
+                                        getAgents();
+                                    }
                                     setLoading(false);
                                 }
                             }
