@@ -111,8 +111,6 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
                 current_page += 1
 
     except Exception as e:
-        print("EXCEPTION")
-        print(traceback.format_exc())
         return [[]]
 
     return [results]
@@ -144,13 +142,13 @@ def operator_discover_operator_validator(input_data: List[List[Dict[str, Any]]],
 
 def operator_discover_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Explain operator discover operator output."""
-    data_discover_explanation = {
+    operator_discover_explanation = {
         'output': output,
         'input_data': input_data,
         'attributes': attributes,
         'explanation': f"operator discover operator searched for operators with query '{attributes.get('search_query', '')}' and returned {len(output[0]) if output and len(output) > 0 else 0} results.",
     }
-    return data_discover_explanation
+    return operator_discover_explanation
 
 
 ###############
