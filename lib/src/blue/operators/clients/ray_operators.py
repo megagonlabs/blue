@@ -23,6 +23,7 @@ from blue.operators.union_operator import UnionOperator
 from blue.operators.intersect_operator import IntersectOperator
 from blue.operators.breakdown_operator import BreakdownOperator
 from blue.operators.operator_discover import OperatorDiscoverOperator
+from blue.operators.plan_discover import PlanDiscoverOperator
 
 join_operator = JoinOperator()
 operators_dict[join_operator.name] = join_operator
@@ -59,3 +60,6 @@ operators_dict[breakdown_operator.name] = breakdown_operator
 
 operator_discover_operator = OperatorDiscoverOperator()
 operators_dict[operator_discover_operator.name] = operator_discover_operator
+
+plan_discover_operator = PlanDiscoverOperator()
+operators_dict[plan_discover_operator.name] = plan_discover_operator
