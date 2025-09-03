@@ -572,3 +572,17 @@ class AgenticPlan(dag_utils.Plan):
 
         # write plan
         self._write_plan(worker)
+
+    @classmethod
+    def _validate(cls, d):
+        dv = super(AgenticPlan, cls)._validate(d)
+        if dv is None:
+            return None
+        if 'context' not in dv:
+            return None
+        else:
+            context = dv['context']
+            if 'scope' not in context:
+                return None
+
+        return dv

@@ -583,12 +583,7 @@ class EntityDAG(DAG):
         dv = super(EntityDAG, cls)._validate(d)
         if dv is None:
             return None
-        if 'context' not in dv:
-            return None
-        else:
-            context = dv['context']
-            if 'scope' not in context:
-                return None
+
         if 'entities' not in dv:
             dv['entities'] = {}
 
