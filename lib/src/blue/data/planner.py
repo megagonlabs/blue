@@ -54,7 +54,7 @@ class DataPlanner:
         self.properties['db.port'] = 6379
 
         # search operator
-        self.properties['operator_search'] = '/server/blue_ray/operator/operator_discover'
+        self.properties['plan_search'] = '/server/blue_ray/operator/plan_discover'
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -72,7 +72,7 @@ class DataPlanner:
         i = p.define_input(label="I", value=[[{"data": input_data}]])
         i.set_data("status", str(Status.EXECUTED))
         r = p.define_output(label="R")
-        o = p.define_operator(self.properties['operator_search'], label="OD", attributes={"search_query": task, "approximate": True, "threshold": 0.95}, properties=self.properties)
+        o = p.define_operator(self.properties['plan_search'], label="OD", attributes={"search_query": task, "approximate": True, "threshold": 0.95}, properties=self.properties)
         o.set_data("status", str(Status.INITED))
         p.connect_nodes(i, o)
         p.connect_nodes(o, r)
@@ -119,9 +119,16 @@ class DataPlanner:
                 kwargs = {"input_data": input_data, "attributes": operator_entity.get_data("attributes"), "properties": operator_entity.get_data("properties")}
 
                 print(kwargs)
-                # TODO: replace with refine function
-                refinement = self.registry.execute_operator(parsed['operator'], parsed['server'], None, kwargs)
-                print(refinement)
+                 
+                # refine 
+                subplans = self.registry.refine_operator(parsed['operator'], parsed['server'], None, kwargs)
+                print(subplans)
+
+                # merge
+                for subplan in subplans:
+                    sp = DataPipeline.from_dict(subplan)
+                    p.merge(sp)
+
                 # update status as refined
 
         return p
@@ -146,4 +153,5 @@ class DataPlanner:
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
 
-        self.registry = OperatorRegistry(id=self.properties['operator_registry.name'], prefix=prefix, properties=self.properties)
+        self.registry =
+        OperatorRegistry(id=self.properties['operator_registry.name'], prefix=prefix, properties=self.properties)
