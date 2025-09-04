@@ -119,8 +119,8 @@ class DataPlanner:
                 kwargs = {"input_data": input_data, "attributes": operator_entity.get_data("attributes"), "properties": operator_entity.get_data("properties")}
 
                 print(kwargs)
-                 
-                # refine 
+
+                # refine
                 subplans = self.registry.refine_operator(parsed['operator'], parsed['server'], None, kwargs)
                 print(subplans)
 
@@ -153,5 +153,4 @@ class DataPlanner:
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
 
-        self.registry =
-        OperatorRegistry(id=self.properties['operator_registry.name'], prefix=prefix, properties=self.properties)
+        self.registry = OperatorRegistry(id=self.properties['operator_registry.name'], prefix=prefix, properties=self.properties)

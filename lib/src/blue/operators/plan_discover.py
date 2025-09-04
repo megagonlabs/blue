@@ -35,7 +35,7 @@ def plan_discover_operator_refiner(input_data: List[List[Dict[str, Any]]], attri
         operator_path = result['path']
         p = DataPipeline()
         # create a plan with input, operator from search, and output
-        i = p.define_input(value=[[{"data": input_data}]])
+        i = p.define_input(value=input_data)
         i.set_data("status", str(Status.EXECUTED))
         r = p.define_output()
         o = p.define_operator(operator_path)
