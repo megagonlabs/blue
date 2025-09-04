@@ -149,6 +149,7 @@ export default function Blue({ children }) {
     const addApplicationContainer = () => {
         addContainer({
             icon: AGENT_GROUP_ICON,
+            iconStyle: { color: Colors.GREEN3 },
             title: "Applications",
             content: <ApplicationContainer />,
             uniqueId: `ApplicationContainer`,
