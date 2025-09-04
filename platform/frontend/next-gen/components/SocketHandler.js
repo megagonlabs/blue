@@ -169,6 +169,15 @@ export default function SocketHandler({ children }) {
         });
     }, [connectWebSocket]);
     useEffect(() => {
+        if (!_.isNull(socket)) return;
+        connectWebSocket();
+        return () => {
+            clearTimeout(reconnectTimeout.current);
+            resetBackoff();
+            closeSocket();
+        };
+    }, [socket]);
+    useEffect(() => {
         if (_.isNull(user)) return;
         connectWebSocket();
         return () => {
