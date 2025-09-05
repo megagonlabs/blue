@@ -47,17 +47,18 @@ class DataRegistry(Registry, ServiceClient):
 
         self.properties['openai.api'] = 'ChatCompletion'
         self.properties['openai.model'] = "gpt-4o"
+        self.properties['openai.stream'] = False
+        self.properties['openai.max_tokens'] = 512
+        self.properties['openai.temperature'] = 0
         self.properties['input_json'] = "[{\"role\": \"user\"}]"
         self.properties['input_context'] = "$[0]"
         self.properties['input_context_field'] = "content"
         self.properties['input_field'] = "messages"
         self.properties['input_template'] = "${input}"
         self.properties['output_path'] = '$.choices[0].message.content'
-        self.properties['openai.stream'] = False
-        self.properties['openai.max_tokens'] = 300
-
-        # prefix for service specific properties
         self.properties['service_prefix'] = 'openai'
+        self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
+        self.properties['output_strip'] = True
 
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
