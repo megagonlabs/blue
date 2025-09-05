@@ -691,6 +691,49 @@ class Registry:
             return [self._decode_dict(r) for r in records]  # decode here
 
         return []
+        
+
+    def filter_records_by_properties(self, type=None, scope="/", properties=None, recursive=False, partial_match=False):
+        """
+        Returns records of a given type/scope that match the given nested property key-values.
+        
+        Args:
+            type: Record type to filter (optional)
+            scope: Scope path (default "/")
+            properties: dict of nested property key-values to filter, e.g., {"connection": {"protocol": "mysql"}}
+            recursive: whether to include nested records
+            partial_match: if True, match if the property value contains the filter value as substring
+            
+        Returns:
+            List of matching records
+        """
+        def match_props(record_props, filter_props):
+            for k, v in filter_props.items():
+                if isinstance(v, dict):
+                    if k not in record_props or not isinstance(record_props[k], dict):
+                        return False
+                    if not match_props(record_props[k], v):
+                        return False
+                else:
+                    val = record_props.get(k)
+                    if partial_match:
+                        if val is None or v not in str(val):
+                            return False
+                    else:
+                        if val != v:
+                            return False
+            return True
+
+        all_records = self.list_records(type=type, scope=scope, recursive=recursive)
+        if not properties:
+            return all_records
+
+        filtered = []
+        for record in all_records:
+            record_props = record.get("properties", {})
+            if match_props(record_props, properties):
+                filtered.append(record)
+        return filtered
 
     ######
     def _start(self):
