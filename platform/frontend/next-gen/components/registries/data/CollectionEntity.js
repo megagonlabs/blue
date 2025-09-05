@@ -48,10 +48,10 @@ export default function CollectionEntity({ entity, addCrumb }) {
     useEffect(() => {
         setContainerHeader({
             id: gridContainerId,
-            title: <EntityDisplayName entity={database} />,
+            title: <EntityDisplayName entity={collection} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
-    }, [database]);
+    }, [collection]);
     const fetchCollection = () => {
         setLoading(true);
         axios
