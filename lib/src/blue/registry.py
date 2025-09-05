@@ -421,10 +421,13 @@ class Registry:
         # default contents
         record['contents'] = {}
 
+        # Encode all values recursively
+        encoded_record = self._encode_dict(record)
+
         ## create a record on the registry name space
         p = self._get_record_path(name, type, scope)
 
-        self._set_json(self._get_data_namespace(), p, record)
+        self._set_json(self._get_data_namespace(), p, encoded_record)
 
         # rebuild now
         if rebuild:
@@ -572,17 +575,21 @@ class Registry:
             return {}
         else:
             record = record[0]
-        return self.__get_json_value(record)
+
+        decoded_record = self._decode_dict(record)
+        return self.__get_json_value(decoded_record)
 
     def get_record_data(self, name, type, scope, key, single=True):
         p = self._get_record_path(name, type, scope)
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
-        return self.__get_json_value(value, single=single)
-
+        decoded_value = self._decode_dict(value) if value is not None else value
+        return self.__get_json_value(decoded_value, single=single)
+        
     def set_record_data(self, name, type, scope, key, value, rebuild=False):
         p = self._get_record_path(name, type, scope)
-        self._set_json(self._get_data_namespace(), p + '.' + key, value)
-
+        encoded_value = self._encode_dict(value)
+        self._set_json(self._get_data_namespace(), p + '.' + key, encoded_value)
+        
         # rebuild now
         if rebuild:
             record = self.get_record(name, type, scope)
@@ -680,7 +687,10 @@ class Registry:
 
         records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 
-        return records
+        if records:
+            return [self._decode_dict(r) for r in records]  # decode here
+
+        return []
 
     ######
     def _start(self):
@@ -729,11 +739,41 @@ class Registry:
     encodings = {".": "__DOT__", "*": "__STAR__", "?": "__Q__"}
 
     def _encode(self, s):
-        for k, v in encodings.items():
+        for k, v in self.encodings.items():
             s = s.replace(k, v)
         return s
 
     def _decode(self, s):
-        for k, v in encodings.items():
+        for k, v in self.encodings.items():
             s = s.replace(v, k)
         return s
+
+    def _encode_value(self, s):
+        if isinstance(s, str):
+            for k, v in self.encodings.items():
+                s = s.replace(k, v)
+        return s
+
+    def _decode_value(self, s):
+        if isinstance(s, str):
+            for k, v in self.encodings.items():
+                s = s.replace(v, k)
+        return s
+
+    def _encode_dict(self, obj):
+        """Recursively encode only values (not keys)."""
+        if isinstance(obj, dict):
+            return {k: self._encode_dict(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._encode_dict(v) for v in obj]
+        else:
+            return self._encode_value(obj)
+
+    def _decode_dict(self, obj):
+        """Recursively decode only values (not keys)."""
+        if isinstance(obj, dict):
+            return {k: self._decode_dict(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._decode_dict(v) for v in obj]
+        else:
+            return self._decode_value(obj)
