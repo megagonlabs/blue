@@ -360,6 +360,81 @@ class DataRegistry(Registry):
             return source_connection.execute_query(query=query, database=database, collection=collection, optional_properties=optional_properties)
         return None
 
+    ######### create operations
+    def create_source_database(self, source, database, properties={}, overwrite=False, rebuild=True, recursive=False):
+        """Create a new database in the specified source."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            # check if database already exists in registry
+            if self.get_source_database(source, database):
+                if overwrite:
+                    self.deregister_source_database(source, database, rebuild=rebuild)
+                else:
+                    return None
+            create_res = source_connection.create_database(database, properties=properties, overwrite=overwrite)
+            if create_res and create_res['status'] in ["success", "registry_only"]:
+                self.sync_source_database(source, database, rebuild=rebuild, recursive=recursive)
+                # update database properties if provided
+                for key, value in properties.items():
+                    self.set_source_database_property(source, database, key, value, rebuild=rebuild)
+        return None
+
+    def create_source_database_collection(self, source, database, collection, properties={}, overwrite=False, rebuild=True, recursive=False):
+        """Create a new collection in the specified database."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            # check if collection already exists in registry
+            if self.get_source_database_collection(source, database, collection):
+                if overwrite:
+                    self.deregister_source_database_collection(source, database, collection, rebuild=rebuild)
+                else:
+                    return None
+            create_res = source_connection.create_database_collection(database, collection, properties=properties, overwrite=overwrite)
+            if create_res and create_res['status'] in ["success", "registry_only"]:
+                self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)
+                # update collection properties if provided
+                for key, value in properties.items():
+                    self.set_source_database_collection_property(source, database, collection, key, value, rebuild=rebuild)
+        return None
+
+    def create_source_database_collection_entity(self, source, database, collection, entity, properties={}, overwrite=False, rebuild=True, recursive=False):
+        """Create a new entity (table) in the specified collection."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            # check if entity already exists in registry
+            if self.get_source_database_collection_entity(source, database, collection, entity):
+                if overwrite:
+                    self.deregister_source_database_collection_entity(source, database, collection, entity, rebuild=rebuild)
+                else:
+                    return None
+            create_res = source_connection.create_database_collection_entity(database, collection, entity, properties=properties, overwrite=overwrite)
+            if create_res and create_res['status'] in ["success", "registry_only"]:
+                # currently sync is not supported for entity, so we sync the collection instead
+                self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)
+                # update entity properties if provided
+                for key, value in properties.items():
+                    self.set_source_database_collection_entity_property(source, database, collection, entity, key, value, rebuild=rebuild)
+        return None
+
+    def create_source_database_collection_relation(self, source, database, collection, relation, properties={}, overwrite=False, rebuild=True, recursive=False):
+        """Create a new relation in the specified collection."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            # check if relation already exists in registry
+            if self.get_source_database_collection_relation(source, database, collection, relation):
+                if overwrite:
+                    self.deregister_source_database_collection_relation(source, database, collection, relation, rebuild=rebuild)
+                else:
+                    return None
+            create_res = source_connection.create_database_collection_relation(database, collection, relation, properties=properties, overwrite=overwrite)
+            if create_res and create_res['status'] in ["success", "registry_only"]:
+                # currently sync is not supported for relation, so we sync the collection instead
+                self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)
+                # update relation properties if provided
+                for key, value in properties.items():
+                    self.set_source_database_collection_relation_property(source, database, collection, relation, key, value, rebuild=rebuild)
+        return None
+
     
     def collect_source_metadata(self, source, recursive=False, rebuild=False):
         # TODO
@@ -374,6 +449,8 @@ class DataRegistry(Registry):
         entities = self.get_source_database_collection_entities(source, database, collection)
         
         #### enriching description #############################
+        if entities is None:
+            entities = []
         for entity in entities:
             entity_name = entity.get("name")
             

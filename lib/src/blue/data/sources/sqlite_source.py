@@ -88,22 +88,22 @@ class SQLiteDBSource(DataSource):
         return {}
 
     
-    def create_database(self, database, properties={}):
+    def create_database(self, database, properties={}, overwrite=False):
         """Create a new SQLite database file."""
         # Check if database file already exists
         db_path = self._get_database_path(database)
-        overwrite = properties.get('overwrite', False)
         if os.path.exists(db_path):
             if overwrite:
                 self.logger.info(f"Overwriting existing database file '{db_path}'")
                 os.remove(db_path)
             else:
                 self.logger.info(f"Database file '{db_path}' already exists, skipping creation")
-                return
+                return {"status": "skipped"}
         
         db_connection = self._db_connect(database)
         self._db_disconnect(db_connection)
         self.logger.info(f"Successfully created SQLite database '{database}' at '{db_path}'")
+        return {"status": "success"}
 
     def _db_connect(self, database):
         # connect to database
@@ -180,20 +180,30 @@ class SQLiteDBSource(DataSource):
         return {}
     
 
-    def create_database_collection(self, database, collection, properties={}):
-        """The SQLite collection is the database."""
-        return {}
+    def create_database_collection(self, database, collection, properties={}, overwrite=False):
+        """The SQLite collection is the database. NOP - only registry update needed"""
+        return {"status": "registry_only"}
 
     ######### source/database/collection/entity
-    def create_database_collection_entity(self, database, collection, entity, properties={}):
+    def create_database_collection_entity(self, database, collection, entity, properties={}, overwrite=False):
         """Create a new SQLite table (entity)."""
-        overwrite = properties.get('overwrite', False)
-        if overwrite:
-            drop_query = f"DROP TABLE IF EXISTS \"{entity}\""
-            self.execute_query(drop_query, database=database, optional_properties={"commit": True})
+        # Check if table already exists
+        db_connection = self._db_connect(database)
+        cursor = db_connection.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (entity,))
+        table_exists = cursor.fetchone() is not None
+        self._db_disconnect(db_connection)
         
-        query = "CREATE TABLE IF NOT EXISTS " if not overwrite else "CREATE TABLE "
-        query += f"\"{entity}\""
+        if table_exists:
+            if overwrite:
+                self.logger.info(f"Overwriting existing table '{entity}'")
+                drop_query = f"DROP TABLE IF EXISTS \"{entity}\""
+                self.execute_query(drop_query, database=database, optional_properties={"commit": True})
+            else:
+                self.logger.info(f"Table '{entity}' already exists, skipping creation")
+                return {"status": "skipped"}
+
+        query = "CREATE TABLE " + f"\"{entity}\""
 
         # entity properties
         entity_properties_str = ""
@@ -219,13 +229,14 @@ class SQLiteDBSource(DataSource):
         query += "( " + entity_properties_str + " )"
         self.execute_query(query, database=database, optional_properties={"commit": True})
         self.logger.info(f"Successfully created table '{entity}' in collection '{collection}' of database '{database}' in SQLite")
+        return {"status": "success"}
 
     ######### source/database/collection/relation
-    def create_database_collection_relation(self, database, collection, relation, properties={}):
+    def create_database_collection_relation(self, database, collection, relation, properties={}, overwrite=False):
         """SQLite doesn't support adding foreign keys after table creation.
         We only support adding foreign keys when creating tables (see create_database_collection_entity).
         """
-        return {}
+        return {"status": "skipped"}
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
