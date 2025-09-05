@@ -6,6 +6,7 @@ import uuid
 from blue.connection import PooledConnectionFactory
 from blue.operators.registry import OperatorRegistry
 from blue.data.pipeline import DataPipeline, NodeType, EntityType, Status
+from blue.utils import json_utils
 
 
 ###############
@@ -115,13 +116,26 @@ class DataPlanner:
                     # TODO: mapping...
                     input_data += prev_node_value
 
-                # refine
-                kwargs = {"input_data": input_data, "attributes": operator_entity.get_data("attributes"), "properties": operator_entity.get_data("properties")}
+                #### refine operator
+                operator_name = parsed['operator']
+                operator_server = parsed['server']
+                operator_properties = {}
+                operator_attribues = operator_entity.get_data("attributes")
+
+                ## build properties starting from planner
+                planner_properties = self.properties
+                registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
+                in_plan_properties = operator_entity.get_data("properties")
+                operator_properties = json_utils.merge_json(operator_properties, planner_properties)
+                operator_properties = json_utils.merge_json(operator_properties, registry_properties)
+                operator_properties = json_utils.merge_json(operator_properties, in_plan_properties)
+
+                kwargs = {"input_data": input_data, "attributes": operator_attribues, "properties": operator_properties}
 
                 print(kwargs)
 
                 # refine
-                subplans = self.registry.refine_operator(parsed['operator'], parsed['server'], None, kwargs)
+                subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
                 print(subplans)
 
                 # merge
