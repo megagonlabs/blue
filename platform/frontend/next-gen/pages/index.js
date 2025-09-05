@@ -283,6 +283,11 @@ export default function Home() {
                                         style={{
                                             marginRight: 10,
                                             color: Colors.GRAY1,
+                                            ..._.get(
+                                                containers,
+                                                [element.i, "iconStyle"],
+                                                {}
+                                            ),
                                         }}
                                         icon={_.get(
                                             containers,

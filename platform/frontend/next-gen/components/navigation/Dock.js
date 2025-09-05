@@ -85,6 +85,11 @@ export default function Dock() {
                                     }}
                                     icon={
                                         <FAIcon
+                                            style={_.get(
+                                                containers,
+                                                [element.i, "iconStyle"],
+                                                {}
+                                            )}
                                             icon={_.get(
                                                 containers,
                                                 [element.i, "icon"],
