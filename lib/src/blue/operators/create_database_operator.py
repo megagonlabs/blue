@@ -37,6 +37,7 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
             return [[]]
         description = db_def.get('description', '')
         db_properties = db_def.get('database_properties', {})
+        # notes: the key-value pairs in db_properties will be set as database properties in the data registry
         
         # Create the database using data registry
         data_registry.create_source_database(
@@ -49,12 +50,24 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
         )
         
         # Set the description after database creation
-        # notes: this is a temporary solution as the current fetch_database_metadata in sqlite source is blank
+        # notes: the following hard-code setting for description and created_by is a temporary solution as the current data registry make them "" and null respectively.
         if description:
             data_registry.set_source_database_description(
                 source=source,
                 database=database_name,
                 description=description,
+                rebuild=True
+            )
+        
+        # Set the created_by after database creation
+        created_by = db_def.get('created_by')
+        if created_by:
+            data_registry.set_record_data(
+                name=database_name,
+                type='database',
+                scope=f'/source/{source}',
+                key='created_by',
+                value=created_by,
                 rebuild=True
             )
         
