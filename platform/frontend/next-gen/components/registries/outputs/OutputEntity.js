@@ -1,8 +1,10 @@
 import {
+    ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
 import {
@@ -12,6 +14,7 @@ import {
     shallowDiff,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import { Classes, Colors, EditableText, Intent } from "@blueprintjs/core";
 import { faBracketsCurly } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
@@ -22,6 +25,7 @@ import { useEffect, useRef, useState } from "react";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
+import EntityDisplayName from "../EntityDisplayName";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 import OutputTags from "./OutputTags";
@@ -34,6 +38,10 @@ export default function OutputEntity({ entity, backCrumb }) {
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { appToaster, progressToaster, showAxiosErrorToast } = useToaster();
+    const setContainerHeader = useGridStore(
+        (state) => state.setContainerHeader
+    );
+    const { gridContainerId } = useGridContainerContext();
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -50,6 +58,13 @@ export default function OutputEntity({ entity, backCrumb }) {
         .filter((str) => !_.isEmpty(str))
         .join("/");
     const url = `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/${path}`;
+    useEffect(() => {
+        setContainerHeader({
+            id: gridContainerId,
+            title: <EntityDisplayName entity={output} />,
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+        });
+    }, [output]);
     useEffect(() => {
         setLoading(true);
         axios

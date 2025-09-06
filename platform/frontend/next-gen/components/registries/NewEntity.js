@@ -1,5 +1,9 @@
 import { useAgentStore } from "@/stores/agent-store";
 import { useAppStore } from "@/stores/app-store";
+import { useModelStore } from "@/stores/model-store";
+import { useOperatorStore } from "@/stores/operator-store";
+import { useSourceStore } from "@/stores/source-store";
+import { useToolStore } from "@/stores/tool-store";
 import {
     Button,
     Classes,
@@ -42,6 +46,18 @@ export default function NewEntity({
 }) {
     const { getAgents } = useAgentStore(
         useShallow((state) => ({ getAgents: state.getAgents }))
+    );
+    const { getSources } = useSourceStore(
+        useShallow((state) => ({ getSources: state.getSources }))
+    );
+    const { getOperators } = useOperatorStore(
+        useShallow((state) => ({ getOperators: state.getOperators }))
+    );
+    const { getModels } = useModelStore(
+        useShallow((state) => ({ getModels: state.getModels }))
+    );
+    const { getTools } = useToolStore(
+        useShallow((state) => ({ getTools: state.getTools }))
     );
     const [newEntity, setNewEntity] = useState({ type, description: "" });
     const calculatedType = !_.isEmpty(duplicateEntity)
@@ -163,8 +179,29 @@ export default function NewEntity({
                                         description: newEntity.description,
                                         scope,
                                     });
-                                    if (_.isEqual(calculatedType, "agent")) {
-                                        getAgents();
+                                    const GET_LIST_CBS = {
+                                        agent: getAgents,
+                                        source: getSources,
+                                        server: {
+                                            operator: getOperators,
+                                            tool: getTools,
+                                        },
+                                        model: getModels,
+                                    };
+                                    let LIST_CB = _.get(
+                                        GET_LIST_CBS,
+                                        calculatedType,
+                                        null
+                                    );
+                                    if (_.isEqual(calculatedType, "server")) {
+                                        LIST_CB = _.get(
+                                            GET_LIST_CBS,
+                                            [calculatedType, registry],
+                                            null
+                                        );
+                                    }
+                                    if (_.isFunction(LIST_CB)) {
+                                        LIST_CB();
                                     }
                                     setLoading(false);
                                 }

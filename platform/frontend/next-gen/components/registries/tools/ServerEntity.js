@@ -336,7 +336,7 @@ export default function ServerEntity({
                             )
                         )}
                     />
-                    {!isEditing && (
+                    {!isEditing && !_.includes(["tool"], registry) && (
                         <Button
                             disabled={loading}
                             variant={ButtonVariant.MINIMAL}

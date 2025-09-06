@@ -13,9 +13,9 @@ import {
     faFolders,
     faFunction,
     faGrid2,
+    faNetworkWired,
     faScrewdriver,
     faServer,
-    faToolbox,
     faXmark,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { allEnv } from "next-runtime-env";
@@ -73,7 +73,7 @@ export const USER_ROLES_LOOKUP = {
         relation: { icon: faCircleNodes },
         model: { icon: faBoxIsometricTape, permissionKey: "model_registry" },
         operator: { icon: faFunction, permissionKey: "operator_registry" },
-        server: { icon: faToolbox, permissionKey: "tool_registry" },
+        server: { icon: faNetworkWired, permissionKey: "tool_registry" },
         tool: { icon: faScrewdriver, permissionKey: "tool_registry" },
     },
     TAG_REMOVE_ICON = <FAIcon icon={faXmark} style={{ cursor: "pointer" }} />,
