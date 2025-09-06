@@ -19,6 +19,7 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
     # Get data registry from properties - follow agent pattern
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
+        print("Error: Data registry not found")
         return [[]]
 
     try:
@@ -36,11 +37,6 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
             return [[]]
         description = db_def.get('description', '')
         db_properties = db_def.get('database_properties', {})
-        for key, value in db_def.items():
-            if key != 'database_properties':
-                # overwrite the values in database_properties, incase caller provides mismatched values
-                db_properties[key] = value
-
         
         # Create the database using data registry
         data_registry.create_source_database(
@@ -51,7 +47,18 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
             rebuild=True,
             recursive=False
         )
-        print("Successfully created database '{database_name}' in source '{source}'.")
+        
+        # Set the description after database creation
+        # notes: this is a temporary solution as the current fetch_database_metadata in sqlite source is blank
+        if description:
+            data_registry.set_source_database_description(
+                source=source,
+                database=database_name,
+                description=description,
+                rebuild=True
+            )
+        
+        print(f"Successfully created database '{database_name}' in source '{source}'.")
         
         return [[]]
 
