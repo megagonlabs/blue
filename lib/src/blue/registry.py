@@ -576,13 +576,16 @@ class Registry:
         else:
             record = record[0]
 
-        decoded_record = self._decode_dict(record)
+        decoded_record = self._decode_nested(record)
+
         return self.__get_json_value(decoded_record)
 
     def get_record_data(self, name, type, scope, key, single=True):
         p = self._get_record_path(name, type, scope)
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
-        decoded_value = self._decode_dict(value) if value is not None else value
+        
+        decoded_value = self._decode_nested(value) if value is not None else value
+        
         return self.__get_json_value(decoded_value, single=single)
         
     def set_record_data(self, name, type, scope, key, value, rebuild=False):
@@ -688,7 +691,7 @@ class Registry:
         records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 
         if records:
-            return [self._decode_dict(r) for r in records]  # decode here
+            return [self._decode_nested(r) for r in records]  # decode here
 
         return []
         
@@ -820,3 +823,16 @@ class Registry:
             return [self._decode_dict(v) for v in obj]
         else:
             return self._decode_value(obj)
+
+    def _decode_nested(self, obj):
+        """Recursively decode all string values in a nested dict/list structure."""
+        if isinstance(obj, dict):
+            return {k: self._decode_nested(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._decode_nested(v) for v in obj]
+        elif isinstance(obj, str):
+            for k, v in self.encodings.items():
+                obj = obj.replace(v, k)
+            return obj
+        else:
+            return obj
