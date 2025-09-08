@@ -57,7 +57,7 @@ class DataPipeline(dag_utils.Plan):
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
     # nodes
-    def define_input(self, label=None, value=None, stream=None, properties={}, sync=None):
+    def define_input(self, label=None, value=None, properties={}, sync=None):
         input_node = self.create_node(label=label, type=str(NodeType.INPUT), properties=properties, sync=sync)
 
         # input value/stream
@@ -65,7 +65,7 @@ class DataPipeline(dag_utils.Plan):
 
         return input_node
 
-    def define_output(self, label=None, value=None, stream=None, properties={}, sync=None):
+    def define_output(self, label=None, value=None, properties={}, sync=None):
         output_node = self.create_node(label=label, type=str(NodeType.OUTPUT), properties=properties, sync=sync)
 
         # output value/stream
