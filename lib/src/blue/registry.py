@@ -421,10 +421,13 @@ class Registry:
         # default contents
         record['contents'] = {}
 
+        # Encode all values recursively
+        encoded_record = self._encode_dict(record)
+
         ## create a record on the registry name space
         p = self._get_record_path(name, type, scope)
 
-        self._set_json(self._get_data_namespace(), p, record)
+        self._set_json(self._get_data_namespace(), p, encoded_record)
 
         # rebuild now
         if rebuild:
@@ -572,17 +575,24 @@ class Registry:
             return {}
         else:
             record = record[0]
-        return self.__get_json_value(record)
+
+        decoded_record = self._decode_nested(record)
+
+        return self.__get_json_value(decoded_record)
 
     def get_record_data(self, name, type, scope, key, single=True):
         p = self._get_record_path(name, type, scope)
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
-        return self.__get_json_value(value, single=single)
-
+        
+        decoded_value = self._decode_nested(value) if value is not None else value
+        
+        return self.__get_json_value(decoded_value, single=single)
+        
     def set_record_data(self, name, type, scope, key, value, rebuild=False):
         p = self._get_record_path(name, type, scope)
-        self._set_json(self._get_data_namespace(), p + '.' + key, value)
-
+        encoded_value = self._encode_dict(value)
+        self._set_json(self._get_data_namespace(), p + '.' + key, encoded_value)
+        
         # rebuild now
         if rebuild:
             record = self.get_record(name, type, scope)
@@ -680,7 +690,53 @@ class Registry:
 
         records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 
-        return records
+        if records:
+            return [self._decode_nested(r) for r in records]  # decode here
+
+        return []
+        
+
+    def filter_records_by_properties(self, type=None, scope="/", properties=None, recursive=False, partial_match=False):
+        """
+        Returns records of a given type/scope that match the given nested property key-values.
+        
+        Args:
+            type: Record type to filter (optional)
+            scope: Scope path (default "/")
+            properties: dict of nested property key-values to filter, e.g., {"connection": {"protocol": "mysql"}}
+            recursive: whether to include nested records
+            partial_match: if True, match if the property value contains the filter value as substring
+            
+        Returns:
+            List of matching records
+        """
+        def match_props(record_props, filter_props):
+            for k, v in filter_props.items():
+                if isinstance(v, dict):
+                    if k not in record_props or not isinstance(record_props[k], dict):
+                        return False
+                    if not match_props(record_props[k], v):
+                        return False
+                else:
+                    val = record_props.get(k)
+                    if partial_match:
+                        if val is None or v not in str(val):
+                            return False
+                    else:
+                        if val != v:
+                            return False
+            return True
+
+        all_records = self.list_records(type=type, scope=scope, recursive=recursive)
+        if not properties:
+            return all_records
+
+        filtered = []
+        for record in all_records:
+            record_props = record.get("properties", {})
+            if match_props(record_props, properties):
+                filtered.append(record)
+        return filtered
 
     ######
     def _start(self):
@@ -729,11 +785,54 @@ class Registry:
     encodings = {".": "__DOT__", "*": "__STAR__", "?": "__Q__"}
 
     def _encode(self, s):
-        for k, v in encodings.items():
+        for k, v in self.encodings.items():
             s = s.replace(k, v)
         return s
 
     def _decode(self, s):
-        for k, v in encodings.items():
+        for k, v in self.encodings.items():
             s = s.replace(v, k)
         return s
+
+    def _encode_value(self, s):
+        if isinstance(s, str):
+            for k, v in self.encodings.items():
+                s = s.replace(k, v)
+        return s
+
+    def _decode_value(self, s):
+        if isinstance(s, str):
+            for k, v in self.encodings.items():
+                s = s.replace(v, k)
+        return s
+
+    def _encode_dict(self, obj):
+        """Recursively encode only values (not keys)."""
+        if isinstance(obj, dict):
+            return {k: self._encode_dict(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._encode_dict(v) for v in obj]
+        else:
+            return self._encode_value(obj)
+
+    def _decode_dict(self, obj):
+        """Recursively decode only values (not keys)."""
+        if isinstance(obj, dict):
+            return {k: self._decode_dict(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._decode_dict(v) for v in obj]
+        else:
+            return self._decode_value(obj)
+
+    def _decode_nested(self, obj):
+        """Recursively decode all string values in a nested dict/list structure."""
+        if isinstance(obj, dict):
+            return {k: self._decode_nested(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._decode_nested(v) for v in obj]
+        elif isinstance(obj, str):
+            for k, v in self.encodings.items():
+                obj = obj.replace(v, k)
+            return obj
+        else:
+            return obj

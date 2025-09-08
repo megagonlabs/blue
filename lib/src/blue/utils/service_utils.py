@@ -142,7 +142,9 @@ class ServiceClient:
                 output_data = float(output_data)
             elif properties['output_cast'].lower() == "json":
                 output_data = json.loads(output_data)
-
+            elif properties['output_cast'].lower() == "str":
+                output_data = str(output_data)
+                
         return output_data
 
     def _preprocess_output(self, output_data, properties=None):

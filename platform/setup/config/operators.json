@@ -294,6 +294,8 @@
                 "user": "postgres",
                 "password": "postgres"
             },
+            "platform.name": "default",
+            "data_registry.name": "default",
             "parameters": {
                 "question": {
                     "type": "str",
@@ -583,6 +585,41 @@
                     "description": "Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)",
                     "required": false,
                     "default": "key_match"
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "create_database",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Creates databases in data sources using the data registry. If the database already exists, it will be overwritten if overwrite is True.",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "platform.name": "default",
+            "data_registry.name": "default",
+            "parameters": {
+                "source": {
+                    "type": "str",
+                    "description": "Name of the data source where the database will be created",
+                    "required": true,
+                    "default": ""
+                },
+                "overwrite": {
+                    "type": "bool",
+                    "description": "Whether to overwrite the existing database",
+                    "required": false,
+                    "default": false
                 }
             }
         },

@@ -145,17 +145,20 @@ export default function SocketHandler({ children }) {
                     };
                     setState({ key: "socket", value: newSocket });
                 } catch (error) {
-                    appToaster.show({
-                        intent: Intent.DANGER,
-                        message: (
-                            <div className="multiline-ellipsis-5">
-                                <div>
-                                    Failed to initialize websocket connection
+                    if (appToaster) {
+                        appToaster.show({
+                            intent: Intent.DANGER,
+                            message: (
+                                <div className="multiline-ellipsis-5">
+                                    <div>
+                                        Failed to initialize websocket
+                                        connection
+                                    </div>
+                                    {error.message}
                                 </div>
-                                {error.message}
-                            </div>
-                        ),
-                    });
+                            ),
+                        });
+                    }
                 }
             })
             .catch((error) => {
@@ -168,6 +171,15 @@ export default function SocketHandler({ children }) {
             value: connectWebSocket,
         });
     }, [connectWebSocket]);
+    useEffect(() => {
+        if (!_.isNull(socket)) return;
+        connectWebSocket();
+        return () => {
+            clearTimeout(reconnectTimeout.current);
+            resetBackoff();
+            closeSocket();
+        };
+    }, [socket]);
     useEffect(() => {
         if (_.isNull(user)) return;
         connectWebSocket();

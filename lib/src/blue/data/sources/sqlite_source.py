@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 import json
 import copy
-import logging
 
 
 ###### Source specific libs
@@ -89,10 +88,22 @@ class SQLiteDBSource(DataSource):
         return {}
 
     
-    def create_database(self, database, properties={}):
-        # connect and close
+    def create_database(self, database, properties={}, overwrite=False):
+        """Create a new SQLite database file."""
+        # Check if database file already exists
+        db_path = self._get_database_path(database)
+        if os.path.exists(db_path):
+            if overwrite:
+                self.logger.info(f"Overwriting existing database file '{db_path}'")
+                os.remove(db_path)
+            else:
+                self.logger.info(f"Database file '{db_path}' already exists, skipping creation")
+                return {"status": "skipped"}
+        
         db_connection = self._db_connect(database)
         self._db_disconnect(db_connection)
+        self.logger.info(f"Successfully created SQLite database '{database}' at '{db_path}'")
+        return {"status": "success"}
 
     def _db_connect(self, database):
         # connect to database
@@ -162,20 +173,37 @@ class SQLiteDBSource(DataSource):
                 schema.add_entity_property(table, column_name, property_def)
     
         self._db_disconnect(db_connection)
-
+        return schema.get_entities()
 
     
     def fetch_database_collection_relations(self, database, collection):
         return {}
     
 
-    def create_database_collection(self, database, collection, properties={}):
-        return {}
+    def create_database_collection(self, database, collection, properties={}, overwrite=False):
+        """The SQLite collection is the database. NOP - only registry update needed"""
+        return {"status": "registry_only"}
 
     ######### source/database/collection/entity
-    def create_database_collection_entity(self, database, collection, entity, properties={}):
-        query = "CREATE TABLE IF NOT EXISTS "
-        query += entity
+    def create_database_collection_entity(self, database, collection, entity, properties={}, overwrite=False):
+        """Create a new SQLite table (entity)."""
+        # Check if table already exists
+        db_connection = self._db_connect(database)
+        cursor = db_connection.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (entity,))
+        table_exists = cursor.fetchone() is not None
+        self._db_disconnect(db_connection)
+        
+        if table_exists:
+            if overwrite:
+                self.logger.info(f"Overwriting existing table '{entity}'")
+                drop_query = f"DROP TABLE IF EXISTS \"{entity}\""
+                self.execute_query(drop_query, database=database, optional_properties={"commit": True})
+            else:
+                self.logger.info(f"Table '{entity}' already exists, skipping creation")
+                return {"status": "skipped"}
+
+        query = "CREATE TABLE " + f"\"{entity}\""
 
         # entity properties
         entity_properties_str = ""
@@ -189,12 +217,26 @@ class SQLiteDBSource(DataSource):
             if i < len(entity_properties) - 1:
                 entity_properties_str += ","
 
+        # add foreign key constraints if provided
+        foreign_keys = properties.get('foreign_keys', [])
+        if foreign_keys:
+            for fk in foreign_keys:
+                source_cols = ', '.join([f'"{col}"' for col in fk['foreign_keys_source_columns']])
+                target_cols = ', '.join([f'"{col}"' for col in fk['foreign_keys_target_columns']])
+                fk_clause = f", FOREIGN KEY ({source_cols}) REFERENCES \"{fk['foreign_keys_target_table']}\" ({target_cols})"
+                entity_properties_str += fk_clause
+
         query += "( " + entity_properties_str + " )"
         self.execute_query(query, database=database, optional_properties={"commit": True})
+        self.logger.info(f"Successfully created table '{entity}' in collection '{collection}' of database '{database}' in SQLite")
+        return {"status": "success"}
 
     ######### source/database/collection/relation
-    def create_database_collection_relation(self, database, collection, relation, properties={}):
-        return {}
+    def create_database_collection_relation(self, database, collection, relation, properties={}, overwrite=False):
+        """SQLite doesn't support adding foreign keys after table creation.
+        We only support adding foreign keys when creating tables (see create_database_collection_entity).
+        """
+        return {"status": "skipped"}
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
@@ -241,7 +283,7 @@ class SQLiteDBSource(DataSource):
         db_path = self._get_database_path(database)
         
         if not os.path.exists(db_path):
-            logging.warning(f"Database file {db_path} does not exist")
+            self.logger.warning(f"Database file {db_path} does not exist")
             return stats
 
         try:
@@ -257,7 +299,7 @@ class SQLiteDBSource(DataSource):
             conn.close()
             
         except Exception as e:
-            logging.warning(f"Error fetching SQLite database stats: {e}")
+            self.logger.warning(f"Error fetching SQLite database stats: {e}")
         
         return stats
 
@@ -296,7 +338,7 @@ class SQLiteDBSource(DataSource):
             conn.close()
 
         except sqlite3.Error as e:
-            logging.warning(f"Failed to get row count for {table_name}: {e}")
+            self.logger.warning(f"Failed to get row count for {table_name}: {e}")
             stats["row_count"] = None
 
         return stats
@@ -370,7 +412,7 @@ class SQLiteDBSource(DataSource):
             return stats
 
         except Exception as e:
-            logging.warning(f"Failed to fetch property stats for {table}.{property_name}: {str(e)}")
+            self.logger.warning(f"Failed to fetch property stats for {table}.{property_name}: {str(e)}")
             return {}
         finally:
             self._db_disconnect(conn)

@@ -23,7 +23,11 @@ from blue.operators.union_operator import UnionOperator
 from blue.operators.intersect_operator import IntersectOperator
 from blue.operators.breakdown_operator import BreakdownOperator
 from blue.operators.operator_discover import OperatorDiscoverOperator
+<<<<<<< HEAD
 from blue.operators.plan_discover import PlanDiscoverOperator
+=======
+from blue.operators.create_database_operator import CreateDatabaseOperator
+>>>>>>> dev
 
 join_operator = JoinOperator()
 operators_dict[join_operator.name] = join_operator
@@ -61,9 +65,11 @@ operators_dict[breakdown_operator.name] = breakdown_operator
 operator_discover_operator = OperatorDiscoverOperator()
 operators_dict[operator_discover_operator.name] = operator_discover_operator
 
+create_database_operator = CreateDatabaseOperator()
+operators_dict[create_database_operator.name] = create_database_operator
+
 plan_discover_operator = PlanDiscoverOperator()
 operators_dict[plan_discover_operator.name] = plan_discover_operator
 
-# question_answer as declarative operator
 question_answer_operator = DeclarativeOperator(properties={"name": "question_answer", "description": "answer questions", "plans": [{}]})
 operators_dict[question_answer_operator.name] = question_answer_operator

@@ -139,7 +139,7 @@ export default function Blue({ children }) {
             content: <ModelList />,
             visible: permissions.canReadModelRegistry,
         },
-        server: {
+        tool: {
             title: "Tool Registry",
             text: "Tool",
             content: <ToolList />,
@@ -149,6 +149,7 @@ export default function Blue({ children }) {
     const addApplicationContainer = () => {
         addContainer({
             icon: AGENT_GROUP_ICON,
+            iconStyle: { color: Colors.GREEN3 },
             title: "Applications",
             content: <ApplicationContainer />,
             uniqueId: `ApplicationContainer`,
@@ -472,7 +473,7 @@ export default function Blue({ children }) {
                                                                         "source",
                                                                         "operator",
                                                                         "model",
-                                                                        "server",
+                                                                        "tool",
                                                                     ].map(
                                                                         (
                                                                             type

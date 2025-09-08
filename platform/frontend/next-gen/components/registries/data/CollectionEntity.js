@@ -4,8 +4,10 @@ import {
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import { Classes, Colors, EntityTitle, H3 } from "@blueprintjs/core";
 import axios from "axios";
 import classNames from "classnames";
@@ -15,6 +17,7 @@ import { useEffect, useState } from "react";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
+import EntityDisplayName from "../EntityDisplayName";
 import Leaves from "../Leaves";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_DATA_REGISTRY_NAME } = allEnv();
@@ -38,6 +41,17 @@ export default function CollectionEntity({ entity, addCrumb }) {
         "/source/",
         "/data/"
     );
+    const setContainerHeader = useGridStore(
+        (state) => state.setContainerHeader
+    );
+    const { gridContainerId } = useGridContainerContext();
+    useEffect(() => {
+        setContainerHeader({
+            id: gridContainerId,
+            title: <EntityDisplayName entity={collection} />,
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+        });
+    }, [collection]);
     const fetchCollection = () => {
         setLoading(true);
         axios

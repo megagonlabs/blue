@@ -69,7 +69,7 @@ export const useGridStore = create((set, get) => ({
         }
         set({ layout });
     },
-    addContainer: ({ title, content, icon, uniqueId = null }) => {
+    addContainer: ({ title, content, icon, iconStyle, uniqueId = null }) => {
         let id = uuidv4();
         const { layoutData } = get();
         let exist = false;
@@ -86,7 +86,7 @@ export const useGridStore = create((set, get) => ({
             set((state) => ({
                 containers: {
                     ...state.containers,
-                    [id]: { title, content, icon },
+                    [id]: { title, content, icon, iconStyle },
                 },
                 layout: [
                     { i: id, x: 0, y: 0, w: 12, h: 3, minW: 4, minH: 3 },

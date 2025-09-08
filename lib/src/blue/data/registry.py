@@ -4,12 +4,20 @@ import logging
 import json
 
 import yaml
+import numpy as np
 
 ###### Blue
 from blue.utils import json_utils
 from blue.registry import Registry
  
 from blue.data.schema import DataSchema
+from blue.utils.service_utils import ServiceClient
+from blue.data.prompt_templates import AGGREGATION_PROMPT
+from blue.utils.similarity_utils import (
+    compute_bm25_score,
+    normalize_bm25_scores,
+    compute_vector_score
+)
 
 ###### Supported Data Sources
 from blue.data.sources.mongodb_source import MongoDBSource
@@ -19,11 +27,17 @@ from blue.data.sources.mysql_source import MySQLDBSource
 from blue.data.sources.sqlite_source import SQLiteDBSource
 from blue.data.sources.openai_source import OpenAISource
 
+###### Backend, Databases
+from redis.commands.json.path import Path
+from redis.commands.search.field import TextField, VectorField
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+from redis.commands.search.query import Query
+
 
 ###############
 ### DataRegistry
 #
-class DataRegistry(Registry):
+class DataRegistry(Registry, ServiceClient):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, platform_id=platform_id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 
@@ -31,8 +45,21 @@ class DataRegistry(Registry):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        
-    
+        self.properties['openai.api'] = 'ChatCompletion'
+        self.properties['openai.model'] = "gpt-4o"
+        self.properties['openai.stream'] = False
+        self.properties['openai.max_tokens'] = 512
+        self.properties['openai.temperature'] = 0
+        self.properties['input_json'] = "[{\"role\": \"user\"}]"
+        self.properties['input_context'] = "$[0]"
+        self.properties['input_context_field'] = "content"
+        self.properties['input_field'] = "messages"
+        self.properties['input_template'] = "${input}"
+        self.properties['output_path'] = '$.choices[0].message.content'
+        self.properties['service_prefix'] = 'openai'
+        self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
+        self.properties['output_strip'] = True
+
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
         super().register_record(source, 'source', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
@@ -360,6 +387,81 @@ class DataRegistry(Registry):
             return source_connection.execute_query(query=query, database=database, collection=collection, optional_properties=optional_properties)
         return None
 
+    ######### create operations
+    def create_source_database(self, source, database, properties={}, overwrite=False, rebuild=True, recursive=False):
+        """Create a new database in the specified source."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            # check if database already exists in registry
+            if self.get_source_database(source, database):
+                if overwrite:
+                    self.deregister_source_database(source, database, rebuild=rebuild)
+                else:
+                    return None
+            create_res = source_connection.create_database(database, properties=properties, overwrite=overwrite)
+            if create_res and create_res['status'] in ["success", "registry_only"]:
+                self.sync_source_database(source, database, rebuild=rebuild, recursive=recursive)
+                # update database properties if provided
+                for key, value in properties.items():
+                    self.set_source_database_property(source, database, key, value, rebuild=rebuild)
+        return None
+
+    def create_source_database_collection(self, source, database, collection, properties={}, overwrite=False, rebuild=True, recursive=False):
+        """Create a new collection in the specified database."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            # check if collection already exists in registry
+            if self.get_source_database_collection(source, database, collection):
+                if overwrite:
+                    self.deregister_source_database_collection(source, database, collection, rebuild=rebuild)
+                else:
+                    return None
+            create_res = source_connection.create_database_collection(database, collection, properties=properties, overwrite=overwrite)
+            if create_res and create_res['status'] in ["success", "registry_only"]:
+                self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)
+                # update collection properties if provided
+                for key, value in properties.items():
+                    self.set_source_database_collection_property(source, database, collection, key, value, rebuild=rebuild)
+        return None
+
+    def create_source_database_collection_entity(self, source, database, collection, entity, properties={}, overwrite=False, rebuild=True, recursive=False):
+        """Create a new entity (table) in the specified collection."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            # check if entity already exists in registry
+            if self.get_source_database_collection_entity(source, database, collection, entity):
+                if overwrite:
+                    self.deregister_source_database_collection_entity(source, database, collection, entity, rebuild=rebuild)
+                else:
+                    return None
+            create_res = source_connection.create_database_collection_entity(database, collection, entity, properties=properties, overwrite=overwrite)
+            if create_res and create_res['status'] in ["success", "registry_only"]:
+                # currently sync is not supported for entity, so we sync the collection instead
+                self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)
+                # update entity properties if provided
+                for key, value in properties.items():
+                    self.set_source_database_collection_entity_property(source, database, collection, entity, key, value, rebuild=rebuild)
+        return None
+
+    def create_source_database_collection_relation(self, source, database, collection, relation, properties={}, overwrite=False, rebuild=True, recursive=False):
+        """Create a new relation in the specified collection."""
+        source_connection = self.connect_source(source)
+        if source_connection:
+            # check if relation already exists in registry
+            if self.get_source_database_collection_relation(source, database, collection, relation):
+                if overwrite:
+                    self.deregister_source_database_collection_relation(source, database, collection, relation, rebuild=rebuild)
+                else:
+                    return None
+            create_res = source_connection.create_database_collection_relation(database, collection, relation, properties=properties, overwrite=overwrite)
+            if create_res and create_res['status'] in ["success", "registry_only"]:
+                # currently sync is not supported for relation, so we sync the collection instead
+                self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)
+                # update relation properties if provided
+                for key, value in properties.items():
+                    self.set_source_database_collection_relation_property(source, database, collection, relation, key, value, rebuild=rebuild)
+        return None
+
     
     def collect_source_metadata(self, source, recursive=False, rebuild=False):
         # TODO
@@ -374,6 +476,8 @@ class DataRegistry(Registry):
         entities = self.get_source_database_collection_entities(source, database, collection)
         
         #### enriching description #############################
+        if entities is None:
+            entities = []
         for entity in entities:
             entity_name = entity.get("name")
             
@@ -458,9 +562,13 @@ class DataRegistry(Registry):
                             source, database, collection, entity, attr_name,  "stats", attr_stats, rebuild=rebuild)
                 
     
-    def sync_all(self, recursive=False):
-        # TODO
-        pass
+    ### currerntly, data.py doesn't call sync_all 
+    def sync_all(self, recursive=False, rebuild=False):
+        sources = self.get_sources()
+        for source in sources:
+            source_name = source.get('name')
+            if source_name:
+                self.sync_source(source_name, recursive=recursive, rebuild=rebuild)
 
     def sync_source(self, source, recursive=False, rebuild=False):
         source_connection = self.connect_source(source)
@@ -575,17 +683,46 @@ class DataRegistry(Registry):
                 self.deregister_source_database_collection(source, database, collection)
 
             ## recurse
+            collection_descriptions = {}
             if recursive:
                 for collection in fetched_collections_set:
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
+                    # Get collection description for database enrichment
+                    collection_desc = self.get_source_database_collection_description(source, database, collection)
+                    if collection_desc:
+                        collection_descriptions[collection] = collection_desc
             else:
                 for collection in adds:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
+                    # Get collection description for database enrichment
+                    collection_desc = self.get_source_database_collection_description(source, database, collection)
+                    if collection_desc:
+                        collection_descriptions[collection] = collection_desc
 
                 for collection in merges:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
+                    # Get collection description for database enrichment
+                    collection_desc = self.get_source_database_collection_description(source, database, collection)
+                    if collection_desc:
+                        collection_descriptions[collection] = collection_desc
+            
+            ## database description enrichment
+            if collection_descriptions and self.properties.get('enable_database_description_generation', True):
+                current_description = self.get_source_database_description(source, database)
+                if not current_description or current_description.strip() == "":
+                    try:
+                        if not metadata:
+                            metadata = {
+                                "name": database,
+                                "type": "database"
+                            }
+                        database_description = self.enrich_database_description(database, collection_descriptions, metadata)
+                        if database_description:
+                            self.set_source_database_description(source, database, database_description, rebuild=True)
+                    except Exception as e:
+                        self.logger.warning(f"Failed to enrich database description for {database}: {e}")
 
     def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False):
         if source_connection is None:
@@ -729,9 +866,15 @@ class DataRegistry(Registry):
                 for attr in attr_merges:
                     self.update_source_database_collection_relation_attribute(source, database, collection, relation, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
 
+            ## set schema after all entities and relations are processed
+            try:
+                schema = self.get_data_source_schema(source, database, collection, format="json")
+                if schema and schema != "{}":
+                    self.set_source_database_collection_property(source, database, collection, "schema", schema, rebuild=True)
+            except Exception as e:
+                self.logger.warning(f"Failed to set collection schema for {collection}: {e}")
 
-    
-    
+
     ###############
     ##  data sources search
     def get_data_source_schema(self, source, database, collection, format="dict"):
@@ -754,3 +897,529 @@ class DataRegistry(Registry):
         schema.relations = relations
         # note: please update the schema representation in DataSchema class if the default __str__ doesn't satisfy your needs
         return str(schema)
+    
+    ###### Aggregation
+    def build_collection_description_prompt(self, collection_name, entity_descriptions, collection_metadata):
+        child_descriptions = [f"{name}: {desc}" for name, desc in entity_descriptions.items() if desc]
+        if not child_descriptions:
+            child_descriptions = ["No entity descriptions available"]
+        
+        return self.properties['aggregation_prompt'].format(
+            child_type='entity',
+            parent_type='collection',
+            child_descriptions='\n'.join(child_descriptions),
+            parent_metadata=f"Collection name: {collection_name}\nMetadata: {collection_metadata}"
+        )
+
+    def build_database_description_prompt(self, database_name, collection_descriptions, database_metadata):
+        child_descriptions = [f"{name}: {desc}" for name, desc in collection_descriptions.items() if desc]
+        if not child_descriptions:
+            child_descriptions = ["No collection descriptions available"]
+        
+        return self.properties['aggregation_prompt'].format(
+            child_type='collection',
+            parent_type='database',
+            child_descriptions='\n'.join(child_descriptions),
+            parent_metadata=f"Database name: {database_name}\nMetadata: {database_metadata}"
+        )
+
+    def enrich_collection_description(self, collection_name, entity_descriptions, collection_metadata):
+        prompt = self.build_collection_description_prompt(collection_name, entity_descriptions, collection_metadata)
+        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+    def enrich_database_description(self, database_name, collection_descriptions, database_metadata):
+        prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
+        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+    ###### registry functions
+    def _build_index_schema(self):
+        schema = super()._build_index_schema()
+        schema.extend([
+            TextField("schema"),
+            VectorField(
+                "schema_vector",
+                "FLAT",
+                {
+                    "TYPE": "FLOAT32",
+                    "DIM": self.vector_dimensions,
+                    "DISTANCE_METRIC": "COSINE",
+                },
+            ),
+        ])
+        return schema
+
+    def _set_index_record(self, record, recursive=False, pipe=None):
+        if self.embeddings_model is None:
+            self._init_search_index()
+
+        if 'name' not in record:
+            return
+
+        name = record['name']
+        type = record['type']
+        scope = record['scope']
+        description = record['description']
+        
+        schema = None
+        # In current implementation, schema is only available for collection type
+        if type == 'collection' and 'properties' in record:
+            schema = record['properties'].get('schema', None)
+
+        self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
+
+        if recursive:
+            contents = record['contents']
+            for type_key in contents:
+                contents_by_type = contents[type_key]
+                for record_key in contents_by_type:
+                    r = contents_by_type[record_key]
+                    self._set_index_record(r, recursive=recursive, pipe=pipe)
+
+    def _create_index_doc(self, name, type, scope, description, schema=None, pipe=None):
+        if self.embeddings_model is None:
+            self._init_search_index()
+
+        # the 'vector' field is based on name + description
+        text = name
+        if description:
+            text += ' ' + description
+        vector = self._compute_embedding_vector(text)
+
+        doc = {'name': name, 'type': type, 'scope': scope, 'description': description, 'vector': vector}
+
+        # extra schema and schema_vector fields
+        if schema is not None:
+            if not isinstance(schema, str):
+                schema = str(schema)
+            schema_vector = self._compute_embedding_vector(schema)
+            doc['schema'] = schema
+            doc['schema_vector'] = schema_vector
+
+        doc_key = self._Registry__doc_key(name, type, scope)
+
+        if pipe:
+            pipe.hset(doc_key, mapping=doc)
+        else:
+            pipe = self.connection.pipeline()
+            pipe.hset(doc_key, mapping=doc)
+            res = pipe.execute()
+
+    def _delete_index_doc(self, name, type, scope, pipe=None):
+        if self.embeddings_model is None:
+            self._init_search_index()
+
+        doc_key = self._Registry__doc_key(name, type, scope)
+
+        # Define fields to delete
+        base_fields = ["name", "type", "scope", "description", "vector"]
+        
+        # In current implementation, schema is only available for collection type
+        if type == 'collection':
+            base_fields.extend(["schema", "schema_vector"])
+            
+        if pipe:
+            if base_fields:
+                pipe.hdel(doc_key, *base_fields)
+        else:
+            pipe = self.connection.pipeline()
+            if base_fields:
+                pipe.hdel(doc_key, *base_fields)
+            res = pipe.execute()
+
+    def _prepare_search_parameters(self, input_query, type=None, scope=None, bm25_weight=None, vector_weight=None, bm25_normalization=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, enable_schema=None, hierarchical_enabled=None, hierarchical_database_types=None, hierarchical_collection_types=None, redis_search_limit=None):
+        """Prepare and validate search parameters"""
+        if input_query:
+            input_query = input_query.strip()
+        
+        # Use properties if not provided
+        bm25_weight = bm25_weight if bm25_weight is not None else self.properties.get('search_bm25_weight', 0.3)
+        vector_weight = vector_weight if vector_weight is not None else self.properties.get('search_vector_weight', 0.7)
+        bm25_normalization = bm25_normalization if bm25_normalization is not None else self.properties.get('search_bm25_normalization', 'minmax')
+        enable_schema = enable_schema if enable_schema is not None else self.properties.get('search_enable_schema', True)
+        
+        # thresholds
+        bm25_threshold = bm25_threshold if bm25_threshold is not None else self.properties.get('search_bm25_threshold', 0.0)
+        vector_threshold = vector_threshold if vector_threshold is not None else self.properties.get('search_vector_threshold', 0.5)
+        combined_threshold = combined_threshold if combined_threshold is not None else self.properties.get('search_combined_threshold', 0.36)
+
+        # hierarchical search
+        hierarchical_enabled = hierarchical_enabled if hierarchical_enabled is not None else self.properties.get('search_hierarchical_enabled', True)
+        hierarchical_database_types = hierarchical_database_types if hierarchical_database_types is not None else self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
+        hierarchical_collection_types = hierarchical_collection_types if hierarchical_collection_types is not None else self.properties.get('search_hierarchical_collection_types', ['collection', 'entity'])
+        
+        # Redis search limit
+        redis_search_limit = redis_search_limit if redis_search_limit is not None else self.properties.get('search_redis_limit', 1000)
+        
+        # Validate weights
+        if bm25_weight < 0 or vector_weight < 0:
+            raise ValueError("Weights must be non-negative")
+        total_weight = bm25_weight + vector_weight
+        if total_weight != 0:
+            # Normalize weights to sum to 1.0
+            bm25_weight /= total_weight
+            vector_weight /= total_weight
+        
+        # validate thresholds
+        if bm25_threshold < 0 or bm25_threshold > 1:
+            raise ValueError("BM25 threshold must be between 0 and 1 (normalized)")
+        if vector_threshold < 0 or vector_threshold > 1:
+            raise ValueError("Vector threshold must be between 0 and 1 (normalized)")
+        if combined_threshold < 0 or combined_threshold > 1:
+            raise ValueError("Combined threshold must be between 0 and 1")
+        
+        # validate Redis search limit
+        if redis_search_limit < 1:
+            raise ValueError("Redis search limit must be at least 1")
+        
+        if self.embeddings_model is None:
+            self._init_search_index()
+
+        return {
+            'input_query': input_query,
+            'type': type,
+            'scope': scope,
+            'bm25_weight': bm25_weight,
+            'vector_weight': vector_weight,
+            'bm25_threshold': bm25_threshold,
+            'vector_threshold': vector_threshold,
+            'combined_threshold': combined_threshold,
+            'bm25_normalization': bm25_normalization,
+            'enable_schema': enable_schema,
+            'redis_search_limit': redis_search_limit,
+            'index_name': self._get_index_name()
+        }
+
+    def _build_search_query(self, params, search_types=None):
+        """Build Redis search query"""
+        search_type = params['type']
+        scope = params['scope']
+
+        # Build type and scope constraints
+        qs = ""
+        if scope:
+            qs = "(@scope: \"" + scope + "\" )" + " " + qs
+
+        if search_types:
+            # For hierarchical search with multiple types
+            # Use Redis Search OR syntax without extra parentheses
+            type_constraint = " | ".join([f'@type:{t}' for t in search_types])
+            qs = f"({type_constraint}) " + qs
+        elif search_type:
+            # For regular search with single type
+            qs = "(@type: \"" + search_type + "\")" + qs
+
+        # Set final query
+        if qs:
+            q = qs
+        else:
+            q = "*"
+        
+        query_params = {}
+        return q, query_params
+
+    def _compute_vector_score(self, result, input_query, params):
+        """Compute vector similarity for a result, [0, 1] range, higher is better"""
+        if not input_query:
+            return 0.0
+            
+        doc_text = f"{result.name} {getattr(result, 'description', '')}".rstrip()
+        query_vector = self._compute_embedding_vector(input_query)
+        doc_vector = self._compute_embedding_vector(doc_text)
+        vector_score = compute_vector_score(query_vector, doc_vector, normalize_score=True)
+        
+        # For collections, also check schema vector similarity if enabled
+        if params['enable_schema'] and result.type == 'collection' and getattr(result, 'schema', None):
+            schema_vector = self._compute_embedding_vector(getattr(result, 'schema', ''))
+            schema_vector_score = compute_vector_score(query_vector, schema_vector, normalize_score=True)
+            vector_score = max(vector_score, schema_vector_score)
+
+        return vector_score
+
+
+    def search_records(self, input_query, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10, bm25_weight=None, vector_weight=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, bm25_normalization=None, enable_schema=None, redis_search_limit=None):
+        """search records with BM25 scores, vector similarity, schema support, and thresholds"""
+        params = self._prepare_search_parameters(input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit)
+        
+        q, query_params = self._build_search_query(params)
+        query = Query(q).return_fields("id", "name", "type", "scope", "description", "schema").paging(0, params['redis_search_limit'])
+        
+        results = self.connection.ft(params['index_name']).search(query, query_params).docs
+        print(f"  Found {len(results)} entities in index")
+
+        # Compute and attach all scores directly to result objects
+        for i, result in enumerate(results):
+            # Compute BM25 score [0, inf] range, higher is better
+            doc_text = f"{result.name} {getattr(result, 'description', '')}".rstrip()
+            # Get schema text if available and schema scoring is enabled
+            schema_text = None
+            if params['enable_schema'] and result.type == 'collection' and getattr(result, 'schema', None):
+                schema_text = getattr(result, 'schema', '')
+            
+            bm25_score = compute_bm25_score(input_query, doc_text, schema_text) if input_query else 0.0
+
+            # Compute vector score
+            vector_score = self._compute_vector_score(result, input_query, params)
+
+            result.bm25_score = bm25_score
+            result.vector_score = vector_score
+
+        # Normalize BM25 scores to [0, 1] range, higher is better
+        all_bm25_scores = [result.bm25_score for result in results]
+        normalized_bm25_scores = normalize_bm25_scores(all_bm25_scores, params['bm25_normalization'])
+        for i, result in enumerate(results):
+            result.normalized_bm25_score = normalized_bm25_scores[i]
+
+        # Apply thresholds and compute final scores
+        final_results = []
+        
+        for result in results:
+            normalized_bm25 = result.normalized_bm25_score
+            combined_score = (params['bm25_weight'] * normalized_bm25 + 
+                            params['vector_weight'] * result.vector_score)
+
+            if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or combined_score < params['combined_threshold']:
+                    continue
+            
+            # Attach final scores to result object
+            result.normalized_bm25 = normalized_bm25
+            result.combined_score = combined_score
+            
+            # Convert to dictionary format
+            output_dict = {
+                "name": result.name,
+                "description": getattr(result, 'description', ''),
+                "type": result.type,
+                "scope": result.scope,
+                "id": result.id,
+                "score": combined_score,
+                "bm25_score": result.bm25_score,
+                "vector_score": result.vector_score,
+                "normalized_bm25_score": normalized_bm25,
+            }
+            if hasattr(result, 'schema') and result.schema:
+                output_dict['schema'] = result.schema
+            final_results.append(output_dict)
+
+        # Sort by combined score
+        final_results.sort(key=lambda x: x['score'], reverse=True)
+        
+        # Pagination
+        page_results = final_results[page * page_size : (page + 1) * page_size]
+        return page_results
+
+    def search_records_hierarchical(self, input_query, type=None, scope=None, page=0, page_size=5, page_limit=10, bm25_weight=None, vector_weight=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, enable_schema=None, bm25_normalization=None, redis_search_limit=None):
+        """Hierarchical search that considers parent-child relationships for databases and collections"""
+        
+        # Check if this should be a regular search instead of hierarchical
+        if type not in ['database', 'collection']:
+            return self.search_records(input_query=input_query, type=type, scope=scope, page=page, page_size=page_size, page_limit=page_limit, bm25_weight=bm25_weight, vector_weight=vector_weight, bm25_threshold=bm25_threshold, vector_threshold=vector_threshold, combined_threshold=combined_threshold, bm25_normalization=bm25_normalization, enable_schema=enable_schema, redis_search_limit=redis_search_limit)
+        
+        params = self._prepare_search_parameters(input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit)
+        
+        # Determine search types for hierarchical search
+        if type == 'database':
+            search_types = self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
+        elif type == 'collection':
+            search_types = self.properties.get('search_hierarchical_collection_types', ['collection', 'entity'])
+        else:
+            search_types = [type]
+
+        q, query_params = self._build_search_query(params, search_types)
+        query = Query(q).return_fields("id", "name", "type", "scope", "description", "schema").paging(0, params['redis_search_limit'])
+        results = self.connection.ft(params['index_name']).search(query, query_params).docs
+        
+        if not results:
+            return []
+        
+        # Compute and attach all scores directly to result objects
+        for i, result in enumerate(results):
+            # Compute BM25 score
+            doc_text = f"{result.name} {getattr(result, 'description', '')}".rstrip()
+            # Get schema text if available and schema scoring is enabled
+            schema_text = None
+            if params['enable_schema'] and result.type == 'collection' and getattr(result, 'schema', None):
+                schema_text = getattr(result, 'schema', '')
+            
+            bm25_score = compute_bm25_score(input_query, doc_text, schema_text) if input_query else 0.0
+
+            # Compute vector score
+            vector_score = self._compute_vector_score(result, input_query, params)
+
+            # Attach scores directly to result object
+            result.bm25_score = bm25_score
+            result.vector_score = vector_score
+
+        # Normalize BM25 scores to [0, 1] range, higher is better
+        all_bm25_scores = [result.bm25_score for result in results]
+        normalized_bm25_scores = normalize_bm25_scores(all_bm25_scores, params['bm25_normalization'])
+        for i, result in enumerate(results):
+            result.normalized_bm25_score = normalized_bm25_scores[i]
+
+        # Group results by parent and collect scores
+        hierarchical_results = self._build_hierarchical_results(results, type, params)
+        
+        # Sort by combined score
+        hierarchical_results.sort(key=lambda x: x['score'], reverse=True)
+        
+        # Pagination
+        page_results = hierarchical_results[page * page_size : (page + 1) * page_size]
+        return page_results
+
+    def _build_hierarchical_results(self, results, target_type, params):
+        """Build hierarchical results"""
+        if not results:
+            return []
+            
+        # Build hierarchy graph with node IDs
+        hierarchy = self._build_hierarchy_by_node_id(results)
+        
+        # Get target candidate nodes that match type
+        target_nodes = self._get_target_candidate_nodes(hierarchy, target_type)
+        
+        # For each target candidate node, update score by itself and all children
+        hierarchical_results = []
+        
+        for node_id in target_nodes:
+            best_score, best_record = self._update_node_score_with_children(node_id, hierarchy, params)
+            if best_record is not None:
+                hierarchical_results.append({
+                    "name": hierarchy[node_id]['record'].name,
+                    "type": hierarchy[node_id]['record'].type,
+                    "scope": hierarchy[node_id]['record'].scope,
+                    "id": hierarchy[node_id]['record'].id,
+                    "description": hierarchy[node_id]['record'].description,
+                    "score": best_score,
+                    "bm25_score": best_record.bm25_score,
+                    "vector_score": best_record.vector_score,
+                    "normalized_bm25_score": best_record.normalized_bm25_score,
+                    "best_record_id": best_record.id,
+                    "best_record_name": best_record.name,
+                    "best_record_type": best_record.type,
+                    "best_record_scope": best_record.scope
+                })
+        return hierarchical_results
+    
+    def _build_hierarchy_by_node_id(self, results):
+        """Build hierarchy graph from results using node IDs"""
+        if not results:
+            return {}
+            
+        hierarchy = {}
+        edges = []
+        
+        # Create nodes for all results
+        for result in results:
+            if not hasattr(result, 'id') or not hasattr(result, 'scope') or not hasattr(result, 'type') or not hasattr(result, 'name'):
+                continue  # Skip invalid results
+                
+            node_id = result.id
+            hierarchy[node_id] = {
+                'record': result,
+                'children': [],
+                'parent': None
+            }
+        
+        # Build scope to ID mapping
+        scope2id = {}
+        for result in results:
+            if not hasattr(result, 'id') or not hasattr(result, 'scope') or not hasattr(result, 'type') or not hasattr(result, 'name'):
+                continue
+                
+            scope = result.scope
+            child_scope = f"{scope}/{result.type}/{result.name}"
+            scope2id[child_scope] = result.id
+        
+        # Build edges
+        for result in results:
+            if not hasattr(result, 'id') or not hasattr(result, 'scope') or not hasattr(result, 'type') or not hasattr(result, 'name'):
+                continue
+            if result.scope in scope2id:
+                parent_id = scope2id[result.scope]
+                child_id = result.id
+                # Only add edge if both parent and child exist in hierarchy
+                if parent_id in hierarchy and child_id in hierarchy:
+                    edges.append((parent_id, child_id))
+        
+        # Build hierarchy from edges
+        for edge in edges:
+            parent_id, child_id = edge
+            if parent_id in hierarchy and child_id in hierarchy:
+                hierarchy[parent_id]['children'].append(child_id)
+                hierarchy[child_id]['parent'] = parent_id
+
+        return hierarchy
+    
+    def _get_target_candidate_nodes(self, hierarchy, target_type):
+        """Get target candidate nodes that match the specified type."""
+        target_nodes = set()
+        for node_id, node_data in hierarchy.items():
+            if node_data['record'].type == target_type:
+                target_nodes.add(node_id)
+        return list(target_nodes)
+    
+    def _update_node_score_with_children(self, node_id, hierarchy, params):
+        """Update node score by itself and all children (nested) scores"""
+        if node_id not in hierarchy:
+            return 0.0, None
+            
+        node_data = hierarchy[node_id]
+        record = node_data['record']
+        
+        # Get all children (nested) including the node itself
+        all_related_nodes = {node_id} | self._get_all_children_recursive(node_id, hierarchy)
+        
+        # Find the best score among all related nodes
+        best_score, best_record = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
+        return best_score, best_record
+    
+    def _get_all_children_recursive(self, node_id, hierarchy, visited=None):
+        """Get all children (nested) of a node recursively using set for efficiency"""
+        if visited is None:
+            visited = set()
+        
+        # Prevent infinite recursion in case of cycles
+        if node_id in visited:
+            return set()
+        
+        visited.add(node_id)
+        children = set()
+        
+        if node_id not in hierarchy:
+            return children
+            
+        node_data = hierarchy[node_id]
+        
+        for child_id in node_data['children']:
+            children.add(child_id)
+            # Recursively get all descendants
+            descendants = self._get_all_children_recursive(child_id, hierarchy, visited)
+            children.update(descendants)
+        
+        return children
+    
+    def _find_best_score_among_nodes(self, node_ids, hierarchy, params):
+        """Find the best score among a set of nodes"""
+        best_score = 0.0
+        best_record = None
+        
+        for node_id in node_ids:
+            if node_id not in hierarchy:
+                continue
+                
+            record = hierarchy[node_id]['record']
+            normalized_bm25 = record.normalized_bm25_score
+            combined_score = (params['bm25_weight'] * normalized_bm25 + 
+                            params['vector_weight'] * record.vector_score)
+            
+            # Check thresholds
+            if (normalized_bm25 < params['bm25_threshold'] or 
+                record.vector_score < params['vector_threshold'] or 
+                combined_score < params['combined_threshold']):
+                continue
+            
+            # Keep the best score
+            if combined_score > best_score:
+                best_score = combined_score
+                best_record = record
+        
+        return best_score, best_record

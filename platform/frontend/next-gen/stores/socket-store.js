@@ -35,6 +35,8 @@ export const useSocketStore = create((set, get) => ({
                     "Failed to send message after retries or unexpected error:",
                     error
                 );
+                socket.close();
+                set({ socket: null });
             }
         }
     },

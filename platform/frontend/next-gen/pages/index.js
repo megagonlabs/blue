@@ -107,30 +107,11 @@ export default function Home() {
                                     ? "row-reverse"
                                     : null,
                                 alignItems: "center",
-                                gap: 10,
+                                gap: 20,
                             }}
                         >
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    [windowsControlButtons
-                                        ? "left"
-                                        : "right"]: 20,
-                                    top: 12,
-                                }}
-                            >
-                                <UITip
-                                    id="window_control_bar_maximization_tip"
-                                    content="To maximize the window's
-                                            dimensions (full width and
-                                            height), double-click on the window
-                                            control bar."
-                                />
-                            </div>
                             <ButtonGroup
                                 style={{
-                                    marginRight: windowsControlButtons ? 0 : 10,
-                                    marginLeft: windowsControlButtons ? 10 : 0,
                                     flexDirection: windowsControlButtons
                                         ? "row-reverse"
                                         : null,
@@ -251,6 +232,13 @@ export default function Home() {
                                     </Tooltip>
                                 </Popover>
                             </ButtonGroup>
+                            <UITip
+                                id="window_control_bar_maximization_tip"
+                                content="To maximize the window's
+                                            dimensions (full width and
+                                            height), double-click on the window
+                                            control bar."
+                            />
                             <div
                                 onDoubleClick={() => {
                                     expandWindow(element.i);
@@ -261,12 +249,7 @@ export default function Home() {
                                     fontWeight: 600,
                                     display: "flex",
                                     height: 44,
-                                    paddingRight: windowsControlButtons
-                                        ? 0
-                                        : 79,
-                                    paddingLeft: windowsControlButtons ? 79 : 0,
                                     alignItems: "center",
-                                    justifyContent: "center",
                                 }}
                             >
                                 <div
@@ -283,6 +266,11 @@ export default function Home() {
                                         style={{
                                             marginRight: 10,
                                             color: Colors.GRAY1,
+                                            ..._.get(
+                                                containers,
+                                                [element.i, "iconStyle"],
+                                                {}
+                                            ),
                                         }}
                                         icon={_.get(
                                             containers,
