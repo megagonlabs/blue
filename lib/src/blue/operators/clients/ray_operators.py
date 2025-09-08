@@ -28,10 +28,10 @@ from blue.operators.data_discover_operator import DataDiscoverOperator
 data_discover_operator = DataDiscoverOperator()
 operators_dict[data_discover_operator.name] = data_discover_operator
 
-from blue.operators.breakdown_operator import BreakdownOperator
+from blue.operators.query_breakdown_operator import QueryBreakdownOperator
 
-breakdown_operator = BreakdownOperator()
-operators_dict[breakdown_operator.name] = breakdown_operator
+query_breakdown_operator = QueryBreakdownOperator()
+operators_dict[query_breakdown_operator.name] = query_breakdown_operator
 
 question_answer_operator = DeclarativeOperator(properties={"name": "question_answer", "description": "answer questions", "plans": [{}]})
 operators_dict[question_answer_operator.name] = question_answer_operator

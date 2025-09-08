@@ -364,7 +364,7 @@ def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attribu
     """Default refiner for declarative operator, returning plans declaratively specified as operator properties"""
     plans = properties['plans']
 
-    # TODO: further processing of plan
+    # process plan specification
     # e.g. generate uuid
 
     return plans
