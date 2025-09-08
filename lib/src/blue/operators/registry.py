@@ -125,4 +125,4 @@ class OperatorRegistry(ToolRegistry):
         if connection:
             return connection.refine_operator(operator, args, kwargs)
         else:
-            return None
+            return []

@@ -2,7 +2,7 @@
 from typing import List
 
 ###### Blue
-from blue.operators.operator import Operator
+from blue.operators.operator import Operator, DeclarativeOperator
 from blue.utils import tool_utils
 
 
@@ -63,3 +63,7 @@ operators_dict[operator_discover_operator.name] = operator_discover_operator
 
 plan_discover_operator = PlanDiscoverOperator()
 operators_dict[plan_discover_operator.name] = plan_discover_operator
+
+# question_answer as declarative operator
+question_answer_operator = DeclarativeOperator(properties={"name": "question_answer", "description": "answer questions", "plans": [{}]})
+operators_dict[question_answer_operator.name] = question_answer_operator

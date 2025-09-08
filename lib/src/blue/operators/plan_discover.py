@@ -18,7 +18,7 @@ def plan_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
     return [[]]
 
 
-def plan_discover_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+def plan_discover_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
     plans = []
     # perform search for top-level operators
     result = operator_discover_operator_function(input_data, attributes=attributes, properties=properties)

@@ -84,66 +84,80 @@ class DataPlanner:
         return p
 
     def refine(self, p):
-        operator_nodes = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
+        refine = True
+        while refine:
+            refine = False
+            operator_nodes = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
 
-        for operator_id in operator_nodes:
-            operator_node = p.get_node(operator_id)
-            if operator_node.get_data("status") not in [Status.REFINED, Status.EXECUTING, Status.EXECUTED]:
-                operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
-                operator_name = operator_entity.get_data("name")
-                parsed = self.registry.parse_path(operator_name)
+            # process all non-refined nodes
+            for operator_id in operator_nodes:
+                operator_node = p.get_node(operator_id)
+                if operator_node.get_data("status") not in [Status.REFINED, Status.EXECUTING, Status.EXECUTED]:
 
-                # get input from previous
-                ready = True
-                prev_nodes = p.get_prev_nodes(operator_node)
-                for prev_node in prev_nodes:
-                    prev_node_status = prev_node.get_data("status")
-                    if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
-                        ready = False
-                        break
+                    operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+                    operator_name = operator_entity.get_data("name")
+                    parsed = self.registry.parse_path(operator_name)
 
-                if not ready:
-                    continue
+                    # get input from previous
+                    ready = True
+                    prev_nodes = p.get_prev_nodes(operator_node)
+                    for prev_node in prev_nodes:
+                        prev_node_status = prev_node.get_data("status")
+                        if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
+                            ready = False
+                            break
 
-                # aggregate inputs form each prev node
-                input_data = []
-                prev_nodes = p.get_prev_nodes(operator_node)
-                for prev_node in prev_nodes:
-                    prev_node_status = prev_node.get_data("status")
-                    prev_node_value = prev_node.get_data("value")
+                    if not ready:
+                        continue
 
-                    # TODO: check value fit
-                    # TODO: mapping...
-                    input_data += prev_node_value
+                    # aggregate inputs form each prev node
+                    input_data = []
+                    prev_nodes = p.get_prev_nodes(operator_node)
+                    for prev_node in prev_nodes:
+                        prev_node_status = prev_node.get_data("status")
+                        prev_node_value = prev_node.get_data("value")
 
-                #### refine operator
-                operator_name = parsed['operator']
-                operator_server = parsed['server']
-                operator_properties = {}
-                operator_attribues = operator_entity.get_data("attributes")
+                        # TODO: check value fit
+                        # TODO: mapping...
+                        input_data += prev_node_value
 
-                ## build properties starting from planner
-                planner_properties = self.properties
-                registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
-                in_plan_properties = operator_entity.get_data("properties")
-                operator_properties = json_utils.merge_json(operator_properties, planner_properties)
-                operator_properties = json_utils.merge_json(operator_properties, registry_properties)
-                operator_properties = json_utils.merge_json(operator_properties, in_plan_properties)
+                    #### refine operator
+                    operator_name = parsed['operator']
+                    operator_server = parsed['server']
+                    operator_properties = {}
+                    operator_attribues = operator_entity.get_data("attributes")
 
-                kwargs = {"input_data": input_data, "attributes": operator_attribues, "properties": operator_properties}
+                    ## build properties starting from planner
+                    planner_properties = self.properties
+                    registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
+                    in_plan_properties = operator_entity.get_data("properties")
+                    operator_properties = json_utils.merge_json(operator_properties, planner_properties)
+                    operator_properties = json_utils.merge_json(operator_properties, registry_properties)
+                    operator_properties = json_utils.merge_json(operator_properties, in_plan_properties)
 
-                print(kwargs)
+                    kwargs = {"input_data": input_data, "attributes": operator_attribues, "properties": operator_properties}
+                    print(operator_name)
+                    print(kwargs)
 
-                # refine
-                subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
-                print(subplans)
+                    # refine
+                    subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
 
-                # merge
-                for subplan in subplans:
-                    sp = DataPipeline.from_dict(subplan)
-                    p.merge(sp)
+                    print(subplans)
 
-                # update status as refined
+                    if subplans is None:
+                        continue
+
+                    # merge
+                    for subplan in subplans:
+                        try:
+                            sp = DataPipeline.from_dict(subplan)
+                            p.merge(sp)
+                        except:
+                            print("Invalid subplan")
+                            continue
+
+                    # update status as refined
+                    refine = True
 
         return p
 

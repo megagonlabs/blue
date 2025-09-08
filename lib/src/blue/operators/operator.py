@@ -20,7 +20,7 @@ def default_operator_function(input_data: List[List[Dict[str, Any]]], attributes
     return []
 
 
-def default_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+def default_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
     """Default refiner for operator. It should be overridden by each operator."""
     return []
 
@@ -347,3 +347,64 @@ class Operator(Tool):
     #     # Default implementation: return the datas as they are
     #     # Subclasses MUST override this with their specific logic
     #     return input_data
+
+
+###############
+### DeclarativeOperator
+
+
+def declarative_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Default function for declarative operator, simply passes execution to sub plans"""
+    # TODO:
+    # pass execution to plans
+    return [[]]
+
+
+def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    """Default refiner for declarative operator, returning plans declaratively specified as operator properties"""
+    plans = properties['plans']
+
+    # TODO: further processing of plan
+    # e.g. generate uuid
+
+    return plans
+
+
+def declarative_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate operator discover operator attributes."""
+    return default_operator_validator(input_data, attributes=attributes, properties=properties)
+
+
+def declarative_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    """Explain declarative operator output."""
+    declarative_operator_explanation = {
+        'output': output,
+        'input_data': input_data,
+        'attributes': attributes,
+        'explanation': f"Declarative operator passed input data to plans specified",
+    }
+    return declarative_operator_explanation
+
+
+class DeclarativeOperator(Operator):
+    """
+    DeclarativeOperator is a specialized Operator that declaratively specifies the execution of the operator as a set of plans.
+    Declarative plans are specified as part of the operator attributes `plans` which are added to the main plan as part of the planning / refine phase.
+    """
+
+    PROPERTIES = {"plans": []}
+
+    name = "declarative_operator"
+    description = "Declaratively specifies the execution of the operator as a set of plans"
+    default_attributes = {}
+
+    def __init__(self, properties: Dict[str, Any] = None):
+        super().__init__(
+            properties['name'] if 'name' in properties else self.name,
+            function=declarative_operator_function,
+            description=properties['description'] if 'description' in properties else self.description,
+            properties=properties or self.PROPERTIES,
+            validator=declarative_operator_validator,
+            explainer=declarative_operator_explainer,
+            refiner=declarative_operator_refiner,
+        )
