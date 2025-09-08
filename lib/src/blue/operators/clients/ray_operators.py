@@ -33,6 +33,13 @@ from blue.operators.query_breakdown_operator import QueryBreakdownOperator
 query_breakdown_operator = QueryBreakdownOperator()
 operators_dict[query_breakdown_operator.name] = query_breakdown_operator
 
+
+from blue.operators.multipart_query_operator import MultipartQueryOperator
+
+multipart_query_operator = MultipartQueryOperator()
+operators_dict[multipart_query_operator.name] = multipart_query_operator
+
+
 question_answer_operator = DeclarativeOperator(properties={"name": "question_answer", "description": "answer questions", "plans": [{}]})
 operators_dict[question_answer_operator.name] = question_answer_operator
 
