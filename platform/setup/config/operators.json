@@ -350,6 +350,76 @@
         "contents": {}
     },
     {
+        "name": "semantic_extract",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Extracts entities from natural language text fields using LLM models",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "skip",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 4096,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "## Task\nYou are given one data record in JSON format. Your job is to extract specific entities from this record and return them in strict JSON format.\n\n## Entities to Extract\n${entities}\n\n## Context\n${context}\n\n## Demonstrations\n${demonstrations}\n\n## Output Requirements\n- Return a **single JSON object** as the output.\n- The JSON object must contain:\n  - Keys: exact entity names from the list above (preserve original case and formatting).\n  - Values: arrays of extracted items (may be empty if nothing is found).\n- Do not introduce extra keys or change entity names.\n- **Deduplication rule (within the same entity key):**\n  - Remove duplicates and near-duplicates (e.g., case/spacing/punctuation variants, obvious aliases, or versioned forms).\n  - Keep **one canonical value** if there are multiple semantically equivalent values.\n  - Example: `\"skill\": [\"python\", \"python3.10\", \"Python \"]` → `\"skill\": [\"python\"]`.\n- Only extract entities from the specified fields for each entity name.\n- Be precise and only return relevant entities.\n\n## Additional Notes\n- If no entities are found, still return an object with all keys mapped to empty arrays.\n- Do not include explanations, comments, or text outside the JSON object.\n- Validate that the final output is syntactically valid JSON.\n\n---\n\n### Data Record\n${data_record}\n\n---\n\n### Output JSON Object\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "json",
+            "parameters": {
+                "entities": {
+                    "type": "list[dict]",
+                    "description": "List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional)",
+                    "required": true
+                },
+                "context": {
+                    "type": "str",
+                    "description": "Additional context information that provides domain knowledge or additional instructions for the extraction",
+                    "required": false,
+                    "default": ""
+                },
+                "demonstrations": {
+                    "type": "str",
+                    "description": "Additional demonstrations to help in-context learning",
+                    "required": false,
+                    "default": ""
+                },
+                "extract_with_single_prompt": {
+                    "type": "bool",
+                    "description": "If true, extract all entities in a single prompt, else extract each entity with individual prompt",
+                    "required": false,
+                    "default": true
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
         "name": "join",
         "type": "operator",
         "scope": "/server/blue_ray",
