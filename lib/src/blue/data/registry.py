@@ -562,12 +562,13 @@ class DataRegistry(Registry, ServiceClient):
                             source, database, collection, entity, attr_name,  "stats", attr_stats, rebuild=rebuild)
                 
     
-    def sync_all(self, recursive=False, rebuild=False, collect_stats=False):
+    ### currerntly, data.py doesn't call sync_all 
+    def sync_all(self, recursive=False, rebuild=False):
         sources = self.get_sources()
         for source in sources:
             source_name = source.get('name')
             if source_name:
-                self.sync_source(source_name, recursive=recursive, rebuild=rebuild, collect_stats=collect_stats)
+                self.sync_source(source_name, recursive=recursive, rebuild=rebuild)
 
     def sync_source(self, source, recursive=False, rebuild=False):
         source_connection = self.connect_source(source)
