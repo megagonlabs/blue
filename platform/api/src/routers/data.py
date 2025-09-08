@@ -53,6 +53,8 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 p = Platform(id=platform_id, properties=PROPERTIES)
 data_registry = DataRegistry(id=data_registry_id, platform_id = platform_id, prefix=prefix, properties=PROPERTIES)
 
+metadata = MetaData(platform_id=platform_id)
+
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data", dependencies=[Depends(account_id_header)])
 
@@ -348,7 +350,8 @@ def collect_source_database_collection_stats(request: Request, source_name, data
 def collect_source_metadata(request: Request, source_name, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
-    data_registry.collect_metadata(source_name, recursive=recursive, rebuild=True)
+    metadata.collect_source_metadata(data_registry, source_name, recursive=recursive, rebuild=True)
+    
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
@@ -358,7 +361,8 @@ def collect_source_metadata(request: Request, source_name, recursive: bool = Fal
 def collect_source_database_metadata(request: Request, source_name, database_name, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
-    data_registry.collect_source_database_metadata(source_name, database_name, recursive=recursive, rebuild=True)
+    metadata.collect_source_database_metadata(data_registry, source_name, database_name, recursive=recursive, rebuild=True)
+    
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
@@ -368,7 +372,8 @@ def collect_source_database_metadata(request: Request, source_name, database_nam
 def collect_source_database_collection_metadata(request: Request, source_name, database_name, collection_name, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
-    data_registry.collect_source_database_collection_metadata(source_name, database_name, collection_name, recursive=recursive, rebuild=True)
+    metadata.collect_source_database_collection_metadata(data_registry, source_name, database_name, collection_name, recursive=recursive, rebuild=True)
+    
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})

@@ -18,7 +18,7 @@ import numpy as np
 from blue.connection import PooledConnectionFactory
 from blue.utils import json_utils, uuid_utils, log_utils
 from blue.constant import Separator
-from blue.metadata import MetaData
+
 
 
 ###############
@@ -30,9 +30,7 @@ class Registry:
     def __init__(self, name="REGISTRY", type=None, id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
         self.name = name
-        self.metadata = MetaData(platform_id=platform_id)
         
-
         if type == None:
             type = "record"
         self.type = type

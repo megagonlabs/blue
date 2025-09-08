@@ -463,47 +463,6 @@ class DataRegistry(Registry, ServiceClient):
         return None
 
     
-    def collect_source_metadata(self, source, recursive=False, rebuild=False):
-        # TODO
-        pass
-
-    
-    def collect_source_database_metadata(self, source, database, recursive=False, rebuild=False):
-        ## TODO
-        pass
-
-    def collect_source_database_collection_metadata(self, source, database, collection, recursive=False, rebuild=False):
-        entities = self.get_source_database_collection_entities(source, database, collection)
-        
-        #### enriching description #############################
-        if entities is None:
-            entities = []
-        for entity in entities:
-            entity_name = entity.get("name")
-            
-            attributes = self.get_source_database_collection_entity_attributes(source, database, collection, entity_name)
-            entity_attribute_description = self.metadata.enrich_entity(entity, attributes)
-        
-            try:
-                parsed = json_utils.safe_json_parse(entity_attribute_description)
-                if not parsed:
-                    logging.warning(f"Entity {entity} returned invalid or empty JSON.")
-                    continue
-            except json.JSONDecodeError:
-                logging.warning("LLM did not return valid JSON. Skipping entity enrichment.")
-                parsed = {}
-
-            table_desc = parsed.get("table_description", "")
-            attribute_descs = parsed.get("attributes", {})
-    
-            self.set_source_database_collection_entity_description(
-                source, database, collection, entity_name, table_desc, rebuild=rebuild)
-
-            for attr, desc in attribute_descs.items():
-                self.set_source_database_collection_entity_attribute_description(
-                    source, database, collection, entity_name, attr, desc, rebuild=rebuild)
-        
-    
     def collect_source_stats(self, source, recursive=False, rebuild=False):
         source_connection = self.connect_source(source)
         if source_connection:
@@ -809,8 +768,7 @@ class DataRegistry(Registry, ServiceClient):
             ### there are separate APIs for these, however still calling from here since UI is not enabled to call those APIs. These calls will be removed from here when UI supports 
             ### corresponding API calling 
             self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
-            self.collect_source_database_collection_metadata(source, database, collection, recursive=recursive, rebuild=rebuild) 
-          
+            
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
