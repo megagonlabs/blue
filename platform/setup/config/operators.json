@@ -420,6 +420,76 @@
         "contents": {}
     },
     {
+        "name": "semantic_filter",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Filters records based on natural language conditions using LLM models",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "skip",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 1024,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "## Task\nYou are given a data record and natural language filter conditions. Your job is to determine if the record should be included in the filtered results.\n\n## Record to Evaluate\n${record}\n\n## Filter Conditions\n${conditions}\n\n## Context\n${context}\n\n## Demonstrations\n${demonstrations}\n\n## Output Requirements\n- Return **only a boolean value**: true or false\n- Return **true** if the record satisfies ALL the filter conditions\n- Return **false** if the record does NOT satisfy any of the filter conditions\n- Be precise in your evaluation based on the natural language conditions\n- Consider the semantic meaning of the conditions, not just exact text matching\n\n## Additional Notes\n- If a field is not present in the record, evaluate the condition as if the field has no value\n- Use your understanding of natural language to interpret conditions.\n- Return only the boolean result, no explanations or additional text\n\n---\n\n### Output\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "bool",
+            "parameters": {
+                "filter_conditions": {
+                    "type": "dict[str, str]",
+                    "description": "Dictionary mapping field names to natural language filter conditions",
+                    "required": true
+                },
+                "context": {
+                    "type": "str",
+                    "description": "Optional context to provide domain knowledge or additional instructions",
+                    "required": false,
+                    "default": ""
+                },
+                "demonstrations": {
+                    "type": "str",
+                    "description": "Optional demonstrations to help in-context learning",
+                    "required": false,
+                    "default": ""
+                },
+                "return_idx": {
+                    "type": "boolean",
+                    "description": "If true, return indices of records that satisfy all conditions, else return filtered records",
+                    "required": false,
+                    "default": false
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
         "name": "join",
         "type": "operator",
         "scope": "/server/blue_ray",
