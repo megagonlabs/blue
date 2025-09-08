@@ -39,6 +39,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 ###### Blue
 from blue.platform import Platform
 from blue.data.registry import DataRegistry
+from blue.metadata import MetaData
 
 ###### Properties
 from settings import ACL, PROPERTIES
