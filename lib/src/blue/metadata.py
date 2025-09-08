@@ -1,4 +1,6 @@
 from blue.utils.service_utils import ServiceClient
+from blue.utils import json_utils
+
 import logging
 
 class MetaData(ServiceClient):
@@ -94,6 +96,46 @@ class MetaData(ServiceClient):
     def enrich_entity(self, entity, attributes):
         entity_prompt = self.build_entity_description_prompt(entity, attributes)
         return self.execute_api_call(entity_prompt, properties=self.properties, additional_data={})
+
+    def collect_source_metadata(self, data_registry, source, recursive=False, rebuild=False):
+        # TODO
+        pass
+
+    def collect_source_database_metadata(self, data_registry, source, database, recursive=False, rebuild=False):
+        ## TODO
+        return 
+
+    def collect_source_database_collection_metadata(self, data_registry, source, database, collection, recursive=False, rebuild=False):
+        entities = data_registry.get_source_database_collection_entities(source, database, collection)
+
+        for entity in entities:
+            entity_name = entity.get("name")
+            
+            attributes = data_registry.get_source_database_collection_entity_attributes(source, database, collection, entity_name)
+            
+            entity_attribute_description = self.enrich_entity(entity, attributes)
+
+            try:
+                parsed = json_utils.safe_json_parse(entity_attribute_description)
+                if not parsed:
+                    logging.warning(f"Entity {entity} returned invalid or empty JSON.")
+                    continue
+            except json.JSONDecodeError:
+                logging.warning("LLM did not return valid JSON. Skipping entity enrichment.")
+                parsed = {}
+
+            table_desc = parsed.get("table_description", "")
+            attribute_descs = parsed.get("attributes", {})
+
+            # Optionally store them back
+            data_registry.set_source_database_collection_entity_description(
+                source, database, collection, entity_name, table_desc, rebuild=rebuild)
+
+            for attr, desc in attribute_descs.items():
+                data_registry.set_source_database_collection_entity_attribute_description(
+                    source, database, collection, entity_name, attr, desc, rebuild=rebuild)
+        
+    
     
 
 
