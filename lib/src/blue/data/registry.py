@@ -828,6 +828,7 @@ class DataRegistry(Registry):
     def _build_index_schema(self):
         schema = list(super()._build_index_schema()) 
         schema.extend([
+            TextField("values"),
             TextField("schema"),
             VectorField(
                 "schema_vector",
