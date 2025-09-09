@@ -2,6 +2,7 @@ from blue.utils.service_utils import ServiceClient
 from blue.utils import json_utils
 
 import logging
+import json
 
 class MetaData(ServiceClient):
  
@@ -114,11 +115,14 @@ class MetaData(ServiceClient):
         if self.properties.get('enable_database_description_generation', True):
             current_description = self.get_source_database_description(source, database)
             if not current_description or current_description.strip() == "":
-                ### TODO - get existing database metadata from registry
-                database_metadata =  {
-                                    "name": database,
-                                        "type": "database"
-                                    }
+                
+                database_metadata = data_registry.get_source_database_property(source, database, "metadata")
+
+                if not database_metadata:
+                    database_metadata =  {
+                                        "name": database,
+                                            "type": "database"
+                                        }
 
                 for collection in collections:
                     collection_name = collection.get("name")
@@ -170,8 +174,11 @@ class MetaData(ServiceClient):
         if self.properties.get('enable_collection_description_generation', True):
             current_description = data_registry.get_source_database_collection_description(source, database, collection)
                 if not current_description or current_description.strip() == "":
-                    ### TODO - get existing collection metadata from registry 
-                    collection_metadata =  {
+                    
+                    collection_metadata = data_registry.get_source_database_collection_property(source, database, collection, "metadata")
+            
+                    if not collection_metadata:
+                        collection_metadata =  {
                                         "name": collection,
                                             "type": "collection"
                                         }
