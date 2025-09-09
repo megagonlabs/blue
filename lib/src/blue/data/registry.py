@@ -60,6 +60,28 @@ class DataRegistry(Registry, ServiceClient):
         self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
         self.properties['output_strip'] = True
 
+        # Description aggregation from children
+        self.properties['aggregation_prompt'] = AGGREGATION_PROMPT
+        self.properties['enable_database_description_generation'] = True
+        self.properties['enable_collection_description_generation'] = True
+
+        # Search configuration
+        self.properties['search_bm25_weight'] = 0.3
+        self.properties['search_vector_weight'] = 0.7
+        # self.properties['search_bm25_max_score'] = 20.0
+        self.properties['search_bm25_normalization'] = 'minmax'  # 'linear', 'log', 'minmax'
+        self.properties['search_enable_schema'] = True
+        # threshold
+        self.properties['search_bm25_threshold'] = 0.0
+        self.properties['search_vector_threshold'] = 0.5
+        self.properties['search_combined_threshold'] = 0.36
+
+        # hierarchical search by chain from children to parent
+        self.properties['search_hierarchical_enabled'] = True
+        self.properties['search_hierarchical_database_types'] = ['database', 'collection', 'entity']
+        self.properties['search_hierarchical_collection_types'] = ['collection', 'entity']
+
+
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
         super().register_record(source, 'source', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
