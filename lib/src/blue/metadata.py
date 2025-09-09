@@ -35,6 +35,12 @@ class MetaData(ServiceClient):
         self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
         self.properties['output_strip'] = True
 
+        # Description aggregation from children
+        self.properties['aggregation_prompt'] = AGGREGATION_PROMPT
+        self.properties['enable_database_description_generation'] = True
+        self.properties['enable_collection_description_generation'] = True
+
+
         
     def build_entity_description_prompt(self, entity_obj, attributes):
         """
@@ -102,8 +108,31 @@ class MetaData(ServiceClient):
         pass
 
     def collect_source_database_metadata(self, data_registry, source, database, recursive=False, rebuild=False):
-        ## TODO
+        collections = data_registry.get_source_database_collections(source, database)
+        collection_descriptions = {}
+        
+        if self.properties.get('enable_database_description_generation', True):
+            current_description = self.get_source_database_description(source, database)
+            if not current_description or current_description.strip() == "":
+                ### TODO - get existing database metadata from registry
+                database_metadata =  {
+                                    "name": database,
+                                        "type": "database"
+                                    }
+
+                for collection in collections:
+                    collection_name = collection.get("name")
+                    collection_desc = collection.get("description")
+                    collection_descriptions[collection_name] = collection_desc
+                    
+        
+                database_desc = self.enrich_database_description(database, collection_descriptions, database_metadata)
+            
+                data_registry.set_source_database_description(
+                        source, database, database_desc, rebuild=rebuild)
+
         return 
+ 
 
     def collect_source_database_collection_metadata(self, data_registry, source, database, collection, recursive=False, rebuild=False):
         entities = data_registry.get_source_database_collection_entities(source, database, collection)
@@ -126,6 +155,8 @@ class MetaData(ServiceClient):
 
             table_desc = parsed.get("table_description", "")
             attribute_descs = parsed.get("attributes", {})
+            entity_descriptions[entity_name] = table_desc
+            
 
             # Optionally store them back
             data_registry.set_source_database_collection_entity_description(
@@ -135,7 +166,57 @@ class MetaData(ServiceClient):
                 data_registry.set_source_database_collection_entity_attribute_description(
                     source, database, collection, entity_name, attr, desc, rebuild=rebuild)
         
+
+        if self.properties.get('enable_collection_description_generation', True):
+            current_description = data_registry.get_source_database_collection_description(source, database, collection)
+                if not current_description or current_description.strip() == "":
+                    ### TODO - get existing collection metadata from registry 
+                    collection_metadata =  {
+                                        "name": collection,
+                                            "type": "collection"
+                                        }
+
+                    collection_desc = self.enrich_collection_description(database, entity_descriptions, collection_metadata)
+            
+            
+                    data_registry.set_source_database_collection_description(
+                        source, database, collection, collection_desc, rebuild=rebuild)
+
     
+    ###### Aggregation
+    def build_collection_description_prompt(self, collection_name, entity_descriptions, collection_metadata):
+        child_descriptions = [f"{name}: {desc}" for name, desc in entity_descriptions.items() if desc]
+        if not child_descriptions:
+            child_descriptions = ["No entity descriptions available"]
+
+        return self.properties['aggregation_prompt'].format(
+            child_type='entity',
+            parent_type='collection',
+            child_descriptions='\n'.join(child_descriptions),
+            parent_metadata=f"Collection name: {collection_name}\nMetadata: {collection_metadata}"
+        )
+
+    def build_database_description_prompt(self, database_name, collection_descriptions, database_metadata):
+        child_descriptions = [f"{name}: {desc}" for name, desc in collection_descriptions.items() if desc]
+        if not child_descriptions:
+            child_descriptions = ["No collection descriptions available"]
+
+        return self.properties['aggregation_prompt'].format(
+            child_type='collection',
+            parent_type='database',
+            child_descriptions='\n'.join(child_descriptions),
+            parent_metadata=f"Database name: {database_name}\nMetadata: {database_metadata}"
+        )
+
+    def enrich_collection_description(self, collection_name, entity_descriptions, collection_metadata):
+        prompt = self.build_collection_description_prompt(collection_name, entity_descriptions, collection_metadata)
+        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+    def enrich_database_description(self, database_name, collection_descriptions, database_metadata):
+        prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
+        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+
     
 
 

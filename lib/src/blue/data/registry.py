@@ -11,8 +11,6 @@ from blue.utils import json_utils
 from blue.registry import Registry
 
 from blue.data.schema import DataSchema
-from blue.utils.service_utils import ServiceClient
-from blue.data.prompt_templates import AGGREGATION_PROMPT
 from blue.utils.similarity_utils import (
     compute_bm25_score,
     normalize_bm25_scores,
@@ -37,33 +35,13 @@ from redis.commands.search.query import Query
 ###############
 ### DataRegistry
 #
-class DataRegistry(Registry, ServiceClient):
+class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, platform_id=platform_id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
-
-        self.properties['openai.api'] = 'ChatCompletion'
-        self.properties['openai.model'] = "gpt-4o"
-        self.properties['openai.stream'] = False
-        self.properties['openai.max_tokens'] = 512
-        self.properties['openai.temperature'] = 0
-        self.properties['input_json'] = "[{\"role\": \"user\"}]"
-        self.properties['input_context'] = "$[0]"
-        self.properties['input_context_field'] = "content"
-        self.properties['input_field'] = "messages"
-        self.properties['input_template'] = "${input}"
-        self.properties['output_path'] = '$.choices[0].message.content'
-        self.properties['service_prefix'] = 'openai'
-        self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
-        self.properties['output_strip'] = True
-
-        # Description aggregation from children
-        self.properties['aggregation_prompt'] = AGGREGATION_PROMPT
-        self.properties['enable_database_description_generation'] = True
-        self.properties['enable_collection_description_generation'] = True
 
         # Search configuration
         self.properties['search_bm25_weight'] = 0.3
@@ -664,43 +642,17 @@ class DataRegistry(Registry, ServiceClient):
             if recursive:
                 for collection in fetched_collections_set:
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
-                    # Get collection description for database enrichment
-                    collection_desc = self.get_source_database_collection_description(source, database, collection)
-                    if collection_desc:
-                        collection_descriptions[collection] = collection_desc
+                    
             else:
                 for collection in adds:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
-                    # Get collection description for database enrichment
-                    collection_desc = self.get_source_database_collection_description(source, database, collection)
-                    if collection_desc:
-                        collection_descriptions[collection] = collection_desc
-
+                    
                 for collection in merges:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
-                    # Get collection description for database enrichment
-                    collection_desc = self.get_source_database_collection_description(source, database, collection)
-                    if collection_desc:
-                        collection_descriptions[collection] = collection_desc
+                    
             
-            ## database description enrichment
-            if collection_descriptions and self.properties.get('enable_database_description_generation', True):
-                current_description = self.get_source_database_description(source, database)
-                if not current_description or current_description.strip() == "":
-                    try:
-                        if not metadata:
-                            metadata = {
-                                "name": database,
-                                "type": "database"
-                            }
-                        database_description = self.enrich_database_description(database, collection_descriptions, metadata)
-                        if database_description:
-                            self.set_source_database_description(source, database, database_description, rebuild=True)
-                    except Exception as e:
-                        self.logger.warning(f"Failed to enrich database description for {database}: {e}")
-
     def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False):
         if source_connection is None:
             source_connection = self.connect_source(source)
@@ -781,31 +733,6 @@ class DataRegistry(Registry, ServiceClient):
                 for attr in attr_merges:
                     self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
           
-            
-            ## collection description enrichment
-            if self.properties.get('enable_collection_description_generation', True):
-                current_description = self.get_source_database_collection_description(source, database, collection)
-                if not current_description or current_description.strip() == "":
-                    try:
-                        # Build entity descriptions for collection enrichment
-                        entity_descriptions = {}
-                        for entity in fetched_entities_set:
-                            entity_desc = self.get_source_database_collection_entity_description(source, database, collection, entity)
-                            if entity_desc:
-                                entity_descriptions[entity] = entity_desc
-                        
-                        if entity_descriptions:
-                            if not metadata:
-                                metadata = {
-                                    "name": collection,
-                                    "type": "collection"
-                                }
-                            collection_description = self.enrich_collection_description(collection, entity_descriptions, metadata)
-                            if collection_description:
-                                self.set_source_database_collection_description(source, database, collection, collection_description, rebuild=True)
-                    except Exception as e:
-                        self.logger.warning(f"Failed to enrich collection description for {collection}: {e}")
-            
             ### there are separate APIs for these, however still calling from here since UI is not enabled to call those APIs. These calls will be removed from here when UI supports 
             ### corresponding API calling 
             self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
@@ -896,39 +823,6 @@ class DataRegistry(Registry, ServiceClient):
         schema.relations = relations
         # note: please update the schema representation in DataSchema class if the default __str__ doesn't satisfy your needs
         return str(schema)
-    
-    ###### Aggregation
-    def build_collection_description_prompt(self, collection_name, entity_descriptions, collection_metadata):
-        child_descriptions = [f"{name}: {desc}" for name, desc in entity_descriptions.items() if desc]
-        if not child_descriptions:
-            child_descriptions = ["No entity descriptions available"]
-        
-        return self.properties['aggregation_prompt'].format(
-            child_type='entity',
-            parent_type='collection',
-            child_descriptions='\n'.join(child_descriptions),
-            parent_metadata=f"Collection name: {collection_name}\nMetadata: {collection_metadata}"
-        )
-
-    def build_database_description_prompt(self, database_name, collection_descriptions, database_metadata):
-        child_descriptions = [f"{name}: {desc}" for name, desc in collection_descriptions.items() if desc]
-        if not child_descriptions:
-            child_descriptions = ["No collection descriptions available"]
-        
-        return self.properties['aggregation_prompt'].format(
-            child_type='collection',
-            parent_type='database',
-            child_descriptions='\n'.join(child_descriptions),
-            parent_metadata=f"Database name: {database_name}\nMetadata: {database_metadata}"
-        )
-
-    def enrich_collection_description(self, collection_name, entity_descriptions, collection_metadata):
-        prompt = self.build_collection_description_prompt(collection_name, entity_descriptions, collection_metadata)
-        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
-
-    def enrich_database_description(self, database_name, collection_descriptions, database_metadata):
-        prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
-        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
 
     ###### registry functions
     def _build_index_schema(self):
