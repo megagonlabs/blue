@@ -858,7 +858,16 @@ class DataRegistry(Registry):
         if type == 'collection' and 'properties' in record:
             schema = record['properties'].get('schema', None)
 
-        self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
+        if type == "attribute":
+            props = record.get("properties", {})
+            info = props.get("info", {})
+            values = info.get("values", [])
+            if isinstance(values, list) and values:
+                self._create_index_doc(name, type, scope, description, schema=schema, values=values, pipe=pipe)
+            else:
+                 self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
+        else:       
+            self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
 
         if recursive:
             contents = record['contents']
@@ -868,7 +877,7 @@ class DataRegistry(Registry):
                     r = contents_by_type[record_key]
                     self._set_index_record(r, recursive=recursive, pipe=pipe)
 
-    def _create_index_doc(self, name, type, scope, description, schema=None, pipe=None):
+    def _create_index_doc(self, name, type, scope, description, schema=None, values=None, pipe=None):
         if self.embeddings_model is None:
             self._init_search_index()
 
@@ -876,9 +885,20 @@ class DataRegistry(Registry):
         text = name
         if description:
             text += ' ' + description
+        
+        values_str = None
+
+        if values:
+            text += " " + " ".join(map(str, values))
+            values_str = json.dumps(values, ensure_ascii=False)
+        
+        
         vector = self._compute_embedding_vector(text)
 
         doc = {'name': name, 'type': type, 'scope': scope, 'description': description, 'vector': vector}
+
+        if values_str:
+            doc["values"] = values_str
 
         # extra schema and schema_vector fields
         if schema is not None:
@@ -904,7 +924,7 @@ class DataRegistry(Registry):
         doc_key = self._Registry__doc_key(name, type, scope)
 
         # Define fields to delete
-        base_fields = ["name", "type", "scope", "description", "vector"]
+        base_fields = ["name", "type", "scope", "description", "values", "vector"]
         
         # In current implementation, schema is only available for collection type
         if type == 'collection':
