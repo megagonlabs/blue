@@ -9,7 +9,7 @@ import numpy as np
 ###### Blue
 from blue.utils import json_utils
 from blue.registry import Registry
- 
+
 from blue.data.schema import DataSchema
 from blue.utils.service_utils import ServiceClient
 from blue.data.prompt_templates import AGGREGATION_PROMPT
@@ -280,7 +280,7 @@ class DataRegistry(Registry, ServiceClient):
 
     def get_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key):
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
-        super().get_record_property(attribute, 'attribute', scope, key)
+        return super().get_record_property(attribute, 'attribute', scope, key)
 
     
     # description
@@ -327,9 +327,7 @@ class DataRegistry(Registry, ServiceClient):
 
     def set_source_database_collection_relation_property(self, source, database, collection, relation, key, value, rebuild=False):
         super().set_record_property(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', key, value, rebuild=rebuild)
-
     
-
     
     ######### source/database/collection/relation/attribute 
     def register_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, description="", properties={}, rebuild=False):
@@ -344,7 +342,6 @@ class DataRegistry(Registry, ServiceClient):
     def deregister_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, rebuild=False):
         record = self.get_source_database_collection_relation_attribute(source, database, collection, relation, attribute)
         super().deregister(record, rebuild=rebuild)
-
     
     def get_source_database_collection_relation_attributes(
         self, source, database, collection, relation):
@@ -363,8 +360,7 @@ class DataRegistry(Registry, ServiceClient):
 
     def get_source_database_collection_relation_attribute_property(self, source, database, collection, relation, attribute, key):
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
-        super().get_record_property(attribute, 'attribute', scope, key)
-
+        return super().get_record_property(attribute, 'attribute', scope, key)
     
     
     ######### sync
