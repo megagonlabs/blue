@@ -196,6 +196,10 @@ export default function ServerEntity({
         });
     };
     const NESTED_ENTITY_LOOKUP = { tool: "tool", operator: "operator" };
+    const isRay = _.isEqual(
+        _.get(server, "properties.connection.protocol", null),
+        "ray"
+    );
     return (
         <div>
             <div
@@ -336,7 +340,7 @@ export default function ServerEntity({
                             )
                         )}
                     />
-                    {!isEditing && !_.includes(["tool"], registry) && (
+                    {!isEditing && !_.includes(["tool"], registry) && isRay && (
                         <Button
                             disabled={loading}
                             variant={ButtonVariant.MINIMAL}
