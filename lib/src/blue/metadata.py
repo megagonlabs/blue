@@ -2,6 +2,7 @@ from blue.utils.service_utils import ServiceClient
 from blue.utils import json_utils
 
 import logging
+import json
 
 class MetaData(ServiceClient):
  
