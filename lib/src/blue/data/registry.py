@@ -891,7 +891,7 @@ class DataRegistry(Registry, ServiceClient):
 
     ###### registry functions
     def _build_index_schema(self):
-        schema = super()._build_index_schema()
+        schema = list(super()._build_index_schema()) 
         schema.extend([
             TextField("schema"),
             VectorField(
