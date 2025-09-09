@@ -48,6 +48,7 @@ class Registry:
         self.prefix = prefix
         self.suffix = suffix
         self.cid = cid
+        self.platform_id = platform_id
 
         if self.cid == None:
             self.cid = self.sid
