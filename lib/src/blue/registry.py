@@ -31,7 +31,6 @@ class Registry:
 
         self.name = name
         self.metadata = MetaData(platform_id=platform_id)
-        
 
         if type == None:
             type = "record"
@@ -241,10 +240,9 @@ class Registry:
             if isinstance(values, list) and values:
                 self._create_index_doc(name, type, scope, description, values, pipe=pipe)
             else:
-                 self._create_index_doc(name, type, scope, description, pipe=pipe)
-        else:
                 self._create_index_doc(name, type, scope, description, pipe=pipe)
-        
+        else:
+            self._create_index_doc(name, type, scope, description, pipe=pipe)
 
         # index contents
         if recursive:
@@ -272,7 +270,7 @@ class Registry:
         if values:
             text += " " + " ".join(map(str, values))
             values_str = json.dumps(values, ensure_ascii=False)
-        
+
         vector = self._compute_embedding_vector(text)
 
         doc = {'name': name, 'type': type, 'scope': scope, 'description': description, 'vector': vector}
@@ -326,7 +324,6 @@ class Registry:
 
         fields = ["name", "type", "scope", "description", "values", "vector"]
 
-
         if pipe:
             for field in fields:
                 pipe.hdel(doc_key, field)
@@ -334,7 +331,7 @@ class Registry:
             pipe = self.connection.pipeline()
             for field in fields:
                 pipe.hdel(doc_key, field)
-            
+
             res = pipe.execute()
 
     def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10):
@@ -442,7 +439,7 @@ class Registry:
         if 'type' in record:
             type = record['type']
 
-        scope = "/"
+        scope = None
         if 'scope' in record:
             scope = record['scope']
 
@@ -583,16 +580,16 @@ class Registry:
     def get_record_data(self, name, type, scope, key, single=True):
         p = self._get_record_path(name, type, scope)
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
-        
+
         decoded_value = self._decode_nested(value) if value is not None else value
-        
+
         return self.__get_json_value(decoded_value, single=single)
-        
+
     def set_record_data(self, name, type, scope, key, value, rebuild=False):
         p = self._get_record_path(name, type, scope)
         encoded_value = self._encode_dict(value)
         self._set_json(self._get_data_namespace(), p + '.' + key, encoded_value)
-        
+
         # rebuild now
         if rebuild:
             record = self.get_record(name, type, scope)
@@ -694,22 +691,22 @@ class Registry:
             return [self._decode_nested(r) for r in records]  # decode here
 
         return []
-        
 
     def filter_records_by_properties(self, type=None, scope="/", properties=None, recursive=False, partial_match=False):
         """
         Returns records of a given type/scope that match the given nested property key-values.
-        
+
         Args:
             type: Record type to filter (optional)
             scope: Scope path (default "/")
             properties: dict of nested property key-values to filter, e.g., {"connection": {"protocol": "mysql"}}
             recursive: whether to include nested records
             partial_match: if True, match if the property value contains the filter value as substring
-            
+
         Returns:
             List of matching records
         """
+
         def match_props(record_props, filter_props):
             for k, v in filter_props.items():
                 if isinstance(v, dict):
