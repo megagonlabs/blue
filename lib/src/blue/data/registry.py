@@ -782,6 +782,29 @@ class DataRegistry(Registry, ServiceClient):
                     self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
           
             
+            ## collection description enrichment
+            if self.properties.get('enable_collection_description_generation', True):
+                current_description = self.get_source_database_collection_description(source, database, collection)
+                if not current_description or current_description.strip() == "":
+                    try:
+                        # Build entity descriptions for collection enrichment
+                        entity_descriptions = {}
+                        for entity in fetched_entities_set:
+                            entity_desc = self.get_source_database_collection_entity_description(source, database, collection, entity)
+                            if entity_desc:
+                                entity_descriptions[entity] = entity_desc
+                        
+                        if entity_descriptions:
+                            if not metadata:
+                                metadata = {
+                                    "name": collection,
+                                    "type": "collection"
+                                }
+                            collection_description = self.enrich_collection_description(collection, entity_descriptions, metadata)
+                            if collection_description:
+                                self.set_source_database_collection_description(source, database, collection, collection_description, rebuild=True)
+                    except Exception as e:
+                        self.logger.warning(f"Failed to enrich collection description for {collection}: {e}")
             
             ### there are separate APIs for these, however still calling from here since UI is not enabled to call those APIs. These calls will be removed from here when UI supports 
             ### corresponding API calling 
