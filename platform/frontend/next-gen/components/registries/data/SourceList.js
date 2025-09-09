@@ -245,15 +245,6 @@ function SourceList({ width, height }) {
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"
                 >
-                    {data.map((source, index) => (
-                        <div key={index} className="grid-item">
-                            {search ? (
-                                <SearchResultCard entity={source} />
-                            ) : (
-                                <RegistryEntityCard entity={source} />
-                            )}
-                        </div>
-                    ))}
                     {permissions.canWriteDataRegistry && (
                         <Button
                             onClick={() => {
@@ -266,6 +257,15 @@ function SourceList({ width, height }) {
                             icon={<FAIcon icon={faPlus} />}
                         />
                     )}
+                    {data.map((source, index) => (
+                        <div key={index} className="grid-item">
+                            {search ? (
+                                <SearchResultCard entity={source} />
+                            ) : (
+                                <RegistryEntityCard entity={source} />
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
