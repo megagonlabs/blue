@@ -18,8 +18,8 @@ class MetaData(ServiceClient):
         if self.platform_name:
             self.properties['service_url'] = f"ws://blue_service_{self.platform_name}-openai-1:8001"
         else:
-            logging.warning("platform_name is missing! Falling back to default 'blue'")
-            self.properties['service_url'] = "ws://blue_service_blue-openai-1:8001"
+            logging.warning("platform_name is missing! Falling back to default 'default'")
+            self.properties['service_url'] = "ws://blue_service_default-openai-1:8001"
 
         self.properties['openai.api'] = 'ChatCompletion'
         self.properties['openai.model'] = "gpt-4o"
