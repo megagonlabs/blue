@@ -1,5 +1,6 @@
 from blue.utils.service_utils import ServiceClient
 from blue.utils import json_utils
+from blue.data.prompt_templates import AGGREGATION_PROMPT
 
 import logging
 import json
