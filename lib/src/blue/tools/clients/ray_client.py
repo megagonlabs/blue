@@ -89,7 +89,7 @@ class RayToolClient(ToolClient):
                 remote_function = ray.remote(tool_obj.function)
                 result_ref = remote_function.remote(**kwargs)
             else:
-                return valid
+                return None
 
         if result_ref:
             result = ray.get(result_ref)
