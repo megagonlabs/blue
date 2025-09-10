@@ -42,7 +42,7 @@
 }
 .bp6-dark .interactive-card-border:hover {
     box-shadow: rgba(138, 187, 255, 0.2) 0px 0px 0px 3px,
-        rgb(138, 187, 255) 0px 0px 0px 1px;
+        rgb(138, 187, 255) 0px 0px 0px 1px !important;
 }
 .responsive-grid-container {
     display: flex;
@@ -165,7 +165,7 @@ table.nerd-table td {
 }
 .bp6-elevation-4.bp6-dark,
 .bp6-dark .bp6-elevation-4 {
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3),
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2),
         0 4px 8px rgba(255, 255, 255, 0.2),
         0 18px 46px 6px rgba(255, 255, 255, 0.2) !important;
 }
