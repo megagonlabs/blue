@@ -141,6 +141,7 @@ class MetaData(ServiceClient):
     def collect_source_database_collection_metadata(self, data_registry, source, database, collection, recursive=False, rebuild=False):
         entities = data_registry.get_source_database_collection_entities(source, database, collection)
 
+        entity_descriptions = {}
         for entity in entities:
             entity_name = entity.get("name")
             
@@ -173,21 +174,21 @@ class MetaData(ServiceClient):
 
         if self.properties.get('enable_collection_description_generation', True):
             current_description = data_registry.get_source_database_collection_description(source, database, collection)
-                if not current_description or current_description.strip() == "":
-                    
-                    collection_metadata = data_registry.get_source_database_collection_property(source, database, collection, "metadata")
-            
-                    if not collection_metadata:
-                        collection_metadata =  {
-                                        "name": collection,
-                                            "type": "collection"
-                                        }
+            if not current_description or current_description.strip() == "":
+                
+                collection_metadata = data_registry.get_source_database_collection_property(source, database, collection, "metadata")
+        
+                if not collection_metadata:
+                    collection_metadata =  {
+                                    "name": collection,
+                                        "type": "collection"
+                                    }
 
-                    collection_desc = self.enrich_collection_description(database, entity_descriptions, collection_metadata)
-            
-            
-                    data_registry.set_source_database_collection_description(
-                        source, database, collection, collection_desc, rebuild=rebuild)
+                collection_desc = self.enrich_collection_description(database, entity_descriptions, collection_metadata)
+        
+        
+                data_registry.set_source_database_collection_description(
+                    source, database, collection, collection_desc, rebuild=rebuild)
 
     
     ###### Aggregation
@@ -222,10 +223,3 @@ class MetaData(ServiceClient):
     def enrich_database_description(self, database_name, collection_descriptions, database_metadata):
         prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
         return self.execute_api_call(prompt, properties=self.properties, additional_data={})
-
-
-    
-
-
-
-   
