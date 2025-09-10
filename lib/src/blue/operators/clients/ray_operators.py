@@ -16,6 +16,7 @@ from blue.operators.nl2llm_operator import NL2LLMOperator
 from blue.operators.nl2sql_operator import NL2SQLOperator
 from blue.operators.semantic_extract_operator import SemanticExtractOperator
 from blue.operators.semantic_filter_operator import SemanticFilterOperator
+from blue.operators.semantic_project_operator import SemanticProjectOperator
 from blue.operators.data_discover_operator import DataDiscoverOperator
 from blue.operators.select_operator import SelectOperator
 from blue.operators.project_operator import ProjectOperator
@@ -41,6 +42,9 @@ operators_dict[semantic_extract_operator.name] = semantic_extract_operator
 
 semantic_filter_operator = SemanticFilterOperator()
 operators_dict[semantic_filter_operator.name] = semantic_filter_operator
+
+semantic_project_operator = SemanticProjectOperator()
+operators_dict[semantic_project_operator.name] = semantic_project_operator
 
 data_discover_operator = DataDiscoverOperator()
 operators_dict[data_discover_operator.name] = data_discover_operator

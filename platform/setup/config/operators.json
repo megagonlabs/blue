@@ -490,6 +490,58 @@
         "contents": {}
     },
     {
+        "name": "semantic_project",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Projects records to keep only specified columns and optionally rename them using LLM-based mapping resolution",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "skip",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 1024,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "## Task\nYou are given a database schema with data types and natural language column selection requirements. Your job is to generate a JSON mapping that specifies which columns to keep and how to rename them.\n\n## Available Schema (with data types)\n${schema}\n\n## Column Selection Requirements\n${projection_instructions}\n\n## Output Requirements\n- Return a **single JSON object** as the output\n- The JSON object must contain key-value pairs where:\n  - **Keys**: original column names from the schema (exact matches)\n  - **Values**: new column names for the output\n- **Column Selection Rules**:\n  - Only include columns that should be kept in the output\n  - If a column should be dropped, do not include it in the mapping\n  - If a column should be renamed, map the old name to the new name\n  - If a column should keep its original name, map it to itself\n- **Validation Rules**:\n  - All keys must exist in the provided schema\n  - All values must be unique (no duplicate output column names)\n  - All values must be valid column names (no special characters, extra spaces, etc.)\n- **Examples**:\n  - Keep and rename: `{\"fname\": \"full_name\", \"lname\": \"last_name\"}`\n  - Keep without rename: `{\"skills\": \"skills\", \"experience\": \"experience\"}`\n  - Drop column: simply don't include it in the mapping\n\n## Additional Notes\n- Use the data types to better understand what each column contains\n- Interpret the natural language requirements carefully\n- Be precise about which columns to keep vs drop\n- Follow standard naming conventions for column names\n- Return only the JSON object, no explanations or additional text\n\n---\n\n### Output JSON Object\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "json",
+            "parameters": {
+                "projection_instructions": {
+                    "type": "str",
+                    "description": "Natural language description of which columns to keep and how to rename them",
+                    "required": true
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
         "name": "join",
         "type": "operator",
         "scope": "/server/blue_ray",
