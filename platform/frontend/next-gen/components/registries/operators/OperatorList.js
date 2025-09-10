@@ -214,6 +214,18 @@ function OperatorList({ width, height }) {
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"
                 >
+                    {permissions.canWriteOperatorRegistry && (
+                        <Button
+                            onClick={() => {
+                                setShowNewEntity(true);
+                            }}
+                            size={Size.LARGE}
+                            fill
+                            variant={ButtonVariant.MINIMAL}
+                            text="Add server"
+                            icon={<FAIcon icon={faPlus} />}
+                        />
+                    )}
                     {operators.map((operator, index) => (
                         <div key={index} className="grid-item">
                             {search ? (
@@ -229,18 +241,6 @@ function OperatorList({ width, height }) {
                             )}
                         </div>
                     ))}
-                    {permissions.canWriteOperatorRegistry && (
-                        <Button
-                            onClick={() => {
-                                setShowNewEntity(true);
-                            }}
-                            size={Size.LARGE}
-                            fill
-                            variant={ButtonVariant.MINIMAL}
-                            text="Add server"
-                            icon={<FAIcon icon={faPlus} />}
-                        />
-                    )}
                 </div>
             </div>
         </div>

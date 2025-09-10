@@ -350,6 +350,198 @@
         "contents": {}
     },
     {
+        "name": "semantic_extract",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Extracts entities from natural language text fields using LLM models",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "skip",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 4096,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "## Task\nYou are given one data record in JSON format. Your job is to extract specific entities from this record and return them in strict JSON format.\n\n## Entities to Extract\n${entities}\n\n## Context\n${context}\n\n## Demonstrations\n${demonstrations}\n\n## Output Requirements\n- Return a **single JSON object** as the output.\n- The JSON object must contain:\n  - Keys: exact entity names from the list above (preserve original case and formatting).\n  - Values: arrays of extracted items (may be empty if nothing is found).\n- Do not introduce extra keys or change entity names.\n- **Deduplication rule (within the same entity key):**\n  - Remove duplicates and near-duplicates (e.g., case/spacing/punctuation variants, obvious aliases, or versioned forms).\n  - Keep **one canonical value** if there are multiple semantically equivalent values.\n  - Example: `\"skill\": [\"python\", \"python3.10\", \"Python \"]` → `\"skill\": [\"python\"]`.\n- Only extract entities from the specified fields for each entity name.\n- Be precise and only return relevant entities.\n\n## Additional Notes\n- If no entities are found, still return an object with all keys mapped to empty arrays.\n- Do not include explanations, comments, or text outside the JSON object.\n- Validate that the final output is syntactically valid JSON.\n\n---\n\n### Data Record\n${data_record}\n\n---\n\n### Output JSON Object\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "json",
+            "parameters": {
+                "entities": {
+                    "type": "list[dict]",
+                    "description": "List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional)",
+                    "required": true
+                },
+                "context": {
+                    "type": "str",
+                    "description": "Additional context information that provides domain knowledge or additional instructions for the extraction",
+                    "required": false,
+                    "default": ""
+                },
+                "demonstrations": {
+                    "type": "str",
+                    "description": "Additional demonstrations to help in-context learning",
+                    "required": false,
+                    "default": ""
+                },
+                "extract_with_single_prompt": {
+                    "type": "bool",
+                    "description": "If true, extract all entities in a single prompt, else extract each entity with individual prompt",
+                    "required": false,
+                    "default": true
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "semantic_filter",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Filters records based on natural language conditions using LLM models",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "skip",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 1024,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "## Task\nYou are given a data record and natural language filter conditions. Your job is to determine if the record should be included in the filtered results.\n\n## Record to Evaluate\n${record}\n\n## Filter Conditions\n${conditions}\n\n## Context\n${context}\n\n## Demonstrations\n${demonstrations}\n\n## Output Requirements\n- Return **only a boolean value**: true or false\n- Return **true** if the record satisfies ALL the filter conditions\n- Return **false** if the record does NOT satisfy any of the filter conditions\n- Be precise in your evaluation based on the natural language conditions\n- Consider the semantic meaning of the conditions, not just exact text matching\n\n## Additional Notes\n- If a field is not present in the record, evaluate the condition as if the field has no value\n- Use your understanding of natural language to interpret conditions.\n- Return only the boolean result, no explanations or additional text\n\n---\n\n### Output\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "bool",
+            "parameters": {
+                "filter_conditions": {
+                    "type": "dict[str, str]",
+                    "description": "Dictionary mapping field names to natural language filter conditions",
+                    "required": true
+                },
+                "context": {
+                    "type": "str",
+                    "description": "Optional context to provide domain knowledge or additional instructions",
+                    "required": false,
+                    "default": ""
+                },
+                "demonstrations": {
+                    "type": "str",
+                    "description": "Optional demonstrations to help in-context learning",
+                    "required": false,
+                    "default": ""
+                },
+                "return_idx": {
+                    "type": "boolean",
+                    "description": "If true, return indices of records that satisfy all conditions, else return filtered records",
+                    "required": false,
+                    "default": false
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "semantic_project",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Projects records to keep only specified columns and optionally rename them using LLM-based mapping resolution",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "skip",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 1024,
+            "openai.temperature": 0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "## Task\nYou are given a database schema with data types and natural language column selection requirements. Your job is to generate a JSON mapping that specifies which columns to keep and how to rename them.\n\n## Available Schema (with data types)\n${schema}\n\n## Column Selection Requirements\n${projection_instructions}\n\n## Output Requirements\n- Return a **single JSON object** as the output\n- The JSON object must contain key-value pairs where:\n  - **Keys**: original column names from the schema (exact matches)\n  - **Values**: new column names for the output\n- **Column Selection Rules**:\n  - Only include columns that should be kept in the output\n  - If a column should be dropped, do not include it in the mapping\n  - If a column should be renamed, map the old name to the new name\n  - If a column should keep its original name, map it to itself\n- **Validation Rules**:\n  - All keys must exist in the provided schema\n  - All values must be unique (no duplicate output column names)\n  - All values must be valid column names (no special characters, extra spaces, etc.)\n- **Examples**:\n  - Keep and rename: `{\"fname\": \"full_name\", \"lname\": \"last_name\"}`\n  - Keep without rename: `{\"skills\": \"skills\", \"experience\": \"experience\"}`\n  - Drop column: simply don't include it in the mapping\n\n## Additional Notes\n- Use the data types to better understand what each column contains\n- Interpret the natural language requirements carefully\n- Be precise about which columns to keep vs drop\n- Follow standard naming conventions for column names\n- Return only the JSON object, no explanations or additional text\n\n---\n\n### Output JSON Object\n",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "json",
+            "parameters": {
+                "projection_instructions": {
+                    "type": "str",
+                    "description": "Natural language description of which columns to keep and how to rename them",
+                    "required": true
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
         "name": "join",
         "type": "operator",
         "scope": "/server/blue_ray",

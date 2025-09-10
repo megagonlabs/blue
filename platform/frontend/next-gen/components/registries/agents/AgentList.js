@@ -230,15 +230,6 @@ function AgentList({ width, height }) {
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"
                 >
-                    {agents.map((agent, index) => (
-                        <div key={index} className="grid-item">
-                            {search ? (
-                                <SearchResultCard entity={agent} />
-                            ) : (
-                                <RegistryEntityCard entity={agent} />
-                            )}
-                        </div>
-                    ))}
                     {permissions.canWriteAgentRegistry && (
                         <Button
                             onClick={() => {
@@ -251,6 +242,15 @@ function AgentList({ width, height }) {
                             text="Add agent"
                         />
                     )}
+                    {agents.map((agent, index) => (
+                        <div key={index} className="grid-item">
+                            {search ? (
+                                <SearchResultCard entity={agent} />
+                            ) : (
+                                <RegistryEntityCard entity={agent} />
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

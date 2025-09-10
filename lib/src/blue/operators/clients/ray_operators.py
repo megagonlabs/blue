@@ -107,6 +107,20 @@ operators_dict[intersect_operator.name] = intersect_operator
 ## TEXT OPERATORS
 
 ## SEMANTIC OPERATORS
+from blue.operators.semantic_extract_operator import SemanticExtractOperator
+
+semantic_extract_operator = SemanticExtractOperator()
+operators_dict[semantic_extract_operator.name] = semantic_extract_operator
+
+from blue.operators.semantic_filter_operator import SemanticFilterOperator
+
+semantic_filter_operator = SemanticFilterOperator()
+operators_dict[semantic_filter_operator.name] = semantic_filter_operator
+
+from blue.operators.semantic_project_operator import SemanticProjectOperator
+
+semantic_project_operator = SemanticProjectOperator()
+operators_dict[semantic_project_operator.name] = semantic_project_operator
 
 ## QUERY/COMPOUND OPERATORS
 from blue.operators.nl2llm_operator import NL2LLMOperator

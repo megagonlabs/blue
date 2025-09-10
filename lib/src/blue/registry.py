@@ -18,7 +18,6 @@ import numpy as np
 from blue.connection import PooledConnectionFactory
 from blue.utils import json_utils, uuid_utils, log_utils
 from blue.constant import Separator
-from blue.metadata import MetaData
 
 
 ###############
@@ -30,7 +29,6 @@ class Registry:
     def __init__(self, name="REGISTRY", type=None, id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
         self.name = name
-        self.metadata = MetaData(platform_id=platform_id)
 
         if type == None:
             type = "record"
@@ -49,6 +47,7 @@ class Registry:
         self.prefix = prefix
         self.suffix = suffix
         self.cid = cid
+        self.platform_id = platform_id
 
         if self.cid == None:
             self.cid = self.sid
@@ -183,8 +182,6 @@ class Registry:
             # description text
             TextField("description"),
             # values (for attribute example values)
-            TextField("values"),
-            # description embedding
             VectorField(
                 "vector",
                 "FLAT",
@@ -239,16 +236,7 @@ class Registry:
         scope = record['scope']
         description = record['description']
 
-        if type == "attribute":
-            props = record.get("properties", {})
-            info = props.get("info", {})
-            values = info.get("values", [])
-            if isinstance(values, list) and values:
-                self._create_index_doc(name, type, scope, description, values, pipe=pipe)
-            else:
-                self._create_index_doc(name, type, scope, description, pipe=pipe)
-        else:
-            self._create_index_doc(name, type, scope, description, pipe=pipe)
+        self._create_index_doc(name, type, scope, description, pipe=pipe)
 
         # index contents
         if recursive:
@@ -271,18 +259,9 @@ class Registry:
         if description:
             text += ' ' + description
 
-        values_str = None
-
-        if values:
-            text += " " + " ".join(map(str, values))
-            values_str = json.dumps(values, ensure_ascii=False)
-
         vector = self._compute_embedding_vector(text)
 
         doc = {'name': name, 'type': type, 'scope': scope, 'description': description, 'vector': vector}
-
-        if values_str:
-            doc["values"] = values_str
 
         # define key
         doc_key = self.__doc_key(name, type, scope)
@@ -328,7 +307,7 @@ class Registry:
         # define key
         doc_key = self.__doc_key(name, type, scope)
 
-        fields = ["name", "type", "scope", "description", "values", "vector"]
+        fields = ["name", "type", "scope", "description", "vector"]
 
         if pipe:
             for field in fields:
@@ -699,19 +678,6 @@ class Registry:
         return []
 
     def filter_records_by_properties(self, type=None, scope="/", properties=None, recursive=False, partial_match=False):
-        """
-        Returns records of a given type/scope that match the given nested property key-values.
-
-        Args:
-            type: Record type to filter (optional)
-            scope: Scope path (default "/")
-            properties: dict of nested property key-values to filter, e.g., {"connection": {"protocol": "mysql"}}
-            recursive: whether to include nested records
-            partial_match: if True, match if the property value contains the filter value as substring
-
-        Returns:
-            List of matching records
-        """
 
         def match_props(record_props, filter_props):
             for k, v in filter_props.items():

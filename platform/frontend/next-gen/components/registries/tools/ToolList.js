@@ -6,6 +6,7 @@ import { FAIcon } from "@/components/FAIcon";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
 import { CardListCallout } from "@/components/ux/CardListCallout";
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useToolStore } from "@/stores/tool-store";
 import {
@@ -65,6 +66,11 @@ function ToolList({ width, height }) {
             ),
         });
     };
+    const { permissions } = useAuthStore(
+        useShallow((state) => ({
+            permissions: state.permissions,
+        }))
+    );
     const elementRef = useRef(null);
     return (
         <div ref={elementRef} style={{ width, height }}>
@@ -207,6 +213,18 @@ function ToolList({ width, height }) {
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"
                 >
+                    {permissions.canWriteToolRegistry && (
+                        <Button
+                            onClick={() => {
+                                setShowNewEntity(true);
+                            }}
+                            icon={<FAIcon icon={faPlus} />}
+                            size={Size.LARGE}
+                            fill
+                            variant={ButtonVariant.MINIMAL}
+                            text="Add server"
+                        />
+                    )}
                     {tools.map((server, index) => (
                         <div key={index} className="grid-item">
                             {search ? (
@@ -222,16 +240,6 @@ function ToolList({ width, height }) {
                             )}
                         </div>
                     ))}
-                    <Button
-                        onClick={() => {
-                            setShowNewEntity(true);
-                        }}
-                        icon={<FAIcon icon={faPlus} />}
-                        size={Size.LARGE}
-                        fill
-                        variant={ButtonVariant.MINIMAL}
-                        text="Add server"
-                    />
                 </div>
             </div>
         </div>

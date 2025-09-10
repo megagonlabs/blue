@@ -12,7 +12,10 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import { faDocker } from "@fortawesome/free-brands-svg-icons";
-import { faBrowsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faBrowsers,
+    faShareNodes,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -32,6 +35,10 @@ export default function RegistryEntityCard({ entity, registry }) {
     const categories = _.get(entity, "properties.categories", []);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const [extra, setExtra] = useState(null);
+    const isRay = _.isEqual(
+        _.get(entity, "properties.connection.protocol", null),
+        "ray"
+    );
     const darkMode = useAppStore((state) => state.dark_mode);
     useEffect(() => {
         if (_.includes(["agent", "operator"], type)) {
@@ -164,6 +171,23 @@ export default function RegistryEntityCard({ entity, registry }) {
                     >
                         <FAIcon icon={faDocker} style={{ marginRight: 5 }} />
                         container:&nbsp;{containerStatus}
+                    </div>
+                )}
+                {_.isEqual(type, "server") && isRay && (
+                    <div
+                        className={Classes.TEXT_DISABLED}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            color: Colors.BLUE3,
+                        }}
+                    >
+                        <FAIcon
+                            className="fa-flip-horizontal"
+                            icon={faShareNodes}
+                            style={{ marginRight: 5 }}
+                        />
+                        Ray
                     </div>
                 )}
             </div>

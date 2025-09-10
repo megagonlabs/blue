@@ -54,18 +54,20 @@ export const ToasterProvider = ({ children }) => {
         } catch (error) {
             message = "Request Error";
         }
-        toasters.appToaster.show({
-            icon: <FAIcon icon={faExclamation} />,
-            intent: Intent.DANGER,
-            message: <div className="multiline-ellipsis-5">{message}</div>,
-            action: {
-                icon: <FAIcon icon={faCopy} />,
-                onClick: () => {
-                    copy(message);
+        if (!_.isNull(toasters.appToaster)) {
+            toasters.appToaster.show({
+                icon: <FAIcon icon={faExclamation} />,
+                intent: Intent.DANGER,
+                message: <div className="multiline-ellipsis-5">{message}</div>,
+                action: {
+                    icon: <FAIcon icon={faCopy} />,
+                    onClick: () => {
+                        copy(message);
+                    },
+                    text: "Copy",
                 },
-                text: "Copy",
-            },
-        });
+            });
+        }
     };
     return (
         <ToasterContext.Provider

@@ -207,15 +207,6 @@ function ModelList({ width, height }) {
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"
                 >
-                    {models.map((model, index) => (
-                        <div key={index} className="grid-item">
-                            {search ? (
-                                <SearchResultCard entity={model} />
-                            ) : (
-                                <RegistryEntityCard entity={model} />
-                            )}
-                        </div>
-                    ))}
                     {permissions.canWriteModelRegistry && (
                         <Button
                             onClick={() => {
@@ -228,6 +219,15 @@ function ModelList({ width, height }) {
                             icon={<FAIcon icon={faPlus} />}
                         />
                     )}
+                    {models.map((model, index) => (
+                        <div key={index} className="grid-item">
+                            {search ? (
+                                <SearchResultCard entity={model} />
+                            ) : (
+                                <RegistryEntityCard entity={model} />
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

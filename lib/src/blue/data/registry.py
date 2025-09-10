@@ -9,10 +9,8 @@ import numpy as np
 ###### Blue
 from blue.utils import json_utils
 from blue.registry import Registry
- 
+
 from blue.data.schema import DataSchema
-from blue.utils.service_utils import ServiceClient
-from blue.data.prompt_templates import AGGREGATION_PROMPT
 from blue.utils.similarity_utils import (
     compute_bm25_score,
     normalize_bm25_scores,
@@ -37,7 +35,7 @@ from redis.commands.search.query import Query
 ###############
 ### DataRegistry
 #
-class DataRegistry(Registry, ServiceClient):
+class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, platform_id=platform_id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 
@@ -45,20 +43,22 @@ class DataRegistry(Registry, ServiceClient):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        self.properties['openai.api'] = 'ChatCompletion'
-        self.properties['openai.model'] = "gpt-4o"
-        self.properties['openai.stream'] = False
-        self.properties['openai.max_tokens'] = 512
-        self.properties['openai.temperature'] = 0
-        self.properties['input_json'] = "[{\"role\": \"user\"}]"
-        self.properties['input_context'] = "$[0]"
-        self.properties['input_context_field'] = "content"
-        self.properties['input_field'] = "messages"
-        self.properties['input_template'] = "${input}"
-        self.properties['output_path'] = '$.choices[0].message.content'
-        self.properties['service_prefix'] = 'openai'
-        self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
-        self.properties['output_strip'] = True
+        # Search configuration
+        self.properties['search_bm25_weight'] = 0.3
+        self.properties['search_vector_weight'] = 0.7
+        # self.properties['search_bm25_max_score'] = 20.0
+        self.properties['search_bm25_normalization'] = 'minmax'  # 'linear', 'log', 'minmax'
+        self.properties['search_enable_schema'] = True
+        # threshold
+        self.properties['search_bm25_threshold'] = 0.0
+        self.properties['search_vector_threshold'] = 0.5
+        self.properties['search_combined_threshold'] = 0.36
+
+        # hierarchical search by chain from children to parent
+        self.properties['search_hierarchical_enabled'] = True
+        self.properties['search_hierarchical_database_types'] = ['database', 'collection', 'entity']
+        self.properties['search_hierarchical_collection_types'] = ['collection', 'entity']
+
 
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
@@ -258,7 +258,7 @@ class DataRegistry(Registry, ServiceClient):
 
     def get_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key):
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
-        super().get_record_property(attribute, 'attribute', scope, key)
+        return super().get_record_property(attribute, 'attribute', scope, key)
 
     
     # description
@@ -305,9 +305,7 @@ class DataRegistry(Registry, ServiceClient):
 
     def set_source_database_collection_relation_property(self, source, database, collection, relation, key, value, rebuild=False):
         super().set_record_property(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', key, value, rebuild=rebuild)
-
     
-
     
     ######### source/database/collection/relation/attribute 
     def register_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, description="", properties={}, rebuild=False):
@@ -322,7 +320,6 @@ class DataRegistry(Registry, ServiceClient):
     def deregister_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, rebuild=False):
         record = self.get_source_database_collection_relation_attribute(source, database, collection, relation, attribute)
         super().deregister(record, rebuild=rebuild)
-
     
     def get_source_database_collection_relation_attributes(
         self, source, database, collection, relation):
@@ -341,8 +338,7 @@ class DataRegistry(Registry, ServiceClient):
 
     def get_source_database_collection_relation_attribute_property(self, source, database, collection, relation, attribute, key):
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
-        super().get_record_property(attribute, 'attribute', scope, key)
-
+        return super().get_record_property(attribute, 'attribute', scope, key)
     
     
     ######### sync
@@ -462,47 +458,6 @@ class DataRegistry(Registry, ServiceClient):
                     self.set_source_database_collection_relation_property(source, database, collection, relation, key, value, rebuild=rebuild)
         return None
 
-    
-    def collect_source_metadata(self, source, recursive=False, rebuild=False):
-        # TODO
-        pass
-
-    
-    def collect_source_database_metadata(self, source, database, recursive=False, rebuild=False):
-        ## TODO
-        pass
-
-    def collect_source_database_collection_metadata(self, source, database, collection, recursive=False, rebuild=False):
-        entities = self.get_source_database_collection_entities(source, database, collection)
-        
-        #### enriching description #############################
-        if entities is None:
-            entities = []
-        for entity in entities:
-            entity_name = entity.get("name")
-            
-            attributes = self.get_source_database_collection_entity_attributes(source, database, collection, entity_name)
-            entity_attribute_description = self.metadata.enrich_entity(entity, attributes)
-        
-            try:
-                parsed = json_utils.safe_json_parse(entity_attribute_description)
-                if not parsed:
-                    logging.warning(f"Entity {entity} returned invalid or empty JSON.")
-                    continue
-            except json.JSONDecodeError:
-                logging.warning("LLM did not return valid JSON. Skipping entity enrichment.")
-                parsed = {}
-
-            table_desc = parsed.get("table_description", "")
-            attribute_descs = parsed.get("attributes", {})
-    
-            self.set_source_database_collection_entity_description(
-                source, database, collection, entity_name, table_desc, rebuild=rebuild)
-
-            for attr, desc in attribute_descs.items():
-                self.set_source_database_collection_entity_attribute_description(
-                    source, database, collection, entity_name, attr, desc, rebuild=rebuild)
-        
     
     def collect_source_stats(self, source, recursive=False, rebuild=False):
         source_connection = self.connect_source(source)
@@ -687,43 +642,17 @@ class DataRegistry(Registry, ServiceClient):
             if recursive:
                 for collection in fetched_collections_set:
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
-                    # Get collection description for database enrichment
-                    collection_desc = self.get_source_database_collection_description(source, database, collection)
-                    if collection_desc:
-                        collection_descriptions[collection] = collection_desc
+                    
             else:
                 for collection in adds:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
-                    # Get collection description for database enrichment
-                    collection_desc = self.get_source_database_collection_description(source, database, collection)
-                    if collection_desc:
-                        collection_descriptions[collection] = collection_desc
-
+                    
                 for collection in merges:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
-                    # Get collection description for database enrichment
-                    collection_desc = self.get_source_database_collection_description(source, database, collection)
-                    if collection_desc:
-                        collection_descriptions[collection] = collection_desc
+                    
             
-            ## database description enrichment
-            if collection_descriptions and self.properties.get('enable_database_description_generation', True):
-                current_description = self.get_source_database_description(source, database)
-                if not current_description or current_description.strip() == "":
-                    try:
-                        if not metadata:
-                            metadata = {
-                                "name": database,
-                                "type": "database"
-                            }
-                        database_description = self.enrich_database_description(database, collection_descriptions, metadata)
-                        if database_description:
-                            self.set_source_database_description(source, database, database_description, rebuild=True)
-                    except Exception as e:
-                        self.logger.warning(f"Failed to enrich database description for {database}: {e}")
-
     def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False):
         if source_connection is None:
             source_connection = self.connect_source(source)
@@ -804,13 +733,10 @@ class DataRegistry(Registry, ServiceClient):
                 for attr in attr_merges:
                     self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
           
-            
-            
             ### there are separate APIs for these, however still calling from here since UI is not enabled to call those APIs. These calls will be removed from here when UI supports 
             ### corresponding API calling 
             self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
-            self.collect_source_database_collection_metadata(source, database, collection, recursive=recursive, rebuild=rebuild) 
-          
+            
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
@@ -897,44 +823,12 @@ class DataRegistry(Registry, ServiceClient):
         schema.relations = relations
         # note: please update the schema representation in DataSchema class if the default __str__ doesn't satisfy your needs
         return str(schema)
-    
-    ###### Aggregation
-    def build_collection_description_prompt(self, collection_name, entity_descriptions, collection_metadata):
-        child_descriptions = [f"{name}: {desc}" for name, desc in entity_descriptions.items() if desc]
-        if not child_descriptions:
-            child_descriptions = ["No entity descriptions available"]
-        
-        return self.properties['aggregation_prompt'].format(
-            child_type='entity',
-            parent_type='collection',
-            child_descriptions='\n'.join(child_descriptions),
-            parent_metadata=f"Collection name: {collection_name}\nMetadata: {collection_metadata}"
-        )
-
-    def build_database_description_prompt(self, database_name, collection_descriptions, database_metadata):
-        child_descriptions = [f"{name}: {desc}" for name, desc in collection_descriptions.items() if desc]
-        if not child_descriptions:
-            child_descriptions = ["No collection descriptions available"]
-        
-        return self.properties['aggregation_prompt'].format(
-            child_type='collection',
-            parent_type='database',
-            child_descriptions='\n'.join(child_descriptions),
-            parent_metadata=f"Database name: {database_name}\nMetadata: {database_metadata}"
-        )
-
-    def enrich_collection_description(self, collection_name, entity_descriptions, collection_metadata):
-        prompt = self.build_collection_description_prompt(collection_name, entity_descriptions, collection_metadata)
-        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
-
-    def enrich_database_description(self, database_name, collection_descriptions, database_metadata):
-        prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
-        return self.execute_api_call(prompt, properties=self.properties, additional_data={})
 
     ###### registry functions
     def _build_index_schema(self):
-        schema = super()._build_index_schema()
+        schema = list(super()._build_index_schema()) 
         schema.extend([
+            TextField("values"),
             TextField("schema"),
             VectorField(
                 "schema_vector",
@@ -965,7 +859,16 @@ class DataRegistry(Registry, ServiceClient):
         if type == 'collection' and 'properties' in record:
             schema = record['properties'].get('schema', None)
 
-        self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
+        if type == "attribute":
+            props = record.get("properties", {})
+            info = props.get("info", {})
+            values = info.get("values", [])
+            if isinstance(values, list) and values:
+                self._create_index_doc(name, type, scope, description, schema=schema, values=values, pipe=pipe)
+            else:
+                 self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
+        else:       
+            self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
 
         if recursive:
             contents = record['contents']
@@ -975,7 +878,7 @@ class DataRegistry(Registry, ServiceClient):
                     r = contents_by_type[record_key]
                     self._set_index_record(r, recursive=recursive, pipe=pipe)
 
-    def _create_index_doc(self, name, type, scope, description, schema=None, pipe=None):
+    def _create_index_doc(self, name, type, scope, description, schema=None, values=None, pipe=None):
         if self.embeddings_model is None:
             self._init_search_index()
 
@@ -983,9 +886,20 @@ class DataRegistry(Registry, ServiceClient):
         text = name
         if description:
             text += ' ' + description
+        
+        values_str = None
+
+        if values:
+            text += " " + " ".join(map(str, values))
+            values_str = json.dumps(values, ensure_ascii=False)
+        
+        
         vector = self._compute_embedding_vector(text)
 
         doc = {'name': name, 'type': type, 'scope': scope, 'description': description, 'vector': vector}
+
+        if values_str:
+            doc["values"] = values_str
 
         # extra schema and schema_vector fields
         if schema is not None:
@@ -1011,7 +925,7 @@ class DataRegistry(Registry, ServiceClient):
         doc_key = self._Registry__doc_key(name, type, scope)
 
         # Define fields to delete
-        base_fields = ["name", "type", "scope", "description", "vector"]
+        base_fields = ["name", "type", "scope", "description", "values", "vector"]
         
         # In current implementation, schema is only available for collection type
         if type == 'collection':
@@ -1177,8 +1091,13 @@ class DataRegistry(Registry, ServiceClient):
             combined_score = (params['bm25_weight'] * normalized_bm25 + 
                             params['vector_weight'] * result.vector_score)
 
-            if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or combined_score < params['combined_threshold']:
-                    continue
+            # Invert combined score so lower = better
+            inverted_score = 1.0 - combined_score
+            
+            # Apply thresholds on inverted score for consumer consistency
+            if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+                continue
+
             
             # Attach final scores to result object
             result.normalized_bm25 = normalized_bm25
@@ -1191,7 +1110,7 @@ class DataRegistry(Registry, ServiceClient):
                 "type": result.type,
                 "scope": result.scope,
                 "id": result.id,
-                "score": combined_score,
+                "score": inverted_score, ## this is for consumers,
                 "bm25_score": result.bm25_score,
                 "vector_score": result.vector_score,
                 "normalized_bm25_score": normalized_bm25,
@@ -1200,8 +1119,8 @@ class DataRegistry(Registry, ServiceClient):
                 output_dict['schema'] = result.schema
             final_results.append(output_dict)
 
-        # Sort by combined score
-        final_results.sort(key=lambda x: x['score'], reverse=True)
+        # Sort by inverted score, lower is better
+        final_results.sort(key=lambda x: x['score'])
         
         # Pagination
         page_results = final_results[page * page_size : (page + 1) * page_size]
@@ -1258,8 +1177,8 @@ class DataRegistry(Registry, ServiceClient):
         # Group results by parent and collect scores
         hierarchical_results = self._build_hierarchical_results(results, type, params)
         
-        # Sort by combined score
-        hierarchical_results.sort(key=lambda x: x['score'], reverse=True)
+        # Sort by score, lower is better
+        hierarchical_results.sort(key=lambda x: x['score'])
         
         # Pagination
         page_results = hierarchical_results[page * page_size : (page + 1) * page_size]
@@ -1282,13 +1201,14 @@ class DataRegistry(Registry, ServiceClient):
         for node_id in target_nodes:
             best_score, best_record = self._update_node_score_with_children(node_id, hierarchy, params)
             if best_record is not None:
+                
                 hierarchical_results.append({
                     "name": hierarchy[node_id]['record'].name,
                     "type": hierarchy[node_id]['record'].type,
                     "scope": hierarchy[node_id]['record'].scope,
                     "id": hierarchy[node_id]['record'].id,
                     "description": hierarchy[node_id]['record'].description,
-                    "score": best_score,
+                    "score": best_score,  
                     "bm25_score": best_record.bm25_score,
                     "vector_score": best_record.vector_score,
                     "normalized_bm25_score": best_record.normalized_bm25_score,
@@ -1360,7 +1280,7 @@ class DataRegistry(Registry, ServiceClient):
     def _update_node_score_with_children(self, node_id, hierarchy, params):
         """Update node score by itself and all children (nested) scores"""
         if node_id not in hierarchy:
-            return 0.0, None
+            return float('inf'), None  # invalid / worst score
             
         node_data = hierarchy[node_id]
         record = node_data['record']
@@ -1370,6 +1290,7 @@ class DataRegistry(Registry, ServiceClient):
         
         # Find the best score among all related nodes
         best_score, best_record = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
+
         return best_score, best_record
     
     def _get_all_children_recursive(self, node_id, hierarchy, visited=None):
@@ -1399,7 +1320,7 @@ class DataRegistry(Registry, ServiceClient):
     
     def _find_best_score_among_nodes(self, node_ids, hierarchy, params):
         """Find the best score among a set of nodes"""
-        best_score = 0.0
+        best_score = 1.0
         best_record = None
         
         for node_id in node_ids:
@@ -1411,15 +1332,19 @@ class DataRegistry(Registry, ServiceClient):
             combined_score = (params['bm25_weight'] * normalized_bm25 + 
                             params['vector_weight'] * record.vector_score)
             
-            # Check thresholds
-            if (normalized_bm25 < params['bm25_threshold'] or 
-                record.vector_score < params['vector_threshold'] or 
-                combined_score < params['combined_threshold']):
-                continue
             
-            # Keep the best score
-            if combined_score > best_score:
-                best_score = combined_score
+            # Invert combined score so lower = better
+            inverted_score = 1.0 - combined_score
+
+            # Apply thresholds same as search_records
+            if (normalized_bm25 < params['bm25_threshold'] or
+                record.vector_score < params['vector_threshold'] or
+                inverted_score > (1.0 - params['combined_threshold'])):
+                continue
+
+            # Keep the best (lowest inverted_score) node
+            if best_record is None or inverted_score < best_score:
+                best_score = inverted_score
                 best_record = record
-        
+            
         return best_score, best_record
