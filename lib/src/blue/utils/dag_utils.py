@@ -608,9 +608,13 @@ class Plan(EntityDAG):
         ### inject merge_plan as entity
         merge_plan_entity = self.create_entity(id=merge_plan.get_id(), label=merge_plan.get_label(), type=merge_plan.get_type(), properties=merge_plan.get_properties(), sync=sync)
 
+        # copy over data
+        for key in merge_plan_data:
+            if key not in ["entities", "map", "properties", "id", "label", "type", "nodes"]:
+                merge_plan_entity.set_data(key, merge_plan_data[key])
+
         e = self.get_entity(merge_plan_id)
-        print(e.get_data())
-        print(e.get_type())
+
         ### merge nodes
         merge_plan_nodes = merge_plan.get_nodes()
         for merge_plan_node_id in merge_plan_nodes:
