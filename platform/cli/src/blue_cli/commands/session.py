@@ -13,7 +13,7 @@ import requests
 import tabulate
 from click import Context
 
-from blue_cli.commands.helper import RESERVED_KEYS, bcolors
+from blue_cli.helper import bcolors
 from blue_cli.commands.profile import ProfileManager
 
 import blue_cli.commands.json_utils as json_utils
@@ -78,7 +78,9 @@ class SessionManager:
         cookies = profile.get_selected_profile_cookie()
         base_api_path = profile.get_selected_profile_base_api_path()
         r = requests.post(
-            base_api_path + '/sessions/session/' + session_id + "/agents/" + REGISTRY + "/agent/" + AGENT + ("?input=" + AGENT_INPUT if AGENT_INPUT else ""), data=AGENT_PROPERTIES, cookies=cookies
+            base_api_path + '/sessions/session/' + session_id + "/agents/" + REGISTRY + "/agent/" + AGENT + ("?input=" + AGENT_INPUT if AGENT_INPUT else ""),
+            data=AGENT_PROPERTIES,
+            cookies=cookies,
         )
         rjson = None
         result = {}
