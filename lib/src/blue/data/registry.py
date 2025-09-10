@@ -1119,7 +1119,7 @@ class DataRegistry(Registry):
                 output_dict['schema'] = result.schema
             final_results.append(output_dict)
 
-        # Sort by combined score
+        # Sort by inverted score, lower is better
         final_results.sort(key=lambda x: x['score'])
         
         # Pagination
@@ -1177,7 +1177,7 @@ class DataRegistry(Registry):
         # Group results by parent and collect scores
         hierarchical_results = self._build_hierarchical_results(results, type, params)
         
-        # Sort by combined score
+        # Sort by score, lower is better
         hierarchical_results.sort(key=lambda x: x['score'])
         
         # Pagination
@@ -1280,7 +1280,7 @@ class DataRegistry(Registry):
     def _update_node_score_with_children(self, node_id, hierarchy, params):
         """Update node score by itself and all children (nested) scores"""
         if node_id not in hierarchy:
-            return 0.0, None
+            return float('inf'), None  # invalid / worst score
             
         node_data = hierarchy[node_id]
         record = node_data['record']
