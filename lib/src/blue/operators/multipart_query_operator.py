@@ -70,6 +70,9 @@ class MultipartQueryOperator(Operator):
         # attribute definitions
         self.properties["attributes"] = self.default_attributes
 
+        # refine
+        self.properties["refine"] = True
+
 
 ###########
 ### Helper functions
