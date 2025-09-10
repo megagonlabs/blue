@@ -28,7 +28,8 @@ Status.INITED = Status("INITED")
 Status.REFINED = Status("REFINED")
 Status.EXECUTING = Status("EXECUTING")
 Status.EXECUTED = Status("EXECUTED")
-Status.PLANNED = Status("EXECUTED")
+Status.PLANNED = Status("PLANNED")
+Status.FAILED = Status("FAILED")
 
 
 class NodeType(Constant):
