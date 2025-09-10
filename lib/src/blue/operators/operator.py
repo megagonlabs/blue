@@ -8,8 +8,9 @@ import json
 
 ###### Blue
 from blue.tools.tool import Tool
-from blue.utils import json_utils, tool_utils
+from blue.utils import json_utils, tool_utils, uuid_utils
 from blue.utils.type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
+from blue.data.pipeline import DataPipeline, Status
 
 ###############
 ### Operator
@@ -146,6 +147,9 @@ class Operator(Tool):
 
         # hyperparameter definitions
         self.properties["hyperparameters"] = {}
+
+        # refine
+        self.properties["refine"] = False
 
     def _extract_signature(self):
         super()._extract_signature()
@@ -364,10 +368,95 @@ def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attribu
     """Default refiner for declarative operator, returning plans declaratively specified as operator properties"""
     plans = properties['plans']
 
-    # process plan specification
-    # e.g. generate uuid
+    if plans is None:
+        return []
 
-    return plans
+    # process plan specifications to full pipelines
+    pipelines = []
+
+    for plan in plans:
+        nodes = plan['nodes']
+        mappings = {}
+        pipeline = DataPipeline(properties=properties)
+
+        plan_input_node = None
+        plan_output_node = None
+        # first pass, create nodes/entities
+        for node_label in nodes:
+            node = nodes[node_label]
+            node_type = node['type']
+            node_id = None
+            if node_type == "OPERATOR":
+                operator_name = node['name']
+                operator_attributes = node['attributes'] if 'attributes' in node else {}
+                operator_properties = node['properties'] if 'properties' in node else {}
+                operator_node = pipeline.define_operator(operator_name, attributes=operator_attributes, properties=operator_properties)
+                node_id = operator_node.get_id()
+            elif node_type == "INPUT":
+                input_label = node_label
+                input_value = node['value'] if 'value' in node else None
+                input_properties = node['properties'] if 'properties' in node else {}
+                input_node = pipeline.define_input(label=input_label, value=input_value, properties=input_properties)
+                node_id = input_node.get_id()
+                # if no value specified, designate as plan input node
+                if input_value is None:
+                    plan_input_node = input_node
+                    plan_input_node.set_data("value", input_data)
+                else:
+                    input_node.set_data("status", str(Status.EXECUTED))
+            elif node_type == "OUTPUT":
+                output_label = node_label
+                output_value = node['value'] if 'value' in node else None
+                output_properties = node['properties'] if 'properties' in node else {}
+                output_node = pipeline.define_output(label=output_label, value=output_value, properties=output_properties)
+                node_id = output_node.get_id()
+                # any output is plan output
+                plan_output_node = output_node
+            # mappings
+            mappings[node_label] = node_id
+            mappings[node_id] = node_label
+
+        # create plan input and output nodes, if missing
+        if plan_input_node is None:
+            plan_input_node = pipeline.define_input(value=input_data, properties=properties)
+            # always set input status to executed
+            plan_input_node.set_data("status", str(Status.EXECUTED))
+        if plan_output_node is None:
+            plan_output_node = pipeline.define_output(properties=properties)
+        # second pass, connect
+        for node_label in nodes:
+            node = nodes[node_label]
+            node_id = mappings[node_label]
+            # prev
+            node_prev = node['prev'] if 'prev' in node else []
+            for prev_label in node_prev:
+                to_id = node_id
+                prev_id = mappings[prev_label]
+                pipeline.connect_nodes(from_id, to_id)
+            # next
+            node_next = node['next'] if 'next' in node else []
+            for next_label in node_next:
+                from_id = node_id
+                to_id = mappings[next_label]
+                pipeline.connect_nodes(from_id, to_id)
+
+        # third pass, operators with no prev, connect to input; no next, connect to output
+        operators = pipeline.filter_nodes(filter_node_type=["OPERATOR"])
+        for operator_id in operators:
+            prev_nodes = pipeline.get_prev_nodes(operator_id)
+            next_nodes = pipeline.get_next_nodes(operator_id)
+            operator_node = pipeline.get_node(operator_id)
+            if len(prev_nodes) == 0:
+                # connect to input
+                pipeline.connect_nodes(plan_input_node, operator_node)
+            if len(next_nodes) == 0:
+                # connect to output
+                pipeline.connect_nodes(operator_node, plan_output_node)
+
+        # add to pipelines
+        pipelines.append(pipeline.to_dict())
+
+    return pipelines
 
 
 def declarative_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -408,3 +497,9 @@ class DeclarativeOperator(Operator):
             explainer=declarative_operator_explainer,
             refiner=declarative_operator_refiner,
         )
+
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # refine
+        self.properties["refine"] = True
