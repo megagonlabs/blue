@@ -61,6 +61,7 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
                 display: "inline-block",
                 boxSizing: "border-box",
                 borderColor: selectedNodes.has(id) ? "transparent" : null,
+                borderRadius: 5,
             }}
         >
             {_.isEqual(clickedNode?.id, id) &&

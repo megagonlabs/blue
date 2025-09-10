@@ -253,6 +253,7 @@ export default function NewEntity({
                         columnGap: 40,
                         rowGap: 20,
                         flexWrap: "wrap",
+                        paddingRight: 126.24,
                     }}
                 >
                     <MainPropertyBlock loading={loading} label="Name">
