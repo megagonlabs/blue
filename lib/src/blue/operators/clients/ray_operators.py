@@ -40,7 +40,20 @@ multipart_query_operator = MultipartQueryOperator()
 operators_dict[multipart_query_operator.name] = multipart_query_operator
 
 
-question_answer_operator = DeclarativeOperator(properties={"name": "question_answer", "description": "answer questions", "plans": [{}]})
+question_answer_operator = DeclarativeOperator(
+    properties={
+        "name": "question_answer",
+        "description": "answer questions",
+        "plans": [
+            {
+                "nodes": {
+                    "BD": {"type": "OPERATOR", "name": "/server/blue_ray/operator/query_breakdown", "next": ["MQ"]},
+                    "MQ": {"type": "OPERATOR", "name": "/server/blue_ray/operator/multipart_query"},
+                }
+            }
+        ],
+    }
+)
 operators_dict[question_answer_operator.name] = question_answer_operator
 
 ## RELATIONAL OPERATORS
