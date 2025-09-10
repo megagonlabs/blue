@@ -228,6 +228,12 @@ class Registry:
         if 'name' not in record:
             return
 
+        if 'type' not in record:
+            return
+
+        if 'scope' not in record:
+            return
+
         name = record['name']
         type = record['type']
         scope = record['scope']
