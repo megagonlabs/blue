@@ -1091,8 +1091,13 @@ class DataRegistry(Registry):
             combined_score = (params['bm25_weight'] * normalized_bm25 + 
                             params['vector_weight'] * result.vector_score)
 
-            if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or combined_score < params['combined_threshold']:
-                    continue
+            # Invert combined score so lower = better
+            inverted_score = 1.0 - combined_score
+            
+            # Apply thresholds on inverted score for consumer consistency
+            if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+                continue
+
             
             # Attach final scores to result object
             result.normalized_bm25 = normalized_bm25
@@ -1105,7 +1110,7 @@ class DataRegistry(Registry):
                 "type": result.type,
                 "scope": result.scope,
                 "id": result.id,
-                "score": combined_score,
+                "score": inverted_score, ## this is for consumers,
                 "bm25_score": result.bm25_score,
                 "vector_score": result.vector_score,
                 "normalized_bm25_score": normalized_bm25,
@@ -1115,7 +1120,7 @@ class DataRegistry(Registry):
             final_results.append(output_dict)
 
         # Sort by combined score
-        final_results.sort(key=lambda x: x['score'], reverse=True)
+        final_results.sort(key=lambda x: x['score'])
         
         # Pagination
         page_results = final_results[page * page_size : (page + 1) * page_size]
@@ -1173,7 +1178,7 @@ class DataRegistry(Registry):
         hierarchical_results = self._build_hierarchical_results(results, type, params)
         
         # Sort by combined score
-        hierarchical_results.sort(key=lambda x: x['score'], reverse=True)
+        hierarchical_results.sort(key=lambda x: x['score'])
         
         # Pagination
         page_results = hierarchical_results[page * page_size : (page + 1) * page_size]
@@ -1196,13 +1201,14 @@ class DataRegistry(Registry):
         for node_id in target_nodes:
             best_score, best_record = self._update_node_score_with_children(node_id, hierarchy, params)
             if best_record is not None:
+                
                 hierarchical_results.append({
                     "name": hierarchy[node_id]['record'].name,
                     "type": hierarchy[node_id]['record'].type,
                     "scope": hierarchy[node_id]['record'].scope,
                     "id": hierarchy[node_id]['record'].id,
                     "description": hierarchy[node_id]['record'].description,
-                    "score": best_score,
+                    "score": best_score,  
                     "bm25_score": best_record.bm25_score,
                     "vector_score": best_record.vector_score,
                     "normalized_bm25_score": best_record.normalized_bm25_score,
@@ -1284,6 +1290,7 @@ class DataRegistry(Registry):
         
         # Find the best score among all related nodes
         best_score, best_record = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
+
         return best_score, best_record
     
     def _get_all_children_recursive(self, node_id, hierarchy, visited=None):
@@ -1313,7 +1320,7 @@ class DataRegistry(Registry):
     
     def _find_best_score_among_nodes(self, node_ids, hierarchy, params):
         """Find the best score among a set of nodes"""
-        best_score = 0.0
+        best_score = 1.0
         best_record = None
         
         for node_id in node_ids:
@@ -1325,15 +1332,19 @@ class DataRegistry(Registry):
             combined_score = (params['bm25_weight'] * normalized_bm25 + 
                             params['vector_weight'] * record.vector_score)
             
-            # Check thresholds
-            if (normalized_bm25 < params['bm25_threshold'] or 
-                record.vector_score < params['vector_threshold'] or 
-                combined_score < params['combined_threshold']):
-                continue
             
-            # Keep the best score
-            if combined_score > best_score:
-                best_score = combined_score
+            # Invert combined score so lower = better
+            inverted_score = 1.0 - combined_score
+
+            # Apply thresholds same as search_records
+            if (normalized_bm25 < params['bm25_threshold'] or
+                record.vector_score < params['vector_threshold'] or
+                inverted_score > (1.0 - params['combined_threshold'])):
+                continue
+
+            # Keep the best (lowest inverted_score) node
+            if best_record is None or inverted_score < best_score:
+                best_score = inverted_score
                 best_record = record
-        
+            
         return best_score, best_record
