@@ -280,8 +280,8 @@ class Registry:
         if scope[len(scope) - 1] == '/':
             scope = scope[:-1]
 
-        return doc_prefix + ':' + type + ":" + scope + "/" + name
-
+        return doc_prefix + ':' + self._encode(type) + ":" + self._encode(scope) + "/" + self._encode(name)
+       
     def _delete_index_record(self, record, pipe=None):
         name = record['name']
         type = record['type']
@@ -521,7 +521,7 @@ class Registry:
     def _get_record_path(self, name, type, scope):
         sp = self._get_scope_path(scope)
 
-        rp = sp + type + "." + name
+        rp = sp + self._encode(type) + "." + self._encode(name)
         return rp
 
     def _get_scope_path(self, scope, type=None, recursive=False):
@@ -539,10 +539,10 @@ class Registry:
             if i % 2 == 0:
                 p = p + "contents" + "."
             if len(si) > 0:
-                p = p + si + "."
-
+                p = p + self._encode(si) + "."
+                
         if type:
-            p = p + type + "."
+            p = p + self._encode(type) + "."
 
         if recursive:
             p = p + "."
@@ -558,7 +558,9 @@ class Registry:
         else:
             record = record[0]
 
-        decoded_record = self._decode_nested(record)
+        # decode keys only
+        decoded_record = self._decode_dict(record)
+
 
         return self.__get_json_value(decoded_record)
 
@@ -566,15 +568,27 @@ class Registry:
         p = self._get_record_path(name, type, scope)
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
 
-        decoded_value = self._decode_nested(value) if value is not None else value
-
+        decoded_value = self._decode_dict(value) if value is not None else value
+        
         return self.__get_json_value(decoded_value, single=single)
 
+    def _is_jsonpath_expr(self, key: str) -> bool:
+        # treat bracket notation, wildcard, or explicit dot path as expressions -> do not encode whole key
+        if not isinstance(key, str):
+            return False
+        return ("[" in key) or ("*" in key) or ("." in key)
+    
     def set_record_data(self, name, type, scope, key, value, rebuild=False):
         p = self._get_record_path(name, type, scope)
         encoded_value = self._encode_dict(value)
-        self._set_json(self._get_data_namespace(), p + '.' + key, encoded_value)
 
+        if isinstance(key, str) and self._is_jsonpath_expr(key):
+            path_key = key
+        else:
+            path_key = self._encode(key)
+        
+        self._set_json(self._get_data_namespace(), p + '.' + path_key, encoded_value)
+        
         # rebuild now
         if rebuild:
             record = self.get_record(name, type, scope)
@@ -599,15 +613,18 @@ class Registry:
         return self.get_record_data(name, type, scope, 'properties')
 
     def get_record_property(self, name, type, scope, key):
-        escaped_key = '["' + key + '"]'
+        encoded_key = self._encode(key)
+        escaped_key = '["' + encoded_key + '"]'
         return self.get_record_data(name, type, scope, 'properties' + '.' + escaped_key)
 
     def set_record_property(self, name, type, scope, key, value, rebuild=False):
-        escaped_key = '["' + key + '"]'
+        encoded_key = self._encode(key)
+        escaped_key = '["' + encoded_key + '"]'
         self.set_record_data(name, type, scope, 'properties' + '.' + escaped_key, value, rebuild=rebuild)
 
     def delete_record_property(self, name, type, scope, key, rebuild=False):
-        escaped_key = '["' + key + '"]'
+        encoded_key = self._encode(key)
+        escaped_key = '["' + encoded_key + '"]'
         self.delete_record_data(name, type, scope, 'properties' + '.' + escaped_key, rebuild=rebuild)
 
     def get_record_contents(self, name, type, scope):
@@ -673,8 +690,8 @@ class Registry:
         records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 
         if records:
-            return [self._decode_nested(r) for r in records]  # decode here
-
+            return [self._decode_dict(r) for r in records]
+            
         return []
 
     def filter_records_by_properties(self, type=None, scope="/", properties=None, recursive=False, partial_match=False):
@@ -763,45 +780,20 @@ class Registry:
             s = s.replace(v, k)
         return s
 
-    def _encode_value(self, s):
-        if isinstance(s, str):
-            for k, v in self.encodings.items():
-                s = s.replace(k, v)
-        return s
-
-    def _decode_value(self, s):
-        if isinstance(s, str):
-            for k, v in self.encodings.items():
-                s = s.replace(v, k)
-        return s
-
     def _encode_dict(self, obj):
-        """Recursively encode only values (not keys)."""
+        """Recursively encode dict keys only (values unchanged)."""
         if isinstance(obj, dict):
-            return {k: self._encode_dict(v) for k, v in obj.items()}
+            return {self._encode(k): self._encode_dict(v) for k, v in obj.items()}
         elif isinstance(obj, list):
             return [self._encode_dict(v) for v in obj]
         else:
-            return self._encode_value(obj)
+            return obj   # leave values untouched
 
     def _decode_dict(self, obj):
-        """Recursively decode only values (not keys)."""
+        """Recursively decode dict keys only (values unchanged)."""
         if isinstance(obj, dict):
-            return {k: self._decode_dict(v) for k, v in obj.items()}
+            return {self._decode(k): self._decode_dict(v) for k, v in obj.items()}
         elif isinstance(obj, list):
             return [self._decode_dict(v) for v in obj]
         else:
-            return self._decode_value(obj)
-
-    def _decode_nested(self, obj):
-        """Recursively decode all string values in a nested dict/list structure."""
-        if isinstance(obj, dict):
-            return {k: self._decode_nested(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [self._decode_nested(v) for v in obj]
-        elif isinstance(obj, str):
-            for k, v in self.encodings.items():
-                obj = obj.replace(v, k)
-            return obj
-        else:
-            return obj
+            return obj   # leave values untouched
