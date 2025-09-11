@@ -35,6 +35,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
         # input
         input_node = pipeline.define_input(value=[[]], properties=properties)
+        input_node.set_data("status", str(Status.EXECUTED))
         # output
         output_node = pipeline.define_output(properties=properties)
         # cte start/end nodes
