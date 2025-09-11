@@ -16,9 +16,9 @@ import {
 } from "@blueprintjs/core";
 import {
     faArrowRightFromBracket,
-    faBarcode,
     faBrowsers,
     faSlidersSimple,
+    faSquareBinary,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
@@ -46,12 +46,12 @@ export default function AccountPanel({ isExpanded }) {
         () => (
             <Menu size={Size.LARGE} onClick={handleClose}>
                 <MenuItem
-                    icon={<FAIcon icon={faBarcode} />}
+                    icon={<FAIcon icon={faSquareBinary} />}
                     labelElement={<FAIcon icon={faBrowsers} />}
                     text="Stats. for nerds"
                     onClick={() => {
                         addContainer({
-                            icon: faBarcode,
+                            icon: faSquareBinary,
                             title: "Stats. for nerds",
                             content: <NerdStatsContainer />,
                             uniqueId: "NerdStatsContainer",

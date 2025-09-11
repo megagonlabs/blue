@@ -414,7 +414,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                     id="debugger_stream_flows_nodes"
                                     content={
                                         <div>
-                                            Clicking a node selects it,
+                                            Clicking on a node selects it,
                                             highlights its immediate neighbors,
                                             and illuminates all edges directly
                                             connected to it.

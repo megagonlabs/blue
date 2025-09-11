@@ -7,7 +7,7 @@ import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
     type: "Group",
     label: "",
-    props: { compact: false },
+    props: { style: {} },
     elements: [],
 };
 export default function GroupDoc() {
