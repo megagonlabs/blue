@@ -49,3 +49,15 @@ class RayOperatorClient(RayToolClient, OperatorClient):
             return result
         else:
             return []
+
+    def get_operator_attributes(self, operator):
+        if operator is None:
+            raise Exception("No operator matching...")
+
+        attributes = {}
+
+        if operator in self.tools:
+            operator_obj = self.tools[operator]
+            attributes = operator_obj.get_attributes()
+
+        return attributes
