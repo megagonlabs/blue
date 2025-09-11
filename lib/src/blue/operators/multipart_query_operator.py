@@ -34,10 +34,10 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         ## build plan
 
         # input
-        input_node = pipeline.define_input(value=[[]], properties=properties)
+        input_node = pipeline.define_input(value=[[]], properties={})
         input_node.set_data("status", str(Status.EXECUTED))
         # output
-        output_node = pipeline.define_output(properties=properties)
+        output_node = pipeline.define_output(properties={})
         # cte start/end nodes
         cte_start_nodes = {}
         cte_end_nodes = {}
@@ -63,7 +63,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
             # data discover
             data_discovery_attributes = {"search_query": description}
-            start_node = data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties=properties)
+            start_node = data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
 
             # nl2q
             # create table
