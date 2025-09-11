@@ -32,10 +32,17 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         failed = False
 
         ## build plan
+
         # input
         input_node = pipeline.define_input(value=[[]], properties=properties)
         # output
         output_node = pipeline.define_output(properties=properties)
+        # cte start/end nodes
+        cte_start_nodes = {}
+        cte_end_nodes = {}
+        # dependents
+        dependents = set()
+
         for cte in ctes:
             name = cte['name'] if 'name' in cte else None
             description = cte['description'] if 'description' in cte else None
@@ -49,20 +56,66 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
                 failed = True
                 break
 
+            ## build pipeline
+            # start
+            start_node = None
+
             # data discover
             data_discovery_attributes = {"search_query": description}
-            data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties=properties)
+            start_node = data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties=properties)
 
             # nl2q
             # create table
             # insert table
 
-            ## connections
-            pipeline.connect_nodes(input_node, data_discovery_node)
-            pipeline.connect_nodes(data_discovery_node, output_node)
+            end_node = None
+            end_node = data_discovery_node  # modify this
+
+            ## set cte start / end nodes
+            dependents.add(name)
+            cte_start_nodes[name] = start_node
+            cte_end_nodes[name] = end_node
+
+            ## intra-cte connections
+            #
+
+            # remove any dependency
+            for d in dependency:
+                dependents.remove(d)
 
         if failed:
             continue
+
+        for cte in ctes:
+            name = cte['name'] if 'name' in cte else None
+            description = cte['description'] if 'description' in cte else None
+            sql = cte['sql'] if 'sql' in cte else None
+            table = cte['table'] if 'table' in cte else None
+            columns = cte['columns'] if 'columns' in cte else None
+            dependency = cte['dependency'] if 'dependency' in cte else None
+
+            ## inter-cte connections
+            start_node = cte_start_nodes[name]
+            end_node = cte_end_nodes[name]
+
+            # if no dependency, connect from input node to start
+            if len(dependency) == 0:
+                pipeline.connect_nodes(input_node, start_node)
+            else:
+                # connect from sink node of dependency if exists
+                for d in dependency:
+                    if d in cte_end_nodes:
+                        cte_end_node = cte_end_nodes[d]
+                        pipeline.connect_nodes(cte_end_node, start_node)
+                    else:
+                        # dependency not found!
+                        failed = True
+                        break
+
+            # if nobody depends on this connect end node to output node
+            for d in dependents:
+                cte_end_node = cte_end_nodes[d]
+                pipeline.connect_nodes(cte_end_node, output_node)
 
         # add to pipelines
         pipelines.append(pipeline.to_dict())
