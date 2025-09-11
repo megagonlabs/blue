@@ -88,6 +88,10 @@ class DataPlanner:
         for operator_id in operator_queue:
             operator_node = p.get_node(operator_id)
             operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+            if operator_entity is None:
+                print("No operator entity found for node:")
+                print(json.dumps(operator_node.get_data()))
+                continue
             operator_name = operator_entity.get_data("name")
             queue_contents.append(operator_name)
         print("[" + "|".join(queue_contents) + "]")
