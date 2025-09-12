@@ -1014,10 +1014,10 @@ class DataRegistry(Registry):
         # Handle scope (wildcard vs exact match)
         if scope:
             if "*" in scope:
-                # Wildcard / prefix search → no quotes
+                # Wildcard / prefix search -> no quotes
                 qs = f"(@scope:{scope}) " + qs
             else:
-                # Exact match → keep quotes
+                # Exact match -> keep quotes
                 qs = f'(@scope:"{scope}") ' + qs
         
         
