@@ -72,9 +72,12 @@ class Base:
         else:
             return None
 
-    def append_data(self, key, value, sync=None):
+    def append_data(self, key, value, unique=False, sync=None):
         l = self.get_data(key)
         if isinstance(l, list):
+            if unique:
+                if value in l:
+                    return
             l.append(value)
 
             # sync
@@ -198,12 +201,12 @@ class Node(Base):
         self.set_data("next", [], sync=sync)
 
     def _add_next(self, t_id, sync=None):
-        self.append_data("next", t_id)
+        self.append_data("next", t_id, unique=True)
 
         self.synchronize(key="next", single=False, sync=sync)
 
     def _add_prev(self, f_id, sync=None):
-        self.append_data("prev", f_id)
+        self.append_data("prev", f_id, unique=True)
 
         self.synchronize(key="prev", single=False, sync=sync)
 

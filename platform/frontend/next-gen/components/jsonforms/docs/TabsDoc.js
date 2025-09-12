@@ -61,7 +61,7 @@ export default function TabsDoc() {
                 />
             </div>
             <Callout intent={Intent.SUCCESS} icon={null}>
-                For clearer visual separation, it is recommended to use{" "}
+                For better visual separation, it is recommended to use&nbsp;
                 <Code>Group</Code> &#40;without label&#41; for each tab&apos;s
                 contents.
             </Callout>

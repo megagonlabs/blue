@@ -48,6 +48,7 @@ class EntityType(Constant):
 
 
 EntityType.OPERATOR = EntityType("OPERATOR")
+EntityType.DATA_PIPELINE = EntityType("DATA_PIPELINE")
 
 
 ###############

@@ -126,3 +126,10 @@ class OperatorRegistry(ToolRegistry):
             return connection.refine_operator(operator, args, kwargs)
         else:
             return []
+
+    def get_operator_attributes(self, operator, server):
+        connection = self.connect_server(server)
+        if connection:
+            return connection.get_operator_attributes(operator)
+        else:
+            return []

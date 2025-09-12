@@ -42,3 +42,5 @@ class OperatorClient(ToolClient):
     def refine_operator(self, operator, args=None, kwargs=None):
         return []
 
+    def get_operator_attributes(self, operator):
+        return {}

@@ -1,6 +1,6 @@
 ###### Parsers, Formats, Utils
 import logging
-import uuid
+import uuid, json
 
 ###### Blue
 from blue.connection import PooledConnectionFactory
@@ -88,16 +88,69 @@ class DataPlanner:
         for operator_id in operator_queue:
             operator_node = p.get_node(operator_id)
             operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+            if operator_entity is None:
+                print("No operator entity found for node:")
+                print(json.dumps(operator_node.get_data()))
+                continue
             operator_name = operator_entity.get_data("name")
             queue_contents.append(operator_name)
         print("[" + "|".join(queue_contents) + "]")
+
+    def propogate_error(self, p, n):
+        # set status as  failed
+        n.set_data("status", str(Status.FAILED))
+
+        # propogate status to next nodes
+        next_nodes = p.get_next_nodes(n)
+
+        for next_node in next_nodes:
+            self.propogate_error(p, next_node)
+
+        # go up
+        if len(next_nodes) == 0:
+            pipeline_entity = p.get_node_entity(n, str(EntityType.DATA_PIPELINE))
+            if pipeline_entity is None:
+                return
+            # check if has parent operator
+            operator_entity_id = pipeline_entity.get_data("parent")
+            if operator_entity_id is None:
+                return
+            operator_entity = p.get_entity(operator_entity_id)
+            if operator_entity is None:
+                return
+
+            # check pipelines
+            pipelines = operator_entity.get_data("pipelines")
+            if pipelines is None:
+                return
+            if len(pipelines) > 1:
+                return
+
+            # single valid pipeline failed, so parent node should also fail
+            operator_nodes = p.get_nodes_by_entity(operator_entity)
+            for operator_node in operator_nodes:
+                self.propogate_error(p, operator_node)
+
+    def extract_attributes(self, input_data, operator_name, operator_server, operator_attributes):
+        print("extracting attributes...")
+        print("operator name:" + operator_name)
+        print("operator server: " + operator_server)
+        print("operator attributes: " + json.dumps(operator_attributes))
+        print("input:" + json.dumps(input_data))
+
+        # TODO: use registry get_operator_attributes to collect and use metadata for extraction
+
+        if operator_name == "query_breakdown":
+            operator_attributes['query'] = input_data[0][0]['data']
+
+        print("operator attributes: " + json.dumps(operator_attributes))
+        return operator_attributes
 
     def refine(self, p):
 
         operators_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
         operator_queue = list(operators_dict.keys())
 
-        
         while len(operator_queue) > 0:
             self.print_operator_queue(p, operator_queue)
             print("operator_queue count:" + str(len(operator_queue)))
@@ -146,7 +199,7 @@ class DataPlanner:
                 if 'refine' in operator_properties and operator_properties['refine']:
                     refine = True
 
-                # no need 
+                # no need
                 if not planned and not refine:
                     continue
 
@@ -176,6 +229,9 @@ class DataPlanner:
                 # failed
                 if failed:
                     operator_node.set_data("status", str(Status.FAILED))
+                    # propogage error
+                    self.propogate_error(p, operator_node)
+
                     continue
 
                 # cannot execute or refine, if not ready
@@ -194,8 +250,8 @@ class DataPlanner:
 
                     input_data += prev_node_value
 
-                # TODO: map attributes
-                # TODO: map properties
+                # map attributes
+                operator_attribues = self.extract_attributes(input_data, operator_name, operator_server, operator_attribues)
 
                 kwargs = {"input_data": input_data, "attributes": operator_attribues, "properties": operator_properties}
                 print(kwargs)
@@ -248,6 +304,8 @@ class DataPlanner:
 
                     if output is None:
                         operator_node.set_data("status", str(Status.FAILED))
+                        # propogage error
+                        self.propogate_error(p, operator_node)
                     else:
                         # update status as executed
                         operator_node.set_data("status", str(Status.EXECUTED))
