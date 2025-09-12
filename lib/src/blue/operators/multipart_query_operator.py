@@ -44,6 +44,11 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         # dependents
         dependents = set()
 
+        # create database
+        db_name = "db_" + pipeline.get_id()
+        # create_database_attributes = {"source": "internal", "database": db_name, "columns": columns}
+        # create_database_node = pipeline.define_operator("/server/blue_ray/operator/create_database", attributes=create_database_attributes, properties={})
+
         for cte in ctes:
             name = cte['name'] if 'name' in cte else None
             description = cte['description'] if 'description' in cte else None
@@ -63,14 +68,22 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
             # data discover
             data_discovery_attributes = {"search_query": description}
-            start_node = data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
+            data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
+
+            # create table
+            # create_table_attributes = {"source": "internal", "database": db_name, "table": table, "columns": columns}
+            # create_table_node = pipeline.define_operator("/server/blue_ray/operator/create_table", attributes=create_table_attributes, properties={})
 
             # nl2q
-            # create table
-            # insert table
+            nl2query_router_attributes = {"search_query": description, "execute_query": True, "columns": columns}
+            nnl2query_router_node = pipeline.define_operator("/server/blue_ray/operator/nl2query_router", attributes=nl2query_router_attributes, properties={})
 
-            end_node = None
-            end_node = data_discovery_node  # modify this
+            # # insert table
+            # insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
+            # it_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
+
+            start_node = data_discovery_node
+            end_node = nnl2query_router_node  # TODO: modify this
 
             ## set cte start / end nodes
             dependents.add(name)
@@ -78,7 +91,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             cte_end_nodes[name] = end_node
 
             ## intra-cte connections
-            #
+            pipeline.connect_nodes(data_discovery_node, nnl2query_router_node)
 
             # remove any dependency
             for d in dependency:
@@ -150,7 +163,7 @@ class MultipartQueryOperator(Operator):
     }
 
     name = "multipart_query"
-    description = "Orchestrates the execution of multi-part query, starting with data discovery, and exectution"
+    description = "Orchestrates the execution of multi-part query, starting with data discovery, leading to execution"
     default_attributes = {}
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
