@@ -1010,9 +1010,17 @@ class DataRegistry(Registry):
 
         # Build type and scope constraints
         qs = ""
-        if scope:
-            qs = "(@scope: \"" + scope + "\" )" + " " + qs
 
+        # Handle scope (wildcard vs exact match)
+        if scope:
+            if "*" in scope:
+                # Wildcard / prefix search → no quotes
+                qs = f"(@scope:{scope}) " + qs
+            else:
+                # Exact match → keep quotes
+                qs = f'(@scope:"{scope}") ' + qs
+        
+        
         if search_types:
             # For hierarchical search with multiple types
             # Use Redis Search OR syntax without extra parentheses
