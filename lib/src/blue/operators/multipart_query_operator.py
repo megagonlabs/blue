@@ -171,7 +171,7 @@ class MultipartQueryOperator(Operator):
             self.name,
             function=multipart_query_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=default_attributes_validator,
             explainer=multipart_query_operator_explainer,
             refiner=multipart_query_operator_refiner,

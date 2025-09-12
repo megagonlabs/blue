@@ -193,7 +193,7 @@ class OperatorDiscoverOperator(Operator):
             self.name,
             function=operator_discover_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=operator_discover_operator_validator,
             explainer=operator_discover_operator_explainer,
         )

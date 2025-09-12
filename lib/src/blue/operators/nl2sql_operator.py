@@ -186,7 +186,7 @@ Output:
             self.name,
             function=nl2sql_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=nl2sql_operator_validator,
             explainer=nl2sql_operator_explainer,
         )
@@ -361,6 +361,7 @@ def _fetch_mysql_schema(database: str, collection: str, connection_attributes: D
     finally:
         cursor.close()
         conn.close()
+
 
 if __name__ == "__main__":
     ## calling example with data registry integration

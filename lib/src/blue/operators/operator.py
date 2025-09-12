@@ -100,6 +100,8 @@ class Operator(Tool):
     Output data for operators: same as input data, always returns a list of JSON array of records. If there is only one data returned, it will return a list with one element (data).
     """
 
+    PROPERTIES = {}
+
     def __init__(
         self,
         name: str,
@@ -149,6 +151,10 @@ class Operator(Tool):
 
         # refine
         self.properties["refine"] = False
+
+        # process default PROPERTIES
+        for property in self.PROPERTIES:
+            self.properties[property] = self.PROPERTIES[property]
 
     def _extract_signature(self):
         super()._extract_signature()
@@ -491,7 +497,7 @@ class DeclarativeOperator(Operator):
             properties['name'] if 'name' in properties else self.name,
             function=declarative_operator_function,
             description=properties['description'] if 'description' in properties else self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=declarative_operator_validator,
             explainer=declarative_operator_explainer,
             refiner=declarative_operator_refiner,

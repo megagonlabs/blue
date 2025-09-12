@@ -68,7 +68,7 @@ class UnionOperator(Operator):
             self.name,
             function=union_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=union_operator_validator,
             explainer=union_operator_explainer,
         )

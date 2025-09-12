@@ -105,7 +105,7 @@ class NL2QueryRouterOperator(Operator):
             self.name,
             function=nl2query_router_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=default_attributes_validator,
             explainer=nl2query_router_operator_explainer,
             refiner=nl2query_router_operator_refiner,

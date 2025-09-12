@@ -66,7 +66,7 @@ class IntersectOperator(Operator):
             self.name,
             function=intersect_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=intersect_operator_validator,
             explainer=intersect_operator_explainer,
         )

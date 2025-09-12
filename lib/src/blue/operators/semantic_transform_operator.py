@@ -18,35 +18,35 @@ def semantic_transform_operator_function(input_data: List[List[Dict[str, Any]]],
         return []
 
     service_client = ServiceClient(name="semantic_transform_operator_service_client", properties=properties)
-    
+
     results = []
     for data_group in input_data:
         if not data_group:
             results.append([])
             continue
-        
+
         # Generate transformation plan and merge into output_desc
         enhanced_output_desc = _generate_transformation_plan(data_group, input_meta, output_desc, service_client, properties)
         print(f"Enhanced output desc: {enhanced_output_desc}")
-        
+
         # Select transformation execution strategy
         specified_strategy = attributes.get('strategy', 'auto')
         if specified_strategy == 'auto':
             strategy_info = _select_execution_strategy(enhanced_output_desc, data_group)
         else:
             strategy_info = _force_strategy(enhanced_output_desc, data_group, specified_strategy)
-        
+
         print(f"Strategy info: {strategy_info}")
-        
+
         # Execute transformation based on strategy
         strategy = strategy_info["strategy"]
         simple_fields = strategy_info["simple_fields"]
         complex_fields = strategy_info["complex_fields"]
-        
+
         print(f"Selected strategy: {strategy}")
         print(f"Simple fields: {simple_fields}")
         print(f"Complex fields: {complex_fields}")
-        
+
         if strategy == "simple_rename":
             result = _execute_simple_rename(data_group, enhanced_output_desc, simple_fields)
         elif strategy == "per_record":
@@ -57,9 +57,9 @@ def semantic_transform_operator_function(input_data: List[List[Dict[str, Any]]],
             result = _execute_distinct_required_values_with_merged_fields(data_group, enhanced_output_desc, simple_fields, complex_fields, strategy_info, service_client, properties)
         else:  # fallback to per_record
             result = _execute_per_record(data_group, enhanced_output_desc, simple_fields, complex_fields, service_client, properties)
-        
+
         results.append(result)
-    
+
     return results
 
 
@@ -74,7 +74,7 @@ def semantic_transform_operator_validator(input_data: List[List[Dict[str, Any]]]
     output_desc = attributes.get('output_desc', {})
     if not output_desc or not isinstance(output_desc, dict):
         return False
-    
+
     for field_name, field_info in output_desc.items():
         if not isinstance(field_name, str) or not isinstance(field_info, dict):
             return False
@@ -105,17 +105,19 @@ def _extract_typed_schema(data_group: List[Dict[str, Any]]) -> str:
     for record in data_group:
         for key, value in record.items():
             schema.setdefault(key, set()).add(type_mapping.get(type(value), "unknown"))
-    
+
     # Format schema for display
     schema_display = []
     for column_name, data_types in schema.items():
         data_type_str = "|".join(sorted(data_types))
         schema_display.append(f"- {column_name} ({data_type_str})")
-    
+
     return "Available input fields:\n" + "\n".join(schema_display)
 
 
-def _generate_transformation_plan(data_group: List[Dict[str, Any]], input_meta: Dict[str, Dict[str, Any]], output_desc: Dict[str, Dict[str, Any]], service_client: ServiceClient, properties: Dict[str, Any]) -> Dict[str, Any]:
+def _generate_transformation_plan(
+    data_group: List[Dict[str, Any]], input_meta: Dict[str, Dict[str, Any]], output_desc: Dict[str, Dict[str, Any]], service_client: ServiceClient, properties: Dict[str, Any]
+) -> Dict[str, Any]:
     """Generate transformation plan using LLM and merge into output_desc."""
     # Generate schema from input_meta or auto-generate from data
     if input_meta:
@@ -131,7 +133,7 @@ def _generate_transformation_plan(data_group: List[Dict[str, Any]], input_meta: 
                 schema_text += f"- {field}\n"
     else:
         schema_text = _extract_typed_schema(data_group)
-    
+
     # Format input metadata for the prompt
     input_metadata_text = ""
     if input_meta:
@@ -143,7 +145,7 @@ def _generate_transformation_plan(data_group: List[Dict[str, Any]], input_meta: 
             if 'hints' in meta_info:
                 input_metadata_text += f" (hints: {meta_info['hints']})"
             input_metadata_text += "\n"
-    
+
     # Build output requirements
     output_text = "Required output fields:\n"
     for field_name, field_info in output_desc.items():
@@ -159,7 +161,7 @@ def _generate_transformation_plan(data_group: List[Dict[str, Any]], input_meta: 
         if hints:
             output_text += f" (hints: {hints})"
         output_text += "\n"
-    
+
     # Prepare sample data (first 5 records)
     sample_data_text = ""
     if data_group:
@@ -167,20 +169,15 @@ def _generate_transformation_plan(data_group: List[Dict[str, Any]], input_meta: 
         sample_data_text = "Sample data records:\n"
         for i, record in enumerate(sample_records):
             sample_data_text += f"Record {i+1}: {record}\n"
-    
-    additional_data = {
-        'schema': schema_text,
-        'input_metadata': input_metadata_text,
-        'sample_data': sample_data_text,
-        'output_requirements': output_text
-    }
-    
+
+    additional_data = {'schema': schema_text, 'input_metadata': input_metadata_text, 'sample_data': sample_data_text, 'output_requirements': output_text}
+
     # Use plan-specific properties for plan generation
     plan_properties = properties.copy() if properties else {}
     plan_properties['input_template'] = SemanticTransformOperator.PLAN_RESOLUTION_PROMPT
-    
+
     result = service_client.execute_api_call({}, properties=plan_properties, additional_data=additional_data)
-    
+
     # Parse the plan result
     plan = {}
     if isinstance(result, dict):
@@ -189,16 +186,17 @@ def _generate_transformation_plan(data_group: List[Dict[str, Any]], input_meta: 
         try:
             if isinstance(result, str):
                 import json
+
                 plan = json.loads(result)
         except Exception:
             pass
-    
+
     # Merge plan into output_desc
     enhanced_output_desc = output_desc.copy()
     for target_field, plan_info in plan.items():
         if target_field in enhanced_output_desc:
             enhanced_output_desc[target_field].update(plan_info)
-    
+
     return enhanced_output_desc
 
 
@@ -206,65 +204,59 @@ def _select_execution_strategy(enhanced_output_desc: Dict[str, Any], data_group:
     """Strategy selection with three optimization approaches."""
     if not enhanced_output_desc:
         return {"strategy": "per_record", "simple_fields": [], "complex_fields": []}
-    
+
     # Separate simple renames from complex transformations
     simple_fields = []
     complex_fields = []
     for field_name, field_info in enhanced_output_desc.items():
         transformation_type = field_info.get('transformation_type', 'field_mapping_with_value_change')
-        
+
         if transformation_type == 'field_mapping_without_value_change':
             simple_fields.append(field_name)
         elif transformation_type == 'field_mapping_with_value_change':
             complex_fields.append(field_name)
-    
+
     # If no complex fields, use simple rename strategy (most efficient)
     if not complex_fields:
         return {"strategy": "simple_rename", "simple_fields": simple_fields, "complex_fields": []}
-    
+
     # Analyze complex fields and their source field dependencies
     field_dependencies = {}
     for field_name, field_info in enhanced_output_desc.items():
         if field_name in complex_fields:
             source_fields = field_info.get('source_fields', [])
             field_dependencies[field_name] = set(source_fields)
-    
+
     # Calculate costs for different strategies
     num_records = len(data_group)
     per_record_cost = num_records
     distinct_required_values_cost = _calculate_distinct_required_values_cost(field_dependencies, data_group)
     distinct_required_values_with_merged_fields_cost = _calculate_distinct_required_values_with_merged_fields_cost(field_dependencies, data_group)
-    
+
     # Select the best strategy
     costs = {
         'per_record': per_record_cost,
         'distinct_required_values': distinct_required_values_cost,
-        'distinct_required_values_with_merged_fields': distinct_required_values_with_merged_fields_cost
+        'distinct_required_values_with_merged_fields': distinct_required_values_with_merged_fields_cost,
     }
     best_strategy = min(costs.keys(), key=lambda k: costs[k])
-    
-    return {
-        'strategy': best_strategy,
-        'simple_fields': simple_fields,
-        'complex_fields': complex_fields,
-        'costs': costs,
-        'field_dependencies': field_dependencies
-    }
+
+    return {'strategy': best_strategy, 'simple_fields': simple_fields, 'complex_fields': complex_fields, 'costs': costs, 'field_dependencies': field_dependencies}
 
 
 def _calculate_distinct_required_values_cost(field_dependencies: Dict[str, set], data_group: List[Dict[str, Any]]) -> int:
     """Calculate cost for distinct required values strategy: one prompt per distinct values tuple per target field."""
     total_cost = 0
-    
+
     for field_name, source_fields in field_dependencies.items():
         # Get distinct value combinations for this field's source fields
         distinct_combinations = set()
         for record in data_group:
             combination = tuple(record.get(field, '') for field in source_fields)
             distinct_combinations.add(combination)
-        
+
         total_cost += len(distinct_combinations)
-    
+
     return total_cost
 
 
@@ -272,20 +264,20 @@ def _calculate_distinct_required_values_with_merged_fields_cost(field_dependenci
     """Calculate cost for merged distinct optimization strategy: groups fields with shared source dependencies."""
     # Use the same optimal merging algorithm as the execution function
     field_groups = _get_merged_field_groups(field_dependencies)
-    
+
     # Calculate cost for each merged group
     total_cost = 0
     for group in field_groups:
         source_fields = group['source_fields']
-        
+
         # Get distinct value combinations for these source fields
         distinct_combinations = set()
         for record in data_group:
             combination = tuple(record.get(field, '') for field in source_fields)
             distinct_combinations.add(combination)
-        
+
         total_cost += len(distinct_combinations)
-    
+
     return total_cost
 
 
@@ -298,42 +290,39 @@ def _get_merged_field_groups(field_dependencies: Dict[str, set]) -> List[Dict[st
         if key not in source_combinations:
             source_combinations[key] = []
         source_combinations[key].append(field_name)
-    
+
     # Merge groups that can be processed together
     # A group can be merged with another if all its source fields are a subset of the other's source fields
     merged_groups = []
     processed_combinations = set()
-    
+
     # Sort combinations by size (largest first) to ensure we process supersets first
     sorted_combinations = sorted(source_combinations.items(), key=lambda x: len(x[0]), reverse=True)
-    
+
     for source_fields, field_names in sorted_combinations:
         if source_fields in processed_combinations:
             continue
-            
+
         # Find all combinations that can be merged with this one
         mergeable_combinations = [source_fields]
         mergeable_fields = field_names.copy()
-        
+
         for other_source_fields, other_field_names in source_combinations.items():
             if other_source_fields in processed_combinations:
                 continue
             if other_source_fields == source_fields:
                 continue
-                
+
             # Check if other_source_fields is a subset of source_fields
             if set(other_source_fields).issubset(set(source_fields)):
                 mergeable_combinations.append(other_source_fields)
                 mergeable_fields.extend(other_field_names)
                 processed_combinations.add(other_source_fields)
-        
+
         # Create merged group
-        merged_groups.append({
-            'source_fields': list(source_fields),
-            'target_fields': mergeable_fields
-        })
+        merged_groups.append({'source_fields': list(source_fields), 'target_fields': mergeable_fields})
         processed_combinations.add(source_fields)
-    
+
     return merged_groups
 
 
@@ -341,29 +330,29 @@ def _force_strategy(enhanced_output_desc: Dict[str, Any], data_group: List[Dict[
     """Force a specific strategy as requested by the caller."""
     if not enhanced_output_desc:
         return {"strategy": specified_strategy, "simple_fields": [], "complex_fields": []}
-    
+
     # Separate simple renames from complex transformations
     simple_fields = []
     complex_fields = []
-    
+
     for field_name, field_info in enhanced_output_desc.items():
         transformation_type = field_info.get('transformation_type', 'field_mapping_with_value_change')
-        
+
         if transformation_type == 'field_mapping_without_value_change':
             simple_fields.append(field_name)
         elif transformation_type == 'field_mapping_with_value_change':
             complex_fields.append(field_name)
-    
+
     # Validate caller strategy (simple_rename is internal only)
     valid_strategies = ['per_record', 'distinct_required_values', 'distinct_required_values_with_merged_fields']
     if specified_strategy not in valid_strategies:
         print(f"Warning: Invalid strategy '{specified_strategy}', falling back to 'per_record'")
         specified_strategy = 'per_record'
-    
+
     # If no complex fields, use per_record (which will handle simple fields efficiently)
     if not complex_fields:
         return {"strategy": "per_record", "simple_fields": simple_fields, "complex_fields": []}
-    
+
     # For other strategies, include field dependencies if needed
     field_dependencies = {}
     if specified_strategy in ['distinct_required_values', 'distinct_required_values_with_merged_fields']:
@@ -371,13 +360,8 @@ def _force_strategy(enhanced_output_desc: Dict[str, Any], data_group: List[Dict[
             if field_name in complex_fields:
                 source_fields = field_info.get('source_fields', [])
                 field_dependencies[field_name] = set(source_fields)
-    
-    return {
-        "strategy": specified_strategy,
-        "simple_fields": simple_fields,
-        "complex_fields": complex_fields,
-        "field_dependencies": field_dependencies
-    }
+
+    return {"strategy": specified_strategy, "simple_fields": simple_fields, "complex_fields": complex_fields, "field_dependencies": field_dependencies}
 
 
 def _execute_simple_rename(data_group: List[Dict[str, Any]], enhanced_output_desc: Dict[str, Any], simple_fields: List[str]) -> List[Dict[str, Any]]:
@@ -393,21 +377,24 @@ def _execute_simple_rename(data_group: List[Dict[str, Any]], enhanced_output_des
         results.append(transformed_record)
     return results
 
-def _execute_per_record(data_group: List[Dict[str, Any]], enhanced_output_desc: Dict[str, Any], simple_fields: List[str], complex_fields: List[str], service_client: ServiceClient, properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+
+def _execute_per_record(
+    data_group: List[Dict[str, Any]], enhanced_output_desc: Dict[str, Any], simple_fields: List[str], complex_fields: List[str], service_client: ServiceClient, properties: Dict[str, Any]
+) -> List[Dict[str, Any]]:
     """Execute per-record transformation strategy with automatic handling of simple fields."""
     results = []
     print(f"Executing per_record strategy with {len(data_group)} records")
-    
+
     for record in data_group:
         transformed_record = {}
-        
+
         # Handle simple fields with direct renaming (no LLM calls)
         for field_name in simple_fields:
             field_info = enhanced_output_desc.get(field_name, {})
             source_fields = field_info.get('source_fields', [])
             if source_fields and source_fields[0] in record:
                 transformed_record[field_name] = record[source_fields[0]]
-        
+
         # Handle complex fields with LLM if any exist
         if complex_fields:
             # Build schema description from the record
@@ -415,7 +402,7 @@ def _execute_per_record(data_group: List[Dict[str, Any]], enhanced_output_desc: 
             for field, value in record.items():
                 value_type = type(value).__name__
                 schema_text += f"- {field} ({value_type})\n"
-            
+
             # Build output requirements from enhanced_output_desc (only complex fields)
             output_text = "Required output fields:\n"
             for target_field in complex_fields:
@@ -424,55 +411,54 @@ def _execute_per_record(data_group: List[Dict[str, Any]], enhanced_output_desc: 
                     source_fields = field_info.get('source_fields', [])
                     description = field_info.get('description', '')
                     transformation_type = field_info.get('transformation_type', 'field_mapping_with_value_change')
-                    
+
                     # Only include required field if explicitly specified
                     required_info = ""
                     if 'required' in field_info:
                         required_info = f", required: {field_info['required']}"
-                    
+
                     # Include hints if available
                     hints_info = ""
                     if 'hints' in field_info:
                         hints_info = f", hints: {field_info['hints']}"
-                    
+
                     output_text += f"- {target_field}: {description} (from {', '.join(source_fields)}, {transformation_type}{required_info}{hints_info})\n"
-            
-            additional_data = {
-                'schema': schema_text,
-                'output_requirements': output_text,
-                'input_data': record
-            }
-            
+
+            additional_data = {'schema': schema_text, 'output_requirements': output_text, 'input_data': record}
+
             result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
-            
+
             if isinstance(result, dict):
                 transformed_record.update(result)
             else:
                 try:
                     if isinstance(result, str):
                         import json
+
                         parsed_result = json.loads(result)
                         if isinstance(parsed_result, dict):
                             transformed_record.update(parsed_result)
                 except:
                     pass  # Keep simple fields even if complex transformation fails
-        
+
         # Handle optional fields that are not in complex_fields (set to None)
         for field_name, field_info in enhanced_output_desc.items():
             if field_name not in simple_fields and field_name not in complex_fields:
                 transformed_record[field_name] = None
-        
+
         results.append(transformed_record)
-    
+
     print(f"Per_record strategy completed: {len(data_group)} LLM calls")
     return results
 
 
-def _execute_distinct_required_values(data_group: List[Dict[str, Any]], enhanced_output_desc: Dict[str, Any], simple_fields: List[str], complex_fields: List[str], service_client: ServiceClient, properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _execute_distinct_required_values(
+    data_group: List[Dict[str, Any]], enhanced_output_desc: Dict[str, Any], simple_fields: List[str], complex_fields: List[str], service_client: ServiceClient, properties: Dict[str, Any]
+) -> List[Dict[str, Any]]:
     """Execute distinct required values strategy with automatic handling of simple fields."""
     results = []
     print(f"Executing distinct_required_values strategy with {len(complex_fields)} complex fields")
-    
+
     # Handle simple fields with direct renaming (no LLM calls)
     simple_results = []
     for record in data_group:
@@ -483,115 +469,122 @@ def _execute_distinct_required_values(data_group: List[Dict[str, Any]], enhanced
             if source_fields and source_fields[0] in record:
                 transformed_record[field_name] = record[source_fields[0]]
         simple_results.append(transformed_record)
-    
+
     # Handle complex fields with distinct value deduplication
     if not complex_fields:
         return simple_results
-    
+
     # Build field dependencies for complex fields
     field_dependencies = {}
     for field_name in complex_fields:
         field_info = enhanced_output_desc.get(field_name, {})
         source_fields = field_info.get('source_fields', [])
         field_dependencies[field_name] = set(source_fields)
-    
+
     # Create distinct value mappings for each target field
     value_mappings = {}
     for field_name in complex_fields:
         source_fields = field_dependencies[field_name]
-        
+
         # Handle fields with no source dependencies (required fields that need default values)
         if len(source_fields) == 0:
             source_fields = []
-        
+
         # Get distinct combinations of source field values
         distinct_combinations = set()
         for record in data_group:
             combination = tuple(record.get(field, '') for field in source_fields)
             distinct_combinations.add(combination)
-        
+
         # Transform each distinct combination
         for combination in distinct_combinations:
             # Create a sample record with this combination
             sample_record = {}
             for i, field in enumerate(source_fields):
                 sample_record[field] = combination[i]
-            
+
             # Build schema and requirements for this field
             schema_text = "Available input fields:\n"
             for field, value in sample_record.items():
                 value_type = type(value).__name__
                 schema_text += f"- {field} ({value_type})\n"
-            
+
             field_info = enhanced_output_desc.get(field_name, {})
             description = field_info.get('description', '')
             transformation_type = field_info.get('transformation_type', 'field_mapping_with_value_change')
-            
+
             # Only include required field if explicitly specified
             required_info = ""
             if 'required' in field_info:
                 required_info = f", required: {field_info['required']}"
-            
+
             # Include hints if available
             hints_info = ""
             if 'hints' in field_info:
                 hints_info = f", hints: {field_info['hints']}"
-            
+
             output_text = f"Required output fields:\n- {field_name}: {description} (from {', '.join(source_fields)}, {transformation_type}{required_info}{hints_info})\n"
-            
-            additional_data = {
-                'schema': schema_text,
-                'output_requirements': output_text,
-                'input_data': sample_record
-            }
-            
+
+            additional_data = {'schema': schema_text, 'output_requirements': output_text, 'input_data': sample_record}
+
             result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
-            
+
             if isinstance(result, dict) and field_name in result:
                 value_mappings[combination] = result[field_name]
             else:
                 try:
                     if isinstance(result, str):
                         import json
+
                         parsed_result = json.loads(result)
                         if isinstance(parsed_result, dict) and field_name in parsed_result:
                             value_mappings[combination] = parsed_result[field_name]
                 except:
                     pass
-    
+
     # Apply transformations to all records
     for i, record in enumerate(data_group):
         transformed_record = simple_results[i].copy()
-        
+
         for field_name in complex_fields:
             source_fields = field_dependencies[field_name]
-            
+
             # If no source fields, use empty tuple as combination key
             if len(source_fields) == 0:
                 combination = ()
             else:
                 combination = tuple(record.get(field, '') for field in source_fields)
-            
+
             if combination in value_mappings:
                 transformed_record[field_name] = value_mappings[combination]
-        
+
         # Handle optional fields that are not in complex_fields (set to None)
         for field_name, field_info in enhanced_output_desc.items():
             if field_name not in simple_fields and field_name not in complex_fields:
                 transformed_record[field_name] = None
-        
+
         results.append(transformed_record)
-    
-    total_calls = sum(len(set(tuple(record.get(field, '') for field in field_dependencies[field_name]) for record in data_group)) for field_name in complex_fields if len(field_dependencies[field_name]) > 0)
+
+    total_calls = sum(
+        len(set(tuple(record.get(field, '') for field in field_dependencies[field_name]) for record in data_group)) for field_name in complex_fields if len(field_dependencies[field_name]) > 0
+    )
     print(f"Distinct_required_values strategy completed: {total_calls} LLM calls")
     return results
 
 
-def _execute_distinct_required_values_with_merged_fields(data_group: List[Dict[str, Any]], enhanced_output_desc: Dict[str, Any], simple_fields: List[str], complex_fields: List[str], strategy_info: Dict[str, Any], service_client: ServiceClient, properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _execute_distinct_required_values_with_merged_fields(
+    data_group: List[Dict[str, Any]],
+    enhanced_output_desc: Dict[str, Any],
+    simple_fields: List[str],
+    complex_fields: List[str],
+    strategy_info: Dict[str, Any],
+    service_client: ServiceClient,
+    properties: Dict[str, Any],
+) -> List[Dict[str, Any]]:
     """Execute merged distinct optimization strategy with automatic handling of simple fields."""
     results = []
     print(f"Executing merged distinct optimization strategy with {len(complex_fields)} complex fields")
-    
+
     # Handle simple fields with direct renaming (no LLM calls)
     simple_results = []
     for record in data_group:
@@ -602,37 +595,37 @@ def _execute_distinct_required_values_with_merged_fields(data_group: List[Dict[s
             if source_fields and source_fields[0] in record:
                 transformed_record[field_name] = record[source_fields[0]]
         simple_results.append(transformed_record)
-    
+
     # Get merged field groups
     field_dependencies = strategy_info.get('field_dependencies', {})
-    
+
     field_groups = _get_merged_field_groups(field_dependencies)
     print(f"Field dependencies: {field_dependencies}")
     print(f"Merged field groups: {field_groups}")
-    
+
     # Process each field group
     complex_results = []
     for group in field_groups:
         source_fields = group['source_fields']
         target_fields = group['target_fields']
-        
+
         # Get distinct value combinations for this group
         distinct_combinations = set()
         combination_to_records = {}
-        
+
         for i, record in enumerate(data_group):
             combination = tuple(record.get(field, '') for field in source_fields)
             distinct_combinations.add(combination)
             if combination not in combination_to_records:
                 combination_to_records[combination] = []
             combination_to_records[combination].append(i)
-        
+
         # Process each distinct combination
         combination_results = {}
         for combination in distinct_combinations:
             # Use the first record with this combination as representative
             representative_record = data_group[combination_to_records[combination][0]]
-            
+
             # Build schema for this combination
             if source_fields:
                 schema_text = "Available input fields:\n"
@@ -642,7 +635,7 @@ def _execute_distinct_required_values_with_merged_fields(data_group: List[Dict[s
                     schema_text += f"- {field} ({value_type})\n"
             else:
                 schema_text = "No specific input fields available for this transformation.\n"
-            
+
             # Build output requirements for this group
             output_text = "Required output fields:\n"
             for target_field in target_fields:
@@ -651,36 +644,33 @@ def _execute_distinct_required_values_with_merged_fields(data_group: List[Dict[s
                     source_fields = field_info.get('source_fields', [])
                     description = field_info.get('description', '')
                     transformation_type = field_info.get('transformation_type', 'field_mapping_with_value_change')
-                    
+
                     # Only include required field if explicitly specified
                     required_info = ""
                     if 'required' in field_info:
                         required_info = f", required: {field_info['required']}"
-                    
+
                     # Include hints if available
                     hints_info = ""
                     if 'hints' in field_info:
                         hints_info = f", hints: {field_info['hints']}"
-                    
+
                     if source_fields:
                         output_text += f"- {target_field}: {description} (from {', '.join(source_fields)}, {transformation_type}{required_info}{hints_info})\n"
                     else:
                         output_text += f"- {target_field}: {description} (no source fields available,  {transformation_type}{required_info}{hints_info}), \n"
-            
-            additional_data = {
-                'schema': schema_text,
-                'output_requirements': output_text,
-                'input_data': representative_record
-            }
-            
+
+            additional_data = {'schema': schema_text, 'output_requirements': output_text, 'input_data': representative_record}
+
             result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
-            
+
             if isinstance(result, dict):
                 combination_results[combination] = result
             else:
                 try:
                     if isinstance(result, str):
                         import json
+
                         parsed_result = json.loads(result)
                         if isinstance(parsed_result, dict):
                             combination_results[combination] = parsed_result
@@ -690,7 +680,7 @@ def _execute_distinct_required_values_with_merged_fields(data_group: List[Dict[s
                         combination_results[combination] = {}
                 except:
                     combination_results[combination] = {}
-        
+
         # Apply results to all records with matching combinations
         for i, record in enumerate(data_group):
             combination = tuple(record.get(field, '') for field in source_fields)
@@ -698,28 +688,28 @@ def _execute_distinct_required_values_with_merged_fields(data_group: List[Dict[s
                 if i >= len(complex_results):
                     complex_results.extend([{}] * (i + 1 - len(complex_results)))
                 complex_results[i].update(combination_results[combination])
-    
+
     # Merge simple and complex results
     for i in range(len(data_group)):
         result = simple_results[i] if i < len(simple_results) else {}
         if i < len(complex_results):
             result.update(complex_results[i])
-        
+
         # Handle optional fields that are not in complex_fields (set to None)
         for field_name, field_info in enhanced_output_desc.items():
             if field_name not in simple_fields and field_name not in complex_fields:
                 # This is an optional field with value changes that we're not processing
                 result[field_name] = None
-        
+
         results.append(result)
-    
+
     total_calls = sum(len(set(tuple(record.get(field, '') for field in group['source_fields']) for record in data_group)) for group in field_groups)
     print(f"Merged distinct optimization strategy completed: {total_calls} LLM calls")
     return results
 
 
 class SemanticTransformOperator(Operator, ServiceClient):
-    
+
     PLAN_RESOLUTION_PROMPT = """## Task
 You are a data transformation planner. Analyze the input schema and output requirements to create a transformation plan.
 
@@ -788,7 +778,6 @@ ${input_data}
 Return only the transformed JSON object, no additional text.
 """
 
-
     PROPERTIES = {
         # openai related properties
         "openai.api": "ChatCompletion",
@@ -817,10 +806,10 @@ Return only the transformed JSON object, no additional text.
         "input_meta": {"type": "dict", "description": "Optional metadata about input fields", "required": False, "default": {}},
         "output_desc": {"type": "dict", "description": "Required description of target fields to create", "required": True},
         "strategy": {
-            "type": "str", 
-            "description": "Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization).", 
+            "type": "str",
+            "description": "Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization).",
             "required": False,
-            "default": "auto"
+            "default": "auto",
         },
     }
 
@@ -829,7 +818,7 @@ Return only the transformed JSON object, no additional text.
             self.name,
             function=semantic_transform_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=semantic_transform_operator_validator,
             explainer=semantic_transform_operator_explainer,
         )
@@ -843,28 +832,30 @@ if __name__ == "__main__":
     ## calling example
 
     # Test data
-    input_data = [[
-        {
-            'full_name': 'AAA BBBB',
-            'email': 'aaa.bbb@email.com',
-            'phone': '111-111-1111',
-            'birth_date': '1900-05-15',
-            'street': '123 XXX St',
-            'city': 'New York',
-            'state': 'NY',
-            'zip_code': '10001'
-        },
-        {
-            'full_name': 'CCCC DD EEE',
-            'email': 'xxxyyy@email.com',
-            'phone': '222-222-2222',
-            'birth_date': '1905-12-03',
-            'street': '456 YYY Ave',
-            'city': 'San Francisco',
-            'state': 'CA',
-            'zip_code': '94111'
-        }
-    ]]
+    input_data = [
+        [
+            {
+                'full_name': 'AAA BBBB',
+                'email': 'aaa.bbb@email.com',
+                'phone': '111-111-1111',
+                'birth_date': '1900-05-15',
+                'street': '123 XXX St',
+                'city': 'New York',
+                'state': 'NY',
+                'zip_code': '10001',
+            },
+            {
+                'full_name': 'CCCC DD EEE',
+                'email': 'xxxyyy@email.com',
+                'phone': '222-222-2222',
+                'birth_date': '1905-12-03',
+                'street': '456 YYY Ave',
+                'city': 'San Francisco',
+                'state': 'CA',
+                'zip_code': '94111',
+            },
+        ]
+    ]
 
     print(f"=== Semantic Transform attributes ===")
 
@@ -879,24 +870,14 @@ if __name__ == "__main__":
     print("=== Example 1: semantic transformation without input metadata or hints===")
     attributes = {
         'output_desc': {
-            'first_name': {
-                'description': 'First name of the person'
-            },
-            'last_name': {
-                'description': 'Last name of the person'
-            },
+            'first_name': {'description': 'First name of the person'},
+            'last_name': {'description': 'Last name of the person'},
             'name': {
                 'description': 'Name of the person',
             },
-            'age': {
-                'description': 'Age of the person'
-            },
-            'formatted_phone': {
-                'description': 'Phone number in appropriate format'
-            },
-            'full_address': {
-                'description': 'The full address of the person'
-            }
+            'age': {'description': 'Age of the person'},
+            'formatted_phone': {'description': 'Phone number in appropriate format'},
+            'full_address': {'description': 'The full address of the person'},
         }
     }
     print(attributes)
@@ -907,33 +888,12 @@ if __name__ == "__main__":
     # Example 2: With input metadata
     print("=== Example 2: transform with input metadata and hints===")
     attributes = {
-        'input_meta': {
-            'full_name': {
-                'description': 'Complete name of the person',
-                'type': 'str'
-            },
-            'birth_date': {
-                'description': 'Date of birth in YYYY-MM-DD format',
-                'type': 'date'
-            }
-        },
+        'input_meta': {'full_name': {'description': 'Complete name of the person', 'type': 'str'}, 'birth_date': {'description': 'Date of birth in YYYY-MM-DD format', 'type': 'date'}},
         'output_desc': {
-            'name': {
-                'description': 'name of the person',
-                'type': 'str',
-                'hints': 'use first name as the name'
-            },
-            'age': {
-                'description': 'Age of the person',
-                'type': 'integer',
-                'hints': 'Infer from birth_date'
-            },
-            'is_adult': {
-                'description': 'Boolean indicating if person is 18 or older',
-                'type': 'boolean',
-                'hints': 'Derive from age/birthday'
-            }
-        }
+            'name': {'description': 'name of the person', 'type': 'str', 'hints': 'use first name as the name'},
+            'age': {'description': 'Age of the person', 'type': 'integer', 'hints': 'Infer from birth_date'},
+            'is_adult': {'description': 'Boolean indicating if person is 18 or older', 'type': 'boolean', 'hints': 'Derive from age/birthday'},
+        },
     }
     print(attributes)
     result = semantic_transform_operator_function(input_data, attributes, properties)
@@ -944,370 +904,199 @@ if __name__ == "__main__":
     print("=== Example 3: NL2SQL to Semantic Extract Transformation ===")
     # Simulated NL2SQL operator output (database query results)
     # Disclaimer: all the data is fake and made up for demonstration purposes, don't use it for any other purpose.
-    nl2sql_output = [[
-        {
-            'job_id': 1,
-            'job_title': 'Senior Software Engineer',
-            'job_description': 'We are looking for a senior software engineer with 5+ years of experience in Java, Spring Framework, and microservices. Must have experience with AWS, Docker, and CI/CD pipelines.',
-            'company_name': 'Company A',
-            'location': 'San Francisco, CA',
-            'salary_min': 120000,
-            'salary_max': 150000,
-            'posted_date': '2025-01-15',
-            'contact_email': 'hr@companya.com',
-            'contact_phone': '333-333-3333',
-            'experience_required': '5+ years',
-            'education_level': 'Bachelor degree'
-        },
-        {
-            'job_id': 2,
-            'job_title': 'Data Scientist',
-            'job_description': 'Seeking a data scientist with expertise in Python, machine learning, and statistical analysis. Experience with TensorFlow, PyTorch, and cloud platforms required.',
-            'company_name': 'Company B',
-            'location': 'New York, NY',
-            'salary_min': 100000,
-            'salary_max': 130000,
-            'posted_date': '2025-09-01',
-            'contact_email': 'careers@companyb.com',
-            'contact_phone': '444 444 4444',
-            'experience_required': 'at least 3 years',
-            'education_level': 'Master degree'
-        },
-        {
-            'job_id': 3,
-            'job_title': 'Frontend Developer',
-            'job_description': 'Looking for a frontend developer skilled in React, TypeScript, and modern web development. Experience with Redux, GraphQL, and responsive design preferred.',
-            'company_name': 'Company C',
-            'location': 'Austin, TX',
-            'salary_min': 80000,
-            'salary_max': 110000,
-            'posted_date': '2024-01-18',
-            'contact_email': 'jobs@companyc.com',
-            'contact_phone': '+1 (555) 555-5555',
-            'experience_required': '2+ years',
-            'education_level': 'Bachelor'
-        }
-    ]]
-    
+    nl2sql_output = [
+        [
+            {
+                'job_id': 1,
+                'job_title': 'Senior Software Engineer',
+                'job_description': 'We are looking for a senior software engineer with 5+ years of experience in Java, Spring Framework, and microservices. Must have experience with AWS, Docker, and CI/CD pipelines.',
+                'company_name': 'Company A',
+                'location': 'San Francisco, CA',
+                'salary_min': 120000,
+                'salary_max': 150000,
+                'posted_date': '2025-01-15',
+                'contact_email': 'hr@companya.com',
+                'contact_phone': '333-333-3333',
+                'experience_required': '5+ years',
+                'education_level': 'Bachelor degree',
+            },
+            {
+                'job_id': 2,
+                'job_title': 'Data Scientist',
+                'job_description': 'Seeking a data scientist with expertise in Python, machine learning, and statistical analysis. Experience with TensorFlow, PyTorch, and cloud platforms required.',
+                'company_name': 'Company B',
+                'location': 'New York, NY',
+                'salary_min': 100000,
+                'salary_max': 130000,
+                'posted_date': '2025-09-01',
+                'contact_email': 'careers@companyb.com',
+                'contact_phone': '444 444 4444',
+                'experience_required': 'at least 3 years',
+                'education_level': 'Master degree',
+            },
+            {
+                'job_id': 3,
+                'job_title': 'Frontend Developer',
+                'job_description': 'Looking for a frontend developer skilled in React, TypeScript, and modern web development. Experience with Redux, GraphQL, and responsive design preferred.',
+                'company_name': 'Company C',
+                'location': 'Austin, TX',
+                'salary_min': 80000,
+                'salary_max': 110000,
+                'posted_date': '2024-01-18',
+                'contact_email': 'jobs@companyc.com',
+                'contact_phone': '+1 (555) 555-5555',
+                'experience_required': '2+ years',
+                'education_level': 'Bachelor',
+            },
+        ]
+    ]
+
     attributes = {
         'input_meta': {
-            'job_description': {
-                'description': 'Job description text containing skills and requirements',
-                'type': 'str'
-            },
-            'job_title': {
-                'description': 'Job title or position name',
-                'type': 'str'
-            },
-            'company_name': {
-                'description': 'Name of the hiring company',
-                'type': 'str'
-            },
-            'location': {
-                'description': 'Job location in format "City, State"',
-                'type': 'str'
-            },
-            'salary_min': {
-                'description': 'Minimum salary amount',
-                'type': 'integer'
-            },
-            'salary_max': {
-                'description': 'Maximum salary amount',
-                'type': 'integer'
-            },
-            'contact_email': {
-                'description': 'Contact email address',
-                'type': 'str'
-            },
-            'contact_phone': {
-                'description': 'Contact phone number',
-                'type': 'str'
-            },
-            'experience_required': {
-                'description': 'Required years of experience',
-                'type': 'str'
-            },
-            'education_level': {
-                'description': 'Required education level',
-                'type': 'str'
-            }
+            'job_description': {'description': 'Job description text containing skills and requirements', 'type': 'str'},
+            'job_title': {'description': 'Job title or position name', 'type': 'str'},
+            'company_name': {'description': 'Name of the hiring company', 'type': 'str'},
+            'location': {'description': 'Job location in format "City, State"', 'type': 'str'},
+            'salary_min': {'description': 'Minimum salary amount', 'type': 'integer'},
+            'salary_max': {'description': 'Maximum salary amount', 'type': 'integer'},
+            'contact_email': {'description': 'Contact email address', 'type': 'str'},
+            'contact_phone': {'description': 'Contact phone number', 'type': 'str'},
+            'experience_required': {'description': 'Required years of experience', 'type': 'str'},
+            'education_level': {'description': 'Required education level', 'type': 'str'},
         },
         'output_desc': {
             # Field rename
-            'position': {
-                'description': 'Job position title',
-                'type': 'str',
-                'hints': 'The position refers to job_title'
-            },
-            
+            'position': {'description': 'Job position title', 'type': 'str', 'hints': 'The position refers to job_title'},
             # Field unchanged
-            'job_description': {
-                'description': 'Full job description text',
-                'type': 'str'
-            },
-            
+            'job_description': {'description': 'Full job description text', 'type': 'str'},
             # Value transformation
-            'company': {
-                'description': 'company name in lower case',
-                'type': 'str'
-            },
-            
+            'company': {'description': 'company name in lower case', 'type': 'str'},
             # Field split
-            'city': {
-                'description': 'City name extracted from location',
-                'type': 'str',
-                'hints': 'Get from location field'
-            },
-            'state': {
-                'description': 'State abbreviation extracted from location',
-                'type': 'str'
-            },
-            
+            'city': {'description': 'City name extracted from location', 'type': 'str', 'hints': 'Get from location field'},
+            'state': {'description': 'State abbreviation extracted from location', 'type': 'str'},
             # Fields merge
-            'salary_range': {
-                'description': 'Salary range combining min and max values',
-                'type': 'str'
-            },
-            
+            'salary_range': {'description': 'Salary range combining min and max values', 'type': 'str'},
             # Fields merge
             'contact_info': {
                 'description': 'Contact information combining email and phone',
                 'type': 'str',
-                'hints': 'Merge contact_email and contact_phone into format "email | phone", phone number should be in (XXX) XXX-XXXX format'
+                'hints': 'Merge contact_email and contact_phone into format "email | phone", phone number should be in (XXX) XXX-XXXX format',
             },
-            
             # Value transformation
-            'education_degree': {
-                'description': 'Single word education degree',
-                'type': 'str'
-            },
-
+            'education_degree': {'description': 'Single word education degree', 'type': 'str'},
             # Value transformation
-            'description_summary': {
-                'description': 'Summary of the job description, be concise and to the point.',
-                'type': 'str',
-                'hints': 'use all fields to generate a summary'
-            }
-        }
+            'description_summary': {'description': 'Summary of the job description, be concise and to the point.', 'type': 'str', 'hints': 'use all fields to generate a summary'},
+        },
     }
-    
+
     print(attributes)
     result = semantic_transform_operator_function(nl2sql_output, attributes, properties)
     print("=== Semantic Transform RESULT (Example 3) ===")
     print(result)
-    
 
     # Example 4: Transform natural language queries to NL2SQL operator attributes (note, this is  just for example use, the actual predecessor of NL2SQL operator might be different, like data discovery operator)
     print("\n=== Example 4: Natural Language to NL2SQL Attributes Transformation (with required fields from the target NL2SQL operator) ===")
-    
+
     # Input: Natural language queries that need to be transformed into NL2SQL operator attributes
-    input_data = [[
-        {
-            'data': 'what jobs are available for software engineers in San Francisco?'
-        },
-        {
-            'data': 'show me data scientist positions with salary above 100k'
-        },
-        {
-            'data': 'find frontend developer jobs at tech companies'
-        }
-    ]]
-    
+    input_data = [
+        [
+            {'data': 'what jobs are available for software engineers in San Francisco?'},
+            {'data': 'show me data scientist positions with salary above 100k'},
+            {'data': 'find frontend developer jobs at tech companies'},
+        ]
+    ]
+
     attributes = {
-        'input_meta': {
-            'data': {
-                'description': 'Natural language query about job search',
-                'type': 'str'
-            }
-        },
+        'input_meta': {'data': {'description': 'Natural language query about job search', 'type': 'str'}},
         'output_desc': {
-            'source': {
-                'description': 'Data source name',
-                'type': 'str',
-                'required': True
-            },
-            'question': {
-                'description': 'Natural language question to translate to SQL',
-                'type': 'str',
-                'required': True
-            },
-            'protocol': {
-                'description': 'Database protocol (postgres or mysql)',
-                'type': 'str',
-                'required': True
-            },
-            'database': {
-                'description': 'Database name',
-                'type': 'str',
-                'required': True
-            },
-            'collection': {
-                'description': 'Collection/schema name',
-                'type': 'str',
-                'required': True
-            },
-            'case_insensitive': {
-                'description': 'Case insensitive str matching',
-                'type': 'boolean',
-                'required': False
-            },
-            'additional_requirements': {
-                'description': 'Additional requirements for SQL generation',
-                'type': 'str',
-                'required': False,
-                'hints': 'Set to empty str as default'
-            },
+            'source': {'description': 'Data source name', 'type': 'str', 'required': True},
+            'question': {'description': 'Natural language question to translate to SQL', 'type': 'str', 'required': True},
+            'protocol': {'description': 'Database protocol (postgres or mysql)', 'type': 'str', 'required': True},
+            'database': {'description': 'Database name', 'type': 'str', 'required': True},
+            'collection': {'description': 'Collection/schema name', 'type': 'str', 'required': True},
+            'case_insensitive': {'description': 'Case insensitive str matching', 'type': 'boolean', 'required': False},
+            'additional_requirements': {'description': 'Additional requirements for SQL generation', 'type': 'str', 'required': False, 'hints': 'Set to empty str as default'},
             'context': {
                 'description': 'Optional context for domain knowledge',
                 'type': 'str',
                 'required': False,
-                'hints': 'Set to "This is a job database with information about job postings, skills, companies, and salaries"'
+                'hints': 'Set to "This is a job database with information about job postings, skills, companies, and salaries"',
             },
             'schema': {
                 'description': 'JSON str of database schema (optional - will be fetched automatically if not provided)',
                 'type': 'str',
                 'required': False,
-                'hints': 'Set to empty str as default - schema will be fetched automatically'
-            }
-        }
+                'hints': 'Set to empty str as default - schema will be fetched automatically',
+            },
+        },
     }
-    
+
     print(attributes)
     result = semantic_transform_operator_function(input_data, attributes, properties)
     print("=== Semantic Transform RESULT (Example 4) ===")
     print(result)
-    
 
     # Example 5: Transform natural language queries with only question required (all others optional)
     print("\n=== Example 5: Natural Language to NL2SQL Attributes (Only Question Required) ===")
-    input_data = [[
-        {
-            'data': 'what jobs are available for software engineers in San Francisco?'
-        },
-        {
-            'data': 'show me data scientist positions with salary above 100k'
-        },
-        {
-            'data': 'find frontend developer jobs at tech companies'
-        }
-    ]]
-    
+    input_data = [
+        [
+            {'data': 'what jobs are available for software engineers in San Francisco?'},
+            {'data': 'show me data scientist positions with salary above 100k'},
+            {'data': 'find frontend developer jobs at tech companies'},
+        ]
+    ]
+
     attributes = {
-        'input_meta': {
-            'data': {
-                'description': 'Natural language query about job search',
-                'type': 'str'
-            }
-        },
+        'input_meta': {'data': {'description': 'Natural language query about job search', 'type': 'str'}},
         'output_desc': {
-            'source': {
-                'description': 'Data source name',
-                'type': 'str',
-                'required': False
-            },
-            'question': {
-                'description': 'Natural language question to translate to SQL',
-                'type': 'str',
-                'required': True
-            },
-            'protocol': {
-                'description': 'Database protocol (postgres or mysql)',
-                'type': 'str',
-                'required': False
-            },
-            'database': {
-                'description': 'Database name',
-                'type': 'str',
-                'required': False
-            },
-            'collection': {
-                'description': 'Collection/schema name',
-                'type': 'str',
-                'required': False
-            },
-            'case_insensitive': {
-                'description': 'Case insensitive str matching',
-                'type': 'boolean',
-                'required': False
-            },
-            'additional_requirements': {
-                'description': 'Additional requirements for SQL generation',
-                'type': 'str',
-                'required': False,
-                'hints': 'Set to empty str as default'
-            },
+            'source': {'description': 'Data source name', 'type': 'str', 'required': False},
+            'question': {'description': 'Natural language question to translate to SQL', 'type': 'str', 'required': True},
+            'protocol': {'description': 'Database protocol (postgres or mysql)', 'type': 'str', 'required': False},
+            'database': {'description': 'Database name', 'type': 'str', 'required': False},
+            'collection': {'description': 'Collection/schema name', 'type': 'str', 'required': False},
+            'case_insensitive': {'description': 'Case insensitive str matching', 'type': 'boolean', 'required': False},
+            'additional_requirements': {'description': 'Additional requirements for SQL generation', 'type': 'str', 'required': False, 'hints': 'Set to empty str as default'},
             'context': {
                 'description': 'Optional context for domain knowledge',
                 'type': 'str',
                 'required': False,
-                'hints': 'Set to "This is a job database with information about job postings, skills, companies, and salaries"'
-            }
-        }
+                'hints': 'Set to "This is a job database with information about job postings, skills, companies, and salaries"',
+            },
+        },
     }
-    
+
     result = semantic_transform_operator_function(input_data, attributes, properties)
     print("=== Semantic Transform RESULT (Example 5) ===")
     print(result)
 
     # Example 6: Transform natural language queries with NO "required" keys at all
     print("\n=== Example 6: Natural Language to NL2SQL Attributes (No Required Keys) ===")
-    input_data = [[
-        {
-            'data': 'what jobs are available for software engineers in San Francisco?'
-        },
-        {
-            'data': 'show me data scientist positions with salary above 100k'
-        },
-        {
-            'data': 'find frontend developer jobs at tech companies'
-        }
-    ]]
-    
+    input_data = [
+        [
+            {'data': 'what jobs are available for software engineers in San Francisco?'},
+            {'data': 'show me data scientist positions with salary above 100k'},
+            {'data': 'find frontend developer jobs at tech companies'},
+        ]
+    ]
+
     attributes = {
-        'input_meta': {
-            'data': {
-                'description': 'Natural language query about job search',
-                'type': 'str'
-            }
-        },
+        'input_meta': {'data': {'description': 'Natural language query about job search', 'type': 'str'}},
         'output_desc': {
-            'source': {
-                'description': 'Data source name',
-                'type': 'str'
-            },
-            'question': {
-                'description': 'Natural language question to translate to SQL',
-                'type': 'str'
-            },
-            'protocol': {
-                'description': 'Database protocol (postgres or mysql)',
-                'type': 'str'
-            },
-            'database': {
-                'description': 'Database name',
-                'type': 'str'
-            },
-            'collection': {
-                'description': 'Collection/schema name',
-                'type': 'str'
-            },
-            'case_insensitive': {
-                'description': 'Case insensitive str matching',
-                'type': 'boolean'
-            },
-            'additional_requirements': {
-                'description': 'Additional requirements for SQL generation',
-                'type': 'str',
-                'hints': 'Set to empty str as default'
-            },
+            'source': {'description': 'Data source name', 'type': 'str'},
+            'question': {'description': 'Natural language question to translate to SQL', 'type': 'str'},
+            'protocol': {'description': 'Database protocol (postgres or mysql)', 'type': 'str'},
+            'database': {'description': 'Database name', 'type': 'str'},
+            'collection': {'description': 'Collection/schema name', 'type': 'str'},
+            'case_insensitive': {'description': 'Case insensitive str matching', 'type': 'boolean'},
+            'additional_requirements': {'description': 'Additional requirements for SQL generation', 'type': 'str', 'hints': 'Set to empty str as default'},
             'context': {
                 'description': 'Optional context for domain knowledge',
                 'type': 'str',
-                'hints': 'Set to "This is a job database with information about job postings, skills, companies, and salaries"'
-            }
-        }
+                'hints': 'Set to "This is a job database with information about job postings, skills, companies, and salaries"',
+            },
+        },
     }
-    
+
     result = semantic_transform_operator_function(input_data, attributes, properties)
     print("=== Semantic Transform RESULT (Example 6) ===")
     print(result)

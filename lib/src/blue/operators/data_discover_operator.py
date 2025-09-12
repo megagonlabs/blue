@@ -193,7 +193,7 @@ class DataDiscoverOperator(Operator):
             self.name,
             function=data_discover_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=data_discover_operator_validator,
             explainer=data_discover_operator_explainer,
         )

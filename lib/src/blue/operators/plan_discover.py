@@ -104,7 +104,7 @@ class PlanDiscoverOperator(Operator):
             self.name,
             function=plan_discover_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=plan_discover_operator_validator,
             explainer=plan_discover_operator_explainer,
             refiner=plan_discover_operator_refiner,

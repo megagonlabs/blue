@@ -105,7 +105,7 @@ Output:
             self.name,
             function=nl2llm_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=nl2llm_operator_validator,
             explainer=nl2llm_operator_explainer,
         )

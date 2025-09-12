@@ -101,7 +101,7 @@ class ProjectOperator(Operator):
             self.name,
             function=project_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=project_operator_validator,
             explainer=project_operator_explainer,
         )

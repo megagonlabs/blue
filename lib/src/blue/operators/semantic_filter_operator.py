@@ -20,16 +20,16 @@ def semantic_filter_operator_function(input_data: List[List[Dict[str, Any]]], at
         return []
 
     service_client = ServiceClient(name="semantic_filter_operator_service_client", properties=properties)
-    
+
     results = []
     for data_group in input_data:
         if not data_group:
             results.append([])
             continue
-            
+
         result = _filter_records_with_conditions(data_group, filter_conditions, context, demonstrations, return_idx, service_client, properties)
         results.append(result)
-    
+
     return results
 
 
@@ -42,13 +42,13 @@ def semantic_filter_operator_validator(input_data: List[List[Dict[str, Any]]], a
         return False
 
     filter_conditions = attributes.get('filter_conditions', {})
-    
+
     if not isinstance(filter_conditions, dict):
         return False
-    
+
     if len(filter_conditions) == 0:
         return False
-    
+
     for key, value in filter_conditions.items():
         if not isinstance(key, str) or not isinstance(value, str):
             return False
@@ -63,11 +63,13 @@ def semantic_filter_operator_explainer(output: Any, input_data: List[List[Dict[s
     return default_operator_explainer(output, input_data, attributes)
 
 
-def _filter_records_with_conditions(data_group: List[Dict[str, Any]], filter_conditions: Dict[str, str], context: str, demonstrations: str, return_idx: bool, service_client: ServiceClient, properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _filter_records_with_conditions(
+    data_group: List[Dict[str, Any]], filter_conditions: Dict[str, str], context: str, demonstrations: str, return_idx: bool, service_client: ServiceClient, properties: Dict[str, Any]
+) -> List[Dict[str, Any]]:
     """Filter records using LLM-based semantic filtering"""
     filtered_records = []
     filtered_indices = []
-    
+
     for idx, record in enumerate(data_group):
         conditions_text = []
         for i, (field, condition) in enumerate(filter_conditions.items(), 1):
@@ -76,16 +78,11 @@ def _filter_records_with_conditions(data_group: List[Dict[str, Any]], filter_con
                 conditions_text.append(f"{i}. Field '{field}' (value: {field_value}) should satisfy: {condition}")
             else:
                 conditions_text.append(f"{i}. Field '{field}' (not present in record) should satisfy: {condition}")
-        
-        additional_data = {
-            'record': record,
-            'conditions': '\n'.join(conditions_text),
-            'context': context,
-            'demonstrations': demonstrations
-        }
-        
+
+        additional_data = {'record': record, 'conditions': '\n'.join(conditions_text), 'context': context, 'demonstrations': demonstrations}
+
         result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
-        
+
         # Convert string results to proper boolean
         if isinstance(result, str):
             result = result.lower().strip() in ['true', 'yes', '1', 'include']
@@ -95,7 +92,7 @@ def _filter_records_with_conditions(data_group: List[Dict[str, Any]], filter_con
         if result:
             filtered_records.append(record)
             filtered_indices.append(idx)
-    
+
     if return_idx:
         return [{'indices': filtered_indices}]
     else:
@@ -103,7 +100,7 @@ def _filter_records_with_conditions(data_group: List[Dict[str, Any]], filter_con
 
 
 class SemanticFilterOperator(Operator, ServiceClient):
-    
+
     FILTER_PROMPT = """## Task
 You are given a data record and natural language filter conditions. Your job is to determine if the record should be included in the filtered results.
 
@@ -172,7 +169,7 @@ ${demonstrations}
             self.name,
             function=semantic_filter_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=semantic_filter_operator_validator,
             explainer=semantic_filter_operator_explainer,
         )
@@ -186,37 +183,39 @@ if __name__ == "__main__":
     ## calling example
 
     # Test data - applicant records
-    input_data = [[
-        {
-            "name": "Applicant A",
-            "skills": ["Spring Framework", "Gradle", "SQL"],
-            "experience_years": 5,
-            "current_title": "Frontend Developer",
-        },
-        {
-            "name": "Applicant B", 
-            "skills": ["Java", "React"],
-            "experience_years": 2,
-            "current_title": "Junior Software Engineer",
-        },
-        {
-            "name": "Applicant C",
-            "skills": ["Java", "Spring", "Docker"],
-            "experience_years": 7,
-        },
-        {
-            "name": "Applicant D",
-            "skills": ["Python", "Java systems", "SQL"],
-            "experience_years": 8,
-            "current_title": "Senior Software Engineer",
-        },
-        {
-            "name": "Applicant E",
-            "skills": ["JUnit", "JVM"],
-            "experience_years": 5,
-            "current_title": "Coder",
-        }
-    ]]
+    input_data = [
+        [
+            {
+                "name": "Applicant A",
+                "skills": ["Spring Framework", "Gradle", "SQL"],
+                "experience_years": 5,
+                "current_title": "Frontend Developer",
+            },
+            {
+                "name": "Applicant B",
+                "skills": ["Java", "React"],
+                "experience_years": 2,
+                "current_title": "Junior Software Engineer",
+            },
+            {
+                "name": "Applicant C",
+                "skills": ["Java", "Spring", "Docker"],
+                "experience_years": 7,
+            },
+            {
+                "name": "Applicant D",
+                "skills": ["Python", "Java systems", "SQL"],
+                "experience_years": 8,
+                "current_title": "Senior Software Engineer",
+            },
+            {
+                "name": "Applicant E",
+                "skills": ["JUnit", "JVM"],
+                "experience_years": 5,
+                "current_title": "Coder",
+            },
+        ]
+    ]
 
     print(f"=== Semantic Filter attributes ===")
 
@@ -229,16 +228,12 @@ if __name__ == "__main__":
 
     # call the function
     # Example 1: return filtered records
-    filter_conditions = {
-        "skills": "contains relevant skill(s) about Java",
-        "experience_years": "at least 5",
-        "current_title": "not empty"
-    }
+    filter_conditions = {"skills": "contains relevant skill(s) about Java", "experience_years": "at least 5", "current_title": "not empty"}
     print(filter_conditions)
     attributes = {
         "filter_conditions": filter_conditions,
         "context": "The **relevant skills**  in the conditions are skills that have high correlation with the target skill.",
-        "return_idx": False
+        "return_idx": False,
     }
     print(attributes)
     result = semantic_filter_operator_function(input_data, attributes, properties)

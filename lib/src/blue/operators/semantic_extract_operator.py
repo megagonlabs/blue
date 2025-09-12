@@ -20,22 +20,22 @@ def semantic_extract_operator_function(input_data: List[List[Dict[str, Any]]], a
         return []
 
     service_client = ServiceClient(name="semantic_extract_operator_service_client", properties=properties)
-    
+
     results = []
     for data_group in input_data:
         if not data_group:
             results.append([])
             continue
-            
+
         if extract_with_single_prompt:
             # Extract all entities in a single prompt
             result = _extract_all_entities_single_prompt(data_group, entities, context, demonstrations, service_client, properties)
         else:
             # Extract each entity with individual prompts
             result = _extract_entities_individual_prompts(data_group, entities, context, demonstrations, service_client, properties)
-        
+
         results.append(result)
-    
+
     return results
 
 
@@ -48,10 +48,10 @@ def semantic_extract_operator_validator(input_data: List[List[Dict[str, Any]]], 
         return False
 
     entities = attributes.get('entities', [])
-    
+
     if not isinstance(entities, list) or len(entities) == 0:
         return False
-    
+
     for entity in entities:
         if not isinstance(entity, dict):
             return False
@@ -74,25 +74,27 @@ def semantic_extract_operator_explainer(output: Any, input_data: List[List[Dict[
     return default_operator_explainer(output, input_data, attributes)
 
 
-def _extract_all_entities_single_prompt(data_group: List[Dict[str, Any]], entities: List[Dict[str, Any]], context: str, demonstrations: str, service_client: ServiceClient, properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _extract_all_entities_single_prompt(
+    data_group: List[Dict[str, Any]], entities: List[Dict[str, Any]], context: str, demonstrations: str, service_client: ServiceClient, properties: Dict[str, Any]
+) -> List[Dict[str, Any]]:
     """Extract all entities using a single prompt for each record."""
     results = []
-    
+
     for record in data_group:
         entity_descriptions = []
         relevant_fields = set()
-        
+
         for entity in entities:
             name = entity['name']
             description = entity.get('description', f'Extract {name} from the text')
             extract_on_fields = entity.get('extract_on_fields', [])
             entity_type = entity.get('type')
-            
+
             if entity_type:
                 type_info = f" ({entity_type})"
             else:
                 type_info = ""
-            
+
             if extract_on_fields:
                 fields = ', '.join(extract_on_fields)
                 entity_descriptions.append(f"- {name}{type_info}: {description} (from fields: {fields})")
@@ -100,64 +102,61 @@ def _extract_all_entities_single_prompt(data_group: List[Dict[str, Any]], entiti
             else:
                 entity_descriptions.append(f"- {name}{type_info}: {description} (from all fields)")
                 relevant_fields.update(record.keys())
-        
+
         # Create filtered record with only relevant fields
         filtered_record = {field: record[field] for field in relevant_fields if field in record}
-        
-        additional_data = {
-            'entities': '\n'.join(entity_descriptions),
-            'context': context,
-            'demonstrations': demonstrations,
-            'data_record': filtered_record
-        }
-        
+
+        additional_data = {'entities': '\n'.join(entity_descriptions), 'context': context, 'demonstrations': demonstrations, 'data_record': filtered_record}
+
         result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
-        
+
         if isinstance(result, dict):
             results.append(result)
         else:
             empty_result = {entity['name']: [] for entity in entities}
             results.append(empty_result)
-    
+
     return results
 
 
-def _extract_entities_individual_prompts(data_group: List[Dict[str, Any]], entities: List[Dict[str, Any]], context: str, demonstrations: str, service_client: ServiceClient, properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _extract_entities_individual_prompts(
+    data_group: List[Dict[str, Any]], entities: List[Dict[str, Any]], context: str, demonstrations: str, service_client: ServiceClient, properties: Dict[str, Any]
+) -> List[Dict[str, Any]]:
     """Extract entities using individual prompts for each entity type."""
     results = []
-    
+
     for record in data_group:
         extracted_record = {}
-        
+
         for entity in entities:
             entity_name = entity['name']
             entity_description = entity.get('description', '')
             extract_on_fields = entity.get('extract_on_fields', [])
             entity_type = entity.get('type')
-            
+
             # If no extract_on_fields specified, use all fields in the record
             if not extract_on_fields:
                 extract_on_fields = list(record.keys())
-            
+
             text_to_extract = []
             for field in extract_on_fields:
                 if field in record and record[field]:
                     text_to_extract.append(f"{field}: {record[field]}")
-            
+
             if not text_to_extract:
                 extracted_record[entity_name] = []
                 continue
-            
+
             individual_properties = properties.copy()
             individual_properties['input_template'] = SemanticExtractOperator.INDIVIDUAL_EXTRACT_PROMPT
-            
+
             if entity_type:
                 entity_type_info = f" ({entity_type})"
                 type_line = f"\n- **Type**: {entity_type}"
             else:
                 entity_type_info = ""
                 type_line = ""
-            
+
             additional_data = {
                 'entity_name': entity_name,
                 'entity_description': entity_description,
@@ -166,23 +165,19 @@ def _extract_entities_individual_prompts(data_group: List[Dict[str, Any]], entit
                 'extract_fields': ', '.join(extract_on_fields) if extract_on_fields else 'all fields',
                 'context': context,
                 'demonstrations': demonstrations,
-                'text_to_extract': '\n'.join(text_to_extract)
+                'text_to_extract': '\n'.join(text_to_extract),
             }
-            
+
             entity_result = service_client.execute_api_call({}, properties=individual_properties, additional_data=additional_data)
-            
+
             if isinstance(entity_result, list):
                 extracted_record[entity_name] = entity_result
             else:
                 extracted_record[entity_name] = [entity_result] if entity_result else []
-        
+
         results.append(extracted_record)
-    
+
     return results
-
-
-
-
 
 
 class SemanticExtractOperator(Operator, ServiceClient):
@@ -288,27 +283,22 @@ ${text_to_extract}
     description = "Extracts entities from natural language text fields using LLM models"
     default_attributes = {
         "entities": {
-            "type": "list[dict]", 
-            "description": "List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional)", 
-            "required": True
+            "type": "list[dict]",
+            "description": "List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional)",
+            "required": True,
         },
         "context": {
-            "type": "str", 
-            "description": "Additional context information that provides domain knowledge or additional instructions for the extraction", 
-            "required": False, 
-            "default": ""
+            "type": "str",
+            "description": "Additional context information that provides domain knowledge or additional instructions for the extraction",
+            "required": False,
+            "default": "",
         },
-        "demonstrations": {
-            "type": "str", 
-            "description": "Additional demonstrations to help in-context learning", 
-            "required": False, 
-            "default": ""
-        },
+        "demonstrations": {"type": "str", "description": "Additional demonstrations to help in-context learning", "required": False, "default": ""},
         "extract_with_single_prompt": {
-            "type": "bool", 
-            "description": "If true, extract all entities in a single prompt, else extract each entity with individual prompt", 
-            "required": False, 
-            "default": True
+            "type": "bool",
+            "description": "If true, extract all entities in a single prompt, else extract each entity with individual prompt",
+            "required": False,
+            "default": True,
         },
     }
 
@@ -317,7 +307,7 @@ ${text_to_extract}
             self.name,
             function=semantic_extract_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=semantic_extract_operator_validator,
             explainer=semantic_extract_operator_explainer,
         )
@@ -333,48 +323,38 @@ if __name__ == "__main__":
     ## calling example
 
     # Example data for testing
-    input_data = [[
-        {
-            "job_id": 1,
-            "job_title": "Senior Full Stack Developer",
-            "job_description": "We are seeking a senior full stack developer with 5+ years of experience in React, Node.js, Python, and PostgreSQL. Must have experience with AWS, Docker, and CI/CD pipelines. Knowledge of TypeScript and GraphQL is preferred.",
-            "location": "location A",
-            "company": "company A",
-            "salary_range": "salary range A"
-        },
-        {
-            "job_id": 2,
-            "job_title": "Machine Learning Engineer",
-            "job_description": "Looking for an ML engineer with expertise in Python, TensorFlow, PyTorch, and scikit-learn. Must have 3+ years of experience with data pipelines, Apache Spark, and cloud platforms. PhD in Computer Science or related field preferred.",
-            "location": "location B",
-            "company": "company B",
-            "salary_range": "salary range B"
-        }
-    ]]
+    input_data = [
+        [
+            {
+                "job_id": 1,
+                "job_title": "Senior Full Stack Developer",
+                "job_description": "We are seeking a senior full stack developer with 5+ years of experience in React, Node.js, Python, and PostgreSQL. Must have experience with AWS, Docker, and CI/CD pipelines. Knowledge of TypeScript and GraphQL is preferred.",
+                "location": "location A",
+                "company": "company A",
+                "salary_range": "salary range A",
+            },
+            {
+                "job_id": 2,
+                "job_title": "Machine Learning Engineer",
+                "job_description": "Looking for an ML engineer with expertise in Python, TensorFlow, PyTorch, and scikit-learn. Must have 3+ years of experience with data pipelines, Apache Spark, and cloud platforms. PhD in Computer Science or related field preferred.",
+                "location": "location B",
+                "company": "company B",
+                "salary_range": "salary range B",
+            },
+        ]
+    ]
 
     # Define entities to extract
     entities = [
-        {
-            "name": "programming_languages",
-            "description": "Programming languages and frameworks mentioned in the job description",
-            "extract_on_fields": ["job_description"]
-        },
+        {"name": "programming_languages", "description": "Programming languages and frameworks mentioned in the job description", "extract_on_fields": ["job_description"]},
         {
             "name": "experience_years",
             "description": "Years of experience requirements mentioned",
             "type": "int",
             "extract_on_fields": ["job_description"],
         },
-        {
-            "name": "skills",
-            "description": "Technologies, tools, and platforms mentioned",
-            "extract_on_fields": ["job_description", "job_title"]
-        },
-        {
-            "name": "education_qualifications",
-            "description": "Educational requirements and qualifications mentioned",
-            "extract_on_fields": ["job_description"]
-        }
+        {"name": "skills", "description": "Technologies, tools, and platforms mentioned", "extract_on_fields": ["job_description", "job_title"]},
+        {"name": "education_qualifications", "description": "Educational requirements and qualifications mentioned", "extract_on_fields": ["job_description"]},
     ]
 
     print(f"=== Semantic Extract attributes ===")
@@ -388,23 +368,14 @@ if __name__ == "__main__":
 
     # Example 1: Single prompt extraction
     print("=== Example 1: Single prompt based extraction ===")
-    attributes_single = {
-        "entities": entities,
-        "context": "",
-        "extract_with_single_prompt": True
-    }
+    attributes_single = {"entities": entities, "context": "", "extract_with_single_prompt": True}
     result = semantic_extract_operator_function(input_data, attributes_single, properties)
     print("=== Semantic Extract RESULT (single prompt) ===")
     print(result)
 
     # Example 2: Individual prompts extraction
     print("=== Example 2: Individual prompts based extraction ===")
-    attributes_individual = {
-        "entities": entities,
-        "context": None,
-        "demonstrations": None,
-        "extract_with_single_prompt": False
-    }
+    attributes_individual = {"entities": entities, "context": None, "demonstrations": None, "extract_with_single_prompt": False}
     result = semantic_extract_operator_function(input_data, attributes_individual, properties)
     print("=== Semantic Extract RESULT (individual prompts) ===")
     print(result)

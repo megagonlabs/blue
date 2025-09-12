@@ -143,7 +143,7 @@ class SelectOperator(Operator):
             self.name,
             function=select_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=select_operator_validator,
             explainer=select_operator_explainer,
         )

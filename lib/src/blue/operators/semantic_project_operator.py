@@ -19,24 +19,24 @@ def semantic_project_operator_function(input_data: List[List[Dict[str, Any]]], a
         return []
 
     service_client = ServiceClient(name="semantic_project_operator_service_client", properties=properties)
-    
+
     results = []
     for data_group in input_data:
         if not data_group:
             results.append([])
             continue
-            
+
         # Generate column mapping using LLM
         schema = _extract_typed_schema(data_group)
         resolved_mapping = _resolve_column_mapping(schema, projection_instructions, service_client, properties)
         if not resolved_mapping:
             results.append([])
             continue
-        
+
         # Apply projection with resolved mapping
         result = _apply_projection(data_group, resolved_mapping)
         results.append(result)
-    
+
     return results
 
 
@@ -85,14 +85,11 @@ def _resolve_column_mapping(schema: Dict[str, str], projection_instructions: str
     schema_display = []
     for column_name, data_type in schema.items():
         schema_display.append(f"- {column_name} ({data_type})")
-    
-    additional_data = {
-        'schema': '\n'.join(schema_display),
-        'projection_instructions': projection_instructions
-    }
-    
+
+    additional_data = {'schema': '\n'.join(schema_display), 'projection_instructions': projection_instructions}
+
     result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
-    
+
     if isinstance(result, dict):
         return result
     else:
@@ -103,7 +100,7 @@ def _apply_projection(data_group: List[Dict[str, Any]], resolved_mapping: Dict[s
     """Apply projection using resolved mapping."""
     if not resolved_mapping:
         return []
-    
+
     projected_records = []
     for record in data_group:
         projected_record = {}
@@ -111,12 +108,12 @@ def _apply_projection(data_group: List[Dict[str, Any]], resolved_mapping: Dict[s
             if old_key in record:
                 projected_record[new_key] = record[old_key]
         projected_records.append(projected_record)
-    
+
     return projected_records
 
 
 class SemanticProjectOperator(Operator, ServiceClient):
-    
+
     MAPPING_PROMPT = """## Task
 You are given a database schema with data types and natural language projection instructions. Your job is to generate a JSON mapping that specifies which columns to keep and how to rename them.
 
@@ -181,11 +178,7 @@ ${projection_instructions}
     name = "semantic_project"
     description = "Projects records to select and rename columns using LLM-based mapping resolution"
     default_attributes = {
-        "projection_instructions": {
-            "type": "str", 
-            "description": "Natural language description of which columns to keep and how to rename them", 
-            "required": True
-        },
+        "projection_instructions": {"type": "str", "description": "Natural language description of which columns to keep and how to rename them", "required": True},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
@@ -193,7 +186,7 @@ ${projection_instructions}
             self.name,
             function=semantic_project_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=semantic_project_operator_validator,
             explainer=semantic_project_operator_explainer,
         )
@@ -207,26 +200,28 @@ if __name__ == "__main__":
     ## calling example
 
     # Test data
-    input_data = [[
-        {
-            "first_name": "first_name_A",
-            "last_name": "last_name_A", 
-            "current_title": "Senior Software Engineer",
-            "skills": ["Python", "React", "SQL", "Docker", "AWS"],
-            "years_experience": 5,
-            "degree": "Bachelor of Computer Science",
-            "certifications": ["AWS Certified Developer", "Google Cloud Professional"]
-        },
-        {
-            "first_name": "first_name_B",
-            "last_name": "last_name_B",
-            "current_title": "Data Scientist", 
-            "skills": ["Python", "R", "Machine Learning", "TensorFlow", "Pandas"],
-            "years_experience": 3,
-            "degree": "Master of Data Science",
-            "certifications": ["AWS Certified Machine Learning", "Microsoft Azure Data Scientist"]
-        }
-    ]]
+    input_data = [
+        [
+            {
+                "first_name": "first_name_A",
+                "last_name": "last_name_A",
+                "current_title": "Senior Software Engineer",
+                "skills": ["Python", "React", "SQL", "Docker", "AWS"],
+                "years_experience": 5,
+                "degree": "Bachelor of Computer Science",
+                "certifications": ["AWS Certified Developer", "Google Cloud Professional"],
+            },
+            {
+                "first_name": "first_name_B",
+                "last_name": "last_name_B",
+                "current_title": "Data Scientist",
+                "skills": ["Python", "R", "Machine Learning", "TensorFlow", "Pandas"],
+                "years_experience": 3,
+                "degree": "Master of Data Science",
+                "certifications": ["AWS Certified Machine Learning", "Microsoft Azure Data Scientist"],
+            },
+        ]
+    ]
 
     print("=== Original Data ===")
     print(input_data[0])
@@ -238,10 +233,8 @@ if __name__ == "__main__":
 
     # Example 1: Just select (keep only specific columns, no renaming)
     print("\n=== Example 1: Just select ===")
-    attributes = {
-        "projection_instructions": "Keep columns about name and skills."
-    }
-    
+    attributes = {"projection_instructions": "Keep columns about name and skills."}
+
     print(f"Projection Instructions: {attributes['projection_instructions']}")
     result = semantic_project_operator_function(input_data, attributes, properties)
     print("=== Semantic Project RESULT (Example 1) ===")
@@ -249,10 +242,8 @@ if __name__ == "__main__":
 
     # Example 2: Mixture of select and rename
     print("\n=== Example 2: Mixture of select and rename ===")
-    attributes = {
-        "projection_instructions": "Help me process the data to get the surname as key \"Name\" and applicants skill-related fields."
-    }
-    
+    attributes = {"projection_instructions": "Help me process the data to get the surname as key \"Name\" and applicants skill-related fields."}
+
     print(f"Projection Instructions: {attributes['projection_instructions']}")
     result = semantic_project_operator_function(input_data, attributes, properties)
     print("=== Semantic Project RESULT (Example 2) ===")
@@ -260,10 +251,8 @@ if __name__ == "__main__":
 
     # Example 3: Drop only (keep most columns, drop specific ones)
     print("\n=== Example 3: Drop only ===")
-    attributes = {
-        "projection_instructions": "Drop all columns about experiences."
-    }
-    
+    attributes = {"projection_instructions": "Drop all columns about experiences."}
+
     print(f"Projection Instructions: {attributes['projection_instructions']}")
     result = semantic_project_operator_function(input_data, attributes, properties)
     print("=== Semantic Project RESULT (Example 3) ===")

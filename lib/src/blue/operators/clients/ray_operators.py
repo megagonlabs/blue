@@ -131,7 +131,7 @@ operators_dict[semantic_transform_operator.name] = semantic_transform_operator
 from blue.operators.nl2query_router_operator import NL2QueryRouterOperator
 
 nl2query_router_operator = NL2QueryRouterOperator()
-operators_dict[nl2query_router_operator.name] = NL2QueryRouterOperator
+operators_dict[nl2query_router_operator.name] = nl2query_router_operator
 
 from blue.operators.nl2llm_operator import NL2LLMOperator
 

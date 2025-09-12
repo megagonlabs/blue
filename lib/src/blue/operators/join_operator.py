@@ -94,7 +94,7 @@ class JoinOperator(Operator):
             self.name,
             function=join_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=join_operator_validator,
             explainer=join_operator_explainer,
         )

@@ -112,7 +112,7 @@ Output:
             self.name,
             function=query_breakdown_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=query_breakdown_operator_validator,
             explainer=query_breakdown_operator_explainer,
         )

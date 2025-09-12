@@ -99,7 +99,7 @@ class InsertOperator(Operator):
             self.name,
             function=insert_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=insert_operator_validator,
             explainer=insert_operator_explainer,
         )

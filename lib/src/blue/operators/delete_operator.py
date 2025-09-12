@@ -91,7 +91,7 @@ class DeleteOperator(Operator):
             self.name,
             function=delete_operator_function,
             description=description or self.description,
-            properties=properties or self.PROPERTIES,
+            properties=properties,
             validator=delete_operator_validator,
             explainer=default_operator_explainer,
         )
