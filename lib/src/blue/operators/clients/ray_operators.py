@@ -122,6 +122,11 @@ from blue.operators.semantic_project_operator import SemanticProjectOperator
 semantic_project_operator = SemanticProjectOperator()
 operators_dict[semantic_project_operator.name] = semantic_project_operator
 
+from blue.operators.semantic_transform_operator import SemanticTransformOperator
+
+semantic_transform_operator = SemanticTransformOperator()
+operators_dict[semantic_transform_operator.name] = semantic_transform_operator
+
 ## QUERY/COMPOUND OPERATORS
 from blue.operators.nl2query_router_operator import NL2QueryRouterOperator
 

@@ -542,6 +542,70 @@
         "contents": {}
     },
     {
+        "name": "semantic_transform",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Transforms data into target fields and values using LLM-based transformations",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "skip",
+            "log_processing_stats": true,
+            "openai.api": "ChatCompletion",
+            "openai.model": "gpt-4o",
+            "openai.stream": false,
+            "openai.max_tokens": 1024,
+            "openai.temperature": 0.0,
+            "input_json": "[{\"role\": \"user\"}]",
+            "input_context": "$[0]",
+            "input_context_field": "content",
+            "input_field": "messages",
+            "input_template": "## Task\nYou are a data transformation expert. Transform the input data to match the required output schema.\n\n## Available Input Fields\n${schema}\n\n## Target Output Fields\n${output_requirements}\n\n## Input Data Record\n${input_data}\n\n## Instructions\n1. Transform the input data record to create the target output fields\n2. Use the field descriptions, optional types, optional required flags, and optional hints to guide your transformations.\n3. Ensure output values match the specified data types (str, integer, boolean, etc.) if specified.\n4. **Field Inclusion Rules**:\n   - If a field is marked as \"required: True\", it MUST be present in the output with an appropriate value\n   - If a field is marked as \"required: False\", it can be omitted if you cannot reasonably infer its value from the input data\n   - If no \"required\" information is provided, only include fields that you confidently infer or derive from the available input data\n5. **Required Field Generation**: If a required field cannot be created from available data, use a null value (None) that satisfies the field type.ck\n\n6. **Conservative Approach**: When in doubt about whether to include a field, err on the side of omitting it rather than generating speculative values\n7. **Do NOT generate fake or speculative values** for fields that cannot be reasonably inferred from the input data\n8. Return the transformed data as a JSON object\n\nReturn only the transformed JSON object, no additional text.",
+            "output_path": "$.choices[0].message.content",
+            "service_prefix": "openai",
+            "output_transformations": [
+                {
+                    "transformation": "replace",
+                    "from": "```",
+                    "to": ""
+                },
+                {
+                    "transformation": "replace",
+                    "from": "json",
+                    "to": ""
+                }
+            ],
+            "output_strip": true,
+            "output_cast": "json",
+            "parameters": {
+                "input_meta": {
+                    "type": "dict",
+                    "description": "Optional metadata about input fields",
+                    "required": false,
+                    "default": {}
+                },
+                "output_desc": {
+                    "type": "dict",
+                    "description": "Required description of target fields to create",
+                    "required": true
+                },
+                "strategy": {
+                    "type": "str",
+                    "description": "Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization). Note: All strategies automatically use direct renaming for fields without value changes.",
+                    "required": false,
+                    "default": "auto"
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
         "name": "join",
         "type": "operator",
         "scope": "/server/blue_ray",
