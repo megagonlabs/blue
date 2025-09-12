@@ -123,6 +123,11 @@ semantic_project_operator = SemanticProjectOperator()
 operators_dict[semantic_project_operator.name] = semantic_project_operator
 
 ## QUERY/COMPOUND OPERATORS
+from blue.operators.nl2query_router_operator import NL2QueryRouterOperator
+
+nl2query_router_operator = NL2QueryRouterOperator()
+operators_dict[nl2query_router_operator.name] = NL2QueryRouterOperator
+
 from blue.operators.nl2llm_operator import NL2LLMOperator
 
 nl2llm_operator = NL2LLMOperator()
