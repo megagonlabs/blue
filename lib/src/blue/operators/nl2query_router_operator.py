@@ -90,11 +90,7 @@ class NL2QueryRouterOperator(Operator):
     nl2query router operator refines to the right nl2q operator based on source.
     """
 
-    PROPERTIES = {
-        "tool_type": "operator",
-        "platform.name": "default",
-        "operator_registry.name": "default",
-    }
+    PROPERTIES = {}
 
     name = "nl2query_router"
     description = "Routees the execution of query, based on source"

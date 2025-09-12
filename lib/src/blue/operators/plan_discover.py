@@ -70,11 +70,7 @@ class PlanDiscoverOperator(Operator):
     plan discover operator that searches for top-level operators as plan starters
     """
 
-    PROPERTIES = {
-        "tool_type": "operator",
-        "platform.name": "default",
-        "operator_registry.name": "default",
-    }
+    PROPERTIES = {}
 
     name = "plan_discover"
     description = "Discovers plans using the operator registry to search for top-level operators as plan starters"

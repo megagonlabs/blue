@@ -159,11 +159,7 @@ class DataDiscoverOperator(Operator):
     Data discover operator that searches for data sources
     """
 
-    PROPERTIES = {
-        "tool_type": "operator",
-        "platform.name": "default",
-        "data_registry.name": "default",
-    }
+    PROPERTIES = {}
 
     name = "data_discover"
     description = "Discovers data sources using the data registry"

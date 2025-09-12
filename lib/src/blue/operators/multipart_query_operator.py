@@ -156,11 +156,7 @@ class MultipartQueryOperator(Operator):
     multipart query operator orchestrates the execution of multi-part query, starting with data discovery, and exectution.
     """
 
-    PROPERTIES = {
-        "tool_type": "operator",
-        "platform.name": "default",
-        "operator_registry.name": "default",
-    }
+    PROPERTIES = {}
 
     name = "multipart_query"
     description = "Orchestrates the execution of multi-part query, starting with data discovery, leading to execution"

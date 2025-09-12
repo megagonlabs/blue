@@ -159,11 +159,7 @@ class OperatorDiscoverOperator(Operator):
     operator discover operator that searches for operators
     """
 
-    PROPERTIES = {
-        "tool_type": "operator",
-        "platform.name": "default",
-        "operator_registry.name": "default",
-    }
+    PROPERTIES = {}
 
     name = "operator_discover"
     description = "Discovers operators using the operator registry"

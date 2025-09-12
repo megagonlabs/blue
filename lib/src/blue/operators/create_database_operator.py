@@ -113,11 +113,7 @@ class CreateDatabaseOperator(Operator):
     Create database operator that creates databases in data sources
     """
 
-    PROPERTIES = {
-        "tool_type": "operator",
-        "platform.name": "default",
-        "data_registry.name": "default",
-    }
+    PROPERTIES = {}
 
     name = "create_database"
     description = "Creates databases in data sources using the data registry. If the database already exists, it will be overwritten if overwrite is True."
