@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Callable, Optional
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.data.registry import DataRegistry
+import traceback
 
 ###############
 ### Data Discover Operator
@@ -30,7 +31,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
     try:
         # For non-approximate search OR when progressive pagination is disabled, use simple pagination
         if (not approximate and not hybrid) or not progressive_pagination:
-            search_results = data_registry.search_records(keywords=search_query, type='source', scope='/', approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
+            search_results = data_registry.search_records(search_query, type='source', approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
 
             for result in search_results:
                 transformed_result = {
@@ -66,7 +67,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
             current_page = page
 
             while True:
-                search_results = data_registry.search_records(keywords=search_query, type='source', scope='/', approximate=approximate, hybrid=hybrid, page=current_page, page_size=page_size)
+                search_results = data_registry.search_records(search_query, type='source', approximate=approximate, hybrid=hybrid, page=current_page, page_size=page_size)
 
                 if len(search_results) == 0:
                     break
@@ -109,6 +110,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
                 current_page += 1
 
     except Exception as e:
+        traceback.print_exc()
         return [[]]
 
     return [results]
