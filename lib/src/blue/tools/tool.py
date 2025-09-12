@@ -26,27 +26,7 @@ class Tool:
         self.validator = validator
         self.explainer = explainer
 
-        """
-        Initialize an Operator.
-        Args:
-            name: Name of the operator
-            description: Description of what the operator does
-            properties: properties for the operator, should include a key "parameters" with parameter definitions
-            function: Function to execute the operator
-            validator: Function to validate input parameters
-            explainer: Function to explain output and potential errors
-        """
-        self.name = name
-        self.description = description
-
-        self.function = function
-        self.validator = validator
-        self.explainer = explainer
-
         # Initialize properties, parameters, validator, and explainer
-        if properties is None:
-            properties = {}
-
         self._initialize(properties=properties)
 
     def _initialize(self, properties=None):

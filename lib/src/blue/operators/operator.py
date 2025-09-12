@@ -117,12 +117,11 @@ class Operator(Tool):
             validator = default_operator_validator
         if explainer is None:
             explainer = default_operator_explainer
-
-        super().__init__(name, function, description=description, properties=properties, validator=validator, explainer=explainer)
-
         if refiner is None:
             refiner = default_operator_refiner
         self.refiner = refiner
+
+        super().__init__(name, function, description=description, properties=properties, validator=validator, explainer=explainer)
 
     def _initialize_properties(self):
         super()._initialize_properties()
