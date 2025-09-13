@@ -202,24 +202,8 @@ if __name__ == "__main__":
     # Test data
     input_data = [
         [
-            {
-                "first_name": "first_name_A",
-                "last_name": "last_name_A",
-                "current_title": "Senior Software Engineer",
-                "skills": ["Python", "React", "SQL", "Docker", "AWS"],
-                "years_experience": 5,
-                "degree": "Bachelor of Computer Science",
-                "certifications": ["AWS Certified Developer", "Google Cloud Professional"],
-            },
-            {
-                "first_name": "first_name_B",
-                "last_name": "last_name_B",
-                "current_title": "Data Scientist",
-                "skills": ["Python", "R", "Machine Learning", "TensorFlow", "Pandas"],
-                "years_experience": 3,
-                "degree": "Master of Data Science",
-                "certifications": ["AWS Certified Machine Learning", "Microsoft Azure Data Scientist"],
-            },
+            {"first_name": "first_name_A", "last_name": "last_name_A", "current_title": "Senior Software Engineer", "skills": ["Python", "React", "SQL", "Docker", "AWS"], "years_experience": 5, "degree": "Bachelor of Computer Science", "certifications": ["AWS Certified Developer", "Google Cloud Professional"]},
+            {"first_name": "first_name_B", "last_name": "last_name_B", "current_title": "Data Scientist", "skills": ["Python", "R", "Machine Learning", "TensorFlow", "Pandas"], "years_experience": 3, "degree": "Master of Data Science", "certifications": ["AWS Certified Machine Learning", "Microsoft Azure Data Scientist"]},
         ]
     ]
 
