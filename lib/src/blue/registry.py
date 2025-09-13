@@ -240,7 +240,7 @@ class Registry:
 
         # index contents
         if recursive:
-            contents = record['contents']
+            contents = record.get('contents', {})
             for type_key in contents:
                 contents_by_type = contents[type_key]
                 for record_key in contents_by_type:
