@@ -1,5 +1,6 @@
 ###### Formats
 from typing import List, Dict, Any, Callable, Optional
+import json
 
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
@@ -179,17 +180,17 @@ def _generate_transformation_plan(
     result = service_client.execute_api_call({}, properties=plan_properties, additional_data=additional_data)
 
     # Parse the plan result
-    plan = {}
     if isinstance(result, dict):
         plan = result
-    else:
+    elif isinstance(result, str):
         try:
-            if isinstance(result, str):
-                import json
-
-                plan = json.loads(result)
-        except Exception:
-            pass
+            plan = json.loads(result)
+            if not isinstance(plan, dict):
+                plan = {}
+        except (json.JSONDecodeError, ValueError):
+            plan = {}
+    else:
+        plan = {}
 
     # Merge plan into output_desc
     enhanced_output_desc = output_desc.copy()
@@ -430,15 +431,12 @@ def _execute_per_record(
 
             if isinstance(result, dict):
                 transformed_record.update(result)
-            else:
+            elif isinstance(result, str):
                 try:
-                    if isinstance(result, str):
-                        import json
-
-                        parsed_result = json.loads(result)
-                        if isinstance(parsed_result, dict):
-                            transformed_record.update(parsed_result)
-                except:
+                    parsed_result = json.loads(result)
+                    if isinstance(parsed_result, dict):
+                        transformed_record.update(parsed_result)
+                except (json.JSONDecodeError, ValueError):
                     pass  # Keep simple fields even if complex transformation fails
 
         # Handle optional fields that are not in complex_fields (set to None)
@@ -531,15 +529,12 @@ def _execute_distinct_required_values(
 
             if isinstance(result, dict) and field_name in result:
                 value_mappings[combination] = result[field_name]
-            else:
+            elif isinstance(result, str):
                 try:
-                    if isinstance(result, str):
-                        import json
-
-                        parsed_result = json.loads(result)
-                        if isinstance(parsed_result, dict) and field_name in parsed_result:
-                            value_mappings[combination] = parsed_result[field_name]
-                except:
+                    parsed_result = json.loads(result)
+                    if isinstance(parsed_result, dict) and field_name in parsed_result:
+                        value_mappings[combination] = parsed_result[field_name]
+                except (json.JSONDecodeError, ValueError):
                     pass
 
     # Apply transformations to all records
@@ -666,20 +661,17 @@ def _execute_distinct_required_values_with_merged_fields(
 
             if isinstance(result, dict):
                 combination_results[combination] = result
-            else:
+            elif isinstance(result, str):
                 try:
-                    if isinstance(result, str):
-                        import json
-
-                        parsed_result = json.loads(result)
-                        if isinstance(parsed_result, dict):
-                            combination_results[combination] = parsed_result
-                        else:
-                            combination_results[combination] = {}
+                    parsed_result = json.loads(result)
+                    if isinstance(parsed_result, dict):
+                        combination_results[combination] = parsed_result
                     else:
                         combination_results[combination] = {}
-                except:
+                except (json.JSONDecodeError, ValueError):
                     combination_results[combination] = {}
+            else:
+                combination_results[combination] = {}
 
         # Apply results to all records with matching combinations
         for i, record in enumerate(data_group):
