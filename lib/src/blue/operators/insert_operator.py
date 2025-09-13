@@ -80,18 +80,8 @@ class InsertOperator(Operator):
     name = "insert"
     description = "Given input data, insert records by position(s)"
     default_attributes = {
-        "insert_records": {
-            "type": "list[dict]",
-            "description": "List of records to insert into the first data source (optional if second data group provided)",
-            "required": False,
-            "default": [],
-        },
-        "insert_idx": {
-            "type": "Union[int, list[int]]",
-            "description": "Position(s) to insert records (-1 for append, 0+ for specific position). If list, each element corresponds to position for each record",
-            "required": False,
-            "default": -1,
-        },
+        "insert_records": {"type": "list[dict]", "description": "List of records to insert into the first data source (optional if second data group provided)", "required": False, "default": []},
+        "insert_idx": {"type": "Union[int, list[int]]", "description": "Position(s) to insert records (-1 for append, 0+ for specific position). If list, each element corresponds to position for each record", "required": False, "default": -1},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
