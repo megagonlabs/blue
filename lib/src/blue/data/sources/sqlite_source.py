@@ -205,17 +205,24 @@ class SQLiteDBSource(DataSource):
 
         query = "CREATE TABLE " + f"\"{entity}\""
 
-        # entity properties
-        entity_properties_str = ""
-        entity_properties = properties['properties']
-        for i, entity_property in enumerate(entity_properties):
-            entity_properties_str += " " + entity_property['name']
-            if 'type' in entity_property:
-                entity_properties_str += " " + entity_property['type']
-            if 'misc' in entity_property:
-                entity_properties_str += " " + entity_property['misc']
-            if i < len(entity_properties) - 1:
-                entity_properties_str += ","
+        # column definitions
+        column_definitions_str = ""
+        column_definitions = properties['cols_definition']
+        for i, column_def in enumerate(column_definitions):
+            if i > 0:
+                column_definitions_str += ", "
+            column_definitions_str += column_def['name']
+            if 'type' in column_def:
+                column_definitions_str += " " + column_def['type']
+            if 'misc' in column_def:
+                column_definitions_str += " " + column_def['misc']
+
+        # add primary key constraint if provided
+        primary_key = properties.get('primary_key', [])
+        if primary_key:
+            pk_cols = ', '.join([f'"{col}"' for col in primary_key])
+            pk_clause = f", PRIMARY KEY ({pk_cols})"
+            column_definitions_str += pk_clause
 
         # add foreign key constraints if provided
         foreign_keys = properties.get('foreign_keys', [])
@@ -224,9 +231,10 @@ class SQLiteDBSource(DataSource):
                 source_cols = ', '.join([f'"{col}"' for col in fk['foreign_keys_source_columns']])
                 target_cols = ', '.join([f'"{col}"' for col in fk['foreign_keys_target_columns']])
                 fk_clause = f", FOREIGN KEY ({source_cols}) REFERENCES \"{fk['foreign_keys_target_table']}\" ({target_cols})"
-                entity_properties_str += fk_clause
+                column_definitions_str += fk_clause
 
-        query += "( " + entity_properties_str + " )"
+        query += "( " + column_definitions_str + " )"
+        self.logger.info(f"Generated SQL query: {query}")
         self.execute_query(query, database=database, optional_properties={"commit": True})
         self.logger.info(f"Successfully created table '{entity}' in collection '{collection}' of database '{database}' in SQLite")
         return {"status": "success"}

@@ -43,7 +43,6 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
         data_registry.create_source_database(source=source, database=database_name, properties=db_properties, overwrite=overwrite, rebuild=True, recursive=False)
 
         # Set the description after database creation
-        # notes: the following hard-code setting for description and created_by is a temporary solution as the current data registry make them "" and null respectively.
         if description:
             data_registry.set_source_database_description(source=source, database=database_name, description=description, rebuild=True)
 
@@ -95,7 +94,10 @@ def create_database_operator_explainer(output: Any, input_data: List[List[Dict[s
     """Explain create database operator output."""
     source = attributes.get('source', '')
     overwrite = attributes.get('overwrite', False)
-    database_name = input_data[0][0].get('name', '') if input_data and input_data[0] else ''
+    try:
+        database_name = input_data[0][0].get('name', '') if input_data and input_data[0] else ''
+    except (IndexError, KeyError, TypeError, AttributeError):
+        database_name = ''
 
     create_database_explanation = {
         'input_data': input_data,
