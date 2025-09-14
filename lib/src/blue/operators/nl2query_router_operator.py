@@ -20,8 +20,12 @@ def nl2query_router_operator_function(input_data: List[List[Dict[str, Any]]], at
 
 def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
 
-    sources = input_data
     pipelines = []
+
+    if len(input_data) == 0:
+        return pipelines
+
+    sources = input_data[0]
 
     query = attributes['search_query']
     columns = attributes['columns']
