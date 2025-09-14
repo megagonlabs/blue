@@ -185,35 +185,11 @@ if __name__ == "__main__":
     # Test data - applicant records
     input_data = [
         [
-            {
-                "name": "Applicant A",
-                "skills": ["Spring Framework", "Gradle", "SQL"],
-                "experience_years": 5,
-                "current_title": "Frontend Developer",
-            },
-            {
-                "name": "Applicant B",
-                "skills": ["Java", "React"],
-                "experience_years": 2,
-                "current_title": "Junior Software Engineer",
-            },
-            {
-                "name": "Applicant C",
-                "skills": ["Java", "Spring", "Docker"],
-                "experience_years": 7,
-            },
-            {
-                "name": "Applicant D",
-                "skills": ["Python", "Java systems", "SQL"],
-                "experience_years": 8,
-                "current_title": "Senior Software Engineer",
-            },
-            {
-                "name": "Applicant E",
-                "skills": ["JUnit", "JVM"],
-                "experience_years": 5,
-                "current_title": "Coder",
-            },
+            {"name": "Applicant A", "skills": ["Spring Framework", "Gradle", "SQL"], "experience_years": 5, "current_title": "Frontend Developer"},
+            {"name": "Applicant B", "skills": ["Java", "React"], "experience_years": 2, "current_title": "Junior Software Engineer"},
+            {"name": "Applicant C", "skills": ["Java", "Spring", "Docker"], "experience_years": 7},
+            {"name": "Applicant D", "skills": ["Python", "Java systems", "SQL"], "experience_years": 8, "current_title": "Senior Software Engineer"},
+            {"name": "Applicant E", "skills": ["JUnit", "JVM"], "experience_years": 5, "current_title": "Coder"},
         ]
     ]
 

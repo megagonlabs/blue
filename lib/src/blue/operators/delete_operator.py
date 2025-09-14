@@ -78,12 +78,7 @@ class DeleteOperator(Operator):
     name = "delete"
     description = "Given input data, delete records from the first data source at specified positions"
     default_attributes = {
-        "delete_idx": {
-            "type": "Union[int, list[int]]",
-            "description": "Position(s) to delete records. Supports negative indexing (-1 = last, -2 = second to last, etc.)",
-            "required": False,
-            "default": [],
-        },
+        "delete_idx": {"type": "Union[int, list[int]]", "description": "Position(s) to delete records. Supports negative indexing (-1 = last, -2 = second to last, etc.)", "required": False, "default": []},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):

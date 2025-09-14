@@ -420,7 +420,7 @@ class DataRegistry(Registry):
                     self.set_source_database_collection_property(source, database, collection, key, value, rebuild=rebuild)
         return None
 
-    def create_source_database_collection_entity(self, source, database, collection, entity, properties={}, overwrite=False, rebuild=True, recursive=False):
+    def create_source_database_collection_entity(self, source, database, collection, entity, properties={}, creation_properties={}, overwrite=False, rebuild=True, recursive=False):
         """Create a new entity (table) in the specified collection."""
         source_connection = self.connect_source(source)
         if source_connection:
@@ -430,7 +430,7 @@ class DataRegistry(Registry):
                     self.deregister_source_database_collection_entity(source, database, collection, entity, rebuild=rebuild)
                 else:
                     return None
-            create_res = source_connection.create_database_collection_entity(database, collection, entity, properties=properties, overwrite=overwrite)
+            create_res = source_connection.create_database_collection_entity(database, collection, entity, properties=creation_properties, overwrite=overwrite)
             if create_res and create_res['status'] in ["success", "registry_only"]:
                 # currently sync is not supported for entity, so we sync the collection instead
                 self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)

@@ -81,18 +81,8 @@ class PlanDiscoverOperator(Operator):
         "page": {"type": "int", "description": "Page number for pagination", "required": False, "default": 0},
         "page_size": {"type": "int", "description": "Number of results per page (default: 10, max: 100)", "required": False, "default": 10},
         "include_metadata": {"type": "bool", "description": "Whether to include metadata in results (description and properties always included)", "required": False, "default": False},
-        "threshold": {
-            "type": "float",
-            "description": "Similarity threshold for filtering results (0.0-1.0, lower = more similar, only applies to approximate/hybrid search)",
-            "required": False,
-            "default": 0.5,
-        },
-        "progressive_pagination": {
-            "type": "bool",
-            "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)",
-            "required": False,
-            "default": False,
-        },
+        "threshold": {"type": "float", "description": "Similarity threshold for filtering results (0.0-1.0, lower = more similar, only applies to approximate/hybrid search)", "required": False, "default": 0.5},
+        "progressive_pagination": {"type": "bool", "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)", "required": False, "default": False},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):

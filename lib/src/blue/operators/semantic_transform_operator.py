@@ -1,5 +1,6 @@
 ###### Formats
 from typing import List, Dict, Any, Callable, Optional
+import json
 
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
@@ -179,17 +180,17 @@ def _generate_transformation_plan(
     result = service_client.execute_api_call({}, properties=plan_properties, additional_data=additional_data)
 
     # Parse the plan result
-    plan = {}
     if isinstance(result, dict):
         plan = result
-    else:
+    elif isinstance(result, str):
         try:
-            if isinstance(result, str):
-                import json
-
-                plan = json.loads(result)
-        except Exception:
-            pass
+            plan = json.loads(result)
+            if not isinstance(plan, dict):
+                plan = {}
+        except (json.JSONDecodeError, ValueError):
+            plan = {}
+    else:
+        plan = {}
 
     # Merge plan into output_desc
     enhanced_output_desc = output_desc.copy()
@@ -430,15 +431,12 @@ def _execute_per_record(
 
             if isinstance(result, dict):
                 transformed_record.update(result)
-            else:
+            elif isinstance(result, str):
                 try:
-                    if isinstance(result, str):
-                        import json
-
-                        parsed_result = json.loads(result)
-                        if isinstance(parsed_result, dict):
-                            transformed_record.update(parsed_result)
-                except:
+                    parsed_result = json.loads(result)
+                    if isinstance(parsed_result, dict):
+                        transformed_record.update(parsed_result)
+                except (json.JSONDecodeError, ValueError):
                     pass  # Keep simple fields even if complex transformation fails
 
         # Handle optional fields that are not in complex_fields (set to None)
@@ -531,15 +529,12 @@ def _execute_distinct_required_values(
 
             if isinstance(result, dict) and field_name in result:
                 value_mappings[combination] = result[field_name]
-            else:
+            elif isinstance(result, str):
                 try:
-                    if isinstance(result, str):
-                        import json
-
-                        parsed_result = json.loads(result)
-                        if isinstance(parsed_result, dict) and field_name in parsed_result:
-                            value_mappings[combination] = parsed_result[field_name]
-                except:
+                    parsed_result = json.loads(result)
+                    if isinstance(parsed_result, dict) and field_name in parsed_result:
+                        value_mappings[combination] = parsed_result[field_name]
+                except (json.JSONDecodeError, ValueError):
                     pass
 
     # Apply transformations to all records
@@ -666,20 +661,17 @@ def _execute_distinct_required_values_with_merged_fields(
 
             if isinstance(result, dict):
                 combination_results[combination] = result
-            else:
+            elif isinstance(result, str):
                 try:
-                    if isinstance(result, str):
-                        import json
-
-                        parsed_result = json.loads(result)
-                        if isinstance(parsed_result, dict):
-                            combination_results[combination] = parsed_result
-                        else:
-                            combination_results[combination] = {}
+                    parsed_result = json.loads(result)
+                    if isinstance(parsed_result, dict):
+                        combination_results[combination] = parsed_result
                     else:
                         combination_results[combination] = {}
-                except:
+                except (json.JSONDecodeError, ValueError):
                     combination_results[combination] = {}
+            else:
+                combination_results[combination] = {}
 
         # Apply results to all records with matching combinations
         for i, record in enumerate(data_group):
@@ -805,12 +797,7 @@ Return only the transformed JSON object, no additional text.
     default_attributes = {
         "input_meta": {"type": "dict", "description": "Optional metadata about input fields", "required": False, "default": {}},
         "output_desc": {"type": "dict", "description": "Required description of target fields to create", "required": True},
-        "strategy": {
-            "type": "str",
-            "description": "Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization).",
-            "required": False,
-            "default": "auto",
-        },
+        "strategy": {"type": "str", "description": "Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization).", "required": False, "default": "auto"},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
@@ -834,26 +821,8 @@ if __name__ == "__main__":
     # Test data
     input_data = [
         [
-            {
-                'full_name': 'AAA BBBB',
-                'email': 'aaa.bbb@email.com',
-                'phone': '111-111-1111',
-                'birth_date': '1900-05-15',
-                'street': '123 XXX St',
-                'city': 'New York',
-                'state': 'NY',
-                'zip_code': '10001',
-            },
-            {
-                'full_name': 'CCCC DD EEE',
-                'email': 'xxxyyy@email.com',
-                'phone': '222-222-2222',
-                'birth_date': '1905-12-03',
-                'street': '456 YYY Ave',
-                'city': 'San Francisco',
-                'state': 'CA',
-                'zip_code': '94111',
-            },
+            {'full_name': 'AAA BBBB', 'email': 'aaa.bbb@email.com', 'phone': '111-111-1111', 'birth_date': '1900-05-15', 'street': '123 XXX St', 'city': 'New York', 'state': 'NY', 'zip_code': '10001'},
+            {'full_name': 'CCCC DD EEE', 'email': 'xxxyyy@email.com', 'phone': '222-222-2222', 'birth_date': '1905-12-03', 'street': '456 YYY Ave', 'city': 'San Francisco', 'state': 'CA', 'zip_code': '94111'},
         ]
     ]
 
@@ -872,9 +841,7 @@ if __name__ == "__main__":
         'output_desc': {
             'first_name': {'description': 'First name of the person'},
             'last_name': {'description': 'Last name of the person'},
-            'name': {
-                'description': 'Name of the person',
-            },
+            'name': {'description': 'Name of the person'},
             'age': {'description': 'Age of the person'},
             'formatted_phone': {'description': 'Phone number in appropriate format'},
             'full_address': {'description': 'The full address of the person'},
@@ -906,48 +873,9 @@ if __name__ == "__main__":
     # Disclaimer: all the data is fake and made up for demonstration purposes, don't use it for any other purpose.
     nl2sql_output = [
         [
-            {
-                'job_id': 1,
-                'job_title': 'Senior Software Engineer',
-                'job_description': 'We are looking for a senior software engineer with 5+ years of experience in Java, Spring Framework, and microservices. Must have experience with AWS, Docker, and CI/CD pipelines.',
-                'company_name': 'Company A',
-                'location': 'San Francisco, CA',
-                'salary_min': 120000,
-                'salary_max': 150000,
-                'posted_date': '2025-01-15',
-                'contact_email': 'hr@companya.com',
-                'contact_phone': '333-333-3333',
-                'experience_required': '5+ years',
-                'education_level': 'Bachelor degree',
-            },
-            {
-                'job_id': 2,
-                'job_title': 'Data Scientist',
-                'job_description': 'Seeking a data scientist with expertise in Python, machine learning, and statistical analysis. Experience with TensorFlow, PyTorch, and cloud platforms required.',
-                'company_name': 'Company B',
-                'location': 'New York, NY',
-                'salary_min': 100000,
-                'salary_max': 130000,
-                'posted_date': '2025-09-01',
-                'contact_email': 'careers@companyb.com',
-                'contact_phone': '444 444 4444',
-                'experience_required': 'at least 3 years',
-                'education_level': 'Master degree',
-            },
-            {
-                'job_id': 3,
-                'job_title': 'Frontend Developer',
-                'job_description': 'Looking for a frontend developer skilled in React, TypeScript, and modern web development. Experience with Redux, GraphQL, and responsive design preferred.',
-                'company_name': 'Company C',
-                'location': 'Austin, TX',
-                'salary_min': 80000,
-                'salary_max': 110000,
-                'posted_date': '2024-01-18',
-                'contact_email': 'jobs@companyc.com',
-                'contact_phone': '+1 (555) 555-5555',
-                'experience_required': '2+ years',
-                'education_level': 'Bachelor',
-            },
+            {'job_id': 1, 'job_title': 'Senior Software Engineer', 'job_description': 'We are looking for a senior software engineer with 5+ years of experience in Java, Spring Framework, and microservices. Must have experience with AWS, Docker, and CI/CD pipelines.', 'company_name': 'Company A', 'location': 'San Francisco, CA', 'salary_min': 120000, 'salary_max': 150000, 'posted_date': '2025-01-15', 'contact_email': 'hr@companya.com', 'contact_phone': '333-333-3333', 'experience_required': '5+ years', 'education_level': 'Bachelor degree'},
+            {'job_id': 2, 'job_title': 'Data Scientist', 'job_description': 'Seeking a data scientist with expertise in Python, machine learning, and statistical analysis. Experience with TensorFlow, PyTorch, and cloud platforms required.', 'company_name': 'Company B', 'location': 'New York, NY', 'salary_min': 100000, 'salary_max': 130000, 'posted_date': '2025-09-01', 'contact_email': 'careers@companyb.com', 'contact_phone': '444 444 4444', 'experience_required': 'at least 3 years', 'education_level': 'Master degree'},
+            {'job_id': 3, 'job_title': 'Frontend Developer', 'job_description': 'Looking for a frontend developer skilled in React, TypeScript, and modern web development. Experience with Redux, GraphQL, and responsive design preferred.', 'company_name': 'Company C', 'location': 'Austin, TX', 'salary_min': 80000, 'salary_max': 110000, 'posted_date': '2024-01-18', 'contact_email': 'jobs@companyc.com', 'contact_phone': '+1 (555) 555-5555', 'experience_required': '2+ years', 'education_level': 'Bachelor'},
         ]
     ]
 

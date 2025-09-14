@@ -114,7 +114,7 @@ class MetaData(ServiceClient):
         collection_descriptions = {}
         
         if self.properties.get('enable_database_description_generation', True):
-            current_description = self.get_source_database_description(source, database)
+            current_description = data_registry.get_source_database_description(source, database)
             if not current_description or current_description.strip() == "":
                 
                 database_metadata = data_registry.get_source_database_property(source, database, "metadata")

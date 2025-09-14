@@ -239,7 +239,7 @@ def _format_execution_result_format(result) -> List[List[Dict[str, Any]]]:
 
 
 ###############
-### Helper Functions of NL2SQL Operator
+### Helper Functions of NL2SQL Operator, the following functions are for local run usage only without need of Blue data registry. Please do not use these functions in production.
 def _fetch_database_schema(protocol: str, database: str, collection: str, properties: Dict[str, Any]) -> str:
     """Fetch database schema directly from the database."""
     connection_attributes = properties.get('connection', {})

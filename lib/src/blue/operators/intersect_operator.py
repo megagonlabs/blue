@@ -53,12 +53,7 @@ class IntersectOperator(Operator):
     name = "intersect"
     description = "Given multiple input data sources, return only records that exist in all data sources"
     default_attributes = {
-        "match_option": {
-            "type": "str",
-            "description": "Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)",
-            "required": False,
-            "default": "key_match",
-        },
+        "match_option": {"type": "str", "description": "Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)", "required": False, "default": "key_match"},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
