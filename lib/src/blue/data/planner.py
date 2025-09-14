@@ -94,7 +94,7 @@ class DataPlanner:
                 continue
             operator_name = operator_entity.get_data("name")
             queue_contents.append(operator_name)
-        print("[" + "|".join(queue_contents) + "]")
+        print("[" + " | ".join(queue_contents) + "]")
 
     def propogate_error(self, p, n):
         # set status as  failed
@@ -152,6 +152,7 @@ class DataPlanner:
         operator_queue = list(operators_dict.keys())
 
         while len(operator_queue) > 0:
+            print("-------------------------")
             self.print_operator_queue(p, operator_queue)
             print("operator_queue count:" + str(len(operator_queue)))
 
@@ -164,7 +165,8 @@ class DataPlanner:
 
             # operator name
             operator_name = operator_entity.get_data("name")
-            print("processing: " + operator_name)
+            print("-------------------------")
+            print("processing: " + operator_name + " [" + operator_id + "] ")
 
             # get status
             operator_status = operator_node.get_data("status")
@@ -260,7 +262,8 @@ class DataPlanner:
                 if refine:
                     print("refining...")
                     subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
-
+                    print("plans:")
+                    print(subplans)
                     if subplans is None:
                         # nothing to refine, skip
                         print("nothing to refine, skip")
@@ -301,7 +304,8 @@ class DataPlanner:
 
                     # execute
                     output = self.registry.execute_operator(operator_name, operator_server, None, kwargs)
-
+                    print("output:")
+                    print("None" if output is None else json.dumps(output))
                     if output is None:
                         operator_node.set_data("status", str(Status.FAILED))
                         # propogage error
@@ -313,6 +317,7 @@ class DataPlanner:
                     # set value
                     operator_node.set_data("value", output)
 
+            print("---------")
             print(p.get_data())
             input("continue")
         return p
