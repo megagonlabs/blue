@@ -92,10 +92,8 @@ export default function EntityActions({
             type
         ) && _.isFunction(onSynchronize);
     const canEnrichMetadata =
-        _.includes(
-            ["source", "database", "collection", "server", "tool", "operator"],
-            type
-        ) && _.isFunction(onEnrichMetadata);
+        _.includes(["source", "database", "collection"], type) &&
+        _.isFunction(onEnrichMetadata);
     const canPullImage =
         _.isEqual(type, "agent") &&
         _.has(properties, "image") &&
