@@ -27,6 +27,7 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     additional_requirements = attributes.get('additional_requirements', '')
     context = attributes.get('context', '')
     schema = attributes.get('schema', '')
+    attr_names = attributes.get('attr_names', [])
 
     if not question or not question.strip():
         return [[]]
@@ -54,6 +55,12 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
     service_client = ServiceClient(name="nl2sql_operator_service_client", properties=properties)
 
+    # Create optional attr_names_section
+    attr_names_section = ""
+    if attr_names and len(attr_names) > 0:
+        attr_names_list = ", ".join(attr_names)
+        attr_names_section = f"## Target Field Names (SELECT AS):\nPlease use the following field names as column aliases if it's not same with the column names. Use 'AS' keyword if needed to alias columns:\n{attr_names_list}\n"
+
     additional_data = {
         'question': question,
         'schema': schema_str,
@@ -62,6 +69,7 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
         'force_query_prefixes': force_query_prefixes,
         'additional_requirements': additional_requirements,
         'context': context,
+        'attr_names_section': attr_names_section,
     }
     sql_result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
 
@@ -112,7 +120,7 @@ class NL2SQLOperator(Operator, ServiceClient):
     PROMPT = """
 Your task is to translate a natural language question into a SQL query based on the provided database schema.
 
-Here are the requirements:
+## Here are the requirements:
 - The output should be a JSON object with the following fields:
   - "question": the original natural language question
   - "query": the SQL query that is translated from the natural language question
@@ -125,21 +133,24 @@ Here are the requirements:
 - Output the JSON directly. Do not generate explanation or other additional output.
 ${additional_requirements}
 
-Database Protocol: 
+## Database Protocol: 
 ```
 ${protocol}
 ```
 
-Database Schema:
+##Database Schema:
 ```
 ${schema}
 ```
 
-Context: ${context}
+## Context: ${context}
 
-Question: ${question}
+## Question: ${question}
 
-Output:
+${attr_names_section}
+
+---
+## Output (JSON only):
 """
 
     PROPERTIES = {
@@ -172,13 +183,14 @@ Output:
     default_attributes = {
         "source": {"type": "str", "description": "Data source name", "required": True, "default": ""},
         "question": {"type": "str", "description": "Natural language question to translate to SQL", "required": True},
-        "protocol": {"type": "str", "description": "Database protocol (postgres or mysql)", "required": True, "default": "postgres"},
+        "protocol": {"type": "str", "description": "Database protocol (postgres, mysql, sqlite)", "required": True, "default": "postgres"},
         "database": {"type": "str", "description": "Database name", "required": True, "default": ""},
         "collection": {"type": "str", "description": "Collection/schema name", "required": True, "default": ""},
         "case_insensitive": {"type": "bool", "description": "Case insensitive string matching", "required": False, "default": True},
         "additional_requirements": {"type": "str", "description": "Additional requirements for SQL generation", "required": False, "default": ""},
         "context": {"type": "str", "description": "Optional context for domain knowledge", "required": False, "default": ""},
         "schema": {"type": "str", "description": "JSON string of database schema (optional - will be fetched automatically if not provided)", "required": False, "default": ""},
+        "attr_names": {"type": "list[str]", "description": "Optional list of target field names for the output objects", "required": False, "default": []},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
@@ -391,7 +403,7 @@ if __name__ == "__main__":
         {
             "service_url": "ws://localhost:8001",  # update this to your service url
             "platform.name": "example_platform",
-            "data_registry.name": "example_registry",
+            "data_registry.name": "default",
         }
     )
 

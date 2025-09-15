@@ -71,6 +71,10 @@ class OperatorRegistry(ToolRegistry):
     def get_server_operator_property(self, server, operator, key):
         return super().get_record_property(operator, 'operator', f'/server/{server}', key)
 
+    def delete_server_operator_property(self, server, operator, key, rebuild=False):
+        super().delete_record_property(operator, 'operator', f'/server/{server}', key, rebuild=rebuild)
+
+
     def get_server_tool_property(self, server, tool, key):
         return self.get_server_operator_property(server, tool, key)
 
