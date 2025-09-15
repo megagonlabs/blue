@@ -19,6 +19,7 @@ import {
     faClockRotateLeft,
     faClone,
     faEllipsisV,
+    faFileHalfDashed,
     faPenLine,
     faPlay,
     faRefresh,
@@ -40,6 +41,7 @@ export default function EntityActions({
     loading,
     onDelete,
     onSynchronize,
+    onEnrichMetadata,
     onDuplicate,
 }) {
     const { name, type, properties, created_by = null } = entity;
@@ -89,6 +91,11 @@ export default function EntityActions({
             ["source", "database", "collection", "server", "tool", "operator"],
             type
         ) && _.isFunction(onSynchronize);
+    const canEnrichMetadata =
+        _.includes(
+            ["source", "database", "collection", "server", "tool", "operator"],
+            type
+        ) && _.isFunction(onEnrichMetadata);
     const canPullImage =
         _.isEqual(type, "agent") &&
         _.has(properties, "image") &&
@@ -216,6 +223,14 @@ export default function EntityActions({
                             icon={<FAIcon icon={faRefresh} />}
                             text="Synchronize"
                             onClick={onSynchronize}
+                        />
+                    )}
+                    {canEnrichMetadata && (
+                        <MenuItem
+                            intent={Intent.SUCCESS}
+                            icon={<FAIcon icon={faFileHalfDashed} />}
+                            text="Enrich Metadata"
+                            onClick={onEnrichMetadata}
                         />
                     )}
                     {(canPullImage || canDeployAgent) && (
