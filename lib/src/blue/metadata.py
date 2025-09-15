@@ -37,6 +37,9 @@ class MetaData(ServiceClient):
         self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
         self.properties['output_strip'] = True
 
+        self.properties['enable_entity_description_generation'] = True
+        self.properties['enable_attribute_description_generation'] = True
+
         # Description aggregation from children
         self.properties['aggregation_prompt'] = AGGREGATION_PROMPT
         self.properties['enable_database_description_generation'] = True
@@ -162,16 +165,21 @@ class MetaData(ServiceClient):
             table_desc = parsed.get("table_description", "")
             attribute_descs = parsed.get("attributes", {})
             entity_descriptions[entity_name] = table_desc
-            
 
-            # Optionally store them back
-            data_registry.set_source_database_collection_entity_description(
-                source, database, collection, entity_name, table_desc, rebuild=rebuild)
+            if self.properties.get('enable_entity_description_generation', True):
+                current_description = data_registry.get_source_database_collection_entity_description(source, database, collection, entity_name)
+                
+                if not current_description or current_description.strip() == "":
+                    data_registry.set_source_database_collection_entity_description(
+                        source, database, collection, entity_name, table_desc, rebuild=rebuild)
 
-            for attr, desc in attribute_descs.items():
-                data_registry.set_source_database_collection_entity_attribute_description(
-                    source, database, collection, entity_name, attr, desc, rebuild=rebuild)
-        
+            if self.properties.get('enable_attribute_description_generation', True):
+                for attr, desc in attribute_descs.items():
+                    current_description = data_registry.get_source_database_collection_entity_attribute_description(source, database, collection, entity_name, attr)
+                    if not current_description or current_description.strip() == "":
+                        data_registry.set_source_database_collection_entity_attribute_description(
+                            source, database, collection, entity_name, attr, desc, rebuild=rebuild)
+                
 
         if self.properties.get('enable_collection_description_generation', True):
             current_description = data_registry.get_source_database_collection_description(source, database, collection)
