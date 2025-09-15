@@ -7,20 +7,15 @@ import json
 
 class MetaData(ServiceClient):
  
-    def __init__(self, platform_id=None, properties=None):
-        self.platform_name = platform_id
-        self.properties = properties or {}
+    def __init__(self, properties=None):
         self.name = "metadata"
-        self._initialize_properties()
+        super().__init__(self.name, properties=properties) 
+        self._init_metadata_properties()
+        
         
     ###### initialization
-    def _initialize_properties(self):
-        if self.platform_name:
-            self.properties['service_url'] = f"ws://blue_service_{self.platform_name}-openai-1:8001"
-        else:
-            logging.warning("platform_name is missing! Falling back to default 'default'")
-            self.properties['service_url'] = "ws://blue_service_default-openai-1:8001"
-
+    def _init_metadata_properties(self):
+        
         self.properties['openai.api'] = 'ChatCompletion'
         self.properties['openai.model'] = "gpt-4o"
         self.properties['input_json'] = "[{\"role\": \"user\"}]"
