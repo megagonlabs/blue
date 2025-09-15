@@ -392,6 +392,7 @@ class DataRegistry(Registry):
             if self.get_source_database(source, database):
                 if overwrite:
                     self.deregister_source_database(source, database, rebuild=rebuild)
+                    # TODO: deregister recursively
                 else:
                     return None
             create_res = source_connection.create_database(database, properties=properties, overwrite=overwrite)
@@ -410,6 +411,7 @@ class DataRegistry(Registry):
             if self.get_source_database_collection(source, database, collection):
                 if overwrite:
                     self.deregister_source_database_collection(source, database, collection, rebuild=rebuild)
+                    # TODO: deregister recursively
                 else:
                     return None
             create_res = source_connection.create_database_collection(database, collection, properties=properties, overwrite=overwrite)
@@ -428,6 +430,7 @@ class DataRegistry(Registry):
             if self.get_source_database_collection_entity(source, database, collection, entity):
                 if overwrite:
                     self.deregister_source_database_collection_entity(source, database, collection, entity, rebuild=rebuild)
+                    # TODO: deregister recursively
                 else:
                     return None
             create_res = source_connection.create_database_collection_entity(database, collection, entity, properties=creation_properties, overwrite=overwrite)

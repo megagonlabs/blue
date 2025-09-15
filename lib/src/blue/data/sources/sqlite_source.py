@@ -346,7 +346,6 @@ class SQLiteDBSource(DataSource):
             conn.close()
 
         except sqlite3.Error as e:
-            self.logger.warning(f"Failed to get row count for {table_name}: {e}")
             stats["row_count"] = None
 
         return stats
