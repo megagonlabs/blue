@@ -446,13 +446,6 @@ if __name__ == "__main__":
         [{"id": 1, "title": "title A"}, {"id": 4, "title": "title D"}, {"id": 2, "title": "title B"}],
     ]
 
-    # #### using tool class
-    # attributes = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "both"}
-    # join_operator = JoinOperator()
-    # result = join_operator.execute(input_data, attributes)  # this assume the Tool class define the execute method
-
-    #### using function directly
-
     ## test keep_keys = "left"
     attributes = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "left"}
     result = join_operator_function(input_data, attributes)
