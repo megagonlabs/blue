@@ -287,13 +287,6 @@
             ],
             "output_strip": true,
             "output_cast": "json",
-            "connection": {
-                "host": "localhost",
-                "port": 5432,
-                "protocol": "postgres",
-                "user": "postgres",
-                "password": "postgres"
-            },
             "platform.name": "default",
             "data_registry.name": "default",
             "parameters": {
