@@ -104,6 +104,13 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
             fetchDatabase();
         });
     };
+    const onCollectStats = () => {
+        setLoading(true);
+        axios.put(`${url}/stats`).finally(() => {
+            setLoading(false);
+            fetchDatabase();
+        });
+    };
     return (
         <div>
             <div
@@ -131,6 +138,7 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
                             onEnrichMetadata={onEnrichMetadata}
+                            onCollectStats={onCollectStats}
                         />
                     </div>
                 )}

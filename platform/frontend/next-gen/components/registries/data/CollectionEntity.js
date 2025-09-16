@@ -79,6 +79,13 @@ export default function CollectionEntity({ entity, addCrumb }) {
             fetchCollection();
         });
     };
+    const onCollectStats = () => {
+        setLoading(true);
+        axios.put(`${url}/stats`).finally(() => {
+            setLoading(false);
+            fetchCollection();
+        });
+    };
     useEffect(() => {
         fetchCollection();
     }, [entity]);
@@ -123,6 +130,7 @@ export default function CollectionEntity({ entity, addCrumb }) {
                             setIsEditing={setIsEditing}
                             onSynchronize={onSynchronize}
                             onEnrichMetadata={onEnrichMetadata}
+                            onCollectStats={onCollectStats}
                         />
                     </div>
                 )}
