@@ -39,6 +39,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 ###### Blue
 from blue.platform import Platform
 from blue.data.registry import DataRegistry
+
 from blue.metadata import MetaData
 
 ###### Properties
@@ -54,7 +55,7 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 p = Platform(id=platform_id, properties=PROPERTIES)
 data_registry = DataRegistry(id=data_registry_id, platform_id = platform_id, prefix=prefix, properties=PROPERTIES)
 
-metadata = MetaData(platform_id=platform_id)
+metadata = MetaData(properties=PROPERTIES)
 
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data", dependencies=[Depends(account_id_header)])

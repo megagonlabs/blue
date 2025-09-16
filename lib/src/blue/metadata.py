@@ -7,20 +7,15 @@ import json
 
 class MetaData(ServiceClient):
  
-    def __init__(self, platform_id=None, properties=None):
-        self.platform_name = platform_id
-        self.properties = properties or {}
+    def __init__(self, properties=None):
         self.name = "metadata"
-        self._initialize_properties()
+        super().__init__(self.name, properties=properties) 
+        self._init_metadata_properties()
+        
         
     ###### initialization
-    def _initialize_properties(self):
-        if self.platform_name:
-            self.properties['service_url'] = f"ws://blue_service_{self.platform_name}-openai-1:8001"
-        else:
-            logging.warning("platform_name is missing! Falling back to default 'default'")
-            self.properties['service_url'] = "ws://blue_service_default-openai-1:8001"
-
+    def _init_metadata_properties(self):
+        
         self.properties['openai.api'] = 'ChatCompletion'
         self.properties['openai.model'] = "gpt-4o"
         self.properties['input_json'] = "[{\"role\": \"user\"}]"
@@ -36,6 +31,9 @@ class MetaData(ServiceClient):
         self.properties['service_prefix'] = 'openai'
         self.properties['output_transformations'] = [{"transformation": "replace", "from": "```", "to": ""}, {"transformation": "replace", "from": "json", "to": ""}]
         self.properties['output_strip'] = True
+
+        self.properties['enable_entity_description_generation'] = True
+        self.properties['enable_attribute_description_generation'] = True
 
         # Description aggregation from children
         self.properties['aggregation_prompt'] = AGGREGATION_PROMPT
@@ -162,16 +160,21 @@ class MetaData(ServiceClient):
             table_desc = parsed.get("table_description", "")
             attribute_descs = parsed.get("attributes", {})
             entity_descriptions[entity_name] = table_desc
-            
 
-            # Optionally store them back
-            data_registry.set_source_database_collection_entity_description(
-                source, database, collection, entity_name, table_desc, rebuild=rebuild)
+            if self.properties.get('enable_entity_description_generation', True):
+                current_description = data_registry.get_source_database_collection_entity_description(source, database, collection, entity_name)
+                
+                if not current_description or current_description.strip() == "":
+                    data_registry.set_source_database_collection_entity_description(
+                        source, database, collection, entity_name, table_desc, rebuild=rebuild)
 
-            for attr, desc in attribute_descs.items():
-                data_registry.set_source_database_collection_entity_attribute_description(
-                    source, database, collection, entity_name, attr, desc, rebuild=rebuild)
-        
+            if self.properties.get('enable_attribute_description_generation', True):
+                for attr, desc in attribute_descs.items():
+                    current_description = data_registry.get_source_database_collection_entity_attribute_description(source, database, collection, entity_name, attr)
+                    if not current_description or current_description.strip() == "":
+                        data_registry.set_source_database_collection_entity_attribute_description(
+                            source, database, collection, entity_name, attr, desc, rebuild=rebuild)
+                
 
         if self.properties.get('enable_collection_description_generation', True):
             current_description = data_registry.get_source_database_collection_description(source, database, collection)

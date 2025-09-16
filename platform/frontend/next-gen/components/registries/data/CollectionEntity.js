@@ -72,6 +72,13 @@ export default function CollectionEntity({ entity, addCrumb }) {
             fetchCollection();
         });
     };
+    const onEnrichMetadata = () => {
+        setLoading(true);
+        axios.put(`${url}/metadata`).finally(() => {
+            setLoading(false);
+            fetchCollection();
+        });
+    };
     useEffect(() => {
         fetchCollection();
     }, [entity]);
@@ -115,6 +122,7 @@ export default function CollectionEntity({ entity, addCrumb }) {
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onSynchronize={onSynchronize}
+                            onEnrichMetadata={onEnrichMetadata}
                         />
                     </div>
                 )}

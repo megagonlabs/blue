@@ -113,6 +113,13 @@ export default function SourceEntity({
             fetchSource();
         });
     };
+    const onEnrichMetadata = () => {
+        setLoading(true);
+        axios.put(`${url}/metadata`).finally(() => {
+            setLoading(false);
+            fetchSource();
+        });
+    };
     const JSONError = useRef(false);
     useEffect(() => {
         setContainerHeader({
@@ -264,6 +271,7 @@ export default function SourceEntity({
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
+                            onEnrichMetadata={onEnrichMetadata}
                             onDuplicate={onDuplicate}
                         />
                     </div>

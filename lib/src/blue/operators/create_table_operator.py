@@ -118,9 +118,52 @@ def create_table_operator_validator(input_data: List[List[Dict[str, Any]]], attr
     if not creation_properties or not isinstance(creation_properties, dict):
         return False
 
+    # cols_definition is mandatory for table creation
     cols_definition = creation_properties.get('cols_definition', [])
     if not isinstance(cols_definition, list) or not cols_definition:
         return False
+    
+    # Validate each column definition
+    for col_def in cols_definition:
+        if not isinstance(col_def, dict):
+            return False
+        if 'name' not in col_def or not col_def['name']:
+            return False
+        # type is optional but if provided should be a string
+        if 'type' in col_def and not isinstance(col_def['type'], str):
+            return False
+        # misc is optional but if provided should be a string
+        if 'misc' in col_def and not isinstance(col_def['misc'], str):
+            return False
+    
+    # Validate primary_key if provided
+    primary_key = creation_properties.get('primary_key', [])
+    if primary_key:
+        if not isinstance(primary_key, list):
+            return False
+        # Check that all primary key columns exist in cols_definition
+        col_names = [col['name'] for col in cols_definition]
+        for pk_col in primary_key:
+            if pk_col not in col_names:
+                return False
+    
+    # Validate foreign_keys if provided
+    foreign_keys = creation_properties.get('foreign_keys', [])
+    if foreign_keys:
+        if not isinstance(foreign_keys, list):
+            return False
+        for fk in foreign_keys:
+            if not isinstance(fk, dict):
+                return False
+            required_fk_fields = ['foreign_keys_source_columns', 'foreign_keys_target_table', 'foreign_keys_target_columns']
+            for field in required_fk_fields:
+                if field not in fk:
+                    return False
+            # Check that source columns exist in cols_definition
+            col_names = [col['name'] for col in cols_definition]
+            for fk_col in fk['foreign_keys_source_columns']:
+                if fk_col not in col_names:
+                    return False
 
     return True
 
@@ -200,3 +243,46 @@ def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Opt
         prefix = 'PLATFORM:' + platform_id
         return DataRegistry(id=data_registry_id, prefix=prefix, properties=properties)
     return None
+
+
+if __name__ == "__main__":
+    # Example input data
+    input_data = [
+        [
+            {
+                "name": "job_skills",
+                "description": "This is a table that contains skill extraction results from resumes",
+                "created_by": "",
+                "registry_properties": {
+                    "version": "0.1"
+                },
+                "creation_properties": {
+                    "cols_definition": [
+                        {"name": "skill_id", "type": "INTEGER", "misc": "NOT NULL"},
+                        {"name": "skill_name", "type": "TEXT"},
+                        {"name": "category", "type": "TEXT"},
+                        {"name": "level", "type": "INTEGER"},
+                        {"name": "description"},
+                        {"name": "extraction_date"},
+                        {"name": "resume_id"}
+                    ],
+                    "primary_key": ["skill_id"],
+                    "foreign_keys": [
+                        {
+                            "foreign_keys_source_columns": ["resume_id"],
+                            "foreign_keys_target_table": "resume",
+                            "foreign_keys_target_columns": ["resume_id"]
+                        }
+                    ]
+                }
+            }
+        ]
+    ]
+    
+    # Example attributes
+    attributes = {
+        "source": "sqlite_test_source",
+        "database": "sqlite_test_db",
+        "collection": "public",
+        "overwrite": False
+    }

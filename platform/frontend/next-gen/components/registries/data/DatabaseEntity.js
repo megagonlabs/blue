@@ -97,6 +97,13 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
             fetchDatabase();
         });
     };
+    const onEnrichMetadata = () => {
+        setLoading(true);
+        axios.put(`${url}/metadata`).finally(() => {
+            setLoading(false);
+            fetchDatabase();
+        });
+    };
     return (
         <div>
             <div
@@ -123,6 +130,7 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
+                            onEnrichMetadata={onEnrichMetadata}
                         />
                     </div>
                 )}

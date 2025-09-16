@@ -519,6 +519,12 @@ Output:
                 elif relation:
                     self._set_schemas(schemas, source=source, database=database, collection=collection, relation=relation, attribute=attribute)
 
+            elif t == "database":
+                # include the database
+                database = n
+                self._set_schemas(schemas, source=source, database=database)
+       
+
         return schemas
     
     

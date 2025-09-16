@@ -87,6 +87,16 @@ from blue.operators.create_database_operator import CreateDatabaseOperator
 create_database_operator = CreateDatabaseOperator()
 operators_dict[create_database_operator.name] = create_database_operator
 
+from blue.operators.create_table_operator import CreateTableOperator
+
+create_table_operator = CreateTableOperator()
+operators_dict[create_table_operator.name] = create_table_operator
+
+from blue.operators.insert_table_operator import InsertTableOperator
+
+insert_table_operator = InsertTableOperator()
+operators_dict[insert_table_operator.name] = insert_table_operator
+
 ## EXTENDED RELATIONAL OPERATORS
 
 ## DATA TRANSFORMATION OPERATORS

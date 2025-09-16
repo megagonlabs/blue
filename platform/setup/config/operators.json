@@ -270,7 +270,7 @@
             "input_context": "$[0]",
             "input_context_field": "content",
             "input_field": "messages",
-            "input_template": "Your task is to translate a natural language question into a SQL query based on the provided database schema.\n\nHere are the requirements:\n- The output should be a JSON object with the following fields:\n  - \"question\": the original natural language question\n  - \"query\": the SQL query that is translated from the natural language question\n- The SQL query should be compatible with the provided schema.\n- The SQL query should be compatible with the syntax of the corresponding database's protocol.\n- For enum fields, do not use LOWER(), ILIKE, or other string functions. Compare enum fields using exact equality.\n- Always do case-${sensitivity} matching for string comparison.\n- The query should start with any of the following prefixes: ${force_query_prefixes}\n- When interpreting the \"question\" use additional context provided, if available.\n- Output the JSON directly. Do not generate explanation or other additional output.\n${additional_requirements}\n\nDatabase Protocol: \n```\n${protocol}\n```\n\nDatabase Schema:\n```\n${schema}\n```\n\nContext: ${context}\n\nQuestion: ${question}\n\nOutput:\n",
+            "input_template": "Your task is to translate a natural language question into a SQL query based on the provided database schema.\n\n## Here are the requirements:\n- The output should be a JSON object with the following fields:\n  - \"question\": the original natural language question\n  - \"query\": the SQL query that is translated from the natural language question\n- The SQL query should be compatible with the provided schema.\n- The SQL query should be compatible with the syntax of the corresponding database's protocol.\n- For enum fields, do not use LOWER(), ILIKE, or other string functions. Compare enum fields using exact equality.\n- Always do case-${sensitivity} matching for string comparison.\n- The query should start with any of the following prefixes: ${force_query_prefixes}\n- When interpreting the \"question\" use additional context provided, if available.\n- Output the JSON directly. Do not generate explanation or other additional output.\n${additional_requirements}\n\n## Database Protocol: \n```\n${protocol}\n```\n\n##Database Schema:\n```\n${schema}\n```\n\n## Context: ${context}\n\n## Question: ${question}\n\n${attr_names_section}\n\n---\n## Output (JSON only):\n",
             "output_path": "$.choices[0].message.content",
             "service_prefix": "openai",
             "output_transformations": [
@@ -287,16 +287,15 @@
             ],
             "output_strip": true,
             "output_cast": "json",
-            "connection": {
-                "host": "localhost",
-                "port": 5432,
-                "protocol": "postgres",
-                "user": "postgres",
-                "password": "postgres"
-            },
             "platform.name": "default",
             "data_registry.name": "default",
             "parameters": {
+                "source": {
+                    "type": "str",
+                    "description": "Data source name",
+                    "required": true,
+                    "default": ""
+                },
                 "question": {
                     "type": "str",
                     "description": "Natural language question to translate to SQL",
@@ -304,7 +303,7 @@
                 },
                 "protocol": {
                     "type": "str",
-                    "description": "Database protocol (postgres or mysql)",
+                    "description": "Database protocol (postgres, mysql, sqlite)",
                     "required": true,
                     "default": "postgres"
                 },
@@ -343,6 +342,12 @@
                     "description": "JSON string of database schema (optional - will be fetched automatically if not provided)",
                     "required": false,
                     "default": ""
+                },
+                "attr_names": {
+                    "type": "list[str]",
+                    "description": "Optional list of target field names for the output objects",
+                    "required": false,
+                    "default": []
                 }
             }
         },
@@ -876,6 +881,106 @@
                     "description": "Whether to overwrite the existing database",
                     "required": false,
                     "default": false
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "create_table",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Creates tables (entities) in database collections using the data registry. If the table already exists, it will be overwritten if overwrite is True.",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "platform.name": "default",
+            "data_registry.name": "default",
+            "parameters": {
+                "source": {
+                    "type": "str",
+                    "description": "Name of the data source where the table will be created",
+                    "required": true,
+                    "default": "default_source"
+                },
+                "database": {
+                    "type": "str",
+                    "description": "Name of the database where the table will be created",
+                    "required": true,
+                    "default": "default"
+                },
+                "collection": {
+                    "type": "str",
+                    "description": "Name of the collection where the table will be created. For SQLite sources, defaults to 'public' if not specified",
+                    "required": false,
+                    "default": "public"
+                },
+                "overwrite": {
+                    "type": "bool",
+                    "description": "Whether to overwrite the existing table",
+                    "required": false,
+                    "default": false
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "insert_table",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Inserts data rows into database tables using the data registry. Supports batch insertion for better performance.",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "platform.name": "default",
+            "data_registry.name": "default",
+            "parameters": {
+                "source": {
+                    "type": "str",
+                    "description": "Name of the data source where the table is located",
+                    "required": true,
+                    "default": "default_source"
+                },
+                "database": {
+                    "type": "str",
+                    "description": "Name of the database where the table is located",
+                    "required": true,
+                    "default": "default"
+                },
+                "collection": {
+                    "type": "str",
+                    "description": "Name of the collection where the table is located. For SQLite sources, defaults to 'public' if not specified",
+                    "required": false,
+                    "default": "public"
+                },
+                "table": {
+                    "type": "str",
+                    "description": "Name of the table to insert data into",
+                    "required": true,
+                    "default": ""
+                },
+                "batch_size": {
+                    "type": "int",
+                    "description": "Number of rows to insert in each batch (default: 100)",
+                    "required": false,
+                    "default": 100
                 }
             }
         },
