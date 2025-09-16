@@ -26,10 +26,10 @@ import {
     faInboxFull,
     faInboxOut,
     faMagnifyingGlass,
+    faMonitorWaveform,
     faPencilRuler,
     faScrewdriverWrench,
     faUserGroup,
-    faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -169,7 +169,7 @@ export default function Blue({ children }) {
         systemStatus: {
             title: "System Status",
             text: "System Status",
-            icon: faWavePulse,
+            icon: faMonitorWaveform,
             content: <SystemStatusContainer />,
             visible: permissions.canReadPlatformStatus,
             labelElement: isSystemStatusLive && CIRCLE_DOT_WITH_FADE,
@@ -582,6 +582,7 @@ export default function Blue({ children }) {
                                                                                 visible,
                                                                                 icon,
                                                                                 labelElement,
+                                                                                iconStyle,
                                                                             } =
                                                                                 PLATFORM_SECTION_MENU_ITEMS[
                                                                                     key
@@ -605,6 +606,9 @@ export default function Blue({ children }) {
                                                                                                 icon={
                                                                                                     icon
                                                                                                 }
+                                                                                                style={
+                                                                                                    iconStyle
+                                                                                                }
                                                                                             />
                                                                                         }
                                                                                         onClick={() => {
@@ -613,6 +617,7 @@ export default function Blue({ children }) {
                                                                                                     icon,
                                                                                                     title,
                                                                                                     content,
+                                                                                                    iconStyle,
                                                                                                 }
                                                                                             );
                                                                                         }}

@@ -22,7 +22,7 @@ const uiSchemaJson = {
 };
 const dataJson = {
     "vega-spec": {
-        $schema: "https://vega.github.io/schema/vega-lite/v2.json",
+        $schema: "https://vega.github.io/schema/vega-lite/v5.json",
         description: "Bar Chart with Negative values",
         width: 400,
         height: 400,

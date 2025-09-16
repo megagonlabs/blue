@@ -17,7 +17,7 @@ import {
 import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faFastForward,
-    faWavePulse,
+    faMonitorWaveform,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -256,7 +256,7 @@ function SystemStatusContainer({ width, height }) {
                             isSystemStatusLive &&
                             "Awaiting status messages. This could take some time."
                         }
-                        icon={<FAIcon icon={faWavePulse} size={50} />}
+                        icon={<FAIcon icon={faMonitorWaveform} size={50} />}
                     />
                 ) : (
                     <AutoSizer>
