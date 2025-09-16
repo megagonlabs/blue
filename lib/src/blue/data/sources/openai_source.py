@@ -81,6 +81,14 @@ Output:
         for key in OpenAISource.PROPERTIES:
             self.properties[key] = OpenAISource.PROPERTIES[key]
 
+    def _update_properties(self, properties=None):
+        super()._update_properties(properties)
+
+        if 'connection' in self.properties:
+            connection = self.properties['connection']
+            self.host = connection.get('host', 'localhost')
+            self.port = connection.get('port', 8001)
+
     ###### connection
     def _initialize_connection_properties(self):
         super()._initialize_connection_properties()
