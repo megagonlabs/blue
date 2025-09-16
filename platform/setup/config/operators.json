@@ -886,5 +886,105 @@
         },
         "icon": null,
         "contents": {}
+    },
+    {
+        "name": "create_table",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Creates tables (entities) in database collections using the data registry. If the table already exists, it will be overwritten if overwrite is True.",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "platform.name": "default",
+            "data_registry.name": "default",
+            "parameters": {
+                "source": {
+                    "type": "str",
+                    "description": "Name of the data source where the table will be created",
+                    "required": true,
+                    "default": "default_source"
+                },
+                "database": {
+                    "type": "str",
+                    "description": "Name of the database where the table will be created",
+                    "required": true,
+                    "default": "default"
+                },
+                "collection": {
+                    "type": "str",
+                    "description": "Name of the collection where the table will be created. For SQLite sources, defaults to 'public' if not specified",
+                    "required": false,
+                    "default": "public"
+                },
+                "overwrite": {
+                    "type": "bool",
+                    "description": "Whether to overwrite the existing table",
+                    "required": false,
+                    "default": false
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "insert_table",
+        "type": "operator",
+        "scope": "/server/blue_ray",
+        "description": "Inserts data rows into database tables using the data registry. Supports batch insertion for better performance.",
+        "created_by": null,
+        "properties": {
+            "tool_type": "operator",
+            "validate_input": true,
+            "validate_output": true,
+            "validation_error_handling": "fail",
+            "max_records": null,
+            "timeout": 300,
+            "error_handling": "fail",
+            "log_processing_stats": true,
+            "platform.name": "default",
+            "data_registry.name": "default",
+            "parameters": {
+                "source": {
+                    "type": "str",
+                    "description": "Name of the data source where the table is located",
+                    "required": true,
+                    "default": "default_source"
+                },
+                "database": {
+                    "type": "str",
+                    "description": "Name of the database where the table is located",
+                    "required": true,
+                    "default": "default"
+                },
+                "collection": {
+                    "type": "str",
+                    "description": "Name of the collection where the table is located. For SQLite sources, defaults to 'public' if not specified",
+                    "required": false,
+                    "default": "public"
+                },
+                "table": {
+                    "type": "str",
+                    "description": "Name of the table to insert data into",
+                    "required": true,
+                    "default": ""
+                },
+                "batch_size": {
+                    "type": "int",
+                    "description": "Number of rows to insert in each batch (default: 100)",
+                    "required": false,
+                    "default": 100
+                }
+            }
+        },
+        "icon": null,
+        "contents": {}
     }
 ]
