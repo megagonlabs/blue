@@ -79,7 +79,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             nnl2query_router_node = pipeline.define_operator("/server/blue_ray/operator/nl2query_router", attributes=nl2query_router_attributes, properties={})
 
             # # insert table
-            # insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
+            # insert_table_attributes = {"source": "internal", "database": db_name, "collection": table}
             # it_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
 
             start_node = data_discovery_node
