@@ -3,10 +3,20 @@ import logging
 import uuid, json
 
 ###### Blue
+from blue.constant import Constant
 from blue.connection import PooledConnectionFactory
 from blue.operators.registry import OperatorRegistry
 from blue.data.pipeline import DataPipeline, NodeType, EntityType, Status
 from blue.utils import json_utils
+
+
+class TaskType(Constant):
+    def __init__(self, c):
+        super().__init__(c)
+
+
+TaskType.QUESTION_ANSWER = NodeType("QUESTION_ANSWER")
+TaskType.DATA_TRANSFORM = NodeType("DATA_TRANSFORM")
 
 
 ###############
@@ -55,7 +65,7 @@ class DataPlanner:
         self.properties['db.port'] = 6379
 
         # search operator
-        self.properties['plan_search'] = '/server/blue_ray/operator/plan_discover'
+        self.properties['plan_discover_operator'] = '/server/blue_ray/operator/plan_discover'
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -65,18 +75,53 @@ class DataPlanner:
         for p in properties:
             self.properties[p] = properties[p]
 
-    def plan(self, input_data, task, context, approximate=False):
-        # create a pipeline
-        p = DataPipeline()
+    def plan(self, plan_data, plan_task, plan_attributes):
 
-        # always create a plan with input, search, and output
-        i = p.define_input(label="I", value=[[{"data": input_data}]])
-        i.set_data("status", str(Status.EXECUTED))
-        r = p.define_output(label="R")
-        o = p.define_operator(self.properties['plan_search'], label="OD", attributes={"search_query": task, "approximate": True, "threshold": 0.90}, properties=self.properties)
-        o.set_data("status", str(Status.INITED))
-        p.connect_nodes(i, o)
-        p.connect_nodes(o, r)
+        p = None
+
+        if plan_task == TaskType.QUESTION_ANSWER:
+
+            ## build attributes
+            pipeline_attributes = {}
+            pipeline_attributes = json_utils.merge(pipeline_attributes, plan_attributes)
+            pipeline_attributes['task'] = str(TaskType.QUESTION_ANSWER)
+            pipeline_attributes['data'] = plan_data
+
+            # create a pipeline
+            p = DataPipeline(attributes=pipeline_attributes, properties=self.properties)
+
+            # input = [[]] for question answer
+            i = p.define_input(value=[[]])
+            i.set_data("status", str(Status.EXECUTED))
+            # operator: use plan discover as specified in the properties
+
+            ## map pipeline attributes to plan_discover operator attributes
+            plan_discover_attributes = {}
+            plan_discover_attributes['task'] = pipeline_attributes['task']
+            plan_discover_attributes['data'] = pipeline_attributes['data']
+
+            # additional attributes
+            plan_discover_attributes['approximate'] = True
+            plan_discover_attributes['threshold'] = 0.75
+
+            # set plan discover operator as defined in planner properties
+            o = p.define_operator(self.properties['plan_discover_operator'], attributes=plan_discover_attributes)
+            o.set_data("status", str(Status.INITED))
+
+            # output
+            r = p.define_output()
+
+            # connections: input -> plan_search -> output
+            p.connect_nodes(i, o)
+            p.connect_nodes(o, r)
+
+        elif plan_task == TaskType.DATA_TRANSFORM:
+            pass
+        else:
+            raise Exception("Unknown task for planner")
+
+        if p is None:
+            raise Exception("No plan generated")
 
         # refine
         p = self.refine(p)
@@ -131,23 +176,118 @@ class DataPlanner:
             for operator_node in operator_nodes:
                 self.propogate_error(p, operator_node)
 
-    def extract_attributes(self, input_data, operator_name, operator_server, operator_attributes):
-        print("extracting attributes...")
-        print("operator name:" + operator_name)
+    def get_inherited_properties(self, p, operator_node):
+        inherited_properties = {}
+
+        operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+
+        ## check if part of pipeline
+        parent_pipeline = p.get_node_entity(operator_node, str(EntityType.DATA_PIPELINE))
+
+        if parent_pipeline:
+            parent_pipeline_properties = p.get_data("properties")
+
+            # TODO: map
+            mapped_parent_pipeline_properties = parent_pipeline_properties
+            # inherit
+            inherited_properties = json_utils.merge_json(inherited_properties, mapped_parent_pipeline_properties)
+
+            # parent operator
+            # parent_operator_entity_id = parent_pipeline.get_data("parent")
+            # parent_operator_entity = p.get_entity(parent_operator_entity_id)
+
+            # if parent_operator_entity:
+            #     parent_operator_name = parent_operator_entity.get_data("name")
+            #     parent_operator_properties = parent_operator_entity.get_data("properties")
+
+            #     # TODO: map
+            #     mapped_parent_operator_properties = parent_operator_properties
+            #     # inherit
+            #     inherited_properties = json_utils.merge_json(inherited_properties, mapped_parent_operator_properties)
+
+        return inherited_properties
+
+    def get_inherited_attributes(self, p, operator_node):
+        inherited_attributes = {}
+
+        operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+
+        ## check if part of pipeline
+        parent_pipeline = p.get_node_entity(operator_node, str(EntityType.DATA_PIPELINE))
+
+        if parent_pipeline:
+            parent_pipeline_attributes = p.get_data("attributes")
+
+            # map
+            mapped_parent_pipeline_attributes = self.map_pipeline_to_operator_attributes(parent_pipeline_attributes, operator_entity)
+            # merge
+            inherited_attributes = json_utils.merge_json(inherited_attributes, mapped_parent_pipeline_attributes)
+
+            # parent operator
+            parent_operator_entity_id = parent_pipeline.get_data("parent")
+            parent_operator_entity = p.get_entity(parent_operator_entity_id)
+
+            if parent_operator_entity:
+                parent_operator_attributes = parent_operator_entity.get_data("attributes")
+
+                # map
+                mapped_parent_operator_attributes = self.map_operator_to_opearator_attributes(parent_operator_attributes, operator_entity, parent_operator_entity)
+                # merge
+                inherited_attributes = json_utils.merge_json(inherited_attributes, mapped_parent_operator_attributes)
+
+        return inherited_attributes
+
+    def map_pipeline_to_operator_attributes(self, parent_pipeline_attributes, operator_entity):
+        operator_name = operator_entity.get_data("name")
+        parsed = self.registry.parse_path(operator_name)
+        operator_name = parsed['operator']
+        operator_server = parsed['server']
+
+        print("mapping pipeline attributes to operator attributes:")
+        print("operator name: " + operator_name)
         print("operator server: " + operator_server)
-        print("operator attributes: " + json.dumps(operator_attributes))
-        print("input:" + json.dumps(input_data))
+        print("pipeline attributes: " + json.dumps(parent_pipeline_attributes))
 
-        # TODO: use registry get_operator_attributes to collect and use metadata for extraction
+        # TODO:
+        mappped_parent_pipeline_attributes = parent_pipeline_attributes
+        print("mapped pipeline attributes: " + json.dumps(mappped_parent_pipeline_attributes))
 
-        if operator_name == "query_breakdown":
-            operator_attributes['query'] = input_data[0][0]['data']
+        return mappped_parent_pipeline_attributes
 
-        print("operator attributes: " + json.dumps(operator_attributes))
-        return operator_attributes
+    def map_operator_to_opearator_attributes(self, parent_operator_attributes, operator_entity, parent_operator_entity):
+        operator_name = operator_entity.get_data("name")
+        parsed = self.registry.parse_path(operator_name)
+        operator_name = parsed['operator']
+        operator_server = parsed['server']
+
+        parent_operator_name = parent_operator_entity.get_data("name")
+        parsed = self.registry.parse_path(parent_operator_name)
+        parent_operator_name = parsed['operator']
+        parent_operator_server = parsed['server']
+
+        print("mapping parent operator attributes to operator attributes:")
+        print("operator name: " + operator_name)
+        print("operator server: " + operator_server)
+        print("parent operator name: " + parent_operator_name)
+        print("parent operator server: " + parent_operator_server)
+
+        print("parent operator attributes: " + json.dumps(parent_operator_attributes))
+
+        # TODO: llm based mapper
+        mappped_parent_operator_attributes = {}
+        if operator_name == "question_answer" and parent_operator_name == "plan_discover":
+            mappped_parent_operator_attributes['question'] = parent_operator_attributes["data"]
+        elif operator_name == "query_breakdown" and parent_operator_name == "question_answer":
+            mappped_parent_operator_attributes['query'] = parent_operator_attributes["question"]
+        else:
+            mappped_parent_operator_attributes = parent_operator_attributes
+
+        print("mapped parent operator attributes: " + json.dumps(mappped_parent_operator_attributes))
+
+        return mappped_parent_operator_attributes
 
     def refine(self, p):
-
+        # build operator queue for refine / execute
         operators_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
         operator_queue = list(operators_dict.keys())
 
@@ -181,31 +321,21 @@ class DataPlanner:
                 operator_name = parsed['operator']
                 operator_server = parsed['server']
 
-                #### operator details
-                operator_properties = {}
-                operator_attribues = operator_entity.get_data("attributes")
-
-                ## build properties starting from planner
-                planner_properties = self.properties
                 registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
-                in_plan_properties = operator_entity.get_data("properties")
-                operator_properties = json_utils.merge_json(operator_properties, planner_properties)
-                operator_properties = json_utils.merge_json(operator_properties, registry_properties)
-                operator_properties = json_utils.merge_json(operator_properties, in_plan_properties)
 
                 # check if operator is planned for execution in refine
                 planned = operator_status == str(Status.PLANNED)
 
                 # check operator can be refined
                 refine = False
-                if 'refine' in operator_properties and operator_properties['refine']:
+                if 'refine' in registry_properties and registry_properties['refine']:
                     refine = True
 
-                # no need
+                # no need to refine/execute
                 if not planned and not refine:
                     continue
 
-                # get input from previous
+                # ready, if  all input is ready/executed
                 ready = True
                 prev_nodes = p.get_prev_nodes(operator_node)
 
@@ -233,33 +363,54 @@ class DataPlanner:
                     operator_node.set_data("status", str(Status.FAILED))
                     # propogage error
                     self.propogate_error(p, operator_node)
-
                     continue
 
-                # cannot execute or refine, if not ready
+                # do not execute or refine, if not ready
                 if not ready:
                     # put back in queue
                     print("not ready!")
                     operator_queue.append(operator_id)
                     continue
 
-                ## aggregate inputs form each prev node, compute input_data, attributes, and properties
+                ###### proceed to refine/execute
+                #### operator details
+                ## inputs: aggregate input form each prev node,
                 input_data = []
                 prev_nodes = p.get_prev_nodes(operator_node)
                 for prev_node in prev_nodes:
                     prev_node_status = prev_node.get_data("status")
                     prev_node_value = prev_node.get_data("value")
-
                     input_data += prev_node_value
 
-                # map attributes
-                operator_attribues = self.extract_attributes(input_data, operator_name, operator_server, operator_attribues)
+                ## properties
+                operator_properties = {}
+                planner_properties = self.properties
+                registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
+                inherited_properties = self.get_inherited_properties(p, operator_node)
 
-                kwargs = {"input_data": input_data, "attributes": operator_attribues, "properties": operator_properties}
+                operator_properties = json_utils.merge_json(operator_properties, planner_properties)
+                operator_properties = json_utils.merge_json(operator_properties, registry_properties)
+                operator_properties = json_utils.merge_json(operator_properties, inherited_properties)
+                operator_properties = json_utils.merge_json(operator_properties, operator_entity.get_data("properties"))
+
+                ## attributes
+                operator_attributes = {}
+                inherited_operator_attributes = self.get_inherited_attributes(p, operator_node)
+                operator_attributes = json_utils.merge_json(operator_attributes, inherited_operator_attributes)
+                operator_attributes = json_utils.merge_json(operator_attributes, operator_entity.get_data("attributes"))
+
+                ## operator function parameters
+                kwargs = {"input_data": input_data, "attributes": operator_attributes, "properties": operator_properties}
                 print(kwargs)
+
+                # set 
+                operator_entity.set_data("attributes", operator_attributes)
+                operator_entity.set_data("properties", operator_properties)
 
                 # refine
                 if refine:
+                    # add additional pipeline context (attributes and properties) to kwargs
+
                     print("refining...")
                     subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
                     print("plans:")
@@ -272,7 +423,7 @@ class DataPlanner:
                     # set pipelines
                     operator_entity.set_data("pipelines", [])
 
-                    # merge plans
+                    # merge plans, create mux/demux nodes
                     for subplan in subplans:
                         try:
                             sp = DataPipeline.from_dict(subplan)
