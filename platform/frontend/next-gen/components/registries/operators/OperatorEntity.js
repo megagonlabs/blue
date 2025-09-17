@@ -29,6 +29,7 @@ import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
+import OperatorMainProperties from "./OperatorMainProperties";
 const { NEXT_PUBLIC_OPERATOR_REGISTRY_NAME } = allEnv();
 export default function OperatorEntity({
     entity,
@@ -269,6 +270,14 @@ export default function OperatorEntity({
                         )}
                     </MainPropertyBlock>
                 </div>
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <OperatorMainProperties
+                    updateMainProperties={updateMainProperties}
+                    isEditing={isEditing}
+                    properties={mainProperties}
+                    loading={loading}
+                />
             </div>
             <div style={{ marginTop: 20 }}>
                 <EntityDescription
