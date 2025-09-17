@@ -19,7 +19,7 @@ export default function OperatorMainProperties({
             </div>
             <Categories
                 updateMainProperties={updateMainProperties}
-                isEditing={isEditing}
+                isEditing={false}
                 properties={properties}
                 loading={loading}
             />
