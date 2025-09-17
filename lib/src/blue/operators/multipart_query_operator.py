@@ -31,7 +31,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         # discover, query, create table, and insert for each cte
         failed = False
 
-        ## build plan
+        #### build plan
 
         # input
         input_node = pipeline.define_input(value=[[]], properties={})
@@ -46,8 +46,10 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
         # create database
         db_name = "db_" + pipeline.get_id()
-        # create_database_attributes = {"source": "internal", "database": db_name, "columns": columns}
-        # create_database_node = pipeline.define_operator("/server/blue_ray/operator/create_database", attributes=create_database_attributes, properties={})
+        create_database_attributes = {"source": "internal", "database": db_name}
+        create_database_node = pipeline.define_operator("/server/blue_ray/operator/create_database", attributes=create_database_attributes, properties={})
+
+        cte_connect_node = create_database_node
 
         for cte in ctes:
             name = cte['name'] if 'name' in cte else None
@@ -112,9 +114,9 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             start_node = cte_start_nodes[name]
             end_node = cte_end_nodes[name]
 
-            # if no dependency, connect from input node to start
+            # if no dependency, connect from cte_connect_node to start
             if len(dependency) == 0:
-                pipeline.connect_nodes(input_node, start_node)
+                pipeline.connect_nodes(cte_connect_node, start_node)
             else:
                 # connect from sink node of dependency if exists
                 for d in dependency:
