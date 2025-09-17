@@ -60,11 +60,10 @@ class DataPipeline(dag_utils.Plan):
 
         # set plan input / output
         self.set_plan_input(plan_input, sync=sync)
-        self.set_plan_output(plan_output), sync=sync
+        self.set_plan_output(plan_output, sync=sync)
 
         self._initialize_attributes(sync=sync)
         self._update_attributes(attributes=attributes, sync=sync)
-
 
     ### attributes
     def _initialize_attributes(self, sync=None):
@@ -92,7 +91,7 @@ class DataPipeline(dag_utils.Plan):
 
     def get_attributes(self):
         return self.get_data("attributes")
-    
+
     # plan input / output
     def set_plan_input_id(self, input_id, sync=None):
         self.set_plan_input(input_id, sync=sync)
@@ -109,7 +108,7 @@ class DataPipeline(dag_utils.Plan):
 
     def get_plan_input_id(self):
         return self.get_data("input")
-    
+
     def set_plan_output_id(self, output_id, sync=None):
         self.set_plan_output(output_id, sync=sync)
 
