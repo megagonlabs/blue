@@ -104,9 +104,12 @@ class MetaData(ServiceClient):
         return self.execute_api_call(entity_prompt, properties=self.properties, additional_data={})
 
     def collect_source_metadata(self, data_registry, source, recursive=False, rebuild=False):
-        # TODO
-        pass
-
+        if recursive: 
+            databases = data_registry.get_source_databases(source)
+            for database in databases:
+                self.collect_source_database_metadata(data_registry, source, database, recursive=recursive, rebuild=rebuild)
+        return
+        
     def collect_source_database_metadata(self, data_registry, source, database, recursive=False, rebuild=False):
         collections = data_registry.get_source_database_collections(source, database)
         collection_descriptions = {}
@@ -133,6 +136,11 @@ class MetaData(ServiceClient):
             
                 data_registry.set_source_database_description(
                         source, database, database_desc, rebuild=rebuild)
+
+        if recursive: 
+            for collection in collections:
+                self.collect_source_database_collection_metadata(data_registry, source, database, collection, recursive=recursive, rebuild=rebuild)                
+
 
         return 
  
