@@ -124,9 +124,10 @@ class SQLiteDBSource(DataSource):
     ######### database/collection
     def fetch_database_collections(self, database):
         ## for sqlite, collection is the database, we are returning the database
-        return database
-
-
+        collections = []
+        collections.append(database)
+        return collections 
+        
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
