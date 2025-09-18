@@ -50,7 +50,7 @@ The response should be a valid JSON array containing the following information f
 - 'description': natural language description of the CTE, representing the subquery
 - 'sql': sql statement corresponding to the CTE
 - 'table':  name of the CTE table
-- 'columns': a list of columns of the table
+- 'columns': a list of columns of the table, each with a name and type (suitable for sql)
 - 'dependency': a list of dependent tables, defined as CTE.
 
 
