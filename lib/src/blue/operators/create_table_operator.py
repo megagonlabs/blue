@@ -64,8 +64,8 @@ def create_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
             data_registry.set_source_database_collection_entity_description(source=source, database=database, collection=collection, entity=table, description=table_description, rebuild=True)
 
         # Set the created_by after table creation
+        created_by = attributes.get('created_by')
         if created_by:
-            created_by = attributes.get('created_by')
             data_registry.set_record_data(name=table, type='entity', scope=f'/source/{source}/database/{database}/collection/{collection}', key='created_by', value=created_by, rebuild=True)
 
         print(f"Successfully created table '{table}' in database '{database}' collection '{collection}' of source '{source}'.")
@@ -95,7 +95,7 @@ def create_table_operator_validator(input_data: List[List[Dict[str, Any]]], attr
     if not database or not database.strip():
         return False
 
-    collection = attributes.get('collection', '')
+    collection = attributes.get('collection', 'public')
     if not collection or not collection.strip():
         return False
 
