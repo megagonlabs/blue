@@ -49,6 +49,9 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         create_database_attributes = {"source": "internal", "database": db_name}
         create_database_node = pipeline.define_operator("/server/blue_ray/operator/create_database", attributes=create_database_attributes, properties={})
 
+        # connect to input
+        pipeline.connect_nodes(input_node, create_database_node)
+        # connection point for cte paths
         cte_connect_node = create_database_node
 
         for cte in ctes:
