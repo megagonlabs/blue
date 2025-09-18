@@ -23,7 +23,8 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
         print("Error: Data registry not found")
-        return [[]]
+        # pass through input to output
+        return input_data
 
     try:
 
@@ -41,11 +42,13 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
 
         print(f"Successfully created database '{database}' in source '{source}'.")
 
-        return [[]]
+        # pass through input to output
+        return input_data
 
     except Exception as e:
         print(traceback.format_exc())
-        return [[]]
+        # pass through input to output
+        return input_data
 
 
 def create_database_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:

@@ -27,7 +27,8 @@ def create_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
         print("Error: Data registry not found")
-        return [[]]
+        # pass through input to output
+        return input_data
 
     # Set collection to 'public' for SQLite sources even caller specifies a different collection
     try:
@@ -70,12 +71,13 @@ def create_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
 
         print(f"Successfully created table '{table}' in database '{database}' collection '{collection}' of source '{source}'.")
 
-        return [[]]
+        # pass through input to output
+        return input_data
 
     except Exception as e:
-        print("EXCEPTION")
         print(traceback.format_exc())
-        return [[]]
+        # pass through input to output
+        return input_data
 
 
 def create_table_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
