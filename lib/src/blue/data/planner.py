@@ -132,13 +132,14 @@ class DataPlanner:
         queue_contents = []
         for operator_id in operator_queue:
             operator_node = p.get_node(operator_id)
+            operator_status = operator_node.get_data("status")
             operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
             if operator_entity is None:
                 print("No operator entity found for node:")
                 print(json.dumps(operator_node.get_data()))
                 continue
             operator_name = operator_entity.get_data("name")
-            queue_contents.append(operator_name)
+            queue_contents.append(operator_name + " [" + operator_id + "] " + str(operator_status))
         print("[" + " | ".join(queue_contents) + "]")
 
     def propogate_error(self, p, n):
@@ -298,20 +299,22 @@ class DataPlanner:
 
             # get top in queue
             operator_id = operator_queue.pop(0)
-            operator_node = operators_dict[operator_id]
+            operator_node = p.get_node(operator_id)
 
             # operator entity
             operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
 
             # operator name
             operator_name = operator_entity.get_data("name")
-            print("-------------------------")
-            print("processing: " + operator_name + " [" + operator_id + "] ")
 
             # get status
             operator_status = operator_node.get_data("status")
             if operator_status is None:
                 operator_node.set_data("status", str(Status.INITED))
+                operator_status = operator_node.get_data("status")
+
+            print("-------------------------")
+            print("processing: " + operator_name + " [" + operator_id + "] " + str(operator_status))
 
             # do not refine/execute if done already
             if operator_status not in [Status.REFINED, Status.EXECUTING, Status.EXECUTED]:
@@ -349,15 +352,6 @@ class DataPlanner:
                     if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
                         ready = False
 
-                        # set status to PLANNED for next iteration,
-                        if refine:
-                            prev_node_id = prev_node.get_id()
-                            prev_node_name = prev_node.get_data("name")
-                            prev_node.set_data("status", str(Status.PLANNED))
-                            # add prev node to the queue, if not there
-                            if prev_node_id not in operator_queue:
-                                operator_queue.append(prev_node_id)
-
                 # failed
                 if failed:
                     operator_node.set_data("status", str(Status.FAILED))
@@ -367,7 +361,20 @@ class DataPlanner:
 
                 # do not execute or refine, if not ready
                 if not ready:
-                    # put back in queue
+                    # set previous nodes status to PLANNED for next iteration
+                    for prev_node in prev_nodes:
+                        prev_node_status = prev_node.get_data("status")
+
+                        if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
+                            # set previous node status to PLANNED for next iteration,
+
+                            prev_node_id = prev_node.get_id()
+                            prev_node.set_data("status", str(Status.PLANNED))
+                            # add prev node to the queue, if not there
+                            if prev_node_id not in operator_queue:
+                                operator_queue.append(prev_node_id)
+
+                    # put current operator back in queue too
                     print("not ready!")
                     operator_queue.append(operator_id)
                     continue
@@ -403,7 +410,7 @@ class DataPlanner:
                 kwargs = {"input_data": input_data, "attributes": operator_attributes, "properties": operator_properties}
                 print(kwargs)
 
-                # set 
+                # set
                 operator_entity.set_data("attributes", operator_attributes)
                 operator_entity.set_data("properties", operator_properties)
 
@@ -441,10 +448,9 @@ class DataPlanner:
                     # add new operators to queue
                     o_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
                     for o_id in o_dict:
-                        if o_id in operators_dict:
+                        if o_id in operator_queue:
                             continue
                         else:
-                            operators_dict[o_id] = o_dict[o_id]
                             operator_queue.append(o_id)
 
                 # execute
