@@ -13,8 +13,8 @@ from blue.data.registry import DataRegistry
 
 def create_database_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     # Extract attributes
-    source = attributes.get('source', '')
     overwrite = attributes.get('overwrite', False)
+    source = attributes.get('source', '')
     database = attributes.get('database')
     database_description = attributes.get('description', '')
     database_properties = attributes.get('properties', {})
