@@ -87,10 +87,11 @@ class MySQLDBSource(DataSource):
         return None
 
     def fetch_database_collections(self, database):
-        ## for mysql, collection is the database, so we ignore the database parameter here 
-        databases = self.fetch_databases()
-        return databases
-
+        ## for mysql, there is no collection. We return "public" to create data registry entry
+        collections = []
+        collections.append("public")
+        return collections 
+        
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
