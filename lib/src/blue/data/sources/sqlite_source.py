@@ -123,9 +123,8 @@ class SQLiteDBSource(DataSource):
 
     ######### database/collection
     def fetch_database_collections(self, database):
-        ## for sqlite, collection is the database, so we ignore the database parameter here 
-        databases = self.fetch_databases()
-        return databases
+        ## for sqlite, collection is the database, we are returning the database
+        return database
 
 
     def fetch_database_collection_metadata(self, database, collection):
