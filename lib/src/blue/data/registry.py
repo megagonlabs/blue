@@ -468,6 +468,10 @@ class DataRegistry(Registry):
             source_stats = source_connection.fetch_source_stats()
             if source_stats:
                 self.set_source_property(source, "stats", source_stats, rebuild=rebuild)
+            if recursive:
+                databases = self.get_source_databases(source)
+                for database in databases:
+                    self.collect_source_database_stats(source, database, source_connection, recursive=recursive, rebuild=rebuild)
 
     
     def collect_source_database_stats(self, source, database, source_connection=None, recursive=False, rebuild=False):
@@ -478,6 +482,12 @@ class DataRegistry(Registry):
             if db_stats:
                 self.set_source_database_property(source, database, "stats", db_stats, rebuild=rebuild)
 
+            if recursive:
+                collections = self.get_source_database_collections(source, database)
+                for collection in collections:
+                    self.collect_source_database_collection_stats(source, database, collection, source_connection, recursive=recursive, rebuild=rebuild)
+    
+                
     
     def collect_source_database_collection_stats(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, sample_limit=10):
         
