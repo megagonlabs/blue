@@ -26,25 +26,24 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
         return [[]]
 
     try:
-   
+
         # Create the database using data registry
         data_registry.create_source_database(source=source, database=database, properties=database_properties, overwrite=overwrite, rebuild=True, recursive=False)
 
         # Set the description after database creation
-        if description:
+        if database_description:
             data_registry.set_source_database_description(source=source, database=database, description=database_description, rebuild=True)
 
         # Set the created_by after database creation
         created_by = attributes.get('created_by')
         if created_by:
-            data_registry.set_record_data(name=database_name, type='database', scope=f'/source/{source}', key='created_by', value=created_by, rebuild=True)
+            data_registry.set_record_data(name=database, type='database', scope=f'/source/{source}', key='created_by', value=created_by, rebuild=True)
 
-        print(f"Successfully created database '{database_name}' in source '{source}'.")
+        print(f"Successfully created database '{database}' in source '{source}'.")
 
         return [[]]
 
     except Exception as e:
-        print("EXCEPTION")
         print(traceback.format_exc())
         return [[]]
 
@@ -62,18 +61,9 @@ def create_database_operator_validator(input_data: List[List[Dict[str, Any]]], a
     if not source or not source.strip():
         return False
 
-    # Validate input data structure - expect single database dictionary
-    if not input_data or not input_data[0] or len(input_data[0]) != 1:
+    database = attributes.get('database', '')
+    if not database or not database.strip():
         return False
-
-    # Validate database definition
-    db_def = input_data[0][0]
-    if not isinstance(db_def, dict):
-        return False
-    required_fields = ['name']
-    for field in required_fields:
-        if field not in db_def:
-            return False
 
     return True
 
