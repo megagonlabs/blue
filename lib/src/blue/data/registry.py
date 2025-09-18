@@ -550,8 +550,15 @@ class DataRegistry(Registry):
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
-            self.update_source(source, description=description, properties=properties, rebuild=rebuild)
 
+            current_description = self.get_source_description(source)
+            
+            if not current_description or current_description.strip() == "":
+                self.update_source(source, description=description, properties=properties, rebuild=rebuild)
+            else:
+                self.update_source(source, description = current_description, properties=properties, rebuild=rebuild)
+            
+            
             ### this call will be removed once UI supports calling source stats 
             self.collect_source_stats(source, recursive=recursive, rebuild=rebuild)
         
@@ -614,8 +621,16 @@ class DataRegistry(Registry):
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
-            self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
+            
+            current_description = self.get_source_database_description(source, database)
+            
+            if not current_description or current_description.strip() == "":
+                self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
 
+            else:                   
+                self.update_source_database(source, database, description=current_description, properties=properties, rebuild=rebuild)
+    
+    
             ### this call will be removed from here, when UI supports callign corresponding API
             self.collect_source_database_stats(source, database, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
          
@@ -681,9 +696,14 @@ class DataRegistry(Registry):
             if 'description' in metadata:
                 description = metadata['description']
 
-            self.update_source_database_collection(source, database, collection, description=description, properties=properties, rebuild=rebuild)
+            current_description = self.get_source_database_collection_description(source, database, collection)
 
-
+            if not current_description or current_description.strip() == "":
+                self.update_source_database_collection(source, database, collection, description=description, properties=properties, rebuild=rebuild)
+            else:                          
+                self.update_source_database_collection(source, database, collection, description=current_description, properties=properties, rebuild=rebuild)
+            
+            
             entities = source_connection.fetch_database_collection_entities(database, collection)
             relations = source_connection.fetch_database_collection_relations(database, collection)
 
