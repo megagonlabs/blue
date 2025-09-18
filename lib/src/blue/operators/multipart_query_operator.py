@@ -84,11 +84,11 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             nl2query_router_node = pipeline.define_operator("/server/blue_ray/operator/nl2query_router", attributes=nl2query_router_attributes, properties={})
 
             # # insert table
-            # insert_table_attributes = {"source": "internal", "database": db_name, "collection": table}
-            # it_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
+            insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
+            insert_table_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
 
             start_node = data_discovery_node
-            end_node = nl2query_router_node  # TODO: modify this
+            end_node = insert_table_node
 
             ## set cte start / end nodes
             dependents.add(name)
@@ -98,6 +98,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             ## intra-cte connections
             pipeline.connect_nodes(data_discovery_node, create_table_node)
             pipeline.connect_nodes(create_table_node, nl2query_router_node)
+            pipeline.connect_nodes(nl2query_router_node, insert_table_node)
 
             # remove any dependency
             for d in dependency:
