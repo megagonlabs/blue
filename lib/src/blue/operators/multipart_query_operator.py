@@ -52,7 +52,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         # connect to input
         pipeline.connect_nodes(input_node, create_database_node)
         # connection point for cte paths
-        cte_connect_node = create_database_node
+        cte_root_node = create_database_node
 
         for cte in ctes:
             name = cte['name'] if 'name' in cte else None
@@ -119,9 +119,9 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             start_node = cte_start_nodes[name]
             end_node = cte_end_nodes[name]
 
-            # if no dependency, connect from cte_connect_node to start
+            # if no dependency, connect from cte_root_node to start
             if len(dependency) == 0:
-                pipeline.connect_nodes(cte_connect_node, start_node)
+                pipeline.connect_nodes(cte_root_node, start_node)
             else:
                 # connect from sink node of dependency if exists
                 for d in dependency:
