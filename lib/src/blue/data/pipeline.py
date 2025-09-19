@@ -125,20 +125,51 @@ class DataPipeline(dag_utils.Plan):
     def get_plan_output_id(self):
         return self.get_data("output")
 
-    # nodes
-    def define_input(self, label=None, value=None, properties={}, sync=None):
+    ## nodes
+    def set_node_value(self, n, value=None, provenance=None, sync=None):
+        node = self.get_node(n)
+        node.set_data("value", value, sync=sync)
+
+        if provenance:
+            values = node.get_data("values")
+            values[provenance] = value
+
+            node.synchronize(key="values." + provenance, value=value, sync=sync)
+
+    def get_node_value(self, n, provenance=None):
+        node = self.get_node(n)
+        if provenance:
+            values = node.get_data("values")
+            if provenance in values:
+                return values[provenance]
+            else:
+                return None
+        else:
+            return node.get_data("value")
+
+    def get_node_values(self, n):
+        node = self.get_node(n)
+        return node.get_data("values")
+
+    def define_input(self, label=None, value=None, provenance=None, properties={}, sync=None):
         input_node = self.create_node(label=label, type=str(NodeType.INPUT), properties=properties, sync=sync)
 
+        # values / provenance
+        input_node.set_data('values', {}, sync=sync)
+
         # input value/stream
-        input_node.set_data('value', value, sync=sync)
+        self.set_node_value(input_node, value=value, provenance=provenance, sync=sync)
 
         return input_node
 
-    def define_output(self, label=None, value=None, properties={}, sync=None):
+    def define_output(self, label=None, value=None, provenance=None, properties={}, sync=None):
         output_node = self.create_node(label=label, type=str(NodeType.OUTPUT), properties=properties, sync=sync)
 
+        # values / provenance
+        output_node.set_data('values', {}, sync=sync)
+
         # output value/stream
-        output_node.set_data('value', value, sync=sync)
+        self.set_node_value(output_node, value=value, provenance=provenance, sync=sync)
 
         return output_node
 
@@ -148,6 +179,9 @@ class DataPipeline(dag_utils.Plan):
             raise Exception("Name is not specified")
 
         operator_node = self.create_node(label=label, type=str(NodeType.OPERATOR), properties=properties, sync=sync)
+
+        # values / provenance
+        operator_node.set_data('values', {}, sync=sync)
 
         operator = self.create_operator(name, attributes=attributes, properties=properties, sync=sync)
 
@@ -162,6 +196,3 @@ class DataPipeline(dag_utils.Plan):
         operator.set_data("attributes", attributes)
 
         return operator
-
-    def execute(self, budget):
-        return None
