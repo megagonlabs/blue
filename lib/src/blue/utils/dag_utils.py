@@ -116,7 +116,7 @@ class Base:
         properties = self.get_properties()
         properties[key] = value
 
-        self.synchronize(key="properties." + key, value=value)
+        self.synchronize(key="properties." + key, value=value, sync=sync)
 
     def get_property(self, key):
         properties = self.get_properties()
