@@ -54,6 +54,10 @@ def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         # output
         output_node = pipeline.define_output(properties={})
 
+        # set plan input / output
+        pipeline.set_plan_input(input_node)
+        pipeline.set_plan_output(output_node)
+
         route_node = None
         if protocol == "openai":
             nl2llm_attributes = {"query": query, "attr_names": columns}

@@ -38,6 +38,10 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         input_node.set_data("status", str(Status.EXECUTED))
         # output
         output_node = pipeline.define_output(properties={})
+        # set plan input / output
+        pipeline.set_plan_input(input_node)
+        pipeline.set_plan_output(output_node)
+
         # cte start/end nodes
         cte_start_nodes = {}
         cte_end_nodes = {}

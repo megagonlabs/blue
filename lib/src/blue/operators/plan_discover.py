@@ -44,12 +44,19 @@ def plan_discover_operator_refiner(input_data: List[List[Dict[str, Any]]], attri
     # transform top-level operators as single-node plans
     for index, result in enumerate(results):
         operator_path = result['path']
-        # operators attributes is passed on to pipeline
+
+        # create a plan with search results
         p = DataPipeline()
-        # create a plan with input, operator from search, and output
+
+        # input / output
         i = p.define_input(value=input_data)
         i.set_data("status", str(Status.EXECUTED))
         r = p.define_output()
+        # set plan input / output
+        p.set_plan_input(i)
+        p.set_plan_output(r)
+
+        # operator from search results
         o = p.define_operator(operator_path)
         o.set_data("status", str(Status.INITED))
         p.connect_nodes(i, o)

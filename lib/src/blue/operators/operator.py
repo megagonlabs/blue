@@ -458,6 +458,10 @@ def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attribu
                 # connect to output
                 pipeline.connect_nodes(operator_node, plan_output_node)
 
+        # set plan input / output
+        pipeline.set_plan_input(plan_input_node)
+        pipeline.set_plan_output(plan_output_node)
+
         # add to pipelines
         pipelines.append(pipeline.to_dict())
 
