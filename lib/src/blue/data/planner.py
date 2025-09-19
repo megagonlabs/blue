@@ -123,9 +123,6 @@ class DataPlanner:
         if p is None:
             raise Exception("No plan generated")
 
-        # refine
-        p = self.refine(p)
-
         return p
 
     def print_operator_queue(self, p, operator_queue):
@@ -244,14 +241,14 @@ class DataPlanner:
         operator_name = parsed['operator']
         operator_server = parsed['server']
 
-        print("mapping pipeline attributes to operator attributes:")
-        print("operator name: " + operator_name)
-        print("operator server: " + operator_server)
-        print("pipeline attributes: " + json.dumps(parent_pipeline_attributes))
+        # print("mapping pipeline attributes to operator attributes:")
+        # print("operator name: " + operator_name)
+        # print("operator server: " + operator_server)
+        # print("pipeline attributes: " + json.dumps(parent_pipeline_attributes))
 
         # TODO:
         mappped_parent_pipeline_attributes = parent_pipeline_attributes
-        print("mapped pipeline attributes: " + json.dumps(mappped_parent_pipeline_attributes))
+        # print("mapped pipeline attributes: " + json.dumps(mappped_parent_pipeline_attributes))
 
         return mappped_parent_pipeline_attributes
 
@@ -266,13 +263,13 @@ class DataPlanner:
         parent_operator_name = parsed['operator']
         parent_operator_server = parsed['server']
 
-        print("mapping parent operator attributes to operator attributes:")
-        print("operator name: " + operator_name)
-        print("operator server: " + operator_server)
-        print("parent operator name: " + parent_operator_name)
-        print("parent operator server: " + parent_operator_server)
+        # print("mapping parent operator attributes to operator attributes:")
+        # print("operator name: " + operator_name)
+        # print("operator server: " + operator_server)
+        # print("parent operator name: " + parent_operator_name)
+        # print("parent operator server: " + parent_operator_server)
 
-        print("parent operator attributes: " + json.dumps(parent_operator_attributes))
+        # print("parent operator attributes: " + json.dumps(parent_operator_attributes))
 
         # TODO: llm based mapper
         mappped_parent_operator_attributes = {}
@@ -283,19 +280,23 @@ class DataPlanner:
         else:
             mappped_parent_operator_attributes = parent_operator_attributes
 
-        print("mapped parent operator attributes: " + json.dumps(mappped_parent_operator_attributes))
+        # print("mapped parent operator attributes: " + json.dumps(mappped_parent_operator_attributes))
 
         return mappped_parent_operator_attributes
 
     def refine(self, p):
         # build operator queue for refine / execute
+
         operators_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
         operator_queue = list(operators_dict.keys())
+
+        # operator queue archive
+        operator_queue_archive = set(operator_queue)
 
         while len(operator_queue) > 0:
             print("-------------------------")
             self.print_operator_queue(p, operator_queue)
-            print("operator_queue count:" + str(len(operator_queue)))
+            # print("operator_queue count:" + str(len(operator_queue)))
 
             # get top in queue
             operator_id = operator_queue.pop(0)
@@ -408,7 +409,7 @@ class DataPlanner:
 
                 ## operator function parameters
                 kwargs = {"input_data": input_data, "attributes": operator_attributes, "properties": operator_properties}
-                print(kwargs)
+                # print(kwargs)
 
                 # set
                 operator_entity.set_data("attributes", operator_attributes)
@@ -420,8 +421,8 @@ class DataPlanner:
 
                     print("refining...")
                     subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
-                    print("plans:")
-                    print(subplans)
+                    # print("plans:")
+                    # print(subplans)
                     if subplans is None:
                         # nothing to refine, skip
                         print("nothing to refine, skip")
@@ -445,13 +446,14 @@ class DataPlanner:
                     # update status as refined
                     operator_node.set_data("status", str(Status.REFINED))
 
-                    # add new operators to queue
+                    # TODO: add new operators to queue (in any order, so should be ordered...)
                     o_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
                     for o_id in o_dict:
-                        if o_id in operator_queue:
+                        if o_id in operator_queue_archive:
                             continue
                         else:
                             operator_queue.append(o_id)
+                            operator_queue_archive.add(o_id)
 
                 # execute
                 elif planned:
@@ -461,8 +463,8 @@ class DataPlanner:
 
                     # execute
                     output = self.registry.execute_operator(operator_name, operator_server, None, kwargs)
-                    print("output:")
-                    print("None" if output is None else json.dumps(output))
+                    # print("output:")
+                    # print("None" if output is None else json.dumps(output))
                     if output is None:
                         operator_node.set_data("status", str(Status.FAILED))
                         # propogage error
