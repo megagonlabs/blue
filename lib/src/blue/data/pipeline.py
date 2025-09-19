@@ -75,7 +75,7 @@ class DataPipeline(dag_utils.Plan):
 
         # plan_provenance
         if plan_provenance is None:
-            plan_provenance = ""
+            plan_provenance = "$"
         self.set_plan_provenance(plan_provenance, sync=sync)
 
         # set plan input / output
@@ -178,6 +178,12 @@ class DataPipeline(dag_utils.Plan):
         node = self.get_node(n)
         return node.get_data("values")
 
+    def get_node_provenance(self, n):
+        node = self.get_node(n)
+
+        plan_provenance = self.get_plan_provenance()
+        node.set_data("provenance", plan_provenance + "." + plan.get_id())
+
     def define_input(self, label=None, value=None, provenance=None, properties={}, sync=None):
         input_node = self.create_node(label=label, type=str(NodeType.INPUT), properties=properties, sync=sync)
 
@@ -186,6 +192,9 @@ class DataPipeline(dag_utils.Plan):
 
         # input value/stream
         self.set_node_value(input_node, value=value, provenance=provenance, sync=sync)
+
+        # set provenance
+        self.set_node_provenance(input_node)
 
         return input_node
 
@@ -197,6 +206,9 @@ class DataPipeline(dag_utils.Plan):
 
         # output value/stream
         self.set_node_value(output_node, value=value, provenance=provenance, sync=sync)
+
+        # set provenance
+        self.set_node_provenance(input_node)
 
         return output_node
 
@@ -214,6 +226,9 @@ class DataPipeline(dag_utils.Plan):
 
         self.set_node_entity(operator_node, operator, sync=sync)
 
+        # set provenance
+        self.set_node_provenance(input_node)
+
         return operator_node
 
     ### operator
@@ -226,13 +241,17 @@ class DataPipeline(dag_utils.Plan):
 
     # override merge to set provenance
     def merge(self, merge_plan, sync=None):
+        merge_plan_id = merge_plan.get_id()
+
         merge_plan_nodes = merge_plan.get_nodes()
 
         super().merge(merge_plan, sync=sync)
 
         # set provenance for each node in merged plan
         merge_plan_provenance = self.get_plan_provenance() + "." + self.get_id()
+        merge_plan.set_data("provenance", merge_plan_provenance)
 
+        merge_plan_operator_provenance = merge_plan_provenance + "." + merge_plan_id
         for merge_plan_node_id in merge_plan_nodes:
             merge_plan_node = self.get_node(merge_plan_node_id)
-            merge_plan_node.set_data("provenance", merge_plan_provenance, sync=sync)
+            merge_plan_node.set_data("provenance", merge_plan_operator_provenance, sync=sync)
