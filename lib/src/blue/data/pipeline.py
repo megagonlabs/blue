@@ -25,6 +25,7 @@ class Status(Constant):
 
 
 Status.INITED = Status("INITED")
+Status.REFINING = Status("REFINING")
 Status.REFINED = Status("REFINED")
 Status.EXECUTING = Status("EXECUTING")
 Status.EXECUTED = Status("EXECUTED")
@@ -55,8 +56,27 @@ EntityType.DATA_PIPELINE = EntityType("DATA_PIPELINE")
 ### DataPipeline
 #
 class DataPipeline(dag_utils.Plan):
-    def __init__(self, id=None, label=None, type="DATA_PIPELINE", properties=None, attributes=None, path=None, plan_input=None, plan_output=None, synchronizer=None, auto_sync=False, sync=None):
+    def __init__(
+        self,
+        id=None,
+        label=None,
+        type="DATA_PIPELINE",
+        properties=None,
+        attributes=None,
+        path=None,
+        plan_provenance=None,
+        plan_input=None,
+        plan_output=None,
+        synchronizer=None,
+        auto_sync=False,
+        sync=None,
+    ):
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
+
+        # plan_provenance
+        if plan_provenance is None:
+            plan_provenance = ""
+        self.set_plan_provenance(plan_provenance, sync=sync)
 
         # set plan input / output
         self.set_plan_input(plan_input, sync=sync)
@@ -91,6 +111,13 @@ class DataPipeline(dag_utils.Plan):
 
     def get_attributes(self):
         return self.get_data("attributes")
+
+    # provenance
+    def set_plan_provenance(self, plan_provenance, sync=None):
+        self.set_data("provenance", plan_provenance, sync=sync)
+
+    def get_plan_provenance(self):
+        return self.get_data("provenance")
 
     # plan input / output
     def set_plan_input_id(self, input_id, sync=None):
@@ -196,3 +223,16 @@ class DataPipeline(dag_utils.Plan):
         operator.set_data("attributes", attributes)
 
         return operator
+
+    # override merge to set provenance
+    def merge(self, merge_plan, sync=None):
+        merge_plan_nodes = merge_plan.get_nodes()
+
+        super().merge(merge_plan, sync=sync)
+
+        # set provenance for each node in merged plan
+        merge_plan_provenance = self.get_plan_provenance() + "." + self.get_id()
+
+        for merge_plan_node_id in merge_plan_nodes:
+            merge_plan_node = self.get_node(merge_plan_node_id)
+            merge_plan_node.set_data("provenance", merge_plan_provenance, sync=sync)
