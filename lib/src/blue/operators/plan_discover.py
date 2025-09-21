@@ -49,8 +49,7 @@ def plan_discover_operator_refiner(input_data: List[List[Dict[str, Any]]], attri
         p = DataPipeline()
 
         # input / output
-        i = p.define_input(value=input_data)
-        i.set_data("status", str(Status.EXECUTED))
+        i = p.define_input(value=None)
         r = p.define_output()
         # set plan input / output
         p.set_plan_input(i)

@@ -34,8 +34,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         #### build plan
 
         # input
-        input_node = pipeline.define_input(value=[[]], properties={})
-        input_node.set_data("status", str(Status.EXECUTED))
+        input_node = pipeline.define_input(value=None)
         # output
         output_node = pipeline.define_output(properties={})
         # set plan input / output

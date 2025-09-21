@@ -424,8 +424,7 @@ def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attribu
         # create plan input and output nodes, if missing
         if plan_input_node is None:
             plan_input_node = pipeline.define_input(value=input_data, properties={})
-            # always set input status to executed
-            plan_input_node.set_data("status", str(Status.EXECUTED))
+
         if plan_output_node is None:
             plan_output_node = pipeline.define_output(properties={})
         # second pass, connect

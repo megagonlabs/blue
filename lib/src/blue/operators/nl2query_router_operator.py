@@ -49,8 +49,8 @@ def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         protocol = connection['protocol']
 
         # input
-        input_node = pipeline.define_input(value=[[]], properties={})
-        input_node.set_data("status", str(Status.EXECUTED))
+        input_node = pipeline.define_input(value=None
+        
         # output
         output_node = pipeline.define_output(properties={})
 
