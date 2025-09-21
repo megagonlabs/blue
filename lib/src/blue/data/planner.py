@@ -319,7 +319,7 @@ class DataPlanner:
         input_data = []
         prev_nodes = p.get_prev_nodes(n)
         for prev_node in prev_nodes:
-            prev_node_status = p.get_node_status(prev_node.get_data, provenance=provenance)
+            prev_node_status = p.get_node_status(prev_node, provenance=provenance)
             if prev_node_status in [Status.FAILED]:
                 failed = True
                 ready = False
@@ -327,10 +327,11 @@ class DataPlanner:
             if prev_node_status not in [Status.EXECUTED]:
                 ready = False
                 return None, ready, failed
-            
+
             prev_node_value = p.get_node_value(prev_node, provenance=provenance)
             if prev_node_value is None:
-                return None
+                ready = False
+                return None, ready, failed
             input_data += prev_node_value
 
         return input_data, ready, failed
@@ -345,9 +346,9 @@ class DataPlanner:
             if parent_operator_entity_id:
                 return p.get_entity(parent_operator_entity_id)
         return None
-    
+
     def get_node_parent_operator_node(self, p, n):
-        parent_operator_entity = self.get_node_parent_operator_entity(p, n):
+        parent_operator_entity = self.get_node_parent_operator_entity(p, n)
         if parent_operator_entity:
             operator_nodes = p.get_nodes_by_entity(parent_operator_entity)
             # should be only one
@@ -367,12 +368,12 @@ class DataPlanner:
 
         print("-------------------------")
         print("processing node: " + str(node_type) + "[" + node_id + "]")
-       
+
         # identify pipeline entity, parent operator entity and node, if part of pipeline
         pipeline_entity = self.get_node_pipeline_entity(p, node)
         parent_operator_entity = self.get_node_parent_operator_entity(p, node)
         parent_operator_node = self.get_node_parent_operator_node(p, node)
-        
+
         # aggregate input_value
         input_data, ready, failed = self.aggregate_inputs(p, node, provenance=provenance)
 
@@ -385,7 +386,7 @@ class DataPlanner:
             # set status
             p.set_node_status(node, str(Status.EXECUTED), provenance=provenance)
 
-            # continue so we can process next 
+            # continue so we can process next
         elif node_type == NodeType.OUTPUT:
             # set status
             p.set_node_status(node, str(Status.EXECUTED), provenance=provenance)
@@ -398,16 +399,16 @@ class DataPlanner:
                 p.set_node_value(parent_operator_node, input_data, provenance=provenance)
                 # continue with parent_operator
                 self.execute_recursively(p, parent_operator_node, provenance=provenance)
-            
-            return 
+
+            return
         elif node_type == NodeType.OPERATOR:
             # if value set, continue
             v = p.get_node_value(node, provenance=provenance)
-            if v: 
+            if v:
                 # already refined and value received from sub plans, so go on...
                 if node_status in [Status.FAILED]:
                     return
-                # continue so we can process next 
+                # continue so we can process next
             else:
                 operator_node = node
                 operator_id = node_id
@@ -458,7 +459,7 @@ class DataPlanner:
                     print("refining...")
                     p.set_node_status(operator_node, str(Status.REFINING), provenance=provenance)
                     subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
-                    
+
                     # print("plans:")
                     # print(subplans)
                     if subplans is None:
@@ -483,7 +484,7 @@ class DataPlanner:
 
                                 subplan_provenance = provenance + "." + sp.get_id()
                                 ### execute subplans starting from their plan input
-                                plan_input_node = sp.get_plan_input_id()
+                                plan_input_node = p.get_plan_input(pipeline=sp.get_id())
                                 p.set_node_value(plan_input_node, input_data, provenance=subplan_provenance)
                                 self.execute_recursively(p, plan_input_node, provenance=subplan_provenance)
                                 return
@@ -492,7 +493,7 @@ class DataPlanner:
                                 # failed
                                 self.propogate_failure_recursively(p, operator_node, provenance=provenance)
                                 return
-                    
+
                 else:
                     ### execute
                     print("executing...")
@@ -503,13 +504,11 @@ class DataPlanner:
                         # failed
                         self.propogate_failure_recursively(p, operator_node, provenance=provenance)
                         return
-                    
-                    
+
         # execute next nodes
         next_nodes = p.get_next_nodes(node)
         for next_node in next_nodes:
             self.execute_recursively(p, next_node, provenance=provenance)
-            
 
     # def execute(self, p, queue=None):
     #     if queue is None:
