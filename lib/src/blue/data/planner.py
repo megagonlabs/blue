@@ -91,7 +91,7 @@ class DataPlanner:
             p = DataPipeline(attributes=pipeline_attributes, properties=self.properties)
 
             # input = [[]] for question answer
-            i = p.define_input(value=[[]])
+            i = p.define_input(value=[[]], provenance=p.get_id())
             i.set_data("status", str(Status.EXECUTED))
             # operator: use plan discover as specified in the properties
 
@@ -111,6 +111,10 @@ class DataPlanner:
             # output
             r = p.define_output()
 
+            # set plan input / output
+            p.set_plan_input(i)
+            p.set_plan_output(r)
+
             # connections: input -> plan_search -> output
             p.connect_nodes(i, o)
             p.connect_nodes(o, r)
@@ -125,29 +129,41 @@ class DataPlanner:
 
         return p
 
-    def print_operator_queue(self, p, operator_queue):
+    def print_node_queue(self, p, queue):
         queue_contents = []
-        for operator_id in operator_queue:
-            operator_node = p.get_node(operator_id)
-            operator_status = operator_node.get_data("status")
-            operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
-            if operator_entity is None:
-                print("No operator entity found for node:")
-                print(json.dumps(operator_node.get_data()))
-                continue
-            operator_name = operator_entity.get_data("name")
-            queue_contents.append(operator_name + " [" + operator_id + "] " + str(operator_status))
-        print("[" + " | ".join(queue_contents) + "]")
+        for node_id in queue:
+            node = p.get_node(node_id)
+            node_status = node.get_data("status")
+            node_type = node.get_type()
 
-    def propogate_error(self, p, n):
-        # set status as  failed
-        n.set_data("status", str(Status.FAILED))
+            queue_content = ""
+            if node_type == NodeType.INPUT:
+                queue_content += "INPUT [" + node_id + "]"
+            elif node_type == NodeType.OUTPUT:
+                queue_content += "OUTPUT [" + node_id + "]"
+            elif node_type == NodeType.OPERATOR:
+                operator_entity = p.get_node_entity(node, str(EntityType.OPERATOR))
+                operator_name = "unknown"
+                operator_id = "unknown"
+                if operator_entity:
+                    operator_name = operator_entity.get_data("name")
+                    operator_id = operator_entity.get_id()
+                    queue_content += "OPERATOR [" + node_id + ":" + operator_name + "(" + operator_id + ")]"
+
+            queue_content += "(" + str(node_status) + ")"
+            queue_contents.append(queue_content)
+
+        print("[ " + " | ".join(queue_contents) + " ]")
+
+    def propogate_failure_recursively(self, p, n, provenance="$"):
+        # set status as failed
+        p.set_node_status(n, str(Status.FAILED), provenance=provenance)
 
         # propogate status to next nodes
         next_nodes = p.get_next_nodes(n)
 
         for next_node in next_nodes:
-            self.propogate_error(p, next_node)
+            self.propogate_failure_recursively(p, next_node, provenance=provenance)
 
         # go up
         if len(next_nodes) == 0:
@@ -164,15 +180,18 @@ class DataPlanner:
 
             # check pipelines
             pipelines = operator_entity.get_data("pipelines")
+            # no pipelines, nothing to propogate further up
             if pipelines is None:
                 return
+            # more than one pipeline, do not propogate further up
+            # TODO: what if all pipelines failed, how to identify that situation?
             if len(pipelines) > 1:
                 return
 
             # single valid pipeline failed, so parent node should also fail
             operator_nodes = p.get_nodes_by_entity(operator_entity)
             for operator_node in operator_nodes:
-                self.propogate_error(p, operator_node)
+                self.propogate_failure_recursively(p, operator_node, provenance=provenance)
 
     def get_inherited_properties(self, p, operator_node):
         inherited_properties = {}
@@ -284,41 +303,122 @@ class DataPlanner:
 
         return mappped_parent_operator_attributes
 
-    def refine(self, p):
-        # build operator queue for refine / execute
+    def execute(self, p):
+        plan_input_node = p.get_plan_input()
+        provenance = p.get_data("provenance")
 
-        operators_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
-        operator_queue = list(operators_dict.keys())
+        self.execute_recursively(p, plan_input_node, provenance=provenance)
 
-        # operator queue archive
-        operator_queue_archive = set(operator_queue)
+    # helper functions for execution and refinement
+    def aggregate_inputs(self, p, n, provenance=None):
+        ## state
+        ready = True
+        failed = False
 
-        while len(operator_queue) > 0:
-            print("-------------------------")
-            self.print_operator_queue(p, operator_queue)
-            # print("operator_queue count:" + str(len(operator_queue)))
+        ## inputs: aggregate input form each prev node,
+        input_data = []
+        prev_nodes = p.get_prev_nodes(n)
+        for prev_node in prev_nodes:
+            prev_node_status = p.get_node_status(prev_node.get_data, provenance=provenance)
+            if prev_node_status in [Status.FAILED]:
+                failed = True
+                ready = False
+                return None, ready, failed
+            if prev_node_status not in [Status.EXECUTED]:
+                ready = False
+                return None, ready, failed
+            
+            prev_node_value = p.get_node_value(prev_node, provenance=provenance)
+            if prev_node_value is None:
+                return None
+            input_data += prev_node_value
 
-            # get top in queue
-            operator_id = operator_queue.pop(0)
-            operator_node = p.get_node(operator_id)
+        return input_data, ready, failed
 
-            # operator entity
-            operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+    def get_node_pipeline_entity(self, p, n):
+        return p.get_node_entity(n, str(EntityType.DATA_PIPELINE))
 
-            # operator name
-            operator_name = operator_entity.get_data("name")
+    def get_node_parent_operator_entity(self, p, n):
+        pipeline_entity = self.get_node_pipeline_entity(p, n)
+        if pipeline_entity:
+            parent_operator_entity_id = pipeline_entity.get_data("parent")
+            if parent_operator_entity_id:
+                return p.get_entity(parent_operator_entity_id)
+        return None
+    
+    def get_node_parent_operator_node(self, p, n):
+        parent_operator_entity = self.get_node_parent_operator_entity(p, n):
+        if parent_operator_entity:
+            operator_nodes = p.get_nodes_by_entity(parent_operator_entity)
+            # should be only one
+            for operator_node in operator_nodes:
+                return operator_node
+        return None
 
-            # get status
-            operator_status = operator_node.get_data("status")
-            if operator_status is None:
-                operator_node.set_data("status", str(Status.INITED))
-                operator_status = operator_node.get_data("status")
+    def execute_recursively(self, p, node, provenance="$"):
 
-            print("-------------------------")
-            print("processing: " + operator_name + " [" + operator_id + "] " + str(operator_status))
+        node_id = node.get_id()
 
-            # do not refine/execute if done already
-            if operator_status not in [Status.REFINED, Status.EXECUTING, Status.EXECUTED]:
+        # get node type
+        node_type = node.get_type()
+
+        # get node status
+        node_status = p.get_node_status(node, provenance=provenance)
+
+        print("-------------------------")
+        print("processing node: " + str(node_type) + "[" + node_id + "]")
+       
+        # identify pipeline entity, parent operator entity and node, if part of pipeline
+        pipeline_entity = self.get_node_pipeline_entity(p, node)
+        parent_operator_entity = self.get_node_parent_operator_entity(p, node)
+        parent_operator_node = self.get_node_parent_operator_node(p, node)
+        
+        # aggregate input_value
+        input_data, ready, failed = self.aggregate_inputs(p, node, provenance=provenance)
+
+        # failed, propogate error, stop
+        if failed:
+            self.propogate_failure_recursively(p, node, provenance=provenance)
+            return
+
+        if node_type == NodeType.INPUT:
+            # set status
+            p.set_node_status(node, str(Status.EXECUTED), provenance=provenance)
+
+            # continue so we can process next 
+        elif node_type == NodeType.OUTPUT:
+            # set status
+            p.set_node_status(node, str(Status.EXECUTED), provenance=provenance)
+            # set value
+            p.set_node_value(node, input_data, provenance=provenance)
+
+            # copy value to parent node, continue
+            if parent_operator_node:
+                # set parent value
+                p.set_node_value(parent_operator_node, input_data, provenance=provenance)
+                # continue with parent_operator
+                self.execute_recursively(p, parent_operator_node, provenance=provenance)
+            
+            return 
+        elif node_type == NodeType.OPERATOR:
+            # if value set, continue
+            v = p.get_node_value(node, provenance=provenance)
+            if v: 
+                # already refined and value received from sub plans, so go on...
+                if node_status in [Status.FAILED]:
+                    return
+                # continue so we can process next 
+            else:
+                operator_node = node
+                operator_id = node_id
+
+                # operator entity
+                operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+                operator_entity_id = operator_entity.get_id()
+
+                # operator name
+                operator_name = operator_entity.get_data("name")
+                print("processing operator: " + operator_name + " [" + operator_entity_id + "]")
 
                 # parse full operator name to extract name and server
                 parsed = self.registry.parse_path(operator_name)
@@ -327,70 +427,11 @@ class DataPlanner:
 
                 registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
 
-                # check if operator is planned for execution in refine
-                planned = operator_status == str(Status.PLANNED)
-
                 # check operator can be refined
                 refine = False
                 if 'refine' in registry_properties and registry_properties['refine']:
                     refine = True
 
-                # no need to refine/execute
-                if not planned and not refine:
-                    continue
-
-                # ready, if  all input is ready/executed
-                ready = True
-                prev_nodes = p.get_prev_nodes(operator_node)
-
-                failed = False
-                for prev_node in prev_nodes:
-                    prev_node_status = prev_node.get_data("status")
-                    if prev_node_status in [Status.FAILED]:
-                        failed = True
-                        break
-
-                    if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
-                        ready = False
-
-                # failed
-                if failed:
-                    operator_node.set_data("status", str(Status.FAILED))
-                    # propogage error
-                    self.propogate_error(p, operator_node)
-                    continue
-
-                # do not execute or refine, if not ready
-                if not ready:
-                    # set previous nodes status to PLANNED for next iteration
-                    for prev_node in prev_nodes:
-                        prev_node_status = prev_node.get_data("status")
-
-                        if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
-                            # set previous node status to PLANNED for next iteration,
-
-                            prev_node_id = prev_node.get_id()
-                            prev_node.set_data("status", str(Status.PLANNED))
-                            # add prev node to the queue, if not there
-                            if prev_node_id not in operator_queue:
-                                operator_queue.append(prev_node_id)
-
-                    # put current operator back in queue too
-                    print("not ready!")
-                    operator_queue.append(operator_id)
-                    continue
-
-                ###### proceed to refine/execute
-                #### operator details
-                ## inputs: aggregate input form each prev node,
-                input_data = []
-                prev_nodes = p.get_prev_nodes(operator_node)
-                for prev_node in prev_nodes:
-                    prev_node_status = prev_node.get_data("status")
-                    prev_node_value = prev_node.get_data("value")
-                    input_data += prev_node_value
-
-                ## properties
                 operator_properties = {}
                 planner_properties = self.properties
                 registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
@@ -409,77 +450,481 @@ class DataPlanner:
 
                 ## operator function parameters
                 kwargs = {"input_data": input_data, "attributes": operator_attributes, "properties": operator_properties}
-                # print(kwargs)
+                print(kwargs)
 
-                # set
-                operator_entity.set_data("attributes", operator_attributes)
-                operator_entity.set_data("properties", operator_properties)
-
-                # refine
+                # refine or execute
                 if refine:
-                    # add additional pipeline context (attributes and properties) to kwargs
-
+                    ### refine
                     print("refining...")
+                    p.set_node_status(operator_node, str(Status.REFINING), provenance=provenance)
                     subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
+                    
                     # print("plans:")
                     # print(subplans)
                     if subplans is None:
-                        # nothing to refine, skip
-                        print("nothing to refine, skip")
-                        continue
+                        print("no subplan, error")
+                        # failed
+                        self.propogate_failure_recursively(p, operator_node, provenance=provenance)
+                        return
+                    else:
+                        # set status
+                        p.set_node_status(operator_node, str(Status.REFINED), provenance=provenance)
 
-                    # set pipelines
-                    operator_entity.set_data("pipelines", [])
+                        # set pipelines
+                        operator_entity.set_data("pipelines", [])
 
-                    # merge plans, create mux/demux nodes
-                    for subplan in subplans:
-                        try:
-                            sp = DataPipeline.from_dict(subplan)
-                            operator_entity.append_data("pipelines", sp.get_id())
-                            sp.set_data("parent", operator_entity.get_id())
-                            p.merge(sp)
-                        except:
-                            # invalid plan, skip
-                            print("invalid subplan, skip")
-                            continue
+                        # merge plans, and execute
+                        for subplan in subplans:
+                            try:
+                                sp = DataPipeline.from_dict(subplan)
+                                operator_entity.append_data("pipelines", sp.get_id())
+                                sp.set_data("parent", operator_entity.get_id())
+                                p.merge(sp)
 
-                    # update status as refined
-                    operator_node.set_data("status", str(Status.REFINED))
-
-                    # TODO: add new operators to queue (in any order, so should be ordered...)
-                    o_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
-                    for o_id in o_dict:
-                        if o_id in operator_queue_archive:
-                            continue
-                        else:
-                            operator_queue.append(o_id)
-                            operator_queue_archive.add(o_id)
-
-                # execute
-                elif planned:
-                    # set status as executing
+                                subplan_provenance = provenance + "." + sp.get_id()
+                                ### execute subplans starting from their plan input
+                                plan_input_node = sp.get_plan_input_id()
+                                p.set_node_value(plan_input_node, input_data, provenance=subplan_provenance)
+                                self.execute_recursively(p, plan_input_node, provenance=subplan_provenance)
+                                return
+                            except:
+                                print("invalid subplan, error")
+                                # failed
+                                self.propogate_failure_recursively(p, operator_node, provenance=provenance)
+                                return
+                    
+                else:
+                    ### execute
                     print("executing...")
-                    operator_node.set_data("status", str(Status.EXECUTING))
-
-                    # execute
                     output = self.registry.execute_operator(operator_name, operator_server, None, kwargs)
                     # print("output:")
                     # print("None" if output is None else json.dumps(output))
                     if output is None:
-                        operator_node.set_data("status", str(Status.FAILED))
-                        # propogage error
-                        self.propogate_error(p, operator_node)
-                    else:
-                        # update status as executed
-                        operator_node.set_data("status", str(Status.EXECUTED))
+                        # failed
+                        self.propogate_failure_recursively(p, operator_node, provenance=provenance)
+                        return
+                    
+                    
+        # execute next nodes
+        next_nodes = p.get_next_nodes(node)
+        for next_node in next_nodes:
+            self.execute_recursively(p, next_node, provenance=provenance)
+            
 
-                    # set value
-                    operator_node.set_data("value", output)
+    # def execute(self, p, queue=None):
+    #     if queue is None:
+    #         # get plan input
+    #         plan_input_id = p.get_plan_input_id()
 
-            print("---------")
-            print(p.get_data())
-            input("continue")
-        return p
+    #         # create queue and add
+    #         queue = []
+    #         queue.append(plan_input_id)
+    #         self.execute(p, queue=queue)
+
+    #     else:
+    #         # queue archive
+    #         queue_archive = set(queue)
+
+    #         while len(queue) > 0:
+    #             node_id = queue.pop(0)
+    #             node = p.get_node(node_id)
+
+    #             # get node type / status
+    #             node_type = node.get_type()
+    #             node_status = node.get_data("status")
+
+    #             print("-------------------------")
+    #             print("processing node: " + node_id + " " + str(node_status))
+
+    #             if node_status is None:
+    #                 node.set_data("status", str(Status.INITED))
+    #                 node_status = node.get_data("status")
+
+    #             # executed, add nexts to the queue
+    #             if node_status in [Status.EXECUTED]:
+    #                 # add next nodes to the queue
+    #                 next_nodes = p.get_next_nodes(node)
+    #                 for next_node in next_nodes:
+    #                     queue.append(next_node.get_id())
+    #                 continue
+
+    #             ### process node by type
+    #             if node_type == NodeType.OPERATOR:
+
+    #                 ### refine or execute operator
+    #                 # set operator node
+    #                 operator_node = node
+    #                 operator_id = node_id
+    #                 operator_provenance = operator_node.get_data("provenance")
+
+    #                 # operator entity
+    #                 operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+    #                 operator_entity_id = operator_entity.get_id()
+
+    #                 # operator name
+    #                 operator_name = operator_entity.get_data("name")
+    #                 print("processing operator: " + operator_name + " [" + operator_entity_id + "]")
+
+    #                 # parse full operator name to extract name and server
+    #                 parsed = self.registry.parse_path(operator_name)
+    #                 operator_name = parsed['operator']
+    #                 operator_server = parsed['server']
+
+    #                 registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
+
+    #                 # check operator can be refined
+    #                 refine = False
+    #                 if 'refine' in registry_properties and registry_properties['refine']:
+    #                     refine = True
+    #                     operator_node.set_data("status", str(Status.REFINING))
+
+    #                 if not refine:
+    #                     planned = True
+    #                     operator_node.set_data("status", str(Status.PLANNED))
+
+    #                 # ready, if  all input is ready/executed
+    #                 ready = True
+    #                 prev_nodes = p.get_prev_nodes(operator_node)
+
+    #                 failed = False
+    #                 for prev_node in prev_nodes:
+    #                     prev_node_status = prev_node.get_data("status")
+    #                     if prev_node_status in [Status.FAILED]:
+    #                         failed = True
+    #                         break
+
+    #                     if prev_node_status not in [Status.EXECUTED]:
+    #                         ready = False
+
+    #                 # failed
+    #                 if failed:
+    #                     operator_node.set_data("status", str(Status.FAILED))
+    #                     # propogage error
+    #                     self.propogate_error(p, operator_node)
+    #                     continue
+
+    #                 # do not execute or refine, if not ready
+    #                 if not ready:
+    #                     # set previous nodes status to PLANNED for next iteration
+    #                     for prev_node in prev_nodes:
+    #                         prev_node_status = prev_node.get_data("status")
+
+    #                         if prev_node_status not in [Status.EXECUTED]:
+
+    #                             prev_node_id = prev_node.get_id()
+    #                             prev_node.set_data("status", str(Status.PLANNED))
+    #                             # add prev node to the queue, if not there
+    #                             if prev_node_id not in queue:
+    #                                 queue.append(prev_node_id)
+
+    #                     # put current operator back in queue too
+    #                     print("not ready!")
+    #                     queue.append(operator_id)
+    #                     continue
+
+    #                 ###### proceed to refine/execute
+    #                 #### operator details
+    #                 ## inputs: aggregate input form each prev node,
+    #                 input_data = []
+    #                 prev_nodes = p.get_prev_nodes(operator_node)
+    #                 for prev_node in prev_nodes:
+    #                     prev_node_status = prev_node.get_data("status")
+    #                     prev_node_value = p.get_node_value(prev_node, provenance=operator_provenance)
+    #                     input_data += prev_node_value
+
+    #                 ## properties
+    #                 operator_properties = {}
+    #                 planner_properties = self.properties
+    #                 registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
+    #                 inherited_properties = self.get_inherited_properties(p, operator_node)
+
+    #                 operator_properties = json_utils.merge_json(operator_properties, planner_properties)
+    #                 operator_properties = json_utils.merge_json(operator_properties, registry_properties)
+    #                 operator_properties = json_utils.merge_json(operator_properties, inherited_properties)
+    #                 operator_properties = json_utils.merge_json(operator_properties, operator_entity.get_data("properties"))
+
+    #                 ## attributes
+    #                 operator_attributes = {}
+    #                 inherited_operator_attributes = self.get_inherited_attributes(p, operator_node)
+    #                 operator_attributes = json_utils.merge_json(operator_attributes, inherited_operator_attributes)
+    #                 operator_attributes = json_utils.merge_json(operator_attributes, operator_entity.get_data("attributes"))
+
+    #                 ## operator function parameters
+    #                 kwargs = {"input_data": input_data, "attributes": operator_attributes, "properties": operator_properties}
+    #                 print(kwargs)
+
+    #                 # set
+    #                 operator_entity.set_data("attributes", operator_attributes)
+    #                 operator_entity.set_data("properties", operator_properties)
+
+    #                 # refine
+    #                 if refine:
+    #                     # add additional pipeline context (attributes and properties) to kwargs
+    #                     print("refining...")
+    #                     subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
+    #                     # print("plans:")
+    #                     # print(subplans)
+    #                     if subplans is None:
+    #                         # nothing to refine, skip
+    #                         print("nothing to refine, skip")
+    #                         continue
+
+    #                     # set pipelines
+    #                     operator_entity.set_data("pipelines", [])
+
+    #                     # merge plans
+    #                     for subplan in subplans:
+    #                         try:
+    #                             sp = DataPipeline.from_dict(subplan)
+    #                             operator_entity.append_data("pipelines", sp.get_id())
+    #                             sp.set_data("parent", operator_entity.get_id())
+    #                             p.merge(sp, operator_provenance)
+    #                         except:
+    #                             # invalid plan, skip
+    #                             print("invalid subplan, skip")
+    #                             continue
+
+    #                     # update status as refined
+    #                     operator_node.set_data("status", str(Status.REFINED))
+
+    #                     # TODO: add new operators to queue (in any order, so should be ordered...)
+    #                     o_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
+    #                     for o_id in o_dict:
+    #                         if o_id in queue_archive:
+    #                             continue
+    #                         else:
+    #                             queue.append(o_id)
+    #                             queue_archive.add(o_id)
+
+    #                 elif planned:
+    #                     # set status as executing
+    #                     print("executing...")
+    #                     operator_node.set_data("status", str(Status.EXECUTING))
+
+    #                     # execute
+    #                     output = self.registry.execute_operator(operator_name, operator_server, None, kwargs)
+    #                     # print("output:")
+    #                     # print("None" if output is None else json.dumps(output))
+    #                     if output is None:
+    #                         operator_node.set_data("status", str(Status.FAILED))
+    #                         # propogage error
+    #                         self.propogate_error(p, operator_node)
+    #                     else:
+    #                         # update status as executed
+    #                         operator_node.set_data("status", str(Status.EXECUTED))
+
+    #                     # set value by provenance
+    #                     p.set_node_value(output, provenance=operator_provenance)
+
+    #             elif node_type == NodeType.INPUT:
+    #                 # TODO: carry over value
+    #                 pass
+    #             elif node_type == NodeType.OUTPUT:
+    #                 # TODO: carry over value [needs more thinking]
+    #                 # check if parent / pipeline set value according
+    #                 # set parent as planned, to the queue
+    #                 pass
+
+    #             print("---------")
+    #             print(p.get_data())
+    #             input("continue")
+
+    # def refine(self, p):
+    #     # build operator queue for refine / execute
+
+    #     operators_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
+    #     operator_queue = list(operators_dict.keys())
+
+    #     # operator queue archive
+    #     operator_queue_archive = set(operator_queue)
+
+    #     while len(operator_queue) > 0:
+    #         print("-------------------------")
+    #         self.print_node_queue(p, operator_queue)
+    #         # print("operator_queue count:" + str(len(operator_queue)))
+
+    #         # get top in queue
+    #         operator_id = operator_queue.pop(0)
+    #         operator_node = p.get_node(operator_id)
+
+    #         # operator entity
+    #         operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
+
+    #         # operator name
+    #         operator_name = operator_entity.get_data("name")
+
+    #         # get status
+    #         operator_status = operator_node.get_data("status")
+    #         if operator_status is None:
+    #             operator_node.set_data("status", str(Status.INITED))
+    #             operator_status = operator_node.get_data("status")
+
+    #         print("-------------------------")
+    #         print("processing: " + operator_name + " [" + operator_id + "] " + str(operator_status))
+
+    #         # do not refine/execute if done already
+    #         if operator_status not in [Status.REFINED, Status.EXECUTED]:
+
+    #             # parse full operator name to extract name and server
+    #             parsed = self.registry.parse_path(operator_name)
+    #             operator_name = parsed['operator']
+    #             operator_server = parsed['server']
+
+    #             registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
+
+    #             # check if operator is planned for execution in refine
+    #             planned = operator_status == str(Status.PLANNED)
+
+    #             # check operator can be refined
+    #             refine = False
+    #             if 'refine' in registry_properties and registry_properties['refine']:
+    #                 refine = True
+
+    #             # no need to refine/execute
+    #             if not planned and not refine:
+    #                 continue
+
+    #             # ready, if  all input is ready/executed
+    #             ready = True
+    #             prev_nodes = p.get_prev_nodes(operator_node)
+
+    #             failed = False
+    #             for prev_node in prev_nodes:
+    #                 prev_node_status = prev_node.get_data("status")
+    #                 if prev_node_status in [Status.FAILED]:
+    #                     failed = True
+    #                     break
+
+    #                 if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
+    #                     ready = False
+
+    #             # failed
+    #             if failed:
+    #                 operator_node.set_data("status", str(Status.FAILED))
+    #                 # propogage error
+    #                 self.propogate_error(p, operator_node)
+    #                 continue
+
+    #             # do not execute or refine, if not ready
+    #             if not ready:
+    #                 # set previous nodes status to PLANNED for next iteration
+    #                 for prev_node in prev_nodes:
+    #                     prev_node_status = prev_node.get_data("status")
+
+    #                     if prev_node_status not in [Status.REFINED, Status.EXECUTED]:
+    #                         # set previous node status to PLANNED for next iteration,
+
+    #                         prev_node_id = prev_node.get_id()
+    #                         prev_node.set_data("status", str(Status.PLANNED))
+    #                         # add prev node to the queue, if not there
+    #                         if prev_node_id not in operator_queue:
+    #                             operator_queue.append(prev_node_id)
+
+    #                 # put current operator back in queue too
+    #                 print("not ready!")
+    #                 operator_queue.append(operator_id)
+    #                 continue
+
+    #             ###### proceed to refine/execute
+    #             #### operator details
+    #             ## inputs: aggregate input form each prev node,
+    #             input_data = []
+    #             prev_nodes = p.get_prev_nodes(operator_node)
+    #             for prev_node in prev_nodes:
+    #                 prev_node_status = prev_node.get_data("status")
+    #                 prev_node_value = prev_node.get_data("value")
+    #                 input_data += prev_node_value
+
+    #             ## properties
+    #             operator_properties = {}
+    #             planner_properties = self.properties
+    #             registry_properties = self.registry.get_record_properties(operator_name, type="operator", scope="/server/" + operator_server)
+    #             inherited_properties = self.get_inherited_properties(p, operator_node)
+
+    #             operator_properties = json_utils.merge_json(operator_properties, planner_properties)
+    #             operator_properties = json_utils.merge_json(operator_properties, registry_properties)
+    #             operator_properties = json_utils.merge_json(operator_properties, inherited_properties)
+    #             operator_properties = json_utils.merge_json(operator_properties, operator_entity.get_data("properties"))
+
+    #             ## attributes
+    #             operator_attributes = {}
+    #             inherited_operator_attributes = self.get_inherited_attributes(p, operator_node)
+    #             operator_attributes = json_utils.merge_json(operator_attributes, inherited_operator_attributes)
+    #             operator_attributes = json_utils.merge_json(operator_attributes, operator_entity.get_data("attributes"))
+
+    #             ## operator function parameters
+    #             kwargs = {"input_data": input_data, "attributes": operator_attributes, "properties": operator_properties}
+    #             # print(kwargs)
+
+    #             # set
+    #             operator_entity.set_data("attributes", operator_attributes)
+    #             operator_entity.set_data("properties", operator_properties)
+
+    #             # refine
+    #             if refine:
+    #                 # add additional pipeline context (attributes and properties) to kwargs
+
+    #                 print("refining...")
+    #                 subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
+    #                 # print("plans:")
+    #                 # print(subplans)
+    #                 if subplans is None:
+    #                     # nothing to refine, skip
+    #                     print("nothing to refine, skip")
+    #                     continue
+
+    #                 # set pipelines
+    #                 operator_entity.set_data("pipelines", [])
+
+    #                 # merge plans, create mux/demux nodes
+    #                 for subplan in subplans:
+    #                     try:
+    #                         sp = DataPipeline.from_dict(subplan)
+    #                         operator_entity.append_data("pipelines", sp.get_id())
+    #                         sp.set_data("parent", operator_entity.get_id())
+    #                         p.merge(sp)
+    #                     except:
+    #                         # invalid plan, skip
+    #                         print("invalid subplan, skip")
+    #                         continue
+
+    #                 # update status as refined
+    #                 operator_node.set_data("status", str(Status.REFINED))
+
+    #                 # TODO: add new operators to queue (in any order, so should be ordered...)
+    #                 o_dict = p.filter_nodes(filter_node_type=[NodeType.OPERATOR])
+    #                 for o_id in o_dict:
+    #                     if o_id in operator_queue_archive:
+    #                         continue
+    #                     else:
+    #                         operator_queue.append(o_id)
+    #                         operator_queue_archive.add(o_id)
+
+    #             # execute
+    #             elif planned:
+    #                 # set status as executing
+    #                 print("executing...")
+    #                 operator_node.set_data("status", str(Status.EXECUTING))
+
+    #                 # execute
+    #                 output = self.registry.execute_operator(operator_name, operator_server, None, kwargs)
+    #                 # print("output:")
+    #                 # print("None" if output is None else json.dumps(output))
+    #                 if output is None:
+    #                     operator_node.set_data("status", str(Status.FAILED))
+    #                     # propogage error
+    #                     self.propogate_error(p, operator_node)
+    #                 else:
+    #                     # update status as executed
+    #                     operator_node.set_data("status", str(Status.EXECUTED))
+
+    #                 # set value
+    #                 operator_node.set_data("value", output)
+
+    #         print("---------")
+    #         print(p.get_data())
+    #         input("continue")
+    #     return p
 
     def optimize(self, p, budget):
         # no optimization
