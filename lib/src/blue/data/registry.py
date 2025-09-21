@@ -570,7 +570,7 @@ class DataRegistry(Registry):
 
             # get existing databases
             registry_dbs = self.get_source_databases(source)
-            registry_dbs_set = set(json_utils.json_query(registry_dbs, '$.name', single=False))
+            registry_dbs_set = set(json_utils.json_query(registry_dbs, '$[*].name', single=False))
 
             adds = set()
             removes = set()
@@ -642,8 +642,7 @@ class DataRegistry(Registry):
 
             # get existing collections
             registry_collections = self.get_source_database_collections(source, database)
-            registry_collections_set = set(json_utils.json_query(registry_collections, '$.name', single=False))
-
+            registry_collections_set = set(json_utils.json_query(registry_collections, '$[*].name', single=False))
             adds = set()
             removes = set()
             merges = set()
@@ -716,7 +715,7 @@ class DataRegistry(Registry):
 
             ## entities
             registry_entities = self.get_source_database_collection_entities(source, database, collection)
-            registry_entities_set = set(json_utils.json_query(registry_entities, '$.name', single=False))
+            registry_entities_set = set(json_utils.json_query(registry_entities, '$[*].name', single=False))
 
             adds = set()
             removes = set()
@@ -754,7 +753,7 @@ class DataRegistry(Registry):
                 fetched_attrs = entity_obj.get("contents", {}).get("attributes", {})
                 registry_attrs = self.get_source_database_collection_entity_attributes(source, database, collection, entity) or {}
 
-                registry_attrs_set = set(registry_attrs.keys())
+                registry_attrs_set = set(json_utils.json_query(registry_attrs, '$[*].name', single=False))
                 fetched_attrs_set = set(fetched_attrs.keys())
 
                 attr_adds = fetched_attrs_set - registry_attrs_set
@@ -775,7 +774,7 @@ class DataRegistry(Registry):
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
-            registry_relations_set = set(json_utils.json_query(registry_relations, '$.name', single=False))
+            registry_relations_set = set(json_utils.json_query(registry_relations, '$[*].name', single=False))
 
             adds = set()
             removes = set()
@@ -813,7 +812,7 @@ class DataRegistry(Registry):
                 fetched_attrs = relation_obj.get("contents", {}).get("attributes", {})
                 registry_attrs = self.get_source_database_collection_relation_attributes(source, database, collection, relation) or {}
 
-                registry_attrs_set = set(registry_attrs.keys())
+                registry_attrs_set = set(json_utils.json_query(registry_attrs, '$[*].name', single=False))
                 fetched_attrs_set = set(fetched_attrs.keys())
 
                 attr_adds = fetched_attrs_set - registry_attrs_set
