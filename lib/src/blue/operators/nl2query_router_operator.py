@@ -60,7 +60,8 @@ def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
         route_node = None
         if protocol == "openai":
-            nl2llm_attributes = {"query": query, "attr_names": columns}
+            attr_names = [column['name'] for column in columns]
+            nl2llm_attributes = {"query": query, "attr_names": attr_names}
             route_node = nl2lm_node = pipeline.define_operator("/server/blue_ray/operator/nl2llm", attributes=nl2llm_attributes, properties={})
         elif protocol == "postgres" or protocol == "mysql" or protocol == "sqlite":
             nl2sql_attributes = {"question": query, "protocol": protocol, "source": source_name, "execute_query": execute_query}
