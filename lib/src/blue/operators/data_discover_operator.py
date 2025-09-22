@@ -20,6 +20,8 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
     include_metadata = attributes.get('include_metadata', False)
     threshold = attributes.get('threshold', 0.5)
     progressive_pagination = attributes.get('progressive_pagination', False)
+    concept_type = attributes.get('concept_type', 'source')
+    use_hierarchical_search = attributes.get('use_hierarchical_search', True)
 
     # Get data registry from properties - follow agent pattern
     data_registry = _get_data_registry_from_properties(properties)
@@ -29,31 +31,26 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
     results = []
 
     try:
-        # For non-approximate search OR when progressive pagination is disabled, use simple pagination
-        if (not approximate and not hybrid) or not progressive_pagination:
-            search_results = data_registry.search_records(search_query, type='source', approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
-
+        # Choose the search method based on use_hierarchical_search flag
+        search_method = data_registry.search_records_hierarchical if use_hierarchical_search else data_registry.search_records
+        
+        # Determine if we should use simple pagination
+        use_simple_pagination = (not approximate and not hybrid) or not progressive_pagination
+        
+        if use_simple_pagination:
+            # Simple pagination - single call
+            search_results = search_method(
+                search_query, 
+                type=concept_type, 
+                approximate=approximate, 
+                hybrid=hybrid, 
+                page=page, 
+                page_size=page_size
+            )
+            
             for result in search_results:
-                transformed_result = {
-                    'type': 'source',
-                    'name': result['name'],
-                    'id': result['id'],
-                    'scope': result['scope'],
-                    'path': f"/source/{result['name']}",
-                }
-                if 'score' in result:
-                    transformed_result['score'] = float(result['score'])
-
-                full_record = data_registry.get_record(result['name'], 'source', '/')
-                if full_record:
-                    transformed_result['description'] = full_record.get('description', '')
-                    transformed_result['properties'] = full_record.get('properties', {})
-                    if include_metadata:
-                        transformed_result['metadata'] = full_record.get('metadata', {})
-                else:
-                    transformed_result['description'] = ''
-                    transformed_result['properties'] = {}
-
+                transformed_result = _transform_result(result, concept_type, data_registry, include_metadata)
+                
                 # Apply threshold filtering for approximate/hybrid search even in simple pagination mode
                 if (approximate or hybrid) and 'score' in result:
                     score = float(result['score'])
@@ -61,51 +58,39 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
                         results.append(transformed_result)
                 else:
                     results.append(transformed_result)
-
         else:
-            # For approximate/hybrid search with progressive pagination enabled
+            # Progressive pagination - loop until threshold exceeded
             current_page = page
-
+            
             while True:
-                search_results = data_registry.search_records(search_query, type='source', approximate=approximate, hybrid=hybrid, page=current_page, page_size=page_size)
-
+                search_results = search_method(
+                    search_query, 
+                    type=concept_type, 
+                    approximate=approximate, 
+                    hybrid=hybrid, 
+                    page=current_page, 
+                    page_size=page_size
+                )
+                
                 if len(search_results) == 0:
                     break
-
+                
                 for result in search_results:
                     # Check threshold for approximate/hybrid search
                     score = float(result['score'])
                     if score <= threshold:
-                        transformed_result = {
-                            'type': 'source',
-                            'name': result['name'],
-                            'id': result['id'],
-                            'scope': result['scope'],
-                            'path': f"/source/{result['name']}",
-                            'score': result['score'],
-                        }
-
-                        full_record = data_registry.get_record(result['name'], 'source', '/')
-                        if full_record:
-                            transformed_result['description'] = full_record.get('description', '')
-                            transformed_result['properties'] = full_record.get('properties', {})
-                            if include_metadata:
-                                transformed_result['metadata'] = full_record.get('metadata', {})
-                        else:
-                            transformed_result['description'] = ''
-                            transformed_result['properties'] = {}
-
+                        transformed_result = _transform_result(result, concept_type, data_registry, include_metadata)
                         results.append(transformed_result)
                     else:
                         # Score exceeds threshold, stop searching
                         break
-
+                
                 # Check if last result exceeded threshold to break outer loop
                 if len(search_results) > 0:
                     last_score = float(search_results[-1]['score'])
                     if last_score > threshold:
                         break
-
+                
                 # Move to next page
                 current_page += 1
 
@@ -114,6 +99,30 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
         return [[]]
 
     return [results]
+
+
+def _transform_result(result, concept_type, data_registry, include_metadata):
+    """Transform a search result into the expected format."""
+    transformed_result = {
+        'type': concept_type,
+        'name': result['name'],
+        'id': result['id'],
+        'scope': result['scope'],
+    }
+    if 'score' in result:
+        transformed_result['score'] = float(result['score'])
+
+    full_record = data_registry.get_record(result['name'], concept_type, result['scope'])
+    if full_record:
+        transformed_result['description'] = full_record.get('description', '')
+        transformed_result['properties'] = full_record.get('properties', {})
+        if include_metadata:
+            transformed_result['metadata'] = full_record.get('metadata', {})
+    else:
+        transformed_result['description'] = ''
+        transformed_result['properties'] = {}
+    
+    return transformed_result
 
 
 def data_discover_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -142,11 +151,15 @@ def data_discover_operator_validator(input_data: List[List[Dict[str, Any]]], att
 
 def data_discover_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Explain data discover operator output."""
+    concept_type = attributes.get('concept_type', 'source')
+    use_hierarchical = attributes.get('use_hierarchical_search', True)
+    search_method = "hierarchical" if use_hierarchical else "regular"
+    
     data_discover_explanation = {
         'output': output,
         'input_data': input_data,
         'attributes': attributes,
-        'explanation': f"Data discover operator searched for data sources with query '{attributes.get('search_query', '')}' and returned {len(output[0]) if output and len(output) > 0 else 0} results.",
+        'explanation': f"Data discover operator searched for {concept_type} entities using {search_method} search with query '{attributes.get('search_query', '')}' and returned {len(output[0]) if output and len(output) > 0 else 0} results.",
     }
     return data_discover_explanation
 
@@ -172,6 +185,8 @@ class DataDiscoverOperator(Operator):
         "include_metadata": {"type": "bool", "description": "Whether to include metadata in results (description and properties always included)", "required": False, "default": False},
         "threshold": {"type": "float", "description": "Similarity threshold for filtering results (0.0-1.0, lower = more similar, only applies to approximate/hybrid search)", "required": False, "default": 0.5},
         "progressive_pagination": {"type": "bool", "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)", "required": False, "default": False},
+        "concept_type": {"type": "str", "description": "Record type to search for (e.g., 'source', 'database', 'collection', 'entity', 'attribute', 'relation')", "required": False, "default": "source"},
+        "use_hierarchical_search": {"type": "bool", "description": "Whether to use hierarchical search or regular search", "required": False, "default": True},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
