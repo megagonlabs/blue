@@ -2,6 +2,8 @@
 import logging
 import uuid, json
 
+import traceback
+
 ###### Blue
 from blue.constant import Constant
 from blue.connection import PooledConnectionFactory
@@ -91,8 +93,8 @@ class DataPlanner:
             p = DataPipeline(attributes=pipeline_attributes, properties=self.properties)
 
             # input = [[]] for question answer
-            i = p.define_input(value=[[]], provenance=p.get_id())
-            i.set_data("status", str(Status.EXECUTED))
+            i = p.define_input(value=[[]], provenance="$." + p.get_id())
+            i.set_data("status", str(Status.INITED))
             # operator: use plan discover as specified in the properties
 
             ## map pipeline attributes to plan_discover operator attributes
@@ -106,7 +108,6 @@ class DataPlanner:
 
             # set plan discover operator as defined in planner properties
             o = p.define_operator(self.properties['plan_discover_operator'], attributes=plan_discover_attributes)
-            o.set_data("status", str(Status.INITED))
 
             # output
             r = p.define_output()
@@ -282,30 +283,34 @@ class DataPlanner:
         parent_operator_name = parsed['operator']
         parent_operator_server = parsed['server']
 
-        # print("mapping parent operator attributes to operator attributes:")
-        # print("operator name: " + operator_name)
-        # print("operator server: " + operator_server)
-        # print("parent operator name: " + parent_operator_name)
-        # print("parent operator server: " + parent_operator_server)
+        print("mapping parent operator attributes to operator attributes:")
+        print("operator name: " + operator_name)
+        print("operator server: " + operator_server)
+        print("parent operator name: " + parent_operator_name)
+        print("parent operator server: " + parent_operator_server)
 
-        # print("parent operator attributes: " + json.dumps(parent_operator_attributes))
+        print("parent operator attributes: " + json.dumps(parent_operator_attributes))
 
         # TODO: llm based mapper
         mappped_parent_operator_attributes = {}
-        if operator_name == "question_answer" and parent_operator_name == "plan_discover":
+        if operator_name == "nl2llm" and parent_operator_name == "plan_discover":
+            mappped_parent_operator_attributes['query'] = parent_operator_attributes["data"]
+        elif operator_name == "nl2sql" and parent_operator_name == "plan_discover":
+            mappped_parent_operator_attributes['question'] = parent_operator_attributes["data"]
+        elif operator_name == "question_answer" and parent_operator_name == "plan_discover":
             mappped_parent_operator_attributes['question'] = parent_operator_attributes["data"]
         elif operator_name == "query_breakdown" and parent_operator_name == "question_answer":
             mappped_parent_operator_attributes['query'] = parent_operator_attributes["question"]
         else:
             mappped_parent_operator_attributes = parent_operator_attributes
 
-        # print("mapped parent operator attributes: " + json.dumps(mappped_parent_operator_attributes))
+        print("mapped parent operator attributes: " + json.dumps(mappped_parent_operator_attributes))
 
         return mappped_parent_operator_attributes
 
     def execute(self, p):
         plan_input_node = p.get_plan_input()
-        provenance = p.get_data("provenance")
+        provenance = p.get_data("provenance") + "." + p.get_id()
 
         self.execute_recursively(p, plan_input_node, provenance=provenance)
 
@@ -319,7 +324,7 @@ class DataPlanner:
         input_data = []
         prev_nodes = p.get_prev_nodes(n)
         for prev_node in prev_nodes:
-            prev_node_status = p.get_node_status(prev_node.get_data, provenance=provenance)
+            prev_node_status = p.get_node_status(prev_node, provenance=provenance)
             if prev_node_status in [Status.FAILED]:
                 failed = True
                 ready = False
@@ -327,10 +332,11 @@ class DataPlanner:
             if prev_node_status not in [Status.EXECUTED]:
                 ready = False
                 return None, ready, failed
-            
+
             prev_node_value = p.get_node_value(prev_node, provenance=provenance)
             if prev_node_value is None:
-                return None
+                ready = False
+                return None, ready, failed
             input_data += prev_node_value
 
         return input_data, ready, failed
@@ -345,9 +351,9 @@ class DataPlanner:
             if parent_operator_entity_id:
                 return p.get_entity(parent_operator_entity_id)
         return None
-    
+
     def get_node_parent_operator_node(self, p, n):
-        parent_operator_entity = self.get_node_parent_operator_entity(p, n):
+        parent_operator_entity = self.get_node_parent_operator_entity(p, n)
         if parent_operator_entity:
             operator_nodes = p.get_nodes_by_entity(parent_operator_entity)
             # should be only one
@@ -367,12 +373,12 @@ class DataPlanner:
 
         print("-------------------------")
         print("processing node: " + str(node_type) + "[" + node_id + "]")
-       
+
         # identify pipeline entity, parent operator entity and node, if part of pipeline
         pipeline_entity = self.get_node_pipeline_entity(p, node)
         parent_operator_entity = self.get_node_parent_operator_entity(p, node)
         parent_operator_node = self.get_node_parent_operator_node(p, node)
-        
+
         # aggregate input_value
         input_data, ready, failed = self.aggregate_inputs(p, node, provenance=provenance)
 
@@ -381,11 +387,15 @@ class DataPlanner:
             self.propogate_failure_recursively(p, node, provenance=provenance)
             return
 
+        # not ready, do not run
+        if not ready:
+            return
+
         if node_type == NodeType.INPUT:
             # set status
             p.set_node_status(node, str(Status.EXECUTED), provenance=provenance)
 
-            # continue so we can process next 
+            # continue so we can process next
         elif node_type == NodeType.OUTPUT:
             # set status
             p.set_node_status(node, str(Status.EXECUTED), provenance=provenance)
@@ -396,18 +406,22 @@ class DataPlanner:
             if parent_operator_node:
                 # set parent value
                 p.set_node_value(parent_operator_node, input_data, provenance=provenance)
-                # continue with parent_operator
-                self.execute_recursively(p, parent_operator_node, provenance=provenance)
-            
-            return 
+                # mark as executed, continue so we can process next
+                p.set_node_status(parent_operator_node, str(Status.EXECUTED), provenance=provenance)
+                # continue with parent_operators nexts
+                parent_next_nodes = p.get_next_nodes(parent_operator_node)
+                for parent_next_node in parent_next_nodes:
+                    self.execute_recursively(p, parent_next_node, provenance=provenance)
+
+            # no next node, so return
+            return
         elif node_type == NodeType.OPERATOR:
             # if value set, continue
             v = p.get_node_value(node, provenance=provenance)
-            if v: 
+            if v:
                 # already refined and value received from sub plans, so go on...
                 if node_status in [Status.FAILED]:
                     return
-                # continue so we can process next 
             else:
                 operator_node = node
                 operator_id = node_id
@@ -452,13 +466,17 @@ class DataPlanner:
                 kwargs = {"input_data": input_data, "attributes": operator_attributes, "properties": operator_properties}
                 print(kwargs)
 
+                # set attributes, properties
+                operator_entity.set_data("attributes", operator_attributes)
+                operator_entity.set_data("properties", operator_properties)
+
                 # refine or execute
                 if refine:
                     ### refine
                     print("refining...")
                     p.set_node_status(operator_node, str(Status.REFINING), provenance=provenance)
                     subplans = self.registry.refine_operator(operator_name, operator_server, None, kwargs)
-                    
+
                     # print("plans:")
                     # print(subplans)
                     if subplans is None:
@@ -473,43 +491,46 @@ class DataPlanner:
                         # set pipelines
                         operator_entity.set_data("pipelines", [])
 
-                        # merge plans, and execute
+                        # merge plans, and executes
+                        subplan_ids = []
                         for subplan in subplans:
-                            try:
-                                sp = DataPipeline.from_dict(subplan)
-                                operator_entity.append_data("pipelines", sp.get_id())
-                                sp.set_data("parent", operator_entity.get_id())
-                                p.merge(sp)
+                            sp = DataPipeline.from_dict(subplan)
+                            operator_entity.append_data("pipelines", sp.get_id())
+                            sp.set_data("parent", operator_entity.get_id())
+                            p.merge(sp)
+                            subplan_ids.append(sp.get_id())
 
-                                subplan_provenance = provenance + "." + sp.get_id()
-                                ### execute subplans starting from their plan input
-                                plan_input_node = sp.get_plan_input_id()
-                                p.set_node_value(plan_input_node, input_data, provenance=subplan_provenance)
-                                self.execute_recursively(p, plan_input_node, provenance=subplan_provenance)
-                                return
-                            except:
-                                print("invalid subplan, error")
-                                # failed
-                                self.propogate_failure_recursively(p, operator_node, provenance=provenance)
-                                return
-                    
+                        # execute plans recursively
+                        for subplan_id in subplan_ids:
+                            # subplan provenance
+                            subplan_provenance = provenance + "." + subplan_id
+                            ### execute subplans starting from their plan input
+                            plan_input_node = p.get_plan_input(pipeline=subplan_id)
+                            p.set_node_value(plan_input_node, input_data, provenance=subplan_provenance)
+                            self.execute_recursively(p, plan_input_node, provenance=subplan_provenance)
+                        return
+
                 else:
                     ### execute
                     print("executing...")
+                    p.set_node_status(operator_node, str(Status.EXECUTING), provenance=provenance)
                     output = self.registry.execute_operator(operator_name, operator_server, None, kwargs)
-                    # print("output:")
-                    # print("None" if output is None else json.dumps(output))
+                    print("output:")
+                    print("None" if output is None else json.dumps(output))
                     if output is None:
                         # failed
                         self.propogate_failure_recursively(p, operator_node, provenance=provenance)
                         return
-                    
-                    
+                    else:
+                        # set status
+                        p.set_node_status(operator_node, str(Status.EXECUTED), provenance=provenance)
+                        # set operator value
+                        p.set_node_value(operator_node, output, provenance=provenance)
+
         # execute next nodes
         next_nodes = p.get_next_nodes(node)
         for next_node in next_nodes:
             self.execute_recursively(p, next_node, provenance=provenance)
-            
 
     # def execute(self, p, queue=None):
     #     if queue is None:

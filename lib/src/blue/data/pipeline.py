@@ -133,8 +133,16 @@ class DataPipeline(dag_utils.Plan):
 
         self.set_data("input", input_id, sync=sync)
 
-    def get_plan_input_id(self):
-        return self.get_data("input")
+    def get_plan_input_id(self, pipeline=None):
+        if pipeline is None:
+            return self.get_data("input")
+        else:
+            pipeline_entity = self.get_entity(pipeline)
+            return pipeline_entity.get_data("input")
+
+    def get_plan_input(self, pipeline=None):
+        plan_input_id = self.get_plan_input_id(pipeline=pipeline)
+        return self.get_node(plan_input_id)
 
     def set_plan_output_id(self, output_id, sync=None):
         self.set_plan_output(output_id, sync=sync)
@@ -149,8 +157,16 @@ class DataPipeline(dag_utils.Plan):
 
         self.set_data("output", output_id, sync=sync)
 
-    def get_plan_output_id(self):
-        return self.get_data("output")
+    def get_plan_output_id(self, pipeline=None):
+        if pipeline is None:
+            return self.get_data("output")
+        else:
+            pipeline_entity = self.get_entity(pipeline)
+            return pipeline_entity.get_data("output")
+
+    def get_plan_output(self, pipeline=None):
+        plan_output_id = self.get_plan_output_id(pipeline=pipeline)
+        return self.get_node(plan_output_id)
 
     ## nodes
     def set_node_value(self, n, value=None, provenance=None, sync=None):
