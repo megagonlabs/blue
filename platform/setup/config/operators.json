@@ -202,7 +202,7 @@
             "input_context": "$[0]",
             "input_context_field": "content",
             "input_field": "messages",
-            "input_template": "Your task is to process a natural language query and return the results in JSON format.\n\nThe response should be a valid JSON array containing the requested information.\n\nHere are the requirements:\n- There might be optional context provided for domain knowledge. Use it to assist the query if provided and not empty.\n- There might be specificed attr_names, which are the attributes of the objects in the output.\n- The output should be a JSON array of objects. Each element is a JSON object with proper attribute value pairs.\n- Each object should contain the requested information in a structured format\n- When interpreting the query, use additional context provided if provided and not empty.\n- Please try to return non-empty output. If the query is not clear, please use your best judgement to return a non-empty output.\n- The response should be well-formatted and easy to parse\n- Output the JSON directly. Do not generate explanation or other additional output.\n\nQuery: ${query}\n\nAttr_names:\n${attr_names}\n\nContext:\n${context}\n\nOutput:\n",
+            "input_template": "You are an intelligent system that converts a natural language query into a structured JSON output.\n\n### General Requirements:\n- Always output a **valid JSON array** of objects.\n- Each element must be a well-formed JSON object with key–value pairs.\n- Do **not** include explanations, comments, or additional text outside of the JSON.\n- Strive to return non-empty output. If the query is vague, use best judgement to produce a meaningful result.\n\n### Attributes:\n- If output attributes are specified, every object must include them.\n- If types are specified, ensure values match those types exactly (e.g., string, int, float, boolean, date, list, dict, etc.).\n- If types are **not** specified, infer them reasonably from the query and context.\n- If no attributes are provided, return the most relevant structured JSON representation of the query.\n\n### Context:\n- Use the provided context if it exists and is non-empty.\n\n### Output Formatting:\n- Return only the JSON array.\n- No prose, explanations, or formatting (such as Markdown fences).\n- Ensure strict JSON compliance (no trailing commas, keys quoted, etc.).\n\n---\n\nQuery: ${query}\n\nAttributes:\n${attrs}\n\nContext:\n${context}\n\nOutput:\n",
             "output_path": "$.choices[0].message.content",
             "service_prefix": "openai",
             "output_transformations": [
@@ -231,9 +231,9 @@
                     "required": false,
                     "default": ""
                 },
-                "attr_names": {
-                    "type": "list[str]",
-                    "description": "Optional list of attribute names for the output objects",
+                "attrs": {
+                    "type": "list[dict]",
+                    "description": "List of attribute specifications (dicts with name and optional type)",
                     "required": false,
                     "default": []
                 }
