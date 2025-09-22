@@ -293,14 +293,18 @@ class DataPlanner:
 
         # TODO: llm based mapper
         mappped_parent_operator_attributes = {}
-        if operator_name == "question_answer" and parent_operator_name == "plan_discover":
+        if operator_name == "nl2llm" and parent_operator_name == "plan_discover":
+            mappped_parent_operator_attributes['query'] = parent_operator_attributes["data"]
+        elif operator_name == "nl2sql" and parent_operator_name == "plan_discover":
+            mappped_parent_operator_attributes['question'] = parent_operator_attributes["data"]
+        elif operator_name == "question_answer" and parent_operator_name == "plan_discover":
             mappped_parent_operator_attributes['question'] = parent_operator_attributes["data"]
         elif operator_name == "query_breakdown" and parent_operator_name == "question_answer":
             mappped_parent_operator_attributes['query'] = parent_operator_attributes["question"]
         else:
             mappped_parent_operator_attributes = parent_operator_attributes
 
-        # print("mapped parent operator attributes: " + json.dumps(mappped_parent_operator_attributes))
+        print("mapped parent operator attributes: " + json.dumps(mappped_parent_operator_attributes))
 
         return mappped_parent_operator_attributes
 
@@ -402,9 +406,14 @@ class DataPlanner:
             if parent_operator_node:
                 # set parent value
                 p.set_node_value(parent_operator_node, input_data, provenance=provenance)
-                # continue with parent_operator
-                self.execute_recursively(p, parent_operator_node, provenance=provenance)
+                # mark as executed, continue so we can process next
+                p.set_node_status(parent_operator_node, str(Status.EXECUTED), provenance=provenance)
+                # continue with parent_operators nexts
+                parent_next_nodes = p.get_next_nodes(parent_operator_node)
+                for parent_next_node in parent_next_nodes:
+                    self.execute_recursively(p, parent_next_node, provenance=provenance)
 
+            # no next node, so return
             return
         elif node_type == NodeType.OPERATOR:
             # if value set, continue
@@ -413,7 +422,6 @@ class DataPlanner:
                 # already refined and value received from sub plans, so go on...
                 if node_status in [Status.FAILED]:
                     return
-                # continue so we can process next
             else:
                 operator_node = node
                 operator_id = node_id
@@ -492,7 +500,7 @@ class DataPlanner:
                             p.merge(sp)
                             subplan_ids.append(sp.get_id())
 
-                        # execute plans
+                        # execute plans recursively
                         for subplan_id in subplan_ids:
                             # subplan provenance
                             subplan_provenance = provenance + "." + subplan_id
