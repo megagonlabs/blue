@@ -114,6 +114,36 @@
                     "description": "Whether to use hierarchical search or regular search",
                     "required": false,
                     "default": true
+                },
+                "scope": {
+                    "type": "str",
+                    "description": "Search scope to limit results (e.g., '/source/postgres_example', '/source/postgres_example/database/postgres'). Auto-constructed from source/database/collection attributes if not provided",
+                    "required": false,
+                    "default": "/"
+                },
+                "source": {
+                    "type": "str",
+                    "description": "Source name to limit search scope",
+                    "required": false,
+                    "default": null
+                },
+                "database": {
+                    "type": "str",
+                    "description": "Database name to limit search scope (requires source)",
+                    "required": false,
+                    "default": null
+                },
+                "collection": {
+                    "type": "str",
+                    "description": "Collection name to limit search scope (requires source and database)",
+                    "required": false,
+                    "default": null
+                },
+                "auto_construct_scope": {
+                    "type": "bool",
+                    "description": "Whether to auto-construct scope from individual attributes or use scope as-is",
+                    "required": false,
+                    "default": true
                 }
             }
         },
