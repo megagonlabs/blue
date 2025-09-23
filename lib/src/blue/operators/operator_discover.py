@@ -18,6 +18,7 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
     search_query = attributes.get('search_query', '')
     approximate = attributes.get('approximate', True)
     hybrid = attributes.get('hybrid', False)
+    limit = attributes.get('limit', -1)
     page = attributes.get('page', 0)
     page_size = attributes.get('page_size', 10)
     include_metadata = attributes.get('include_metadata', False)
@@ -117,7 +118,11 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
         logging.info(traceback.format_exc())
         return [[]]
 
-    return [results]
+    # limit results
+    if limit >= 0:
+        return [results[:limit]]
+    else:
+        return [results]
 
 
 def operator_discover_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -171,6 +176,7 @@ class OperatorDiscoverOperator(Operator):
         "search_query": {"type": "str", "description": "Text to search for in operator names and descriptions", "required": True, "default": ""},
         "approximate": {"type": "bool", "description": "Whether to use approximate (vector) search", "required": True, "default": True},
         "hybrid": {"type": "bool", "description": "Whether to use hybrid search (text + vector)", "required": False, "default": False},
+        "limit": {"type": "int", "description": "Max number of results to return (-1, unlimited)", "required": False, "default": -1},
         "page": {"type": "int", "description": "Page number for pagination", "required": False, "default": 0},
         "page_size": {"type": "int", "description": "Number of results per page (default: 10, max: 100)", "required": False, "default": 10},
         "include_metadata": {"type": "bool", "description": "Whether to include metadata in results (description and properties always included)", "required": False, "default": False},
