@@ -237,7 +237,8 @@ def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Opt
 def _format_execution_result_format(result) -> List[List[Dict[str, Any]]]:
     """Format execution result to match the expected output format."""
     # case 1: result is list of list of dicts
-    if isinstance(result, list) and all(isinstance(item, list) for item in result) and all(isinstance(item, dict) for item in result[0]):
+    if isinstance(result, list) and len(result) > 0 and all(isinstance(item, list) for item in result) and all(isinstance(item, dict) for item in result[0]):
+        
         return result
     # case 2: result is list of dicts
     elif isinstance(result, list) and all(isinstance(item, dict) for item in result):
@@ -245,6 +246,9 @@ def _format_execution_result_format(result) -> List[List[Dict[str, Any]]]:
     # case 3: result is dict
     elif isinstance(result, dict):
         return [[result]]
+    # case 4: result is empty list or None
+    elif result is None or (isinstance(result, list) and len(result) == 0):
+        return [[]]
     else:
         # unable to format result, raise error
         raise ValueError("Invalid result format from data registry execution: " + str(result))
