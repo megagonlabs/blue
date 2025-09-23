@@ -102,6 +102,18 @@
                     "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)",
                     "required": false,
                     "default": false
+                },
+                "concept_type": {
+                    "type": "str",
+                    "description": "Record type to search for (e.g., 'source', 'database', 'collection', 'entity', 'attribute', 'relation')",
+                    "required": false,
+                    "default": "source"
+                },
+                "use_hierarchical_search": {
+                    "type": "bool",
+                    "description": "Whether to use hierarchical search or regular search",
+                    "required": false,
+                    "default": true
                 }
             }
         },

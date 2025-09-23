@@ -113,7 +113,9 @@ Output:
 
     ######### database
     def fetch_databases(self):
-        return []
+        dbs = []
+        dbs.append("openai")
+        return dbs
 
     def fetch_database_metadata(self, database):
         return {}
@@ -123,13 +125,26 @@ Output:
 
     ######### database/collection
     def fetch_database_collections(self, database):
-        return []
+        collections = []
+        collections.append("public")
+        return collections
+
 
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
     def fetch_database_collection_entities(self, database, collection):
-        return {}
+        table_name = "openai_entity"
+        column_name = "openai_entity_attribute"
+        data_type = "text"
+
+        schema = DataSchema()
+        schema.add_entity(table_name)
+
+        property_def = {"type": data_type}
+        schema.add_entity_property(table_name, column_name, property_def)
+
+        return schema.get_entities()
 
     def fetch_database_collection_relations(self, database, collection):
         return {}
