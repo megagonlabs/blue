@@ -96,6 +96,8 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     if execute_query and generated_query:
         # use data registry to execute query
         result = data_registry.execute_query(generated_query, source, database, collection)
+        print(generated_query)
+        print(result)
         result = _format_execution_result_format(result)
         return result
     # if execution is disabled, return the sql query only

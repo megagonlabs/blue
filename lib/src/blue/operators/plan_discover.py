@@ -25,6 +25,7 @@ def plan_discover_operator_refiner(input_data: List[List[Dict[str, Any]]], attri
     # simply use operator search
     task = attributes['task']
     data = attributes['data']
+    limit = attributes.get('limit', -1)
 
     ### use operator discover to find seed operator t
     # modify attributes for operator discover operator
@@ -61,7 +62,12 @@ def plan_discover_operator_refiner(input_data: List[List[Dict[str, Any]]], attri
         p.connect_nodes(i, o)
         p.connect_nodes(o, r)
         plans.append(p.get_data())
-    return plans
+
+    # limit results
+    if limit >= 0:
+        return plans[:limit]
+    else:
+        return plans
 
 
 def plan_discover_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -97,6 +103,7 @@ class PlanDiscoverOperator(Operator):
         "data": {"type": "str", "description": "Data to operate the task on", "required": True, "default": ""},
         "approximate": {"type": "bool", "description": "Whether to use approximate (vector) search", "required": True, "default": True},
         "hybrid": {"type": "bool", "description": "Whether to use hybrid search (text + vector)", "required": False, "default": False},
+        "limit": {"type": "int", "description": "Max number of results to return (-1, unlimited)", "required": False, "default": -1},
         "page": {"type": "int", "description": "Page number for pagination", "required": False, "default": 0},
         "page_size": {"type": "int", "description": "Number of results per page (default: 10, max: 100)", "required": False, "default": 10},
         "include_metadata": {"type": "bool", "description": "Whether to include metadata in results (description and properties always included)", "required": False, "default": False},

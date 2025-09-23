@@ -281,7 +281,7 @@ class Registry:
             scope = scope[:-1]
 
         return doc_prefix + ':' + self._encode(type) + ":" + self._encode(scope) + "/" + self._encode(name)
-       
+
     def _delete_index_record(self, record, pipe=None):
         name = record['name']
         type = record['type']
@@ -493,6 +493,8 @@ class Registry:
         pa = path.split("/")[1:]
         o = {}
         keys = pa[::2]
+        if len(keys) <= 1:
+            return o
         values = pa[1:][::2]
         for i, key in enumerate(keys):
             o[key] = values[i]
@@ -540,7 +542,7 @@ class Registry:
                 p = p + "contents" + "."
             if len(si) > 0:
                 p = p + self._encode(si) + "."
-                
+
         if type:
             p = p + self._encode(type) + "."
 
@@ -561,7 +563,6 @@ class Registry:
         # decode keys only
         decoded_record = self._decode_dict(record)
 
-
         return self.__get_json_value(decoded_record)
 
     def get_record_data(self, name, type, scope, key, single=True):
@@ -569,7 +570,7 @@ class Registry:
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
 
         decoded_value = self._decode_dict(value) if value is not None else value
-        
+
         return self.__get_json_value(decoded_value, single=single)
 
     def _is_jsonpath_expr(self, key: str) -> bool:
@@ -577,7 +578,7 @@ class Registry:
         if not isinstance(key, str):
             return False
         return ("[" in key) or ("*" in key) or ("." in key)
-    
+
     def set_record_data(self, name, type, scope, key, value, rebuild=False):
         p = self._get_record_path(name, type, scope)
         encoded_value = self._encode_dict(value)
@@ -586,9 +587,9 @@ class Registry:
             path_key = key
         else:
             path_key = self._encode(key)
-        
+
         self._set_json(self._get_data_namespace(), p + '.' + path_key, encoded_value)
-        
+
         # rebuild now
         if rebuild:
             record = self.get_record(name, type, scope)
@@ -691,7 +692,7 @@ class Registry:
 
         if records:
             return [self._decode_dict(r) for r in records]
-            
+
         return []
 
     def filter_records_by_properties(self, type=None, scope="/", properties=None, recursive=False, partial_match=False):
@@ -787,7 +788,7 @@ class Registry:
         elif isinstance(obj, list):
             return [self._encode_dict(v) for v in obj]
         else:
-            return obj   # leave values untouched
+            return obj  # leave values untouched
 
     def _decode_dict(self, obj):
         """Recursively decode dict keys only (values unchanged)."""
@@ -796,4 +797,4 @@ class Registry:
         elif isinstance(obj, list):
             return [self._decode_dict(v) for v in obj]
         else:
-            return obj   # leave values untouched
+            return obj  # leave values untouched

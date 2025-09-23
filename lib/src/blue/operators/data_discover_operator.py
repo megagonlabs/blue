@@ -15,6 +15,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
     search_query = attributes.get('search_query', '')
     approximate = attributes.get('approximate', True)
     hybrid = attributes.get('hybrid', False)
+    limit = attributes.get('limit', -1)
     page = attributes.get('page', 0)
     page_size = attributes.get('page_size', 10)
     include_metadata = attributes.get('include_metadata', False)
@@ -39,10 +40,10 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
     try:
         # Choose the search method based on use_hierarchical_search flag
         search_method = data_registry.search_records_hierarchical if use_hierarchical_search else data_registry.search_records
-        
+
         # Determine if we should use simple pagination
         use_simple_pagination = (not approximate and not hybrid) or not progressive_pagination
-        
+
         if use_simple_pagination:
             # Simple pagination - single call
             if use_hierarchical_search:
@@ -52,7 +53,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
             
             for result in search_results:
                 transformed_result = _transform_result(result, concept_type, data_registry, include_metadata)
-                
+
                 # Apply threshold filtering for approximate/hybrid search even in simple pagination mode
                 if (approximate or hybrid) and 'score' in result:
                     score = float(result['score'])
@@ -63,7 +64,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
         else:
             # Progressive pagination - loop until threshold exceeded
             current_page = page
-            
+
             while True:
                 if use_hierarchical_search:
                     search_results = search_method(search_query, type=concept_type, scope=search_scope, page=current_page, page_size=page_size)
@@ -72,7 +73,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
                 
                 if len(search_results) == 0:
                     break
-                
+
                 for result in search_results:
                     # Check threshold for approximate/hybrid search
                     score = float(result['score'])
@@ -82,13 +83,13 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
                     else:
                         # Score exceeds threshold, stop searching
                         break
-                
+
                 # Check if last result exceeded threshold to break outer loop
                 if len(search_results) > 0:
                     last_score = float(search_results[-1]['score'])
                     if last_score > threshold:
                         break
-                
+
                 # Move to next page
                 current_page += 1
 
@@ -96,7 +97,11 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
         traceback.print_exc()
         return [[]]
 
-    return [results]
+    # limit results
+    if limit >= 0:
+        return [results[:limit]]
+    else:
+        return [results]
 
 
 def _construct_scope(scope, source, database, collection, concept_type, auto_construct=True):
@@ -214,7 +219,7 @@ def _transform_result(result, concept_type, data_registry, include_metadata):
     else:
         transformed_result['description'] = ''
         transformed_result['properties'] = {}
-    
+
     return transformed_result
 
 
@@ -295,12 +300,28 @@ class DataDiscoverOperator(Operator):
         "search_query": {"type": "str", "description": "Text to search for in source names and descriptions", "required": True, "default": ""},
         "approximate": {"type": "bool", "description": "Whether to use approximate (vector) search", "required": True, "default": True},
         "hybrid": {"type": "bool", "description": "Whether to use hybrid search (text + vector)", "required": False, "default": False},
+        "limit": {"type": "int", "description": "Max number of results to return (-1, unlimited)", "required": False, "default": -1},
         "page": {"type": "int", "description": "Page number for pagination", "required": False, "default": 0},
         "page_size": {"type": "int", "description": "Number of results per page (default: 10, max: 100)", "required": False, "default": 10},
         "include_metadata": {"type": "bool", "description": "Whether to include metadata in results (description and properties always included)", "required": False, "default": False},
-        "threshold": {"type": "float", "description": "Similarity threshold for filtering results (0.0-1.0, lower = more similar, only applies to approximate/hybrid search)", "required": False, "default": 0.5},
-        "progressive_pagination": {"type": "bool", "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)", "required": False, "default": False},
-        "concept_type": {"type": "str", "description": "Record type to search for (e.g., 'source', 'database', 'collection', 'entity', 'attribute', 'relation')", "required": False, "default": "source"},
+        "threshold": {
+            "type": "float",
+            "description": "Similarity threshold for filtering results (0.0-1.0, lower = more similar, only applies to approximate/hybrid search)",
+            "required": False,
+            "default": 0.5,
+        },
+        "progressive_pagination": {
+            "type": "bool",
+            "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)",
+            "required": False,
+            "default": False,
+        },
+        "concept_type": {
+            "type": "str",
+            "description": "Record type to search for (e.g., 'source', 'database', 'collection', 'entity', 'attribute', 'relation')",
+            "required": False,
+            "default": "source",
+        },
         "use_hierarchical_search": {"type": "bool", "description": "Whether to use hierarchical search or regular search", "required": False, "default": True},
         "scope": {"type": "str", "description": "Search scope to limit results", "required": False, "default": "/"},
         "source": {"type": "str", "description": "Source name to limit search scope", "required": False, "default": None},

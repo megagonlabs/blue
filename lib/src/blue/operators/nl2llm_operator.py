@@ -152,7 +152,7 @@ if __name__ == "__main__":
             {"name": "popularity_rank", "type": "int"},
             {"name": "latest_release_date", "type": "date"},
             {"name": "most_similar_3_languages"},
-            {"name": "description"}
+            {"name": "description"},
         ],
     }
     print(f"=== NL2LLM attributes ===")
@@ -174,13 +174,7 @@ if __name__ == "__main__":
     attributes = {
         "query": "What are the top 5 programming languages in 2024?",
         "context": "Focus on popularity and job market demand",
-        "attrs": [
-            {"name": "language"},
-            {"name": "popularity_rank"},
-            {"name": "latest_release_date"},
-            {"name": "most_similar_3_languages"},
-            {"name": "description"}
-        ],
+        "attrs": [{"name": "language"}, {"name": "popularity_rank"}, {"name": "latest_release_date"}, {"name": "most_similar_3_languages"}, {"name": "description"}],
     }
     print(f"=== NL2LLM attributes ===")
     print(attributes)
