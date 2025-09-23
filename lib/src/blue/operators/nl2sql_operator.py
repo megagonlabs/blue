@@ -239,7 +239,7 @@ def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Opt
 def _format_execution_result_format(result) -> List[List[Dict[str, Any]]]:
     """Format execution result to match the expected output format."""
     # case 1: result is None or empty list
-    if result is None or (isinstance(result, list) and len(result) == 0):
+    if result is None or not result or (isinstance(result, list) and len(result) == 0):
         return [[]]
     # case 2: result is dict
     elif isinstance(result, dict):
