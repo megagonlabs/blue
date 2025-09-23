@@ -40,7 +40,10 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
 
         if use_simple_pagination:
             # Simple pagination - single call
-            search_results = search_method(search_query, type=concept_type, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
+            if use_hierarchical_search:
+                search_results = search_method(search_query, type=concept_type, page=page, page_size=page_size)
+            else:
+                search_results = search_method(search_query, type=concept_type, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
 
             for result in search_results:
                 transformed_result = _transform_result(result, concept_type, data_registry, include_metadata)
@@ -57,7 +60,10 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
             current_page = page
 
             while True:
-                search_results = search_method(search_query, type=concept_type, approximate=approximate, hybrid=hybrid, page=current_page, page_size=page_size)
+                if use_hierarchical_search:
+                    search_results = search_method(search_query, type=concept_type, page=current_page, page_size=page_size)
+                else:
+                    search_results = search_method(search_query, type=concept_type, approximate=approximate, hybrid=hybrid, page=current_page, page_size=page_size)
 
                 if len(search_results) == 0:
                     break
