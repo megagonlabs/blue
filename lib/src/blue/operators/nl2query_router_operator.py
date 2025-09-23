@@ -25,28 +25,22 @@ def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], att
     if len(input_data) == 0:
         return pipelines
 
-    sources = input_data[0]
+    elements = input_data[0]
 
-    query = attributes['search_query']
-    columns = attributes['columns']
-    execute_query = attributes['execute_query']
+    query = attributes.get('search_query')
+    columns = attributes.get('columns')
+    execute_query = attributes.get('execute_query', True)
+    protocol = attributes.get('protocol', '')
 
-    for source in sources:
-        source_name = source['name']
+    for element in elements:
+        name = element['name']
+        type = element['type']
+        scope = element['scope']
+
+        parsed = parse_scope(scope)
 
         # create pipeline for each source
         pipeline = DataPipeline(properties=properties)
-
-        # check source protocol
-        if 'properties' not in source:
-            continue
-        properties = source['properties']
-        if 'connection' not in properties:
-            continue
-        connection = properties['connection']
-        if 'protocol' not in connection:
-            continue
-        protocol = connection['protocol']
 
         # input
         input_node = pipeline.define_input(value=None)
@@ -58,21 +52,74 @@ def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         pipeline.set_plan_input(input_node)
         pipeline.set_plan_output(output_node)
 
-        route_node = None
-        if protocol == "openai":
-            nl2llm_attributes = {"query": query, "attrs": columns}
-            route_node = nl2lm_node = pipeline.define_operator("/server/blue_ray/operator/nl2llm", attributes=nl2llm_attributes, properties={})
-        elif protocol == "postgres" or protocol == "mysql" or protocol == "sqlite":
-            nl2sql_attributes = {"question": query, "protocol": protocol, "source": source_name, "execute_query": execute_query}
-            # TODO: add attr_names (#1205)
-            route_node = nl2sql_node = pipeline.define_operator("/server/blue_ray/operator/nl2sql", attributes=nl2sql_attributes, properties={})
-        else:
-            # TODO: support other protocols
-            continue
+        if type == "source":
+            # route based on source
+            source = element
+            # check source protocol
+            if 'properties' not in source:
+                continue
+            properties = source['properties']
+            if 'connection' not in properties:
+                continue
+            connection = properties['connection']
+            if 'protocol' not in connection:
+                continue
+            protocol = connection['protocol']
 
-        ## connections
-        pipeline.connect_nodes(input_node, route_node)
-        pipeline.connect_nodes(route_node, output_node)
+            if protocol == "openai":
+                nl2llm_attributes = {"query": query, "attrs": columns}
+                nl2llm_node = pipeline.define_operator("/server/blue_ray/operator/nl2llm", attributes=nl2llm_attributes, properties={})
+
+                # directly refine to nl2llm
+                pipeline.connect_nodes(input_node, nl2llm_node)
+                pipeline.connect_nodes(nl2llm_node, output_node)
+
+            elif protocol == "postgres" or protocol == "mysql" or protocol == "sqlite":
+                # do further data discovery and route again
+                # TODO: specify source for further scoping (source: name)
+                data_discovery_attributes = {"search_query": query, "approximate": True, "concept_type": 'collection', 'limit': 1, 'use_hierarchical_search': True}
+                data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
+
+                nl2query_router_attributes = {"search_query": query, "protocol": protocol, "execute_query": True, "columns": columns}
+                nl2query_router_node = pipeline.define_operator("/server/blue_ray/operator/nl2query_router", attributes=nl2query_router_attributes, properties={})
+
+                # firtst data discover then nl2query_router
+                pipeline.connect_nodes(input_node, data_discovery_node)
+                pipeline.connect_nodes(data_discovery_node, nl2query_router_node)
+                pipeline.connect_nodes(nl2query_router_node, output_node)
+            else:
+                # TODO: support other protocols
+                continue
+
+        elif type == "collection":
+            source = parsed['source']
+            database = parsed['database']
+            collection = name
+
+            if protocol == "openai":
+                nl2llm_attributes = {"query": query, "attrs": columns}
+                nl2llm_node = pipeline.define_operator("/server/blue_ray/operator/nl2llm", attributes=nl2llm_attributes, properties={})
+
+                # directly refine to nl2llm
+                pipeline.connect_nodes(input_node, nl2llm_node)
+                pipeline.connect_nodes(nl2llm_node, output_node)
+
+            elif protocol == "postgres" or protocol == "mysql" or protocol == "sqlite":
+                attr_names = [column['name'] for column in columns]
+                nl2sql_attributes = {
+                    "question": query,
+                    "protocol": protocol,
+                    "source": source,
+                    "database": database,
+                    "collection": collection,
+                    "attr_names": attr_names,
+                    "execute_query": execute_query,
+                }
+                nl2sql_node = pipeline.define_operator("/server/blue_ray/operator/nl2sql", attributes=nl2sql_attributes, properties={})
+
+                # directly refine to nl2sql
+                pipeline.connect_nodes(input_node, nl2sql_node)
+                pipeline.connect_nodes(nl2sql_node, output_node)
 
         # add to pipelines
         pipelines.append(pipeline.to_dict())
@@ -103,7 +150,12 @@ class NL2QueryRouterOperator(Operator):
 
     name = "nl2query_router"
     description = "Routees the execution of query, based on source"
-    default_attributes = {}
+    default_attributes = {
+        "search_query": {"type": "str", "description": "Natural language query to process", "required": True},
+        "columns": {"type": "list[dict]", "description": "List of attribute specifications (dicts with name and optional type)", "required": False, "default": []},
+        "execute_query": {"type": "bool", "description": "Whether to execute query or just translate nl to query", "required": False, "default": True},
+        "protocol": {"type": "str", "description": "Protocol of the source", "required": False, "default": ""},
+    }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(
@@ -128,3 +180,15 @@ class NL2QueryRouterOperator(Operator):
 
 ###########
 ### Helper functions
+
+
+def parse_scope(scope):
+    pa = scope.split("/")[1:]
+    o = {}
+    keys = pa[::2]
+    if len(keys) <= 1:
+        return o
+    values = pa[1:][::2]
+    for i, key in enumerate(keys):
+        o[key] = values[i]
+    return o
