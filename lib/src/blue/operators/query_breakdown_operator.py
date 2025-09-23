@@ -43,8 +43,8 @@ def query_breakdown_operator_explainer(output: Any, input_data: List[List[Dict[s
 
 class QueryBreakdownOperator(Operator, ServiceClient):
     PROMPT = """
-Your task is to process a natural language query, and break it down to its subqueries where each subquery is sufficiently self-contained. Break down into as many subsqueries as necessary.
-To do so, translate the natural language query into SQL, defining each subquery as common table expressions (CTE). Return the results in JSON format.
+Your task is to process a natural language query, and break it down to its subqueries where each subquery is sufficiently self-contained in terms of data to retrieve. 
+Break down into as many subsqueries as necessary but don't do excessively. Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE). Return the results in JSON format.
 The response should be a valid JSON array containing the following information for each CTE:
 - 'name': name of the CTE
 - 'description': natural language description of the CTE, representing the subquery
