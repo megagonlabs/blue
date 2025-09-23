@@ -19,6 +19,8 @@ def multipart_query_operator_function(input_data: List[List[Dict[str, Any]]], at
 
 
 def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    # Extract attributes
+    serialize = attributes.get('serialize', True)
 
     plans = input_data
     pipelines = []
@@ -57,6 +59,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         # connection point for cte paths
         cte_root_node = create_database_node
 
+        # create path of operators for each cte
         for cte in ctes:
             name = cte['name'] if 'name' in cte else None
             description = cte['description'] if 'description' in cte else None
@@ -110,36 +113,76 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         if failed:
             continue
 
-        for cte in ctes:
-            name = cte['name'] if 'name' in cte else None
-            description = cte['description'] if 'description' in cte else None
-            sql = cte['sql'] if 'sql' in cte else None
-            table = cte['table'] if 'table' in cte else None
-            columns = cte['columns'] if 'columns' in cte else None
-            dependency = cte['dependency'] if 'dependency' in cte else None
+        if serialize:
+            last_end_node = cte_root_node
 
-            ## inter-cte connections
-            start_node = cte_start_nodes[name]
-            end_node = cte_end_nodes[name]
+            # add ctes to queue
+            cte_queue = []
+            cte_dict = {}
+            for cte in ctes:
+                name = cte['name'] if 'name' in cte else None
+                cte_queue.append(name)
+                cte_dict[name] = cte
 
-            # if no dependency, connect from cte_root_node to start
-            if len(dependency) == 0:
-                pipeline.connect_nodes(cte_root_node, start_node)
-            else:
-                # connect from sink node of dependency if exists
+            # process queue by dependencu
+            processed_ctes = []
+            while len(cte_queue) > 0:
+                name = cte_queue.pop(0)
+                cte = cte_dict[name]
+                dependency = cte['dependency'] if 'dependency' in cte else []
+
+                # check if cte's depencencies are processed
+                dependent = False
                 for d in dependency:
-                    if d in cte_end_nodes:
-                        cte_end_node = cte_end_nodes[d]
-                        pipeline.connect_nodes(cte_end_node, start_node)
-                    else:
-                        # dependency not found!
-                        failed = True
-                        break
+                    if d not in processed_ctes:
+                        dependent = True
+                # still dependent, back to the queue
+                if dependent:
+                    cte_queue.append(name)
 
-            # if nobody depends on this connect end node to output node
-            for d in dependents:
-                cte_end_node = cte_end_nodes[d]
-                pipeline.connect_nodes(cte_end_node, output_node)
+                # connect last_end node to cte
+                start_node = cte_start_nodes[name]
+                end_node = cte_end_nodes[name]
+                pipeline.connect_nodes(last_end_node, start_node)
+                last_end_node = end_node
+
+                # add to processed
+                processed_ctes.append(name)
+
+            # connect last end node to output
+            pipeline.connect_nodes(last_end_node, output_node)
+
+        else:
+            for cte in ctes:
+                name = cte['name'] if 'name' in cte else None
+                description = cte['description'] if 'description' in cte else None
+                sql = cte['sql'] if 'sql' in cte else None
+                table = cte['table'] if 'table' in cte else None
+                columns = cte['columns'] if 'columns' in cte else None
+                dependency = cte['dependency'] if 'dependency' in cte else []
+
+                ## inter-cte connections
+                start_node = cte_start_nodes[name]
+                end_node = cte_end_nodes[name]
+
+                # if no dependency, connect from cte_root_node to start
+                if len(dependency) == 0:
+                    pipeline.connect_nodes(cte_root_node, start_node)
+                else:
+                    # connect from sink node of dependency if exists
+                    for d in dependency:
+                        if d in cte_end_nodes:
+                            cte_end_node = cte_end_nodes[d]
+                            pipeline.connect_nodes(cte_end_node, start_node)
+                        else:
+                            # dependency not found!
+                            failed = True
+                            break
+
+                # if nobody depends on this connect end node to output node
+                for d in dependents:
+                    cte_end_node = cte_end_nodes[d]
+                    pipeline.connect_nodes(cte_end_node, output_node)
 
         # add to pipelines
         pipelines.append(pipeline.to_dict())
@@ -170,7 +213,9 @@ class MultipartQueryOperator(Operator):
 
     name = "multipart_query"
     description = "Orchestrates the execution of multi-part query, starting with data discovery, leading to execution"
-    default_attributes = {}
+    default_attributes = {
+        "serialize": {"type": "bool", "description": "Whether to use serialize each part of the query", "required": False, "default": True},
+    }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(
