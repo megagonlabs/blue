@@ -78,7 +78,7 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             start_node = None
             end_node = None
 
-            if dependency:
+            if len(dependency) > 0:
                 #  use internal db, nl2sql directly
                 # nl2sql
                 attr_names = [column['name'] for column in columns]
@@ -87,13 +87,14 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
                     "protocol": "sqlite",
                     "source": "internal",
                     "database": db_name,
+                    "collection": "public",
                     "attr_names": attr_names,
                     "execute_query": True,
                 }
                 nl2sql_node = pipeline.define_operator("/server/blue_ray/operator/nl2sql", attributes=nl2sql_attributes, properties={})
 
                 # # insert table
-                insert_table_attributes = {"source": "internal", "database": db_name, "collection": "public", "table": table}
+                insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
                 insert_table_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
 
                 start_node = nl2sql_node
