@@ -117,9 +117,9 @@
                 },
                 "scope": {
                     "type": "str",
-                    "description": "Search scope to limit results (e.g., '/source/postgres_example', '/source/postgres_example/database/postgres'). Auto-constructed from source/database/collection attributes if not provided",
+                    "description": "Search scope to limit results (e.g., '/source/postgres_example', '/source/postgres_example/database/postgres'). Auto-constructed from source/database/collection attributes if not provided. Use null for no scope limit (search all record types)",
                     "required": false,
-                    "default": "/"
+                    "default": null
                 },
                 "source": {
                     "type": "str",

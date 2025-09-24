@@ -23,7 +23,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
     progressive_pagination = attributes.get('progressive_pagination', False)
     concept_type = attributes.get('concept_type', 'source')
     use_hierarchical_search = attributes.get('use_hierarchical_search', True)
-    scope = attributes.get('scope', '/')
+    scope = attributes.get('scope', None)
     source = attributes.get('source', None)
     database = attributes.get('database', None)
     collection = attributes.get('collection', None)
@@ -105,10 +105,11 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
 
 
 def _construct_scope(scope, source, database, collection, concept_type, auto_construct=True):
-    """
-    Construct search scope from attributes based on data registry hierarchy.
-    """
-    
+    """Construct search scope from attributes based on data registry hierarchy."""
+    if scope is None:
+        # TODO: this might need adjustment after finalizing what does scope mean, exact scope or parent/prefix scope, and whether it's required to construct a scope for None if source/database/collection are provided.
+        return None
+
     # If auto_construct is False, return the scope as-is
     if not auto_construct:
         return scope.rstrip('/') if scope else "/"
@@ -266,7 +267,7 @@ def data_discover_operator_explainer(output: Any, input_data: List[List[Dict[str
     search_method = "hierarchical" if use_hierarchical else "regular"
     
     # Get scope information
-    scope = attributes.get('scope', '/')
+    scope = attributes.get('scope', None)
     source = attributes.get('source', None)
     database = attributes.get('database', None)
     collection = attributes.get('collection', None)
@@ -323,7 +324,7 @@ class DataDiscoverOperator(Operator):
             "default": "source",
         },
         "use_hierarchical_search": {"type": "bool", "description": "Whether to use hierarchical search or regular search", "required": False, "default": True},
-        "scope": {"type": "str", "description": "Search scope to limit results", "required": False, "default": "/"},
+        "scope": {"type": "str", "description": "Search scope to limit results", "required": False, "default": None},
         "source": {"type": "str", "description": "Source name to limit search scope", "required": False, "default": None},
         "database": {"type": "str", "description": "Database name to limit search scope (requires source)", "required": False, "default": None},
         "collection": {"type": "str", "description": "Collection name to limit search scope (requires source and database)", "required": False, "default": None},

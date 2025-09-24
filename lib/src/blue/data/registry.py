@@ -1047,7 +1047,9 @@ class DataRegistry(Registry):
 
         # Handle scope (wildcard vs exact match)
         if scope:
-            if "*" in scope:
+            if scope == "/":
+                qs = qs
+            elif "*" in scope:
                 # Wildcard / prefix search -> no quotes
                 qs = f"(@scope:{scope}) " + qs
             else:
@@ -1101,6 +1103,14 @@ class DataRegistry(Registry):
         
         results = self.connection.ft(params['index_name']).search(query, query_params).docs
         print(f"  Found {len(results)} entities in index")
+
+        # Special handling for scope = '/'
+        if scope == "/":
+            filtered_results = []
+            for result in results:
+                if result.scope == "/":
+                    filtered_results.append(result)
+            results = filtered_results
 
         # Compute and attach all scores directly to result objects
         for i, result in enumerate(results):
@@ -1191,6 +1201,14 @@ class DataRegistry(Registry):
         
         if not results:
             return []
+        
+        # Special handling for scope = '/'
+        if scope == "/":
+            filtered_results = []
+            for result in results:
+                if result.scope == "/":
+                    filtered_results.append(result)
+            results = filtered_results
         
         # Compute and attach all scores directly to result objects
         for i, result in enumerate(results):
