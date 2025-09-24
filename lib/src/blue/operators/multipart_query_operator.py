@@ -76,35 +76,61 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             ## build pipeline
             # start
             start_node = None
+            end_node = None
 
-            # data discover, first at source level
-            data_discovery_attributes = {"search_query": description, "approximate": True, "concept_type": 'source', 'limit': 1, 'use_hierarchical_search': False}
-            data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
+            if dependency:
+                #  use internal db, nl2sql directly
+                # nl2sql
+                attr_names = [column['name'] for column in columns]
+                nl2sql_attributes = {
+                    "question": description,
+                    "protocol": "sqlite",
+                    "source": "internal",
+                    "database": db_name,
+                    "attr_names": attr_names,
+                    "execute_query": True,
+                }
+                nl2sql_node = pipeline.define_operator("/server/blue_ray/operator/nl2sql", attributes=nl2sql_attributes, properties={})
 
-            # create table
-            create_table_attributes = {"source": "internal", "database": db_name, "table": table, "columns": columns}
-            create_table_node = pipeline.define_operator("/server/blue_ray/operator/create_table", attributes=create_table_attributes, properties={})
+                # # insert table
+                insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
+                insert_table_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
 
-            # nl2q
-            nl2query_router_attributes = {"search_query": description, "execute_query": True, "columns": columns}
-            nl2query_router_node = pipeline.define_operator("/server/blue_ray/operator/nl2query_router", attributes=nl2query_router_attributes, properties={})
+                start_node = nl2sql_node
+                end_node = insert_table_node
 
-            # # insert table
-            insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
-            insert_table_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
+                ## intra-cte connections
+                pipeline.connect_nodes(nl2sql_node, insert_table_node)
 
-            start_node = data_discovery_node
-            end_node = insert_table_node
+            else:
+                # data discover, first at source level
+                data_discovery_attributes = {"search_query": description, "approximate": True, "concept_type": 'source', 'limit': 1, 'use_hierarchical_search': False}
+                data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
+
+                # create table
+                create_table_attributes = {"source": "internal", "database": db_name, "table": table, "columns": columns}
+                create_table_node = pipeline.define_operator("/server/blue_ray/operator/create_table", attributes=create_table_attributes, properties={})
+
+                # nl2q
+                nl2query_router_attributes = {"search_query": description, "execute_query": True, "columns": columns}
+                nl2query_router_node = pipeline.define_operator("/server/blue_ray/operator/nl2query_router", attributes=nl2query_router_attributes, properties={})
+
+                # # insert table
+                insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
+                insert_table_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
+
+                start_node = data_discovery_node
+                end_node = insert_table_node
+
+                ## intra-cte connections
+                pipeline.connect_nodes(data_discovery_node, create_table_node)
+                pipeline.connect_nodes(create_table_node, nl2query_router_node)
+                pipeline.connect_nodes(nl2query_router_node, insert_table_node)
 
             ## set cte start / end nodes
             dependents.add(name)
             cte_start_nodes[name] = start_node
             cte_end_nodes[name] = end_node
-
-            ## intra-cte connections
-            pipeline.connect_nodes(data_discovery_node, create_table_node)
-            pipeline.connect_nodes(create_table_node, nl2query_router_node)
-            pipeline.connect_nodes(nl2query_router_node, insert_table_node)
 
             # remove any dependency
             for d in dependency:
