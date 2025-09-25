@@ -55,6 +55,8 @@ def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         if type == "source":
             # route based on source
             source = element
+            # source name
+            source_name = source['name']
             # check source protocol
             if 'properties' not in source:
                 continue
@@ -67,7 +69,8 @@ def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             protocol = connection['protocol']
 
             if protocol == "openai":
-                nl2llm_attributes = {"query": query, "attrs": columns}
+                nl2llm_attributes = {"source": source_name, "query": query, "attrs": columns}
+                # TODO: need to pass specific source to the nl2lmm as well (if there are multiple )
                 nl2llm_node = pipeline.define_operator("/server/blue_ray/operator/nl2llm", attributes=nl2llm_attributes, properties={})
 
                 # directly refine to nl2llm
@@ -76,8 +79,15 @@ def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
             elif protocol == "postgres" or protocol == "mysql" or protocol == "sqlite":
                 # do further data discovery and route again
-                # TODO: specify source for further scoping (source: name)
-                data_discovery_attributes = {"search_query": query, "approximate": True, "concept_type": 'collection', 'limit': 1, 'use_hierarchical_search': True}
+                data_discovery_attributes = {
+                    "source": source_name,
+                    "scope": "/source/" + source_name,
+                    "search_query": query,
+                    "approximate": True,
+                    "concept_type": 'collection',
+                    'limit': 1,
+                    'use_hierarchical_search': True,
+                }
                 data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
 
                 nl2query_router_attributes = {"search_query": query, "protocol": protocol, "execute_query": True, "columns": columns}
