@@ -560,10 +560,6 @@ class DataRegistry(Registry):
                     self.update_source(source, description = current_description, properties=properties, rebuild=rebuild)
                 
             
-            ### this call will be removed once UI supports calling source stats 
-            self.collect_source_stats(source, recursive=recursive, rebuild=rebuild)
-        
-    
             # fetch databases
             fetched_dbs = source_connection.fetch_databases()
             fetched_dbs_set = set(fetched_dbs)
@@ -633,9 +629,6 @@ class DataRegistry(Registry):
                     self.update_source_database(source, database, description=current_description, properties=properties, rebuild=rebuild)
         
     
-            ### this call will be removed from here, when UI supports callign corresponding API
-            self.collect_source_database_stats(source, database, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
-         
             # fetch collections
             fetched_collections = source_connection.fetch_database_collections(database)
             fetched_collections_set = set(fetched_collections)
@@ -767,10 +760,6 @@ class DataRegistry(Registry):
                 for attr in attr_merges:
                     self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
           
-            ### there are separate APIs for these, however still calling from here since UI is not enabled to call those APIs. These calls will be removed from here when UI supports 
-            ### corresponding API calling 
-            self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
-            
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
