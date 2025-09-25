@@ -397,7 +397,7 @@ class DataRegistry(Registry):
                     return None
             create_res = source_connection.create_database(database, properties=properties, overwrite=overwrite)
             if create_res and create_res['status'] in ["success", "registry_only"]:
-                self.sync_source_database(source, database, rebuild=rebuild, recursive=recursive)
+                self.sync_source(source, rebuild=rebuild, recursive=recursive)
                 # update database properties if provided
                 for key, value in properties.items():
                     self.set_source_database_property(source, database, key, value, rebuild=rebuild)
@@ -416,7 +416,7 @@ class DataRegistry(Registry):
                     return None
             create_res = source_connection.create_database_collection(database, collection, properties=properties, overwrite=overwrite)
             if create_res and create_res['status'] in ["success", "registry_only"]:
-                self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)
+                self.sync_source_database(source, database, rebuild=rebuild, recursive=recursive)
                 # update collection properties if provided
                 for key, value in properties.items():
                     self.set_source_database_collection_property(source, database, collection, key, value, rebuild=rebuild)
