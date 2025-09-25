@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
 ###### Settings
-from settings import FIREBASE_CLIENT_ID, PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
+from blue.properties import FIREBASE_CLIENT_ID, PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
 import jwt, requests
 
 # start redis connection

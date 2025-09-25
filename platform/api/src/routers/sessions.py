@@ -31,7 +31,8 @@ from blue.agents.registry import AgentRegistry
 from blue.utils import json_utils
 
 ###### Properties
-from settings import ACL, PROPERTIES
+from blue.properties import PROPERTIES
+from settings import ACL
 from server import connection
 
 ### Assign from platform properties
