@@ -11,6 +11,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 from blue.utils.service_utils import ServiceClient
 from blue.data.schema import DataSchema
 from blue.data.registry import DataRegistry
+from blue properties import PROPERTIES
 
 ###############
 ### NL2SQL Operator
@@ -212,6 +213,9 @@ ${attr_names_section}
 
         # attribute definitions
         self.properties["attributes"] = self.default_attributes
+
+        # service_url, set as default
+        self.properties["service_url"] = PROPERTIES["services.openai.service_url"]
 
     def extract_input_attributes(self, input_data, properties=None):
         """Extract input attributes for template substitution"""
