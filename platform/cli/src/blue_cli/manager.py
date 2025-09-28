@@ -871,6 +871,24 @@ class PlatformManager:
             stderr=True,
         )
 
+        # ray
+        BLUE_PRIVATE_API_SERVER_PORT = config["BLUE_PRIVATE_RAY_SERVER_PORT"]
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-ray" + ":" + BLUE_DEPLOY_VERSION
+        print("Starting container: " + image)
+        client.containers.run(
+            image,
+            network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
+            hostname="blue_platform_ray",
+            ports={str(BLUE_PRIVATE_RAY_SERVER_PORT): 6380},
+            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
+            labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "ray"},
+            environment=config,
+            restart_policy={"Name": "always"},
+            detach=True,
+            stdout=True,
+            stderr=True,
+        )
+
         # frontend
         BLUE_PRIVATE_WEB_SERVER_PORT = config["BLUE_PRIVATE_WEB_SERVER_PORT"]
         image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + ":" + BLUE_DEPLOY_VERSION

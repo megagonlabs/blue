@@ -5,6 +5,9 @@
         },
         "frontend": {
             "image": "blue-platform-frontend"
+        },
+        "ray": {
+            "image": "blue-platform-ray"
         }
 
     },
