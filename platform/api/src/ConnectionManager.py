@@ -21,10 +21,10 @@ from blue.agent import Agent
 from blue.agents.observer import ObserverAgent
 from blue.pubsub import Producer
 from blue.utils import uuid_utils
-
+from blue.properties import PROPERTIES, DEVELOPMENT
 
 ###### Settings
-from settings import ACL, PROPERTIES, DEVELOPMENT
+from settings import ACL
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]

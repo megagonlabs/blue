@@ -40,7 +40,7 @@ from blue.agents.registry import AgentRegistry
 from blue.utils.string_utils import encode_websafe_no_padding
 
 ###### Properties
-from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES
+from blue.properties import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]

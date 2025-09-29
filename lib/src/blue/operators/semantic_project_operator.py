@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Callable, Optional, Set
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
+from blue properties import PROPERTIES
 
 ###############
 ### Semantic Project Operator
@@ -195,6 +196,9 @@ ${projection_instructions}
         super()._initialize_properties()
         self.properties["attributes"] = self.default_attributes
 
+        # service_url, set as default
+        self.properties["service_url"] = PROPERTIES["services.openai.service_url"]
+
 
 if __name__ == "__main__":
     ## calling example
@@ -202,8 +206,24 @@ if __name__ == "__main__":
     # Test data
     input_data = [
         [
-            {"first_name": "first_name_A", "last_name": "last_name_A", "current_title": "Senior Software Engineer", "skills": ["Python", "React", "SQL", "Docker", "AWS"], "years_experience": 5, "degree": "Bachelor of Computer Science", "certifications": ["AWS Certified Developer", "Google Cloud Professional"]},
-            {"first_name": "first_name_B", "last_name": "last_name_B", "current_title": "Data Scientist", "skills": ["Python", "R", "Machine Learning", "TensorFlow", "Pandas"], "years_experience": 3, "degree": "Master of Data Science", "certifications": ["AWS Certified Machine Learning", "Microsoft Azure Data Scientist"]},
+            {
+                "first_name": "first_name_A",
+                "last_name": "last_name_A",
+                "current_title": "Senior Software Engineer",
+                "skills": ["Python", "React", "SQL", "Docker", "AWS"],
+                "years_experience": 5,
+                "degree": "Bachelor of Computer Science",
+                "certifications": ["AWS Certified Developer", "Google Cloud Professional"],
+            },
+            {
+                "first_name": "first_name_B",
+                "last_name": "last_name_B",
+                "current_title": "Data Scientist",
+                "skills": ["Python", "R", "Machine Learning", "TensorFlow", "Pandas"],
+                "years_experience": 3,
+                "degree": "Master of Data Science",
+                "certifications": ["AWS Certified Machine Learning", "Microsoft Azure Data Scientist"],
+            },
         ]
     ]
 

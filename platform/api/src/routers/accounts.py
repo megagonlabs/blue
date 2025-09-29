@@ -21,10 +21,9 @@ from fastapi import Depends, Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
-###### Settings
-from settings import EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE, FIREBASE_SERVICE_CRED
-
-### Assign from platform properties
+###### blue
+from blue.properties import EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES, SECURE_COOKIE, FIREBASE_SERVICE_CRED
+from settings import ROLE_PERMISSIONS
 from blue.platform import Platform
 
 platform_id = PROPERTIES["platform.name"]

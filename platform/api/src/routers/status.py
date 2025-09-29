@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 from redis import Redis
 from APIRouter import APIRouter
 from constant import END_OF_EVENT_SIGNAL, account_id_header, acl_enforce
-from settings import PROPERTIES
+from blue.properties import PROPERTIES
 from blue.connection import PooledConnectionFactory
 import asyncio
 from server import should_stop

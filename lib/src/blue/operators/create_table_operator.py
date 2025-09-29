@@ -13,17 +13,23 @@ from blue.data.registry import DataRegistry
 
 def create_table_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     # Extract attributes
+    overwrite = attributes.get('overwrite', False)
     source = attributes.get('source', 'default_source')
     database = attributes.get('database', 'default')
     collection = attributes.get('collection', 'public')
-    overwrite = attributes.get('overwrite', False)
-    
+    table = attributes.get('table')
+    table_description = attributes.get('description', '')
+    table_properties = attributes.get('properties', {})
+    columns = attributes.get('columns')
+    misc = attributes.get('misc', {})
+
     # Get data registry from properties - follow agent pattern
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
         print("Error: Data registry not found")
-        return [[]]
-    
+        # pass through input to output
+        return input_data
+
     # Set collection to 'public' for SQLite sources even caller specifies a different collection
     try:
         source_properties = data_registry.get_source_properties(source)
@@ -35,46 +41,43 @@ def create_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
         pass
 
     try:
-        # Validate input data
-        if not input_data or not input_data[0]:
-            return [[]]
 
-        # Get table definition from input data
-        table_def = input_data[0][0]
-        if not isinstance(table_def, dict):
-            return [[]]
-
-        table_name = table_def.get('name')
-        if not table_name:
-            return [[]]
-        
-        description = table_def.get('description', '')
-        created_by = table_def.get('created_by')
-        
-        # Registry properties (metadata)
-        registry_properties = table_def.get('registry_properties', {})
-        # Creation properties (for specific creation function(s) inside of the source)
-        creation_properties = table_def.get('creation_properties', {})
+        # TODO: modify this after discussion
+        # creation related properties
+        creation_properties = misc
+        creation_properties['cols_definition'] = columns
 
         # Create the table using data registry
-        data_registry.create_source_database_collection_entity(source=source, database=database, collection=collection, entity=table_name, properties=registry_properties, creation_properties=creation_properties, overwrite=overwrite, rebuild=True, recursive=False)
+        data_registry.create_source_database_collection_entity(
+            source=source,
+            database=database,
+            collection=collection,
+            entity=table,
+            properties=table_properties,
+            creation_properties=creation_properties,
+            overwrite=overwrite,
+            rebuild=True,
+            recursive=False,
+        )
 
         # Set the description after table creation
-        if description:
-            data_registry.set_source_database_collection_entity_description(source=source, database=database, collection=collection, entity=table_name, description=description, rebuild=True)
+        if table_description:
+            data_registry.set_source_database_collection_entity_description(source=source, database=database, collection=collection, entity=table, description=table_description, rebuild=True)
 
         # Set the created_by after table creation
+        created_by = attributes.get('created_by')
         if created_by:
-            data_registry.set_record_data(name=table_name, type='entity', scope=f'/source/{source}/database/{database}/collection/{collection}', key='created_by', value=created_by, rebuild=True)
+            data_registry.set_record_data(name=table, type='entity', scope=f'/source/{source}/database/{database}/collection/{collection}', key='created_by', value=created_by, rebuild=True)
 
-        print(f"Successfully created table '{table_name}' in database '{database}' collection '{collection}' of source '{source}'.")
+        print(f"Successfully created table '{table}' in database '{database}' collection '{collection}' of source '{source}'.")
 
-        return [[]]
+        # pass through input to output
+        return input_data
 
     except Exception as e:
-        print("EXCEPTION")
         print(traceback.format_exc())
-        return [[]]
+        # pass through input to output
+        return input_data
 
 
 def create_table_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -87,68 +90,52 @@ def create_table_operator_validator(input_data: List[List[Dict[str, Any]]], attr
 
     # Check required attributes
     source = attributes.get('source', '')
-    database = attributes.get('database', '')
-    
     if not source or not source.strip():
         return False
+
+    database = attributes.get('database', '')
     if not database or not database.strip():
         return False
 
-    # Validate input data structure - expect single table dictionary
-    if not input_data or not input_data[0] or len(input_data[0]) != 1:
+    collection = attributes.get('collection', 'public')
+    if not collection or not collection.strip():
         return False
 
-    # Validate table definition
-    table_def = input_data[0][0]
-    if not isinstance(table_def, dict):
-        return False
-    
-    # Check required fields
-    required_fields = ['name']
-    for field in required_fields:
-        if field not in table_def:
-            return False
-    
-    registry_properties = table_def.get('registry_properties', {})
-    if registry_properties and not isinstance(registry_properties, dict):
-        return False
-    
-    # There should be creation_properties and it should contains cols_definition
-    creation_properties = table_def.get('creation_properties', {})
-    if not creation_properties or not isinstance(creation_properties, dict):
+    table = attributes.get('table', '')
+    if not table or not table.strip():
         return False
 
-    # cols_definition is mandatory for table creation
-    cols_definition = creation_properties.get('cols_definition', [])
-    if not isinstance(cols_definition, list) or not cols_definition:
+    columns = attributes.get('columns', [])
+    if not isinstance(columns, list) or not columns:
         return False
-    
+
     # Validate each column definition
-    for col_def in cols_definition:
-        if not isinstance(col_def, dict):
+    for column in columns:
+        if not isinstance(column, dict):
             return False
-        if 'name' not in col_def or not col_def['name']:
+        if 'name' not in column or not column['name']:
             return False
         # type is optional but if provided should be a string
-        if 'type' in col_def and not isinstance(col_def['type'], str):
+        if 'type' in column and not isinstance(column['type'], str):
             return False
         # misc is optional but if provided should be a string
-        if 'misc' in col_def and not isinstance(col_def['misc'], str):
+        if 'misc' in column and not isinstance(column['misc'], str):
             return False
-    
+
+    misc = attributes.get('misc', {})
     # Validate primary_key if provided
-    primary_key = creation_properties.get('primary_key', [])
+    primary_key = misc.get('primary_key', [])
     if primary_key:
         if not isinstance(primary_key, list):
             return False
-        # Check that all primary key columns exist in cols_definition
-        col_names = [col['name'] for col in cols_definition]
+        # Check that all primary key columns exist in columns
+        col_names = [col['name'] for col in columns]
         for pk_col in primary_key:
             if pk_col not in col_names:
                 return False
-    
+
     # Validate foreign_keys if provided
-    foreign_keys = creation_properties.get('foreign_keys', [])
+    foreign_keys = misc.get('foreign_keys', [])
     if foreign_keys:
         if not isinstance(foreign_keys, list):
             return False
@@ -159,8 +146,8 @@ def create_table_operator_validator(input_data: List[List[Dict[str, Any]]], attr
             for field in required_fk_fields:
                 if field not in fk:
                     return False
-            # Check that source columns exist in cols_definition
-            col_names = [col['name'] for col in cols_definition]
+            # Check that source columns exist in columns
+            col_names = [col['name'] for col in columns]
             for fk_col in fk['foreign_keys_source_columns']:
                 if fk_col not in col_names:
                     return False
@@ -174,7 +161,7 @@ def create_table_operator_explainer(output: Any, input_data: List[List[Dict[str,
     database = attributes.get('database', 'default')
     collection = attributes.get('collection', 'public')
     overwrite = attributes.get('overwrite', False)
-    
+
     try:
         table_name = input_data[0][0].get('name', '') if input_data and input_data[0] else ''
     except (IndexError, KeyError, TypeError, AttributeError):
@@ -203,7 +190,18 @@ class CreateTableOperator(Operator):
     default_attributes = {
         "source": {"type": "str", "description": "Name of the data source where the table will be created", "required": True, "default": "default_source"},
         "database": {"type": "str", "description": "Name of the database where the table will be created", "required": True, "default": "default"},
-        "collection": {"type": "str", "description": "Name of the collection where the table will be created. For SQLite sources, defaults to 'public' if not specified", "required": False, "default": "public"},
+        "collection": {
+            "type": "str",
+            "description": "Name of the collection where the table will be created. For SQLite sources, defaults to 'public' if not specified",
+            "required": False,
+            "default": "public",
+        },
+        "table": {"type": "str", "description": "Name of the table to be created", "required": True, "default": ""},
+        "description": {"type": "str", "description": "Description of the table to be created", "required": False, "default": ""},
+        "properties": {"type": "str", "description": "Properties of the table to be created", "required": False, "default": {}},
+        "columns": {"type": "list", "description": "Properties of the table to be created", "required": True, "default": []},
+        "misc": {"type": "dict", "description": "Miscellaneous keys such as primary and foreign keys ", "required": False, "default": {}},
+        "created_by": {"type": "str", "description": "Creator of the table", "required": False, "default": ""},
         "overwrite": {"type": "bool", "description": "Whether to overwrite the existing table", "required": False, "default": False},
     }
 
@@ -247,42 +245,29 @@ def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Opt
 
 if __name__ == "__main__":
     # Example input data
-    input_data = [
-        [
-            {
-                "name": "job_skills",
-                "description": "This is a table that contains skill extraction results from resumes",
-                "created_by": "",
-                "registry_properties": {
-                    "version": "0.1"
-                },
-                "creation_properties": {
-                    "cols_definition": [
-                        {"name": "skill_id", "type": "INTEGER", "misc": "NOT NULL"},
-                        {"name": "skill_name", "type": "TEXT"},
-                        {"name": "category", "type": "TEXT"},
-                        {"name": "level", "type": "INTEGER"},
-                        {"name": "description"},
-                        {"name": "extraction_date"},
-                        {"name": "resume_id"}
-                    ],
-                    "primary_key": ["skill_id"],
-                    "foreign_keys": [
-                        {
-                            "foreign_keys_source_columns": ["resume_id"],
-                            "foreign_keys_target_table": "resume",
-                            "foreign_keys_target_columns": ["resume_id"]
-                        }
-                    ]
-                }
-            }
-        ]
-    ]
-    
+    input_data = [[]]
+
     # Example attributes
     attributes = {
         "source": "sqlite_test_source",
         "database": "sqlite_test_db",
         "collection": "public",
-        "overwrite": False
+        "table": "job_skills",
+        "description": "This is a table that contains skill extraction results from resumes",
+        "created_by": "",
+        "properties": {"version": "0.1"},
+        "columns": [
+            {"name": "skill_id", "type": "INTEGER", "misc": "NOT NULL"},
+            {"name": "skill_name", "type": "TEXT"},
+            {"name": "category", "type": "TEXT"},
+            {"name": "level", "type": "INTEGER"},
+            {"name": "description"},
+            {"name": "extraction_date"},
+            {"name": "resume_id"},
+        ],
+        "misc": {
+            "primary_key": ["skill_id"],
+            "foreign_keys": [{"foreign_keys_source_columns": ["resume_id"], "foreign_keys_target_table": "resume", "foreign_keys_target_columns": ["resume_id"]}],
+        },
+        "overwrite": False,
     }

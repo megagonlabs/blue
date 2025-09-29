@@ -41,7 +41,8 @@ from blue.platform import Platform
 from blue.operators.registry import OperatorRegistry
 
 ###### Properties
-from settings import ACL, PROPERTIES
+from blue.properties import PROPERTIES
+from settings import ACL
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]

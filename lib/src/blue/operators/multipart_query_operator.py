@@ -19,6 +19,8 @@ def multipart_query_operator_function(input_data: List[List[Dict[str, Any]]], at
 
 
 def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    # Extract attributes
+    serialize = attributes.get('serialize', True)
 
     plans = input_data
     pipelines = []
@@ -31,13 +33,16 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         # discover, query, create table, and insert for each cte
         failed = False
 
-        ## build plan
+        #### build plan
 
         # input
-        input_node = pipeline.define_input(value=[[]], properties={})
-        input_node.set_data("status", str(Status.EXECUTED))
+        input_node = pipeline.define_input(value=None)
         # output
         output_node = pipeline.define_output(properties={})
+        # set plan input / output
+        pipeline.set_plan_input(input_node)
+        pipeline.set_plan_output(output_node)
+
         # cte start/end nodes
         cte_start_nodes = {}
         cte_end_nodes = {}
@@ -46,9 +51,15 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
         # create database
         db_name = "db_" + pipeline.get_id()
-        # create_database_attributes = {"source": "internal", "database": db_name, "columns": columns}
-        # create_database_node = pipeline.define_operator("/server/blue_ray/operator/create_database", attributes=create_database_attributes, properties={})
+        create_database_attributes = {"source": "internal", "database": db_name}
+        create_database_node = pipeline.define_operator("/server/blue_ray/operator/create_database", attributes=create_database_attributes, properties={})
 
+        # connect to input
+        pipeline.connect_nodes(input_node, create_database_node)
+        # connection point for cte paths
+        cte_root_node = create_database_node
+
+        # create path of operators for each cte
         for cte in ctes:
             name = cte['name'] if 'name' in cte else None
             description = cte['description'] if 'description' in cte else None
@@ -65,33 +76,62 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             ## build pipeline
             # start
             start_node = None
+            end_node = None
 
-            # data discover
-            data_discovery_attributes = {"search_query": description, "approximate": True}
-            data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
+            if len(dependency) > 0:
+                #  use internal db, nl2sql directly
+                # nl2sql
+                attr_names = [column['name'] for column in columns]
+                nl2sql_attributes = {
+                    "question": description,
+                    "protocol": "sqlite",
+                    "source": "internal",
+                    "database": db_name,
+                    "collection": "public",
+                    "attr_names": attr_names,
+                    "execute_query": True,
+                }
+                nl2sql_node = pipeline.define_operator("/server/blue_ray/operator/nl2sql", attributes=nl2sql_attributes, properties={})
 
-            # create table
-            # create_table_attributes = {"source": "internal", "database": db_name, "table": table, "columns": columns}
-            # create_table_node = pipeline.define_operator("/server/blue_ray/operator/create_table", attributes=create_table_attributes, properties={})
+                # # insert table
+                insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
+                insert_table_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
 
-            # nl2q
-            nl2query_router_attributes = {"search_query": description, "execute_query": True, "columns": columns}
-            nnl2query_router_node = pipeline.define_operator("/server/blue_ray/operator/nl2query_router", attributes=nl2query_router_attributes, properties={})
+                start_node = nl2sql_node
+                end_node = insert_table_node
 
-            # # insert table
-            # insert_table_attributes = {"source": "internal", "database": db_name, "collection": table}
-            # it_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
+                ## intra-cte connections
+                pipeline.connect_nodes(nl2sql_node, insert_table_node)
 
-            start_node = data_discovery_node
-            end_node = nnl2query_router_node  # TODO: modify this
+            else:
+                # data discover, first at source level
+                data_discovery_attributes = {"search_query": description, "approximate": True, "concept_type": 'source', 'limit': 1, 'use_hierarchical_search': False}
+                data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
+
+                # create table
+                create_table_attributes = {"source": "internal", "database": db_name, "table": table, "columns": columns}
+                create_table_node = pipeline.define_operator("/server/blue_ray/operator/create_table", attributes=create_table_attributes, properties={})
+
+                # nl2q
+                nl2query_router_attributes = {"search_query": description, "execute_query": True, "columns": columns}
+                nl2query_router_node = pipeline.define_operator("/server/blue_ray/operator/nl2query_router", attributes=nl2query_router_attributes, properties={})
+
+                # # insert table
+                insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
+                insert_table_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
+
+                start_node = data_discovery_node
+                end_node = insert_table_node
+
+                ## intra-cte connections
+                pipeline.connect_nodes(data_discovery_node, create_table_node)
+                pipeline.connect_nodes(create_table_node, nl2query_router_node)
+                pipeline.connect_nodes(nl2query_router_node, insert_table_node)
 
             ## set cte start / end nodes
             dependents.add(name)
             cte_start_nodes[name] = start_node
             cte_end_nodes[name] = end_node
-
-            ## intra-cte connections
-            pipeline.connect_nodes(data_discovery_node, nnl2query_router_node)
 
             # remove any dependency
             for d in dependency:
@@ -100,36 +140,76 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
         if failed:
             continue
 
-        for cte in ctes:
-            name = cte['name'] if 'name' in cte else None
-            description = cte['description'] if 'description' in cte else None
-            sql = cte['sql'] if 'sql' in cte else None
-            table = cte['table'] if 'table' in cte else None
-            columns = cte['columns'] if 'columns' in cte else None
-            dependency = cte['dependency'] if 'dependency' in cte else None
+        if serialize:
+            last_end_node = cte_root_node
 
-            ## inter-cte connections
-            start_node = cte_start_nodes[name]
-            end_node = cte_end_nodes[name]
+            # add ctes to queue
+            cte_queue = []
+            cte_dict = {}
+            for cte in ctes:
+                name = cte['name'] if 'name' in cte else None
+                cte_queue.append(name)
+                cte_dict[name] = cte
 
-            # if no dependency, connect from input node to start
-            if len(dependency) == 0:
-                pipeline.connect_nodes(input_node, start_node)
-            else:
-                # connect from sink node of dependency if exists
+            # process queue by dependencu
+            processed_ctes = []
+            while len(cte_queue) > 0:
+                name = cte_queue.pop(0)
+                cte = cte_dict[name]
+                dependency = cte['dependency'] if 'dependency' in cte else []
+
+                # check if cte's depencencies are processed
+                dependent = False
                 for d in dependency:
-                    if d in cte_end_nodes:
-                        cte_end_node = cte_end_nodes[d]
-                        pipeline.connect_nodes(cte_end_node, start_node)
-                    else:
-                        # dependency not found!
-                        failed = True
-                        break
+                    if d not in processed_ctes:
+                        dependent = True
+                # still dependent, back to the queue
+                if dependent:
+                    cte_queue.append(name)
 
-            # if nobody depends on this connect end node to output node
-            for d in dependents:
-                cte_end_node = cte_end_nodes[d]
-                pipeline.connect_nodes(cte_end_node, output_node)
+                # connect last_end node to cte
+                start_node = cte_start_nodes[name]
+                end_node = cte_end_nodes[name]
+                pipeline.connect_nodes(last_end_node, start_node)
+                last_end_node = end_node
+
+                # add to processed
+                processed_ctes.append(name)
+
+            # connect last end node to output
+            pipeline.connect_nodes(last_end_node, output_node)
+
+        else:
+            for cte in ctes:
+                name = cte['name'] if 'name' in cte else None
+                description = cte['description'] if 'description' in cte else None
+                sql = cte['sql'] if 'sql' in cte else None
+                table = cte['table'] if 'table' in cte else None
+                columns = cte['columns'] if 'columns' in cte else None
+                dependency = cte['dependency'] if 'dependency' in cte else []
+
+                ## inter-cte connections
+                start_node = cte_start_nodes[name]
+                end_node = cte_end_nodes[name]
+
+                # if no dependency, connect from cte_root_node to start
+                if len(dependency) == 0:
+                    pipeline.connect_nodes(cte_root_node, start_node)
+                else:
+                    # connect from sink node of dependency if exists
+                    for d in dependency:
+                        if d in cte_end_nodes:
+                            cte_end_node = cte_end_nodes[d]
+                            pipeline.connect_nodes(cte_end_node, start_node)
+                        else:
+                            # dependency not found!
+                            failed = True
+                            break
+
+                # if nobody depends on this connect end node to output node
+                for d in dependents:
+                    cte_end_node = cte_end_nodes[d]
+                    pipeline.connect_nodes(cte_end_node, output_node)
 
         # add to pipelines
         pipelines.append(pipeline.to_dict())
@@ -160,7 +240,9 @@ class MultipartQueryOperator(Operator):
 
     name = "multipart_query"
     description = "Orchestrates the execution of multi-part query, starting with data discovery, leading to execution"
-    default_attributes = {}
+    default_attributes = {
+        "serialize": {"type": "bool", "description": "Whether to use serialize each part of the query", "required": False, "default": True},
+    }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
         super().__init__(

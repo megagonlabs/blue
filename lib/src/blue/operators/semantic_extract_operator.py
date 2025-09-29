@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Callable, Optional
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
+from blue properties import PROPERTIES
 
 ###############
 ### Semantic Extract Operator
@@ -282,10 +283,24 @@ ${text_to_extract}
     name = "semantic_extract"
     description = "Extracts entities from natural language text fields using LLM models"
     default_attributes = {
-        "entities": {"type": "list[dict]", "description": "List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional)", "required": True},
-        "context": {"type": "str", "description": "Additional context information that provides domain knowledge or additional instructions for the extraction", "required": False, "default": ""},
+        "entities": {
+            "type": "list[dict]",
+            "description": "List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional)",
+            "required": True,
+        },
+        "context": {
+            "type": "str",
+            "description": "Additional context information that provides domain knowledge or additional instructions for the extraction",
+            "required": False,
+            "default": "",
+        },
         "demonstrations": {"type": "str", "description": "Additional demonstrations to help in-context learning", "required": False, "default": ""},
-        "extract_with_single_prompt": {"type": "bool", "description": "If true, extract all entities in a single prompt, else extract each entity with individual prompt", "required": False, "default": True},
+        "extract_with_single_prompt": {
+            "type": "bool",
+            "description": "If true, extract all entities in a single prompt, else extract each entity with individual prompt",
+            "required": False,
+            "default": True,
+        },
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
@@ -304,6 +319,9 @@ ${text_to_extract}
         # attribute definitions
         self.properties["attributes"] = self.default_attributes
 
+        # service_url, set as default
+        self.properties["service_url"] = PROPERTIES["services.openai.service_url"]
+
 
 if __name__ == "__main__":
     ## calling example
@@ -311,8 +329,22 @@ if __name__ == "__main__":
     # Example data for testing
     input_data = [
         [
-            {"job_id": 1, "job_title": "Senior Full Stack Developer", "job_description": "We are seeking a senior full stack developer with 5+ years of experience in React, Node.js, Python, and PostgreSQL. Must have experience with AWS, Docker, and CI/CD pipelines. Knowledge of TypeScript and GraphQL is preferred.", "location": "location A", "company": "company A", "salary_range": "salary range A"},
-            {"job_id": 2, "job_title": "Machine Learning Engineer", "job_description": "Looking for an ML engineer with expertise in Python, TensorFlow, PyTorch, and scikit-learn. Must have 3+ years of experience with data pipelines, Apache Spark, and cloud platforms. PhD in Computer Science or related field preferred.", "location": "location B", "company": "company B", "salary_range": "salary range B"},
+            {
+                "job_id": 1,
+                "job_title": "Senior Full Stack Developer",
+                "job_description": "We are seeking a senior full stack developer with 5+ years of experience in React, Node.js, Python, and PostgreSQL. Must have experience with AWS, Docker, and CI/CD pipelines. Knowledge of TypeScript and GraphQL is preferred.",
+                "location": "location A",
+                "company": "company A",
+                "salary_range": "salary range A",
+            },
+            {
+                "job_id": 2,
+                "job_title": "Machine Learning Engineer",
+                "job_description": "Looking for an ML engineer with expertise in Python, TensorFlow, PyTorch, and scikit-learn. Must have 3+ years of experience with data pipelines, Apache Spark, and cloud platforms. PhD in Computer Science or related field preferred.",
+                "location": "location B",
+                "company": "company B",
+                "salary_range": "salary range B",
+            },
         ]
     ]
 

@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Callable, Optional
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
+from blue.properties import PROPERTIES
 
 ###############
 ### Query Breakdown Operator
@@ -43,19 +44,19 @@ def query_breakdown_operator_explainer(output: Any, input_data: List[List[Dict[s
 
 class QueryBreakdownOperator(Operator, ServiceClient):
     PROMPT = """
-Your task is to process a natural language query, and break it down to its subqueries. To do so, translate the natural language query into SQL, 
-defining each subquery as common table expressions (CTE). Return the results in JSON format.
+Your task is to process a natural language query, and break it down to its subqueries where each subquery is sufficiently self-contained in terms of data to retrieve. 
+Break down into as many subsqueries as necessary but don't do excessively. Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE). Return the results in JSON format.
 The response should be a valid JSON array containing the following information for each CTE:
 - 'name': name of the CTE
 - 'description': natural language description of the CTE, representing the subquery
 - 'sql': sql statement corresponding to the CTE
 - 'table':  name of the CTE table
-- 'columns': a list of columns of the table
+- 'columns': a list of columns of the table, each with a name and type (suitable for sql)
 - 'dependency': a list of dependent tables, defined as CTE.
 
 
 Here are additional requirements:
-- Generate {num_alternatives} number of alternatives
+- Generate ${num_alternatives} number of alternatives
 - The output should be a JSON array, each containing an alternative set of CTEs matching the natural language query.
 - There might be optional context provided. Use it to assist the query if provided.
 - There might be specificed schema, whenever possible try to match it.
@@ -122,6 +123,9 @@ Output:
 
         # attribute definitions
         self.properties["attributes"] = self.default_attributes
+
+        # service_url, set as default
+        self.properties["service_url"] = PROPERTIES["services.openai.service_url"]
 
 
 if __name__ == "__main__":

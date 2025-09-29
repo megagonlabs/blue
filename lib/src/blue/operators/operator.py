@@ -38,18 +38,18 @@ def default_operator_validator(input_data: List[List[Dict[str, Any]]], attribute
 def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate actual attributes (attributes) using the attribute definitions in properties."""
     # Need to get the attributes definition and validation error handling from properties
+    print("validator")
     if properties is None:
         properties = {}
     attributes_def = properties.get("attributes", {})
     validation_error_handling = properties.get("validation_error_handling", "fail")
-
     # Validate required attributes
     for attrib_name, attrib_def in attributes_def.items():
         # check if required attribute is present
         required = attrib_def.get("required", False)
         if required and attrib_name not in attributes:
+            print("failed for " + attrib_name)
             return False
-
         # validate attribute type
         if attrib_name in attributes:
             attrib_value = attributes[attrib_name]
@@ -57,6 +57,7 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
             if attrib_type:
                 try:
                     if not validate_parameter_type(attrib_value, attrib_type):
+                        print("failed type for " + attrib_name)
                         return False
                 except Exception as e:
                     # System failure in validation - handle based on configuration
@@ -67,9 +68,14 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
                         raise e
                     elif validation_error_handling == "log":
                         logging.error(error_msg)
+                        print(error_msg)
+                        print(attrib_name)
                         return False
                     else:  # skip
                         # Continue with validation (treat as if validation passed)
+                        print("2")
+                        print(error_msg)
+                        print(attrib_name)
                         logging.info(error_msg)
     return True
 
@@ -424,8 +430,7 @@ def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attribu
         # create plan input and output nodes, if missing
         if plan_input_node is None:
             plan_input_node = pipeline.define_input(value=input_data, properties={})
-            # always set input status to executed
-            plan_input_node.set_data("status", str(Status.EXECUTED))
+
         if plan_output_node is None:
             plan_output_node = pipeline.define_output(properties={})
         # second pass, connect
@@ -457,6 +462,10 @@ def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attribu
             if len(next_nodes) == 0:
                 # connect to output
                 pipeline.connect_nodes(operator_node, plan_output_node)
+
+        # set plan input / output
+        pipeline.set_plan_input(plan_input_node)
+        pipeline.set_plan_output(plan_output_node)
 
         # add to pipelines
         pipelines.append(pipeline.to_dict())

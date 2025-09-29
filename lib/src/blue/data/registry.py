@@ -397,7 +397,7 @@ class DataRegistry(Registry):
                     return None
             create_res = source_connection.create_database(database, properties=properties, overwrite=overwrite)
             if create_res and create_res['status'] in ["success", "registry_only"]:
-                self.sync_source_database(source, database, rebuild=rebuild, recursive=recursive)
+                self.sync_source(source, rebuild=rebuild, recursive=recursive)
                 # update database properties if provided
                 for key, value in properties.items():
                     self.set_source_database_property(source, database, key, value, rebuild=rebuild)
@@ -416,7 +416,7 @@ class DataRegistry(Registry):
                     return None
             create_res = source_connection.create_database_collection(database, collection, properties=properties, overwrite=overwrite)
             if create_res and create_res['status'] in ["success", "registry_only"]:
-                self.sync_source_database_collection(source, database, collection, rebuild=rebuild, recursive=recursive)
+                self.sync_source_database(source, database, rebuild=rebuild, recursive=recursive)
                 # update collection properties if provided
                 for key, value in properties.items():
                     self.set_source_database_collection_property(source, database, collection, key, value, rebuild=rebuild)
@@ -468,6 +468,10 @@ class DataRegistry(Registry):
             source_stats = source_connection.fetch_source_stats()
             if source_stats:
                 self.set_source_property(source, "stats", source_stats, rebuild=rebuild)
+            if recursive:
+                databases = self.get_source_databases(source)
+                for database in databases:
+                    self.collect_source_database_stats(source, database, source_connection, recursive=recursive, rebuild=rebuild)
 
     
     def collect_source_database_stats(self, source, database, source_connection=None, recursive=False, rebuild=False):
@@ -478,6 +482,12 @@ class DataRegistry(Registry):
             if db_stats:
                 self.set_source_database_property(source, database, "stats", db_stats, rebuild=rebuild)
 
+            if recursive:
+                collections = self.get_source_database_collections(source, database)
+                for collection in collections:
+                    self.collect_source_database_collection_stats(source, database, collection, source_connection, recursive=recursive, rebuild=rebuild)
+    
+                
     
     def collect_source_database_collection_stats(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, sample_limit=10):
         
@@ -540,19 +550,23 @@ class DataRegistry(Registry):
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
-            self.update_source(source, description=description, properties=properties, rebuild=rebuild)
 
-            ### this call will be removed once UI supports calling source stats 
-            self.collect_source_stats(source, recursive=recursive, rebuild=rebuild)
-        
-    
+            current_description = self.get_source_description(source)
+            
+            if description.strip() and metadata:
+                if not current_description or current_description.strip() == "":
+                    self.update_source(source, description=description, properties=properties, rebuild=rebuild)
+                else:
+                    self.update_source(source, description = current_description, properties=properties, rebuild=rebuild)
+                
+            
             # fetch databases
             fetched_dbs = source_connection.fetch_databases()
             fetched_dbs_set = set(fetched_dbs)
 
             # get existing databases
             registry_dbs = self.get_source_databases(source)
-            registry_dbs_set = set(json_utils.json_query(registry_dbs, '$.name', single=False))
+            registry_dbs_set = set(json_utils.json_query(registry_dbs, '$[*].name', single=False))
 
             adds = set()
             removes = set()
@@ -604,19 +618,24 @@ class DataRegistry(Registry):
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
-            self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
+            
+            current_description = self.get_source_database_description(source, database)
+            
+            if description.strip() and metadata:
+                if not current_description or current_description.strip() == "":
+                    self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
 
-            ### this call will be removed from here, when UI supports callign corresponding API
-            self.collect_source_database_stats(source, database, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
-         
+                else:                   
+                    self.update_source_database(source, database, description=current_description, properties=properties, rebuild=rebuild)
+        
+    
             # fetch collections
             fetched_collections = source_connection.fetch_database_collections(database)
             fetched_collections_set = set(fetched_collections)
 
             # get existing collections
             registry_collections = self.get_source_database_collections(source, database)
-            registry_collections_set = set(json_utils.json_query(registry_collections, '$.name', single=False))
-
+            registry_collections_set = set(json_utils.json_query(registry_collections, '$[*].name', single=False))
             adds = set()
             removes = set()
             merges = set()
@@ -641,7 +660,6 @@ class DataRegistry(Registry):
                 self.deregister_source_database_collection(source, database, collection)
 
             ## recurse
-            collection_descriptions = {}
             if recursive:
                 for collection in fetched_collections_set:
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
@@ -671,9 +689,15 @@ class DataRegistry(Registry):
             if 'description' in metadata:
                 description = metadata['description']
 
-            self.update_source_database_collection(source, database, collection, description=description, properties=properties, rebuild=rebuild)
+            current_description = self.get_source_database_collection_description(source, database, collection)
 
-
+            if description.strip() and metadata:
+                if not current_description or current_description.strip() == "":
+                    self.update_source_database_collection(source, database, collection, description=description, properties=properties, rebuild=rebuild)
+                else:                          
+                    self.update_source_database_collection(source, database, collection, description=current_description, properties=properties, rebuild=rebuild)
+                
+                
             entities = source_connection.fetch_database_collection_entities(database, collection)
             relations = source_connection.fetch_database_collection_relations(database, collection)
 
@@ -684,7 +708,7 @@ class DataRegistry(Registry):
 
             ## entities
             registry_entities = self.get_source_database_collection_entities(source, database, collection)
-            registry_entities_set = set(json_utils.json_query(registry_entities, '$.name', single=False))
+            registry_entities_set = set(json_utils.json_query(registry_entities, '$[*].name', single=False))
 
             adds = set()
             removes = set()
@@ -722,7 +746,7 @@ class DataRegistry(Registry):
                 fetched_attrs = entity_obj.get("contents", {}).get("attributes", {})
                 registry_attrs = self.get_source_database_collection_entity_attributes(source, database, collection, entity) or {}
 
-                registry_attrs_set = set(registry_attrs.keys())
+                registry_attrs_set = set(json_utils.json_query(registry_attrs, '$[*].name', single=False))
                 fetched_attrs_set = set(fetched_attrs.keys())
 
                 attr_adds = fetched_attrs_set - registry_attrs_set
@@ -736,14 +760,10 @@ class DataRegistry(Registry):
                 for attr in attr_merges:
                     self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
           
-            ### there are separate APIs for these, however still calling from here since UI is not enabled to call those APIs. These calls will be removed from here when UI supports 
-            ### corresponding API calling 
-            self.collect_source_database_collection_stats(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild, sample_limit=10)
-            
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
-            registry_relations_set = set(json_utils.json_query(registry_relations, '$.name', single=False))
+            registry_relations_set = set(json_utils.json_query(registry_relations, '$[*].name', single=False))
 
             adds = set()
             removes = set()
@@ -781,7 +801,7 @@ class DataRegistry(Registry):
                 fetched_attrs = relation_obj.get("contents", {}).get("attributes", {})
                 registry_attrs = self.get_source_database_collection_relation_attributes(source, database, collection, relation) or {}
 
-                registry_attrs_set = set(registry_attrs.keys())
+                registry_attrs_set = set(json_utils.json_query(registry_attrs, '$[*].name', single=False))
                 fetched_attrs_set = set(fetched_attrs.keys())
 
                 attr_adds = fetched_attrs_set - registry_attrs_set
@@ -1016,7 +1036,9 @@ class DataRegistry(Registry):
 
         # Handle scope (wildcard vs exact match)
         if scope:
-            if "*" in scope:
+            if scope == "/":
+                qs = qs
+            elif "*" in scope:
                 # Wildcard / prefix search -> no quotes
                 qs = f"(@scope:{scope}) " + qs
             else:
@@ -1070,6 +1092,14 @@ class DataRegistry(Registry):
         
         results = self.connection.ft(params['index_name']).search(query, query_params).docs
         print(f"  Found {len(results)} entities in index")
+
+        # Special handling for scope = '/'
+        if scope == "/":
+            filtered_results = []
+            for result in results:
+                if result.scope == "/":
+                    filtered_results.append(result)
+            results = filtered_results
 
         # Compute and attach all scores directly to result objects
         for i, result in enumerate(results):
@@ -1160,6 +1190,14 @@ class DataRegistry(Registry):
         
         if not results:
             return []
+        
+        # Special handling for scope = '/'
+        if scope == "/":
+            filtered_results = []
+            for result in results:
+                if result.scope == "/":
+                    filtered_results.append(result)
+            results = filtered_results
         
         # Compute and attach all scores directly to result objects
         for i, result in enumerate(results):

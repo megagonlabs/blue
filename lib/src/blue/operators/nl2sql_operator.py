@@ -11,6 +11,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 from blue.utils.service_utils import ServiceClient
 from blue.data.schema import DataSchema
 from blue.data.registry import DataRegistry
+from blue properties import PROPERTIES
 
 ###############
 ### NL2SQL Operator
@@ -42,6 +43,8 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
     # get schema from data registry
     schema = data_registry.get_data_source_schema(source, database, collection)
+    print("SCHEMA:")
+    print(schema)
     # convert schema to JSON string if it's a dictionary
     if isinstance(schema, dict):
         schema_str = json.dumps(schema, indent=2)
@@ -95,7 +98,9 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     # If execution is enabled, execute the generated SQL
     if execute_query and generated_query:
         # use data registry to execute query
+        print(generated_query)
         result = data_registry.execute_query(generated_query, source, database, collection)
+        print(result)
         result = _format_execution_result_format(result)
         return result
     # if execution is disabled, return the sql query only
@@ -209,6 +214,9 @@ ${attr_names_section}
         # attribute definitions
         self.properties["attributes"] = self.default_attributes
 
+        # service_url, set as default
+        self.properties["service_url"] = PROPERTIES["services.openai.service_url"]
+
     def extract_input_attributes(self, input_data, properties=None):
         """Extract input attributes for template substitution"""
         # For NL2SQL, input_data is a dictionary containing all the template variables
@@ -236,15 +244,22 @@ def _get_data_registry_from_properties(properties: Dict[str, Any] = None) -> Opt
 
 def _format_execution_result_format(result) -> List[List[Dict[str, Any]]]:
     """Format execution result to match the expected output format."""
-    # case 1: result is list of list of dicts
-    if isinstance(result, list) and all(isinstance(item, list) for item in result) and all(isinstance(item, dict) for item in result[0]):
-        return result
-    # case 2: result is list of dicts
-    elif isinstance(result, list) and all(isinstance(item, dict) for item in result):
-        return [result]
-    # case 3: result is dict
+    # case 1: result is None or empty list
+    if result is None or not result or (isinstance(result, list) and len(result) == 0):
+        return [[]]
+    # case 2: result is dict
     elif isinstance(result, dict):
         return [[result]]
+    # case 3: result is list of dicts
+    elif isinstance(result, list) and all(isinstance(item, dict) for item in result):
+        return [result]
+    # case 4: result is list of list of dicts
+    elif isinstance(result, list) and all(isinstance(item, list) for item in result):
+        for item in result:
+            if len(item) > 0 and not all(isinstance(subitem, dict) for subitem in item):
+                break
+        else:
+            return result
     else:
         # unable to format result, raise error
         raise ValueError("Invalid result format from data registry execution: " + str(result))

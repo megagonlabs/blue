@@ -18,13 +18,13 @@ def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
     collection = attributes.get('collection', 'public')
     table = attributes.get('table', '')
     batch_size = attributes.get('batch_size', 100)
-    
+
     # Get data registry from properties - follow agent pattern
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
         print("Error: Data registry not found")
-        return [[]]
-    
+        return input_data
+
     # Set collection to 'public' for SQLite sources even caller specifies a different collection
     try:
         source_properties = data_registry.get_source_properties(source)
@@ -46,10 +46,7 @@ def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
             if not row_group:
                 continue
 
-            group_inserted = _insert_data_group(
-                data_registry, source, database, collection, table, 
-                row_group, batch_size, group_idx
-            )
+            group_inserted = _insert_data_group(data_registry, source, database, collection, table, row_group, batch_size, group_idx)
 
             if group_inserted is None:
                 return [[]]
@@ -57,20 +54,15 @@ def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
             total_inserted += group_inserted
 
         print(f"Successfully inserted {total_inserted} rows into table '{table}' in database '{database}' collection '{collection}' of source '{source}'.")
-        
+
         # Return summary of inserted data
-        return [[{
-            "table": table,
-            "rows_inserted": total_inserted,
-            "source": source,
-            "database": database,
-            "collection": collection
-        }]]
+        # return [[{"table": table, "rows_inserted": total_inserted, "source": source, "database": database, "collection": collection}]]
+        return input_data
 
     except Exception as e:
         print("EXCEPTION")
         print(traceback.format_exc())
-        return [[]]
+        return input_data
 
 
 def insert_table_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -85,7 +77,7 @@ def insert_table_operator_validator(input_data: List[List[Dict[str, Any]]], attr
     source = attributes.get('source', '')
     database = attributes.get('database', '')
     table = attributes.get('table', '')
-    
+
     if not source or not source.strip():
         return False
     if not database or not database.strip():
@@ -134,7 +126,12 @@ class InsertTableOperator(Operator):
     default_attributes = {
         "source": {"type": "str", "description": "Name of the data source where the table is located", "required": True, "default": "default_source"},
         "database": {"type": "str", "description": "Name of the database where the table is located", "required": True, "default": "default"},
-        "collection": {"type": "str", "description": "Name of the collection where the table is located. For SQLite sources, defaults to 'public' if not specified", "required": False, "default": "public"},
+        "collection": {
+            "type": "str",
+            "description": "Name of the collection where the table is located. For SQLite sources, defaults to 'public' if not specified",
+            "required": False,
+            "default": "public",
+        },
         "table": {"type": "str", "description": "Name of the table to insert data into", "required": True, "default": ""},
         "batch_size": {"type": "int", "description": "Number of rows to insert in each batch (default: 100)", "required": False, "default": 100},
     }
@@ -173,17 +170,17 @@ def _insert_data_group(data_registry, source, database, collection, table, row_g
     # Insert data in batches
     group_inserted = 0
     for i in range(0, len(data_rows), batch_size):
-        batch = data_rows[i:i + batch_size]
+        batch = data_rows[i : i + batch_size]
         if not batch:
             continue
-            
+
         # Get column names from first row
         columns = list(batch[0].keys())
         columns_str = ', '.join([f'"{col}"' for col in columns])
         placeholders = ', '.join(['?' for _ in columns])
-        
+
         insert_query = f'INSERT INTO "{table}" ({columns_str}) VALUES ({placeholders})'
-        
+
         # Prepare data for batch insert
         batch_data = []
         for row in batch:
@@ -196,7 +193,7 @@ def _insert_data_group(data_registry, source, database, collection, table, row_g
                 else:
                     row_values.append(value)
             batch_data.append(tuple(row_values))
-        
+
         # Execute batch insert using data registry
         try:
             # Use the data registry's execute_query method
@@ -204,21 +201,21 @@ def _insert_data_group(data_registry, source, database, collection, table, row_g
             if source_connection:
                 db_connection = source_connection._db_connect(database)
                 cursor = db_connection.cursor()
-                
+
                 # Execute batch insert
                 cursor.executemany(insert_query, batch_data)
                 db_connection.commit()
-                
+
                 # Get number of inserted rows
                 inserted_count = cursor.rowcount
                 group_inserted += inserted_count
-                
+
                 # Close connection
                 source_connection._db_disconnect(db_connection)
-                
+
             else:
                 return None
-                
+
         except Exception as e:
             print(f"Error inserting group {group_idx + 1}, batch {i//batch_size + 1}: {str(e)}")
             print(traceback.format_exc())
@@ -250,21 +247,20 @@ if __name__ == "__main__":
         [
             {"skill_id": 1, "skill_name": "Python", "category": "Programming", "level": 3, "description": "Python programming language", "extraction_date": "2025-01-15", "resume_id": 101},
             {"skill_id": 2, "skill_name": "SQL", "category": "Database", "level": 2, "description": "Structured Query Language", "extraction_date": "2025-01-15", "resume_id": 101},
-            {"skill_id": 3, "skill_name": "Machine Learning", "category": "AI/ML", "level": 4, "description": "Machine learning algorithms and techniques", "extraction_date": "2025-01-16", "resume_id": 102}
+            {
+                "skill_id": 3,
+                "skill_name": "Machine Learning",
+                "category": "AI/ML",
+                "level": 4,
+                "description": "Machine learning algorithms and techniques",
+                "extraction_date": "2025-01-16",
+                "resume_id": 102,
+            },
         ]
     ]
-    
+
     # Example attributes
-    attributes = {
-        "source": "sqlite_test_source",
-        "database": "sqlite_test_db",
-        "collection": "public",
-        "table": "job_skills",
-        "batch_size": 100
-    }
+    attributes = {"source": "sqlite_test_source", "database": "sqlite_test_db", "collection": "public", "table": "job_skills", "batch_size": 100}
 
     # Example properties
-    properties = {
-        "platform.name": "test_platform",
-        "data_registry.name": "test_registry"
-    }
+    properties = {"platform.name": "test_platform", "data_registry.name": "test_registry"}

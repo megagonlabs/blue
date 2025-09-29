@@ -8,7 +8,9 @@ import jwt
 from jwt.algorithms import RSAAlgorithm
 from fastapi.responses import JSONResponse
 import requests
-from settings import ACL, EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES
+
+from blue.properties import EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES
+from settings import ACL
 from datetime import timedelta
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"

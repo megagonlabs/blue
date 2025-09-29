@@ -123,11 +123,11 @@ class SQLiteDBSource(DataSource):
 
     ######### database/collection
     def fetch_database_collections(self, database):
-        ## for sqlite, collection is the database, so we ignore the database parameter here 
-        databases = self.fetch_databases()
-        return databases
-
-
+        ## for sqlite, there is no collection actually. We are returning "public" to have data registry entry
+        collections = []
+        collections.append("public")
+        return collections 
+        
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 

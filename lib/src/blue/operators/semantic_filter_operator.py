@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Callable, Optional
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
+from blue properties import PROPERTIES
 
 ###############
 ### Semantic Filter Operator
@@ -177,6 +178,9 @@ ${demonstrations}
     def _initialize_properties(self):
         super()._initialize_properties()
         self.properties["attributes"] = self.default_attributes
+
+        # service_url, set as default
+        self.properties["service_url"] = PROPERTIES["services.openai.service_url"]
 
 
 if __name__ == "__main__":

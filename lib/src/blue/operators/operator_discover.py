@@ -7,6 +7,8 @@ import traceback
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.operators.registry import OperatorRegistry
 
+import logging
+
 ###############
 ### Operator Discover Operator
 
@@ -16,6 +18,7 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
     search_query = attributes.get('search_query', '')
     approximate = attributes.get('approximate', True)
     hybrid = attributes.get('hybrid', False)
+    limit = attributes.get('limit', -1)
     page = attributes.get('page', 0)
     page_size = attributes.get('page_size', 10)
     include_metadata = attributes.get('include_metadata', False)
@@ -25,6 +28,7 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
     # Get operator registry from properties
     operator_registry = _get_operator_registry_from_properties(properties)
     if not operator_registry:
+        logging.info("No operator registry found!")
         return [[]]
 
     results = []
@@ -111,9 +115,14 @@ def operator_discover_operator_function(input_data: List[List[Dict[str, Any]]], 
                 current_page += 1
 
     except Exception as e:
+        logging.info(traceback.format_exc())
         return [[]]
 
-    return [results]
+    # limit results
+    if limit >= 0:
+        return [results[:limit]]
+    else:
+        return [results]
 
 
 def operator_discover_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -167,11 +176,22 @@ class OperatorDiscoverOperator(Operator):
         "search_query": {"type": "str", "description": "Text to search for in operator names and descriptions", "required": True, "default": ""},
         "approximate": {"type": "bool", "description": "Whether to use approximate (vector) search", "required": True, "default": True},
         "hybrid": {"type": "bool", "description": "Whether to use hybrid search (text + vector)", "required": False, "default": False},
+        "limit": {"type": "int", "description": "Max number of results to return (-1, unlimited)", "required": False, "default": -1},
         "page": {"type": "int", "description": "Page number for pagination", "required": False, "default": 0},
         "page_size": {"type": "int", "description": "Number of results per page (default: 10, max: 100)", "required": False, "default": 10},
         "include_metadata": {"type": "bool", "description": "Whether to include metadata in results (description and properties always included)", "required": False, "default": False},
-        "threshold": {"type": "float", "description": "Similarity threshold for filtering results (0.0-1.0, lower = more similar, only applies to approximate/hybrid search)", "required": False, "default": 0.5},
-        "progressive_pagination": {"type": "bool", "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)", "required": False, "default": False},
+        "threshold": {
+            "type": "float",
+            "description": "Similarity threshold for filtering results (0.0-1.0, lower = more similar, only applies to approximate/hybrid search)",
+            "required": False,
+            "default": 0.5,
+        },
+        "progressive_pagination": {
+            "type": "bool",
+            "description": "Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded)",
+            "required": False,
+            "default": False,
+        },
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):

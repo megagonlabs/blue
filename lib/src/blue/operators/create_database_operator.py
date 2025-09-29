@@ -13,52 +13,42 @@ from blue.data.registry import DataRegistry
 
 def create_database_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     # Extract attributes
-    source = attributes.get('source', '')
     overwrite = attributes.get('overwrite', False)
+    source = attributes.get('source', '')
+    database = attributes.get('database')
+    database_description = attributes.get('description', '')
+    database_properties = attributes.get('properties', {})
 
     # Get data registry from properties - follow agent pattern
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
         print("Error: Data registry not found")
-        return [[]]
+        # pass through input to output
+        return input_data
 
     try:
-        # Validate input data
-        if not input_data or not input_data[0]:
-            return [[]]
-
-        # Get database definition from input data
-        db_def = input_data[0][0]
-        if not isinstance(db_def, dict):
-            return [[]]
-
-        database_name = db_def.get('name')
-        if not database_name:
-            return [[]]
-        description = db_def.get('description', '')
-        db_properties = db_def.get('database_properties', {})
-        # notes: the key-value pairs in db_properties will be set as database properties in the data registry
 
         # Create the database using data registry
-        data_registry.create_source_database(source=source, database=database_name, properties=db_properties, overwrite=overwrite, rebuild=True, recursive=False)
+        data_registry.create_source_database(source=source, database=database, properties=database_properties, overwrite=overwrite, rebuild=True, recursive=False)
 
         # Set the description after database creation
-        if description:
-            data_registry.set_source_database_description(source=source, database=database_name, description=description, rebuild=True)
+        if database_description:
+            data_registry.set_source_database_description(source=source, database=database, description=database_description, rebuild=True)
 
         # Set the created_by after database creation
-        created_by = db_def.get('created_by')
+        created_by = attributes.get('created_by')
         if created_by:
-            data_registry.set_record_data(name=database_name, type='database', scope=f'/source/{source}', key='created_by', value=created_by, rebuild=True)
+            data_registry.set_record_data(name=database, type='database', scope=f'/source/{source}', key='created_by', value=created_by, rebuild=True)
 
-        print(f"Successfully created database '{database_name}' in source '{source}'.")
+        print(f"Successfully created database '{database}' in source '{source}'.")
 
-        return [[]]
+        # pass through input to output
+        return input_data
 
     except Exception as e:
-        print("EXCEPTION")
         print(traceback.format_exc())
-        return [[]]
+        # pass through input to output
+        return input_data
 
 
 def create_database_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -74,18 +64,9 @@ def create_database_operator_validator(input_data: List[List[Dict[str, Any]]], a
     if not source or not source.strip():
         return False
 
-    # Validate input data structure - expect single database dictionary
-    if not input_data or not input_data[0] or len(input_data[0]) != 1:
+    database = attributes.get('database', '')
+    if not database or not database.strip():
         return False
-
-    # Validate database definition
-    db_def = input_data[0][0]
-    if not isinstance(db_def, dict):
-        return False
-    required_fields = ['name']
-    for field in required_fields:
-        if field not in db_def:
-            return False
 
     return True
 
@@ -121,6 +102,10 @@ class CreateDatabaseOperator(Operator):
     description = "Creates databases in data sources using the data registry. If the database already exists, it will be overwritten if overwrite is True."
     default_attributes = {
         "source": {"type": "str", "description": "Name of the data source where the database will be created", "required": True, "default": ""},
+        "database": {"type": "str", "description": "Name of the database to be created", "required": True, "default": ""},
+        "description": {"type": "str", "description": "Description of the database to be created", "required": False, "default": ""},
+        "properties": {"type": "str", "description": "Properties of the database to be created", "required": False, "default": {}},
+        "created_by": {"type": "str", "description": "Creator of the database", "required": False, "default": ""},
         "overwrite": {"type": "bool", "description": "Whether to overwrite the existing database", "required": False, "default": False},
     }
 

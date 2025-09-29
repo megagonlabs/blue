@@ -23,7 +23,7 @@
         "description": "",
         "properties": {
             "connection": {
-                "database_directory": "/blue_data/sqlite/internal",
+                "database_directory": "/blue_data/data/sqlite/internal",
                 "protocol": "sqlite"
             },
             "metadata": {}
