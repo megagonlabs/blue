@@ -11,6 +11,7 @@ import configparser
 import click
 import pydash
 from click import Context
+from importlib.metadata import version
 
 import docker
 
@@ -400,11 +401,17 @@ class PlatformManager:
 
         if platform_attributes is None:
             platform_attributes = {}
-
+    
         for platform_attribute in self._platform_attributes_config:
             platform_attribute_config = self._platform_attributes_config[platform_attribute]
             prompt = platform_attribute_config['prompt']
             default = platform_attribute_config['default']
+
+            ### dynamic overrides
+            # set default version dynamically, if not set
+            if  platform_attribute == "BLUE_DEPLOY_VERSION" and default == "":
+                default = version('blue-platform')
+
             cast = platform_attribute_config['cast']
             value = default
             current = None
