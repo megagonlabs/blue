@@ -204,7 +204,7 @@ export default function RegistryEntityCard({ entity, registry }) {
                 <div style={{ height: 20, marginTop: 10 }}>
                     <HorizontalScrollable
                         backgroundColor={
-                            darkMode ? Colors.DARK_GRAY2 : Colors.WHITE
+                            darkMode ? Colors.DARK_GRAY1 : Colors.LIGHT_GRAY5
                         }
                     >
                         <div style={{ display: "inline-flex", gap: 10 }}>

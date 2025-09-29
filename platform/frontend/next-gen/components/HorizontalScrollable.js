@@ -45,6 +45,9 @@ function HorizontalScrollable({ width, height, children, backgroundColor }) {
                         transform: "translate(0, -10px)",
                         height,
                         zIndex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-start",
                         textAlign: Alignment.START,
                         background: `linear-gradient(to right, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
                     }}
@@ -72,6 +75,9 @@ function HorizontalScrollable({ width, height, children, backgroundColor }) {
                         transform: "translate(0, -10px)",
                         height,
                         zIndex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
                         textAlign: Alignment.END,
                         background: `linear-gradient(to left, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
                     }}
