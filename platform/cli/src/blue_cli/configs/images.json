@@ -6,7 +6,6 @@
         "frontend": {
             "image": "blue-platform-frontend"
         }
-
     },
     "agents": {
         "nl2sql": {
@@ -64,4 +63,3 @@
         }
     }
 }
-
