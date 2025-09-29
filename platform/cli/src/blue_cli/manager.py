@@ -697,7 +697,7 @@ class PlatformManager:
                 entry = group[image_key]
                 image = entry["image"]
                 canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
-                self.__pull_docker_image(client, canonical_image + ":" + BLUE_DEPLOY_VERSION)
+                self.__pull_docker_image(client, canonical_image + ":v" + BLUE_DEPLOY_VERSION)
 
     def __pull_docker_image(self, client, image, trials=10, sleep=5):
         if trials > 0:
@@ -749,11 +749,11 @@ class PlatformManager:
                 entry = group[image_key]
                 image = entry["image"]
                 canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
-                full_image = canonical_image + ":" + BLUE_DEPLOY_VERSION
+                full_image = canonical_image + ":v" + BLUE_DEPLOY_VERSION
 
                 image_list.add(full_image)
 
-        image_list.add(BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup" + ":" + BLUE_DEPLOY_VERSION)
+        image_list.add(BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup" + ":v" + BLUE_DEPLOY_VERSION)
 
         # remove docker images
         images = client.images.list()
@@ -772,13 +772,13 @@ class PlatformManager:
 
         blue_platform_setup_image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup"
 
-        self.__pull_docker_image(client, blue_platform_setup_image + ":" + BLUE_DEPLOY_VERSION)
+        self.__pull_docker_image(client, blue_platform_setup_image + ":v" + BLUE_DEPLOY_VERSION)
 
         # Create container to copy files from to the docker volume
         # docker run -d --rm --name blue-platform-setup -v <docker_volume>:/root alpine
         print("Copying config data...")
         container = client.containers.run(
-            blue_platform_setup_image + ":" + BLUE_DEPLOY_VERSION, "tail -f /dev/null", volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"], stdout=True, stderr=True, detach=True
+            blue_platform_setup_image + ":v" + BLUE_DEPLOY_VERSION, "tail -f /dev/null", volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"], stdout=True, stderr=True, detach=True
         )
         # rename regsitry files
         BLUE_AGENT_REGISTRY = config["BLUE_AGENT_REGISTRY"]
@@ -855,7 +855,7 @@ class PlatformManager:
 
         # api
         BLUE_PRIVATE_API_SERVER_PORT = config["BLUE_PRIVATE_API_SERVER_PORT"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-api" + ":" + BLUE_DEPLOY_VERSION
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-api" + ":v" + BLUE_DEPLOY_VERSION
         print("Starting container: " + image)
         client.containers.run(
             image,
@@ -873,7 +873,7 @@ class PlatformManager:
 
         # ray
         BLUE_PRIVATE_API_SERVER_PORT = config["BLUE_PRIVATE_RAY_SERVER_PORT"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-ray" + ":" + BLUE_DEPLOY_VERSION
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-ray" + ":v" + BLUE_DEPLOY_VERSION
         print("Starting container: " + image)
         client.containers.run(
             image,
@@ -891,7 +891,7 @@ class PlatformManager:
 
         # frontend
         BLUE_PRIVATE_WEB_SERVER_PORT = config["BLUE_PRIVATE_WEB_SERVER_PORT"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + ":" + BLUE_DEPLOY_VERSION
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + ":v" + BLUE_DEPLOY_VERSION
         print("Starting container: " + image)
         client.containers.run(
             image,
