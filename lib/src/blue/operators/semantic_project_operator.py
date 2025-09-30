@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Callable, Optional, Set
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
-from blue properties import PROPERTIES
+from blue.properties import PROPERTIES
 
 ###############
 ### Semantic Project Operator

@@ -11,7 +11,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 from blue.utils.service_utils import ServiceClient
 from blue.data.schema import DataSchema
 from blue.data.registry import DataRegistry
-from blue properties import PROPERTIES
+from blue.properties import PROPERTIES
 
 ###############
 ### NL2SQL Operator
