@@ -37,6 +37,8 @@ p, developer, model_registry, write_own
 p, developer, model_registry, read_all
 p, developer, operator_registry, write_own
 p, developer, operator_registry, read_all
+p, developer, tool_registry, write_own
+p, developer, tool_registry, read_all
 p, developer, form_designer, visible
 p, developer, prompt_designer, visible
 
@@ -49,6 +51,7 @@ p, member, agent_registry, read_all
 p, member, data_registry, read_all
 p, member, model_registry, read_all
 p, member, operator_registry, read_all
+p, member, tool_registry, read_all
 
 p, guest, platform_users, read_all
 p, guest, sessions, read_participate
@@ -56,3 +59,4 @@ p, guest, agent_registry, read_all
 p, guest, data_registry, read_all
 p, guest, model_registry, read_all
 p, guest, operator_registry, read_all
+p, guest, tool_registry, read_all
