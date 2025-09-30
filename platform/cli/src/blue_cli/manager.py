@@ -792,6 +792,9 @@ class PlatformManager:
         # rename regsitry files
         BLUE_AGENT_REGISTRY = config["BLUE_AGENT_REGISTRY"]
         BLUE_DATA_REGISTRY = config["BLUE_DATA_REGISTRY"]
+        BLUE_MODEL_REGISTRY = config["BLUE_MODEL_REGISTRY"]
+        BLUE_TOOL_REGISTRY = config["BLUE_TOOL_REGISTRY"]
+        BLUE_OPERATOR_REGISTRY = config["BLUE_OPERATOR_REGISTRY"]
 
         error = self.__container_exec_run(container, "cp -r /app/. /blue_data")
         if error:
@@ -800,6 +803,15 @@ class PlatformManager:
         if error:
             print("Error: " + str(error))
         error = self.__container_exec_run(container, f"mv /blue_data/config/data.json /blue_data/config/{BLUE_DATA_REGISTRY}.data.json")
+        if error:
+            print("Error: " + str(error))
+        error = self.__container_exec_run(container, f"mv /blue_data/config/models.json /blue_data/config/{BLUE_MODEL_REGISTRY}.models.json")
+        if error:
+            print("Error: " + str(error))
+        error = self.__container_exec_run(container, f"mv /blue_data/config/tools.json /blue_data/config/{BLUE_TOOL_REGISTRY}.tools.json")
+        if error:
+            print("Error: " + str(error))
+        error = self.__container_exec_run(container, f"mv /blue_data/config/operators.json /blue_data/config/{BLUE_OPERATOR_REGISTRY}.operators.json")
         if error:
             print("Error: " + str(error))
 
