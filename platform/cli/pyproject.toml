@@ -11,7 +11,6 @@ where = ["src"]
 
 [project]
 name = "blue-cli"
-version = "1.0"
 authors = [
   { name="Megagon Labs", email="blue@megagon.ai" },
 ]
@@ -23,7 +22,7 @@ classifiers = [
       "Programming Language :: Python :: 3.9",
       "Operating System :: OS Independent",
 ]
-dynamic = ["scripts", "dependencies"]
+dynamic = ["version", "scripts", "dependencies"]
 license = "BSD-3-Clause"
 
 

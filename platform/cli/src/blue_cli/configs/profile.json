@@ -11,6 +11,24 @@
         "required": true,
         "cast": "file"
     },
+    "BLUE_BUILD_LIB_SERVER": {
+        "default": "pypi",
+        "prompt": "Name of pypi server (see ~/.pypirc)",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_BUILD_PUBLISH": {
+        "default": "",
+        "prompt": "Publish docker images to docker hub ('--push') or not (leave empty)",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_BUILD_PLATFORM": {
+        "default": null,
+        "prompt": "List of build platforms for docker (e.g. lunix/amd64,linux/arm64)",
+        "required": true,
+        "cast": "str"
+    },
     "BLUE_DEV_DOCKER_ORG": { 
         "default": null,
         "prompt": "Docker Organization for Publishing Agent Images",

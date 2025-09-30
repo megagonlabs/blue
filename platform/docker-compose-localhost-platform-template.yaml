@@ -62,7 +62,7 @@ services:
         restart: always
 
     ray:
-        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-ray${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION}
+        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-ray${BLUE_BUILD_IMG_SUFFIX}:v${BLUE_DEPLOY_VERSION}
         hostname: blue_server_ray
         ports:
             - "${BLUE_PRIVATE_RAY_SERVER_PORT}:6380"
@@ -81,7 +81,7 @@ services:
         restart: always
 
     api:
-        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-api${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION}
+        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-api${BLUE_BUILD_IMG_SUFFIX}:v${BLUE_DEPLOY_VERSION}
         hostname: blue_platform_api
         depends_on:
             - redis
@@ -101,7 +101,7 @@ services:
         restart: always
 
     frontend:
-        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION}
+        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend${BLUE_BUILD_IMG_SUFFIX}:v${BLUE_DEPLOY_VERSION}
         hostname: blue_platform_frontend
         ports:
             - "${BLUE_PRIVATE_WEB_SERVER_PORT}:3000"

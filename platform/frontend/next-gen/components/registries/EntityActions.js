@@ -20,6 +20,7 @@ import {
     faClone,
     faEllipsisV,
     faFileHalfDashed,
+    faFileWaveform,
     faPenLine,
     faPlay,
     faRefresh,
@@ -42,6 +43,7 @@ export default function EntityActions({
     onDelete,
     onSynchronize,
     onEnrichMetadata,
+    onCollectStats,
     onDuplicate,
 }) {
     const { name, type, properties, created_by = null } = entity;
@@ -94,6 +96,9 @@ export default function EntityActions({
     const canEnrichMetadata =
         _.includes(["source", "database", "collection"], type) &&
         _.isFunction(onEnrichMetadata);
+    const canCollectStats =
+        _.includes(["source", "database", "collection"], type) &&
+        _.isFunction(onCollectStats);
     const canPullImage =
         _.isEqual(type, "agent") &&
         _.has(properties, "image") &&
@@ -229,6 +234,13 @@ export default function EntityActions({
                             icon={<FAIcon icon={faFileHalfDashed} />}
                             text="Enrich Metadata"
                             onClick={onEnrichMetadata}
+                        />
+                    )}
+                    {canCollectStats && (
+                        <MenuItem
+                            icon={<FAIcon icon={faFileWaveform} />}
+                            text="Collect Stats."
+                            onClick={onCollectStats}
                         />
                     )}
                     {(canPullImage || canDeployAgent) && (

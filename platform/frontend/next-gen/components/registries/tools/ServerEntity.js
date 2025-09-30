@@ -195,11 +195,11 @@ export default function ServerEntity({
             ),
         });
     };
-    const NESTED_ENTITY_LOOKUP = { tool: "tool", operator: "operator" };
     const isRay = _.isEqual(
         _.get(server, "properties.connection.protocol", null),
         "ray"
     );
+    const categories = _.get(server, "properties.categories", []);
     return (
         <div>
             <div
@@ -313,18 +313,12 @@ export default function ServerEntity({
                     <EntityTitle
                         icon={
                             <FAIcon
-                                icon={
-                                    ENTITY_TYPE_LOOKUP[
-                                        NESTED_ENTITY_LOOKUP[registry]
-                                    ].icon
-                                }
+                                icon={ENTITY_TYPE_LOOKUP[registry].icon}
                                 size={25}
                             />
                         }
                         heading={H3}
-                        title={`${_.capitalize(
-                            NESTED_ENTITY_LOOKUP[registry]
-                        )}s`}
+                        title={`${_.capitalize(registry)}s`}
                     />
                 </div>
                 <div className="responsive-grid-container">
@@ -333,11 +327,7 @@ export default function ServerEntity({
                         loading={loading}
                         addCrumb={addCrumb}
                         list={_.values(
-                            _.get(
-                                server,
-                                `contents.${NESTED_ENTITY_LOOKUP[registry]}`,
-                                {}
-                            )
+                            _.get(server, `contents.${registry}`, {})
                         )}
                     />
                     {!isEditing && !_.includes(["tool"], registry) && isRay && (
@@ -346,12 +336,10 @@ export default function ServerEntity({
                             variant={ButtonVariant.MINIMAL}
                             icon={<FAIcon icon={faPlus} />}
                             fill
-                            text={`Add ${NESTED_ENTITY_LOOKUP[registry]}`}
+                            text={`Add ${registry}`}
                             onClick={() => {
                                 setShowNewEntity(true);
-                                setNewEntityType(
-                                    NESTED_ENTITY_LOOKUP[registry]
-                                );
+                                setNewEntityType(registry);
                             }}
                         />
                     )}

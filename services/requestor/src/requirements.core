@@ -1,4 +1,4 @@
-blue-platform==1.0
+blue-platform==${BLUE_DEPLOY_VERSION}
 jsonmerge==1.9.2
 jsonpath-ng==1.5.3
 jsonschema==4.21.1

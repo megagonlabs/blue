@@ -120,6 +120,13 @@ export default function SourceEntity({
             fetchSource();
         });
     };
+    const onCollectStats = () => {
+        setLoading(true);
+        axios.put(`${url}/stats`).finally(() => {
+            setLoading(false);
+            fetchSource();
+        });
+    };
     const JSONError = useRef(false);
     useEffect(() => {
         setContainerHeader({
@@ -272,6 +279,7 @@ export default function SourceEntity({
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
                             onEnrichMetadata={onEnrichMetadata}
+                            onCollectStats={onCollectStats}
                             onDuplicate={onDuplicate}
                         />
                     </div>

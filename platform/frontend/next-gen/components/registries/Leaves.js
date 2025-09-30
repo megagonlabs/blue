@@ -1,8 +1,9 @@
 import { useAppStore } from "@/stores/app-store";
-import { Classes, Colors } from "@blueprintjs/core";
+import { Classes, Colors, Tag } from "@blueprintjs/core";
 import classNames from "classnames";
 import _ from "lodash";
 import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "../constants";
+import HorizontalScrollable from "../HorizontalScrollable";
 import EntityDisplayName from "./EntityDisplayName";
 import RegistryEntityIcon from "./RegistryEntityIcon";
 export default function Leaves({ list, addCrumb, loading, isEditing }) {
@@ -16,6 +17,8 @@ export default function Leaves({ list, addCrumb, loading, isEditing }) {
         >
             {_.isEmpty(list) && "-"}
             {list.map((element, index) => {
+                const { type } = element;
+                const categories = _.get(element, "properties.categories", []);
                 return (
                     <div
                         onClick={() => {
@@ -85,6 +88,37 @@ export default function Leaves({ list, addCrumb, loading, isEditing }) {
                                 {element.description}
                             </div>
                         </div>
+                        {_.isEqual(type, "operator") &&
+                            !_.isEmpty(categories) && (
+                                <div style={{ height: 20, marginTop: 10 }}>
+                                    <HorizontalScrollable
+                                        backgroundColor={
+                                            darkMode
+                                                ? Colors.DARK_GRAY1
+                                                : Colors.LIGHT_GRAY5
+                                        }
+                                    >
+                                        <div
+                                            style={{
+                                                display: "inline-flex",
+                                                gap: 10,
+                                            }}
+                                        >
+                                            {categories.map((category) => (
+                                                <Tag
+                                                    key={category}
+                                                    style={{
+                                                        display: "inline-table",
+                                                    }}
+                                                    minimal
+                                                >
+                                                    {category}
+                                                </Tag>
+                                            ))}
+                                        </div>
+                                    </HorizontalScrollable>
+                                </div>
+                            )}
                     </div>
                 );
             })}
