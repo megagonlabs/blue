@@ -884,7 +884,7 @@ class PlatformManager:
 
         # ray
         BLUE_PRIVATE_RAY_SERVER_PORT = config["BLUE_PRIVATE_RAY_SERVER_PORT"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-ray" + + BLUE_BUILD_IMG_SUFFIX + ":v" + BLUE_DEPLOY_VERSION
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-ray" + BLUE_BUILD_IMG_SUFFIX + ":v" + BLUE_DEPLOY_VERSION
         print("Starting container: " + image)
         client.containers.run(
             image,
