@@ -1443,3 +1443,452 @@ class ServiceName(click.Group):
             if len(args) == 1 or args[1] not in self.commands:
                 args.insert(0, "")
         super(ServiceName, self).parse_args(ctx, args)
+
+class DataRegistryManager:
+    """
+    Data Registry Manager for handling sources in Redis.
+    """
+
+    def __init__(self, registry="default", platform="jalal-mahmud", host="localhost", port=6379, db=0):
+        self.redis_client = self.__connect_redis(host, port, db)
+        self.platform_prefix = "PLATFORM"
+        self.registry = registry
+        self.platform = platform
+        # Dynamic Redis key
+        self.DATA_REGISTRY_KEY = f"{self.platform_prefix}:{self.platform}:DATA_REGISTRY:{self.registry}:DATA"
+
+
+    def __connect_redis(self, host, port, db):
+        try:
+            client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+            client.ping()  # ensure connection works
+            return client
+        except Exception as e:
+            logger.error(f"Could not connect to Redis: {e}")
+            return None
+
+    def __ensure_registry_exists(self):
+        """Ensure the root JSON structure exists in RedisJSON."""
+        if not self.redis_client.json().get(self.DATA_REGISTRY_KEY):
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY, "$", {"contents": {"source": {}}}
+            )
+
+    def create_source(self, source_name, source_data):
+        """Create a new source in the registry. Fails if the source already exists."""
+        self.__ensure_registry_exists()
+        
+        # Check if the source already exists
+        existing = self.get_source(source_name)
+        if existing:
+            raise RuntimeError(f"Source '{source_name}' already exists.")
+
+        source_data["type"] = "source"
+        source_data["scope"] =  f"/"
+       
+        # Ensure the source has a contents dict for child objects
+        if "contents" not in source_data:
+            source_data["contents"] = {}
+
+        path = f"$.contents.source.{source_name}"
+        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, source_data)
+        logger.info(f"Source '{source_name}' created successfully.")
+        return True
+
+
+    def create_database(self, source_name, database_name, database_data):
+        """Create a new database under a source in the registry."""
+        self.__ensure_registry_exists()
+
+        # Ensure source exists
+        source = self.get_source(source_name)
+        if not source:
+            raise RuntimeError(f"Source '{source_name}' does not exist.")
+
+        # RedisJSON sometimes returns a list; pick the first element if needed
+        if isinstance(source, list):
+            source = source[0]
+
+        # Ensure the source has a contents dict
+        if "contents" not in source:
+            source["contents"] = {}
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY,
+                f"$.contents.source.{source_name}",
+                source
+            )
+
+        # Ensure the "database" dict exists under contents
+        if "database" not in source["contents"] or not isinstance(source["contents"]["database"], dict):
+            source["contents"]["database"] = {}
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY,
+                f"$.contents.source.{source_name}.contents.database",
+                {}
+            )
+        
+        # Check if database already exists
+        existing = self.get_database(source_name, database_name)
+        if existing:
+            raise RuntimeError(f"Database '{database_name}' already exists in source '{source_name}'.")
+
+        database_data["type"] = "database"
+        database_data["scope"] =  f"/source/{source_name}"
+       
+        # Ensure the source has a contents dict for child objects
+        if "contents" not in database_data:
+            database_data["contents"] = {}
+
+    
+        path = f"$.contents.source.{source_name}.contents.database.{database_name}"
+        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, database_data)
+        logger.info(f"Database '{database_name}' created successfully in source '{source_name}'.")
+        return True
+
+
+    def create_collection(self, source_name, database_name, collection_name, collection_data):
+        """Create a new collection under a database in the registry."""
+        self.__ensure_registry_exists()
+
+        # Ensure database exists
+        database = self.get_database(source_name, database_name)
+        if not database:
+            raise RuntimeError(f"Database '{database_name}' does not exist in source '{source_name}'.")
+
+        # RedisJSON sometimes returns a list; pick the first element if needed
+        if isinstance(database, list):
+            database = database[0]
+
+        # Ensure the database has a contents dict
+        if "contents" not in database:
+            database["contents"] = {}
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY,
+                f"$.contents.source.{source_name}.contents.database.{database_name}",
+                database
+            )
+
+        # Ensure the "collection" dict exists under contents
+        if "collection" not in database["contents"] or not isinstance(database["contents"]["collection"], dict):
+            database["contents"]["collection"] = {}
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY,
+                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection",
+                {}
+            )
+
+        # Check if collection already exists
+        existing = self.get_collection(source_name, database_name, collection_name)
+        if existing:
+            raise RuntimeError(f"Collection '{collection_name}' already exists in database '{database_name}'.")
+
+        collection_data["type"] = "collection"
+        collection_data["scope"] =  f"/source/{source_name}/database/{database_name}"
+       
+        # Ensure collection has a contents dict for child objects
+        if "contents" not in collection_data:
+            collection_data["contents"] = {}
+
+        # Write collection into the "collection" dict
+        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}"
+        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, collection_data)
+
+        logger.info(f"Collection '{collection_name}' created successfully in database '{database_name}' of source '{source_name}'.")
+        return True
+
+
+
+    def create_entity(self, source_name, database_name, collection_name, entity_name, entity_data):
+        """Create a new entity under a collection in the registry."""
+        self.__ensure_registry_exists()
+
+        # Ensure collection exists
+        collection = self.get_collection(source_name, database_name, collection_name)
+        if not collection:
+            raise RuntimeError(
+                f"Collection '{collection_name}' does not exist in database '{database_name}' of source '{source_name}'."
+            )
+
+        # RedisJSON sometimes returns a list; pick the first element if needed
+        if isinstance(collection, list):
+            collection = collection[0]
+
+        # Ensure the collection has a contents dict
+        if "contents" not in collection:
+            collection["contents"] = {}
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY,
+                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}",
+                collection
+            )
+
+        # Ensure the "entity" dict exists under contents
+        if "entity" not in collection["contents"] or not isinstance(collection["contents"]["entity"], dict):
+            collection["contents"]["entity"] = {}
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY,
+                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity",
+                {}
+            )
+
+        # Check if entity already exists
+        existing = self.get_entity(source_name, database_name, collection_name, entity_name)
+        if existing:
+            raise RuntimeError(
+                f"Entity '{entity_name}' already exists in collection '{collection_name}' of database '{database_name}' in source '{source_name}'."
+            )
+
+        entity_data["type"] = "entity"
+        entity_data["scope"] =  f"/source/{source_name}/database/{database_name}/collection/{collection_name}"
+       
+        
+        # Ensure entity has a contents dict for child attributes
+        if "contents" not in entity_data:
+            entity_data["contents"] = {}
+
+        # Write entity into the "entity" dict
+        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}"
+        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, entity_data)
+
+        logger.info(
+            f"Entity '{entity_name}' created successfully in collection '{collection_name}' of database '{database_name}' in source '{source_name}'."
+        )
+        return True
+        
+   
+    def create_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name, attribute_data):
+        """Create a new attribute under an entity."""
+        self.__ensure_registry_exists()
+
+        # Ensure entity exists
+        entity = self.get_entity(source_name, database_name, collection_name, entity_name)
+        if not entity:
+            raise RuntimeError(
+                f"Entity '{entity_name}' does not exist in collection '{collection_name}'."
+            )
+
+        # RedisJSON sometimes returns a list; pick the first element if needed
+        if isinstance(entity, list):
+            entity = entity[0]
+
+        # Ensure entity has a contents dict
+        if "contents" not in entity:
+            entity["contents"] = {}
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY,
+                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents",
+                {}
+            )
+
+        # Ensure the "attribute" dict exists under contents
+        if "attribute" not in entity["contents"] or not isinstance(entity["contents"]["attribute"], dict):
+            entity["contents"]["attribute"] = {}
+            self.redis_client.json().set(
+                self.DATA_REGISTRY_KEY,
+                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents.attribute",
+                {}
+            )
+
+        # Check if attribute already exists
+        existing = self.get_attribute(source_name, database_name, collection_name, entity_name, attribute_name)
+        if existing:
+            raise RuntimeError(
+                f"Attribute '{attribute_name}' already exists in entity '{entity_name}'."
+            )
+
+        attribute_data["type"] = "attribute"
+        attribute_data["scope"] =  f"/source/{source_name}/database/{database_name}/collection/{collection_name}/entity/{entity_name}"
+       
+        # Ensure attribute has a contents dict for child objects
+        if "contents" not in attribute_data:
+            attribute_data["contents"] = {}
+
+        # Write attribute into the "attribute" dict
+        path = (
+            f"$.contents.source.{source_name}.contents.database.{database_name}"
+            f".contents.collection.{collection_name}.contents.entity.{entity_name}"
+            f".contents.attribute.{attribute_name}"
+        )
+        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, attribute_data)
+
+        logger.info(
+            f"Attribute '{attribute_name}' created successfully in entity '{entity_name}' "
+            f"of collection '{collection_name}' in database '{database_name}' in source '{source_name}'."
+        )
+        return True
+
+
+
+    def get_source(self, source_name):
+        """Fetch a single source by name."""
+        logger.info(f"Source '{source_name}' need to be fetched.")
+       
+        self.__ensure_registry_exists()
+        path = f"$.contents.source.{source_name}"
+        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
+
+    def get_database(self, source_name, database_name):
+        """Fetch a single database by name under a source."""
+        logger.info(f"Database '{database_name}' in source '{source_name}' needs to be fetched.")
+        self.__ensure_registry_exists()
+        path = f"$.contents.source.{source_name}.contents.database.{database_name}"
+        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
+
+
+    def get_collection(self, source_name, database_name, collection_name):
+        """Fetch a single collection by name under a database."""
+        logger.info(f"Collection '{collection_name}' in database '{database_name}' of source '{source_name}' needs to be fetched.")
+        self.__ensure_registry_exists()
+        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}"
+        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
+
+
+    def get_entity(self, source_name, database_name, collection_name, entity_name):
+        """Fetch a single entity by name under a collection."""
+        logger.info(f"Entity '{entity_name}' in collection '{collection_name}' of database '{database_name}' in source '{source_name}' needs to be fetched.")
+        self.__ensure_registry_exists()
+        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}"
+        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
+
+
+    def get_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name):
+        """Fetch a single attribute by name under an entity."""
+        logger.info(f"Attribute '{attribute_name}' in entity '{entity_name}' of collection '{collection_name}' in database '{database_name}' in source '{source_name}' needs to be fetched.")
+        self.__ensure_registry_exists()
+        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents.attribute.{attribute_name}"
+        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
+
+    def delete_source(self, source_name):
+        """Delete a source from the registry."""
+        self.__ensure_registry_exists()
+        path = f"$.contents.source.{source_name}"
+        deleted = self.redis_client.json().delete(self.DATA_REGISTRY_KEY, path)
+        if deleted:
+            logger.info(f"Source '{source_name}' deleted successfully.")
+            return True
+        else:
+            logger.warning(f"Source '{source_name}' not found.")
+            return False
+
+    def delete_database(self, source_name, database_name):
+        """Delete a database under a source."""
+        self.__ensure_registry_exists()
+
+        source = self.get_source(source_name)
+        if not source:
+            logger.warning(f"Source '{source_name}' not found.")
+            return False
+        if isinstance(source, list):
+            source = source[0]
+
+        dbs = source.get("contents", {}).get("database", {})
+        if database_name not in dbs:
+            logger.warning(f"Database '{database_name}' not found in source '{source_name}'.")
+            return False
+
+        del dbs[database_name]
+        self.redis_client.json().set(
+            self.DATA_REGISTRY_KEY,
+            f"$.contents.source.{source_name}.contents.database",
+            dbs
+        )
+        logger.info(f"Database '{database_name}' deleted successfully from source '{source_name}'.")
+        return True
+
+
+    def delete_collection(self, source_name, database_name, collection_name):
+        """Delete a collection under a database."""
+        self.__ensure_registry_exists()
+
+        database = self.get_database(source_name, database_name)
+        if not database:
+            logger.warning(f"Database '{database_name}' not found in source '{source_name}'.")
+            return False
+        if isinstance(database, list):
+            database = database[0]
+
+        colls = database.get("contents", {}).get("collection", {})
+        if collection_name not in colls:
+            logger.warning(f"Collection '{collection_name}' not found in database '{database_name}'.")
+            return False
+
+        del colls[collection_name]
+        self.redis_client.json().set(
+            self.DATA_REGISTRY_KEY,
+            f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection",
+            colls
+        )
+        logger.info(f"Collection '{collection_name}' deleted successfully from database '{database_name}'.")
+        return True
+
+
+    def delete_entity(self, source_name, database_name, collection_name, entity_name):
+        """Delete an entity under a collection."""
+        self.__ensure_registry_exists()
+
+        collection = self.get_collection(source_name, database_name, collection_name)
+        if not collection:
+            logger.warning(f"Collection '{collection_name}' not found in database '{database_name}'.")
+            return False
+        if isinstance(collection, list):
+            collection = collection[0]
+
+        ents = collection.get("contents", {}).get("entity", {})
+        if entity_name not in ents:
+            logger.warning(f"Entity '{entity_name}' not found in collection '{collection_name}'.")
+            return False
+
+        del ents[entity_name]
+        self.redis_client.json().set(
+            self.DATA_REGISTRY_KEY,
+            f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity",
+            ents
+        )
+        logger.info(f"Entity '{entity_name}' deleted successfully from collection '{collection_name}'.")
+        return True
+
+
+    def delete_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name):
+        """Delete an attribute under an entity."""
+        self.__ensure_registry_exists()
+
+        entity = self.get_entity(source_name, database_name, collection_name, entity_name)
+        if not entity:
+            logger.warning(f"Entity '{entity_name}' not found in collection '{collection_name}'.")
+            return False
+        if isinstance(entity, list):
+            entity = entity[0]
+
+        attrs = entity.get("contents", {}).get("attribute", {})
+        if attribute_name not in attrs:
+            logger.warning(f"Attribute '{attribute_name}' not found in entity '{entity_name}'.")
+            return False
+
+        del attrs[attribute_name]
+        self.redis_client.json().set(
+            self.DATA_REGISTRY_KEY,
+            f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents.attribute",
+            attrs
+        )
+        logger.info(f"Attribute '{attribute_name}' deleted successfully from entity '{entity_name}'.")
+        return True
+
+    def get_all_sources(self):
+        """Fetch all sources from the data registry."""
+        self.__ensure_registry_exists()
+        data = self.redis_client.json().get(self.DATA_REGISTRY_KEY, "$.contents.source")
+        # RedisJSON returns a list for "$" queries
+        if isinstance(data, list) and len(data) > 0:
+            return data[0]
+        return {}
+
+    def search_sources(self, keyword):
+        """Search sources by keyword in their JSON."""
+        sources = self.get_all_sources()
+        matches = {
+            name: data
+            for name, data in sources.items()
+            if keyword.lower() in json.dumps(data).lower()
+        }
+        return matches
+
