@@ -734,16 +734,15 @@ class PlatformManager:
                             output[id_to_index[id]] = line
                     if len(output) > 0:
                         print_list_curses(stdscr, output)
+                curses.endwin()
+                print("Pulled image: " + image)
             except Exception:
                 curses.endwin()
                 time.sleep(sleep)
                 print("Trying again. Remaining trials: " + str(trials - 1))
                 self.__pull_docker_image(client, image, trials=trials - 1)
-            finally:
-                curses.endwin()
-            print("Pulled image: " + image)
         else:
-            return "Error Pulling Image: " + image
+            print("Error Pulling Image: " + image)
 
     def _remove_docker_images(self, client, config):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
