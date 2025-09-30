@@ -58,6 +58,8 @@ The response should be a valid JSON array containing the following information f
 Here are additional requirements:
 - Generate ${num_alternatives} number of alternatives
 - The output should be a JSON array, each containing an alternative set of CTEs matching the natural language query.
+- Avoid using IN within a CTE. Instead breakdown further and create another CTE and use JOIN. 
+- Use columns with ids sparingly. When joining especially different tables use columns that have values instead of ids.
 - There might be optional context provided. Use it to assist the query if provided.
 - There might be specificed schema, whenever possible try to match it.
 - Each object should contain the requested information in a structured format
