@@ -9,7 +9,6 @@
         "ray": {
             "image": "blue-platform-ray"
         }
-
     },
     "agents": {
         "nl2sql": {
@@ -67,4 +66,3 @@
         }
     }
 }
-
