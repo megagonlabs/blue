@@ -697,13 +697,14 @@ class PlatformManager:
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
+        BLUE_BUILD_IMG_SUFFIX = config["BLUE_BUILD_IMG_SUFFIX"]
 
         for group_key in self._platform_images:
             group = self._platform_images[group_key]
             for image_key in group:
                 entry = group[image_key]
                 image = entry["image"]
-                canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
+                canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image + BLUE_BUILD_IMG_SUFFIX
                 self.__pull_docker_image(client, canonical_image + ":v" + BLUE_DEPLOY_VERSION)
 
     def __pull_docker_image(self, client, image, trials=10, sleep=5):
@@ -748,6 +749,7 @@ class PlatformManager:
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
+        BLUE_BUILD_IMG_SUFFIX = config["BLUE_BUILD_IMG_SUFFIX"]
 
         image_list = set()
         for group_key in self._platform_images:
@@ -755,12 +757,13 @@ class PlatformManager:
             for image_key in group:
                 entry = group[image_key]
                 image = entry["image"]
-                canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
+                canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image + BLUE_BUILD_IMG_SUFFIX
                 full_image = canonical_image + ":v" + BLUE_DEPLOY_VERSION
 
                 image_list.add(full_image)
 
-        image_list.add(BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup" + ":v" + BLUE_DEPLOY_VERSION)
+        blue_platform_setup_image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup" + BLUE_BUILD_IMG_SUFFIX
+        image_list.add(blue_platform_setup_image + ":v" + BLUE_DEPLOY_VERSION)
 
         # remove docker images
         images = client.images.list()
@@ -774,10 +777,10 @@ class PlatformManager:
     def _copy_config_to_docker_volume(self, client, config):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
-
+        BLUE_BUILD_IMG_SUFFIX = config["BLUE_BUILD_IMG_SUFFIX"]
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
 
-        blue_platform_setup_image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup"
+        blue_platform_setup_image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup" + BLUE_BUILD_IMG_SUFFIX
 
         self.__pull_docker_image(client, blue_platform_setup_image + ":v" + BLUE_DEPLOY_VERSION)
 
@@ -823,6 +826,8 @@ class PlatformManager:
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+        BLUE_BUILD_IMG_SUFFIX = config["BLUE_BUILD_IMG_SUFFIX"]
+        
 
         # check deployment mode
         BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
@@ -862,7 +867,7 @@ class PlatformManager:
 
         # api
         BLUE_PRIVATE_API_SERVER_PORT = config["BLUE_PRIVATE_API_SERVER_PORT"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-api" + ":v" + BLUE_DEPLOY_VERSION
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-api" + BLUE_BUILD_IMG_SUFFIX + ":v" + BLUE_DEPLOY_VERSION
         print("Starting container: " + image)
         client.containers.run(
             image,
@@ -879,8 +884,8 @@ class PlatformManager:
         )
 
         # ray
-        BLUE_PRIVATE_API_SERVER_PORT = config["BLUE_PRIVATE_RAY_SERVER_PORT"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-ray" + ":v" + BLUE_DEPLOY_VERSION
+        BLUE_PRIVATE_RAY_SERVER_PORT = config["BLUE_PRIVATE_RAY_SERVER_PORT"]
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-ray" + + BLUE_BUILD_IMG_SUFFIX + ":v" + BLUE_DEPLOY_VERSION
         print("Starting container: " + image)
         client.containers.run(
             image,
@@ -898,7 +903,7 @@ class PlatformManager:
 
         # frontend
         BLUE_PRIVATE_WEB_SERVER_PORT = config["BLUE_PRIVATE_WEB_SERVER_PORT"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + ":v" + BLUE_DEPLOY_VERSION
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + BLUE_BUILD_IMG_SUFFIX + ":v" + BLUE_DEPLOY_VERSION
         print("Starting container: " + image)
         client.containers.run(
             image,
@@ -1299,6 +1304,7 @@ class ServiceManager:
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
+        BLUE_BUILD_IMG_SUFFIX = config["BLUE_BUILD_IMG_SUFFIX"]
 
         ### get service
         # get service
@@ -1327,6 +1333,7 @@ class ServiceManager:
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
+        BLUE_BUILD_IMG_SUFFIX = config["BLUE_BUILD_IMG_SUFFIX"]
 
         ### get service
         # get service
@@ -1365,6 +1372,7 @@ class ServiceManager:
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+        BLUE_BUILD_IMG_SUFFIX = config["BLUE_BUILD_IMG_SUFFIX"]
 
         ### get service
         # get service
