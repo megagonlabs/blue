@@ -50,10 +50,10 @@ The response should be a valid JSON array containing the following information f
 - 'name': name of the CTE
 - 'description': natural language description of the CTE, representing the subquery
 - 'sql': sql statement corresponding to the CTE
-- 'table':  name of the CTE table
+- 'table':  name of the CTE table, use short generic table names 
 - 'columns': a list of columns of the table, each with a name and type (suitable for sql)
 - 'dependency': a list of dependent tables, defined as CTE.
-
+- 'generality': score of 0 to 10, where a score of 10 indicating whether the subsquery can be completed answered through public general knowledge sources and a score of 0 indicating subqeury can only be answered through private data sources
 
 Here are additional requirements:
 - Generate ${num_alternatives} number of alternatives
