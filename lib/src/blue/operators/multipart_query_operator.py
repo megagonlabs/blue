@@ -61,7 +61,6 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
         # create path of operators for each cte
         for cte in ctes:
-            name = cte['name'] if 'name' in cte else None
             description = cte['description'] if 'description' in cte else None
             sql = cte['sql'] if 'sql' in cte else None
             table = cte['table'] if 'table' in cte else None
@@ -69,11 +68,8 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             dependency = cte['dependency'] if 'dependency' in cte else None
             generality = cte['generality'] if 'generality' in cte else 0
 
-            # use table name
-            name = table
-
             # fail
-            if name is None or description is None or sql is None or table is None or columns is None or dependency is None:
+            if description is None or sql is None or table is None or columns is None or dependency is None:
                 failed = True
                 break
 
@@ -148,9 +144,9 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
                 pipeline.connect_nodes(nl2query_router_node, insert_table_node)
 
             ## set cte start / end nodes
-            dependents.add(name)
-            cte_start_nodes[name] = start_node
-            cte_end_nodes[name] = end_node
+            dependents.add(table)
+            cte_start_nodes[table] = start_node
+            cte_end_nodes[table] = end_node
 
             # remove any dependency
             for d in dependency:
@@ -166,15 +162,15 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             cte_queue = []
             cte_dict = {}
             for cte in ctes:
-                name = cte['name'] if 'name' in cte else None
-                cte_queue.append(name)
-                cte_dict[name] = cte
+                table = cte['table'] if 'table' in cte else None
+                cte_queue.append(table)
+                cte_dict[table] = cte
 
             # process queue by dependencu
             processed_ctes = []
             while len(cte_queue) > 0:
-                name = cte_queue.pop(0)
-                cte = cte_dict[name]
+                table = cte_queue.pop(0)
+                cte = cte_dict[table]
                 dependency = cte['dependency'] if 'dependency' in cte else []
 
                 # check if cte's depencencies are processed
@@ -184,23 +180,22 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
                         dependent = True
                 # still dependent, back to the queue
                 if dependent:
-                    cte_queue.append(name)
+                    cte_queue.append(table)
 
                 # connect last_end node to cte
-                start_node = cte_start_nodes[name]
-                end_node = cte_end_nodes[name]
+                start_node = cte_start_nodes[table]
+                end_node = cte_end_nodes[table]
                 pipeline.connect_nodes(last_end_node, start_node)
                 last_end_node = end_node
 
                 # add to processed
-                processed_ctes.append(name)
+                processed_ctes.append(table)
 
             # connect last end node to output
             pipeline.connect_nodes(last_end_node, output_node)
 
         else:
             for cte in ctes:
-                name = cte['name'] if 'name' in cte else None
                 description = cte['description'] if 'description' in cte else None
                 sql = cte['sql'] if 'sql' in cte else None
                 table = cte['table'] if 'table' in cte else None
@@ -208,8 +203,8 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
                 dependency = cte['dependency'] if 'dependency' in cte else []
 
                 ## inter-cte connections
-                start_node = cte_start_nodes[name]
-                end_node = cte_end_nodes[name]
+                start_node = cte_start_nodes[table]
+                end_node = cte_end_nodes[table]
 
                 # if no dependency, connect from cte_root_node to start
                 if len(dependency) == 0:
