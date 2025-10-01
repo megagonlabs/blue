@@ -1,4 +1,5 @@
 ###### OS / Systems
+import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from curses import noecho
@@ -73,6 +74,19 @@ write_all_roles = ACL.get_implicit_users_for_permission('platform_agents', 'writ
 write_own_roles = ACL.get_implicit_users_for_permission('platform_agents', 'write_own')
 read_all_roles = ACL.get_implicit_users_for_permission('platform_agents', 'read_all')
 read_own_roles = ACL.get_implicit_users_for_permission('platform_agents', 'read_own')
+
+
+def resolve_agent_image(image, version=None):
+    # check if image has suffix
+    # deployed version
+    suffix = os.getenv("BLUE_DEPLOY_VERSION")
+    if version:
+        suffix = version
+    s = image.split(":")
+    if len(s) > 1:
+        image = s[0]
+        suffix = s[1]
+    return image + ":" + suffix
 
 
 def container_acl_enforce(request: Request, agent: dict, read=False, write=False, throw=True):
@@ -219,6 +233,12 @@ def deploy_agent_container(request: Request, agent_name):
     if 'image' not in agent_registry_properties:
         return JSONResponse(content={"message": "\"image\" is not defined in the properties"}, status_code=400)
     image = agent_registry_properties["image"]
+    version = None
+    if 'version' in agent_registry_properties:
+        version = agent_registry_properties['version']
+
+    # resolve image
+    image = resolve_agent_image(image, version=version)
 
     # connect to docker
     client = docker.from_env()
@@ -296,8 +316,13 @@ def update_agent_container(request: Request, agent_name):
     container_acl_enforce(request, agent, write=True)
     properties = agent_registry.get_agent_properties(agent_name)
     if 'image' in properties:
-        image = 'redis/redis-stack'
-        # properties["image"]
+        image = properties['images']
+
+        version = None
+        if 'version' in properties:
+            version = properties['version']
+
+        image = resolve_agent_image(image, version=version)
 
         # connect to docker
         client = docker.from_env()
