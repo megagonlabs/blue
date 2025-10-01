@@ -67,6 +67,10 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             table = cte['table'] if 'table' in cte else None
             columns = cte['columns'] if 'columns' in cte else None
             dependency = cte['dependency'] if 'dependency' in cte else None
+            generality = cte['generality'] if 'generality' in cte else 0
+
+            # use table name
+            name = table
 
             # fail
             if name is None or description is None or sql is None or table is None or columns is None or dependency is None:
@@ -79,8 +83,11 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
             end_node = None
 
             if len(dependency) > 0:
-                #  use internal db, nl2sql directly
-                # nl2sql
+                # create table
+                create_table_attributes = {"source": "internal", "database": db_name, "table": table, "columns": columns}
+                create_table_node = pipeline.define_operator("/server/blue_ray/operator/create_table", attributes=create_table_attributes, properties={})
+
+                # nl2sql, use internal db
                 attr_names = [column['name'] for column in columns]
                 nl2sql_attributes = {
                     "question": description,
@@ -93,18 +100,20 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
                 }
                 nl2sql_node = pipeline.define_operator("/server/blue_ray/operator/nl2sql", attributes=nl2sql_attributes, properties={})
 
-                # # insert table
+                # insert table
                 insert_table_attributes = {"source": "internal", "database": db_name, "table": table}
                 insert_table_node = pipeline.define_operator("/server/blue_ray/operator/insert_table", attributes=insert_table_attributes, properties={})
 
-                start_node = nl2sql_node
+                start_node = create_table_node
                 end_node = insert_table_node
 
                 ## intra-cte connections
+                pipeline.connect_nodes(create_table_node, nl2sql_node)
                 pipeline.connect_nodes(nl2sql_node, insert_table_node)
 
             else:
                 # data discover, first at source level
+
                 data_discovery_attributes = {
                     "search_query": description,
                     "approximate": True,
@@ -113,6 +122,9 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
                     "filter_names": ["internal"],
                     "use_hierarchical_search": False,
                 }
+
+                if generality >= 5:
+                    data_discovery_attributes['search_query'] = "general knowledge"
                 data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
 
                 # create table
