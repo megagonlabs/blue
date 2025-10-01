@@ -1,6 +1,6 @@
 from jsonschema.validators import Draft7Validator
 import pydash
-from constant import InvalidRequestJson
+from validations.constant import InvalidRequestJson
 
 
 def d7validate(validations, payload):
