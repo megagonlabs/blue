@@ -1,5 +1,5 @@
 from fastapi import Header
-from src.constant import EMAIL_DOMAIN_ADDRESS_REGEXP, allowed_domains, p as platform
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, allowed_domains
 from authorizations.constant import PermissionDenied
 from blue.properties import FIREBASE_CLIENT_ID
 from blue.utils.string_utils import encode_websafe_no_padding
@@ -19,7 +19,7 @@ def account_id_header(X_accountId: str = Header(None)):
 def is_email_allowed(email: str) -> bool:
     email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
     urlsafe_encoded_string = encode_websafe_no_padding(email)
-    result = platform.get_metadata(f'settings.allowed_emails.{urlsafe_encoded_string}.allow')
+    result = p.get_metadata(f'settings.allowed_emails.{urlsafe_encoded_string}.allow')
     return email_domain in allowed_domains or (isinstance(result, bool) and result)
 
 
