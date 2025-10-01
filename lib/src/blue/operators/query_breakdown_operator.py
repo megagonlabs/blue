@@ -25,7 +25,8 @@ def query_breakdown_operator_function(input_data: List[List[Dict[str, Any]]], at
     service_client = ServiceClient(name="query_breakdown_operator_service_client", properties=properties)
     additional_data = {'query': query, 'context': context, 'num_alternatives': num_alternatives, 'schema': schema}
 
-    return service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
+    results = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
+    return results
 
 
 def query_breakdown_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
@@ -44,8 +45,11 @@ def query_breakdown_operator_explainer(output: Any, input_data: List[List[Dict[s
 
 class QueryBreakdownOperator(Operator, ServiceClient):
     PROMPT = """
-Your task is to process a natural language query, and break it down to its subqueries where each subquery is sufficiently self-contained in terms of data to retrieve. 
-Break down into as many subsqueries as necessary but don't do excessively. Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE). Return the results in JSON format.
+Your task is to process a natural language query, and break it down to its subqueries.  
+Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE).
+Each subquery should be sufficiently self-contained in terms of specific data to retrieve. Break down into as many subsqueries as necessary but don't do excessively. 
+Only last subquery should together all the subqueries to answer the natural language query.
+Return the results in JSON format.
 The response should be a valid JSON array containing the following information for each CTE:
 - 'description': natural language description of the CTE, representing the subquery
 - 'sql': sql statement corresponding to the CTE
@@ -55,9 +59,9 @@ The response should be a valid JSON array containing the following information f
 - 'generality': score of 0 to 10, where a score of 10 indicating whether the subsquery can be completed answered through public general knowledge sources and a score of 0 indicating subqeury can only be answered through private data sources
 
 Here are additional requirements:
-- Generate ${num_alternatives} number of alternatives
-- The output should be a JSON array, each containing an alternative set of CTEs matching the natural language query.
-- Avoid using IN within a CTE. Instead breakdown further and create another CTE and use JOIN. 
+- Create a total of ${num_alternatives} alternatives.
+- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object. - The output should be a JSON array, each containing an alternative set of CTEs. Even if only one alternative set is requested the output should be put in a JSON array with only one alternative set.
+- Avoid using IN within a CTE. Instead breakdown further and create another CTE and have another CTE finally that uses JOIN to put the subqueries together. 
 - Use columns with ids sparingly. When joining especially different tables use columns that have values instead of ids.
 - There might be optional context provided. Use it to assist the query if provided.
 - There might be specificed schema, whenever possible try to match it.
