@@ -33,7 +33,8 @@ db_port = PROPERTIES['db.port']
 connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 
 ###### API Routers
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied, is_email_allowed, verify_google_id_token
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, PermissionDenied, is_email_allowed, verify_google_id_token
+from validations.constant import InvalidRequestJson
 from routers import agents, data, models, operators, tools, sessions, containers, platform, accounts, status
 
 from ConnectionManager import ConnectionManager

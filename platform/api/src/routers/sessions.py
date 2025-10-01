@@ -6,7 +6,8 @@ import pydash
 ###### Parsers, Formats, Utils
 import json
 import logging
-from constant import PermissionDenied, account_id_header, acl_enforce, d7validate
+from constant import PermissionDenied, account_id_header, acl_enforce
+from validations.utils import d7validate
 from validations.base import BaseValidation
 
 ##### Typing
