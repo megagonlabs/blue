@@ -6,7 +6,7 @@
     "description": "Scans streams containing JSON documents to find matching records to given JSONPATH query. Record signatures are declared in the records property where each record with the following properties: variable (name of the variable), query (jsonpath query to match), and single (matching mode). variable is the name to assign to the matched data, query is the JSONPATH query to execute on JSON objects in the stream, and single when set to True only returns a single element, otherwise query returns a JSONArray if matched. If matches are found they are emitted to the output stream as well as recorded in the session memory. ",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-recorder-private:latest",
+      "image": "megagonlabs/blue-agent-recorder-private",
       "records": [],
       "display_name": "Recorder Agent",
       "categories": [
@@ -43,7 +43,7 @@
     "description": "Coordinates the execution of a plan defined as a directed-acyclic graph of agents by monitoring input and output streams from agents in the plan, issuing instructions to agents to execute. This is a system agent",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-coordinator-private:latest",
+      "image": "megagonlabs/blue-agent-coordinator-private",
       "tracker.autostart": false,
       "tracker.outputs": [
         "log.INFO"
@@ -99,7 +99,7 @@
     "description": "Constructs a prompt from properties and input collected and returns results from executing input prompt through OpenAI models that can be configured in properties.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-openai-private:latest",
+      "image": "megagonlabs/blue-agent-openai-private",
       "openai.api": "ChatCompletion",
       "openai.model": "gpt-4o",
       "input_json": "[{\"role\": \"user\"}]",
@@ -177,7 +177,7 @@
     "properties": {
       "form": {},
       "schema": {},
-      "image": "megagonlabs/blue-agent-presenter-private:latest",
+      "image": "megagonlabs/blue-agent-presenter-private",
      
       "display_name": "Presenter Agent",
       "system_agent": false,
@@ -261,7 +261,7 @@
     "description": "Converts a natural language query to SQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2sql generation, and sql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2sql-private:latest",
+      "image": "megagonlabs/blue-agent-nl2sql-private",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -475,7 +475,7 @@
     "properties": {
       "requestor.service": "",
       "display_name": "Requestor Agent",
-      "image": "megagonlabs/blue-agent-requestor-private:latest",
+      "image": "megagonlabs/blue-agent-requestor-private",
       "tracker.autostart": false,
       "tracker.output": [
         "log.INFO"
@@ -494,7 +494,7 @@
     "description": "Converts a natural language query to Cypher, executes, and returns the result, in and end to end manner with steps including data source selection, nl2cypher generation, and cypher execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2cypher-private:latest",
+      "image": "megagonlabs/blue-agent-nl2cypher-private",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -599,7 +599,7 @@
     "description": "Converts a natural language query to MongoQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2mongoql generation, and mongoql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2mongoql-private:latest",
+      "image": "megagonlabs/blue-agent-nl2mongoql-private",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -705,7 +705,7 @@
     "description": "Answering natural language questions and generating results by utilizing LLM models' internal knowledge. Works with any data source that has 'llm' as their protocol. Returns output as a JSON with keys `question`, `source`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2llm-private:latest",
+      "image": "megagonlabs/blue-agent-nl2llm-private",
       "nl2llm_source": null,
       "nl2llm_discovery": true,
       "nl2llm_discovery_source_protocols": ["openai"],
@@ -809,7 +809,7 @@
     "description": "Summarizes data by executing queries and retrieving query results, and eventually passing them to OpenAI to summarize",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-summarizer-private:latest",
+      "image": "megagonlabs/blue-agent-summarizer-private",
       "queries": {},
       "template": "",
       "input_template": "Fill in template with query results in the template below, return only the summary as natural language text, rephrasing the template contents: \n${input}",
@@ -895,7 +895,7 @@
     "description": "Executes a query on data source",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-query_executor-private:latest",
+      "image": "megagonlabs/blue-agent-query_executor-private",
       "output_filters": [
         "all"
       ],
@@ -973,7 +973,7 @@
     "description": "Given queries or data, injected into a visualization template, substitute query results, and render a visualization as specified in the template",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-visualizer-private:latest",
+      "image": "megagonlabs/blue-agent-visualizer-private",
       "template": {},
       "questions": {},
       "queries": {},
@@ -1084,7 +1084,7 @@
     "description": "Creates a data-driven document, optionally highlighting segments of the document using OpenAI",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-documenter-private:latest",
+      "image": "megagonlabs/blue-agent-documenter-private",
       "template": "",
       "questions": {},
       "queries": {},
@@ -1165,7 +1165,7 @@
     "description": "Planner example to demonstrate plan execution",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-basic_planner-private:latest",
+      "image": "megagonlabs/blue-agent-basic_planner-private",
       "display_name": "Planner Agent - Example",
       "system_agent": false,
       "categories": [
@@ -1201,13 +1201,20 @@
     "description": "A dialogue manager that detects user intents and invokes matching plan.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-dialogue_manager-private:latest",
+      "image": "megagonlabs/blue-agent-dialogue_manager-private",
       "display_name": "Dialogue Manager Agent",
       "system_agent": false,
       "intents": {},
       "categories": [
         "EXPERIMENTAL"
-      ]
+      ],
+      "intent_classifier_agent": "OPENAI___INTENT_CLASSIFIER",
+      "intent_rewriter_agent": "OPENAI___INTENT_REWRITER",
+      "intent_action_agent": "OPENAI___INTENT_ACTION",
+      "llm_planner": "BASIC_LLM_PLANNER___DM",
+      "conversation_memory": true,
+      "use_intent_rewrite": true,
+      "round_limit": 3
     },
     "icon": null
   },
@@ -1330,7 +1337,7 @@
     "description": "Counter agent example to demonstrate data processing",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-counter-private:latest",
+      "image": "megagonlabs/blue-agent-counter-private",
       "display_name": "Counter Agent - Example",
       "categories": [
         "EXAMPLE"
