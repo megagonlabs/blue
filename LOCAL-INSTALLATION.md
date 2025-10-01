@@ -7,7 +7,7 @@ Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost`
 ### software
 
 * docker: Blue requires docker to build and run the infrastructure and agents. To develop on your local machine you would need to install docker engine from https://docs.docker.com/engine/install/ (Supported Versions: Docker Engine 27.5 and Docker Desktop 4.38)
-* python: Blue develpers API is currently only available in Python (Supported Versions: Python 3.9)
+* python: Blue developers API is currently only available in Python (Supported Versions: Python 3.10.12)
 
 ### hardware
 
@@ -39,12 +39,14 @@ Another approach is through cloning code from this repo, building images and man
 To download and install `blue-cli`, you can pip install it as shown below. It is highly recommended to create a virtual environment (e.g. `venv`) to avoid any conflicts and also upgrade pip (`pip install --upgrade pip`) first:
 
 ```
-$ pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue_cli==1.0
+$ pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue_cli==1.0bX
 ```
+
+where X is the latest beta release number
 
 Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
 ```
-$ pip install blue_cli==1.0
+$ pip install blue_cli==1.0bX
 ```
 
 `blue-cli` also installs `blue-platform`, the python library for blue development.
@@ -85,25 +87,31 @@ $ blue profile config
 ```
 
 This will ask you a number of questions with you can skip just using the default values, such as:
-- `BLUE_INSTALL_DIR`, directory where blue is installed (only used for during development)
-- `BLUE_DATA_DIR`, directory hosting data for blue services, will be used to create a docker volume and map to this directory
+- `BLUE_INSTALL_DIR`, directory where blue is installed (only used for during development, e.g. `/home/ubuntu/blue/`)
+- `BLUE_DATA_DIR`, directory hosting data for blue services, will be used to create a docker volume and map to this directory (e.g. ` /home/ubuntu/.blue/data`)
 - `BLUE_DEV_DOCKER_ORG`, docker org to push/pull blue agents and services, use your own org if you develop your own agents, otherwise use `megagonlabs`  
 - `BLUE_CORE_DOCKER_ORG`, docker org to push/pull core blue components, often, `megagonlabs`
+- `BLUE_BUILD_LIB_SERVER`, python library server, (e.g. `pypi`), refers to ~/.pypirc if you would like to have your own pypi server
+- `BLUE_BUILD_PUBLISH`, whether to publish docker images to dockerhub, leave empty if you like to keep images local, otherwise set to `--push`
+- `BLUE_BUILD_PLATFORM`, platform type (e.g. `linux/amd64`)
 
 Once you configure you can see the entire profile configuration using:
 
 ```
 $ blue profile show
 default
-BLUE_INSTALL_DIR      /home/ubuntu/blue
-BLUE_DATA_DIR         /home/ubuntu/.blue/data
-BLUE_DEV_DOCKER_ORG   megagonlabs
-BLUE_CORE_DOCKER_ORG  megagonlabs
+BLUE_INSTALL_DIR       /home/ubuntu/blue/
+BLUE_DATA_DIR          /home/ubuntu/.blue/data
+BLUE_DEV_DOCKER_ORG    megagonlabs
+BLUE_CORE_DOCKER_ORG   megagonlabs
+BLUE_BUILD_LIB_SERVER  pypi
+BLUE_BUILD_PUBLISH
+BLUE_BUILD_PLATFORM    linux/amd64
 ```
 
-Even though BLUE_INSTALL_DIR is part of the profile, you do not need to clone repository. The configuration is only used during development.
+Even though BLUE_INSTALL_DIR is part of the profile, you do not need to clone repository. The configuration is only used during development. Note blue profile config may skip some of the configurations and set them to default automatically. 
 
-You can also just change any specific configuration, for example: `blue profile config BLUE_DATA_DIR /home/ubuntu/blue_data`
+You can at any point change any specific configuration, for example: `blue profile config BLUE_DATA_DIR /home/ubuntu/blue_data`
 
 #### configure blue platform
 
@@ -120,7 +128,7 @@ In general, `platform` commands are very similar to `profile` commands. For exam
 
 #### install platform
 
-To install platform, you can run (you may need to `docker login` before if your repos are private):
+To install platform, you can run (you may need to `docker login` before if your repos are private, for public images you do not need to login):
 
 ```
 $ blue platform install
@@ -140,11 +148,12 @@ This will run the redis backend, api server, and the web application server for 
 If you type `docker ps` you should see four containers running, similar to below:
 ```
 $ docker ps
-CONTAINER ID   IMAGE                                       COMMAND                  CREATED        STATUS        PORTS                                                 NAMES
-081a9c8e59a8   megagonlabs/blue-platform-frontend:v1.0   "docker-entrypoint.s…"   2 days ago     Up 2 days     0.0.0.0:3000->3000/tcp, :::3000->3000/tcp             frosty_knuth
-2233a2c7cde9   megagonlabs/blue-platform-api:v1.0        "sh -c 'uvicorn serv…"   2 days ago     Up 2 days     0.0.0.0:5050->5050/tcp, :::5050->5050/tcp             hardcore_jemison
-79c773d9060d   redis/redis-stack:latest                    "/entrypoint.sh"         2 days ago     Up 2 days     0.0.0.0:6379->6379/tcp, :::6379->6379/tcp, 8001/tcp   bold_bhaskara
-cc0670acfc76   postgres:16.0                             "docker-entrypoint.s…"   18 hours ago   Up 18 hours   0.0.0.0:5432->5432/tcp             eager_ishizaka
+CONTAINER ID   IMAGE                                       COMMAND                  CREATED        STATUS        PORTS                                                 
+081a9c8e59a8   megagonlabs/blue-platform-frontend:v1.0bX   "docker-entrypoint.s…"   2 days ago     Up 2 days     0.0.0.0:3000->3000/tcp, :::3000->3000/tcp             
+2233a2c7cde9   megagonlabs/blue-platform-api:v1.0 bX       "sh -c 'uvicorn serv…"   2 days ago     Up 2 days     0.0.0.0:5050->5050/tcp, :::5050->5050/tcp             
+79c773d9060d   redis/redis-stack:latest                    "/entrypoint.sh"         2 days ago     Up 2 days     0.0.0.0:6379->6379/tcp, :::6379->6379/tcp, 8001/tcp   
+cc0670acfc76   postgres:16.0                             "docker-entrypoint.s…"   18 hours ago   Up 18 hours   0.0.0.0:5432->5432/tcp             
+c4a7fc212597   megagonlabs/blue-platform-ray:v1.0bX        "sh -c 'ray start --…"   3 months ago   Up 3 months                              
 ```
 
 #### change user role
@@ -175,7 +184,7 @@ $ blue service --service_name OPENAI show
 OPENAI
 PORT_SRC        8001
 PORT_DST        8001
-IMAGE           megagonlabs/blue-service-openai:v1.0
+IMAGE           megagonlabs/blue-service-openai:v1.0bX
 OPENAI_API_KEY  <your key>
 ```
 
@@ -194,7 +203,7 @@ Note, if you change the configuration of a service, you must re-run ```blue serv
 
 If you type `docker ps` you should see now an additional containers running, similar to below:
 ```
-45b6488db428   megagonlabs/blue-service-openai:v1.0      "python openai_servi…"   18 hours ago   Up 18 hours   0.0.0.0:8001->8001/tcp             youthful_galileo
+45b6488db428   megagonlabs/blue-service-openai:v1.0bX      "python openai_servi…"   18 hours ago   Up 18 hours   0.0.0.0:8001->8001/tcp             youthful_galileo
 ```
 
 #### testing
