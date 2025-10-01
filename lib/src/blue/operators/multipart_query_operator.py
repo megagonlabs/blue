@@ -105,7 +105,14 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
             else:
                 # data discover, first at source level
-                data_discovery_attributes = {"search_query": description, "approximate": True, "concept_type": 'source', 'limit': 1, 'use_hierarchical_search': False}
+                data_discovery_attributes = {
+                    "search_query": description,
+                    "approximate": True,
+                    "concept_type": 'source',
+                    "limit": 1,
+                    "filter_names": ["internal"],
+                    "use_hierarchical_search": False,
+                }
                 data_discovery_node = pipeline.define_operator("/server/blue_ray/operator/data_discover", attributes=data_discovery_attributes, properties={})
 
                 # create table

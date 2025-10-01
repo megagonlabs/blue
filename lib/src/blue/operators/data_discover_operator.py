@@ -28,7 +28,8 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
     database = attributes.get('database', None)
     collection = attributes.get('collection', None)
     auto_construct_scope = attributes.get('auto_construct_scope', True)
-    
+    filter_names = attributes.get('filter_names', [])
+
     search_scope = _construct_scope(scope, source, database, collection, concept_type, auto_construct_scope)
 
     data_registry = _get_data_registry_from_properties(properties)
@@ -50,8 +51,12 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
                 search_results = search_method(search_query, type=concept_type, scope=search_scope, page=page, page_size=page_size)
             else:
                 search_results = search_method(search_query, type=concept_type, scope=search_scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
-            
+
             for result in search_results:
+                # filter names
+                if result['name'] in filter_names:
+                    continue
+
                 transformed_result = _transform_result(result, concept_type, data_registry, include_metadata)
 
                 # Apply threshold filtering for approximate/hybrid search even in simple pagination mode
@@ -70,11 +75,15 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
                     search_results = search_method(search_query, type=concept_type, scope=search_scope, page=current_page, page_size=page_size)
                 else:
                     search_results = search_method(search_query, type=concept_type, scope=search_scope, approximate=approximate, hybrid=hybrid, page=current_page, page_size=page_size)
-                
+
                 if len(search_results) == 0:
                     break
 
                 for result in search_results:
+                    # filter names
+                    if result['name'] in filter_names:
+                        continue
+
                     # Check threshold for approximate/hybrid search
                     score = float(result['score'])
                     if score <= threshold:
@@ -113,7 +122,7 @@ def _construct_scope(scope, source, database, collection, concept_type, auto_con
     # If auto_construct is False, return the scope as-is
     if not auto_construct:
         return scope.rstrip('/') if scope else "/"
-    
+
     # If explicit scope is provided and not default, use it as base
     if scope and scope != "/":
         base_scope = scope.rstrip('/')
@@ -125,18 +134,11 @@ def _construct_scope(scope, source, database, collection, concept_type, auto_con
                 base_scope = f"/source/{source}/database/{database}"
                 if collection:
                     base_scope = f"/source/{source}/database/{database}/collection/{collection}"
-    
+
     # Parse the base scope to extract components
     scope_parts = base_scope.split('/')
-    scope_components = {
-        'source': None,
-        'database': None,
-        'collection': None,
-        'entity': None,
-        'relation': None,
-        'attribute': None
-    }
-    
+    scope_components = {'source': None, 'database': None, 'collection': None, 'entity': None, 'relation': None, 'attribute': None}
+
     # Extract components from scope path
     for i, part in enumerate(scope_parts):
         if part == 'source' and i + 1 < len(scope_parts):
@@ -151,14 +153,14 @@ def _construct_scope(scope, source, database, collection, concept_type, auto_con
             scope_components['relation'] = scope_parts[i + 1]
         elif part == 'attribute' and i + 1 < len(scope_parts):
             scope_components['attribute'] = scope_parts[i + 1]
-    
+
     if source:
         scope_components['source'] = source
     if database:
         scope_components['database'] = database
     if collection:
         scope_components['collection'] = collection
-    
+
     # Construct the appropriate scope based on concept_type
     if concept_type == 'source':
         return "/"
@@ -181,14 +183,11 @@ def _construct_scope(scope, source, database, collection, concept_type, auto_con
             return f"/source/{scope_components['source']}"
         return "/"
     elif concept_type == 'attribute':
-        if (scope_components['source'] and scope_components['database'] and 
-            scope_components['collection'] and scope_components['entity']):
+        if scope_components['source'] and scope_components['database'] and scope_components['collection'] and scope_components['entity']:
             return f"/source/{scope_components['source']}/database/{scope_components['database']}/collection/{scope_components['collection']}/entity/{scope_components['entity']}"
-        elif (scope_components['source'] and scope_components['database'] and 
-            scope_components['collection'] and scope_components['relation']):
+        elif scope_components['source'] and scope_components['database'] and scope_components['collection'] and scope_components['relation']:
             return f"/source/{scope_components['source']}/database/{scope_components['database']}/collection/{scope_components['collection']}/relation/{scope_components['relation']}"
-        elif (scope_components['source'] and scope_components['database'] and 
-            scope_components['collection']):
+        elif scope_components['source'] and scope_components['database'] and scope_components['collection']:
             return f"/source/{scope_components['source']}/database/{scope_components['database']}/collection/{scope_components['collection']}"
         elif scope_components['source'] and scope_components['database']:
             return f"/source/{scope_components['source']}/database/{scope_components['database']}"
@@ -246,12 +245,12 @@ def data_discover_operator_validator(input_data: List[List[Dict[str, Any]]], att
         return False
     if threshold < 0 or threshold > 1:
         return False
-    
+
     if database and not source:
         return False
     if collection and (not source or not database):
         return False
-    
+
     concept_type = attributes.get('concept_type', 'source')
     valid_concept_types = ['source', 'database', 'collection', 'entity', 'relation', 'attribute']
     if concept_type not in valid_concept_types:
@@ -265,7 +264,7 @@ def data_discover_operator_explainer(output: Any, input_data: List[List[Dict[str
     concept_type = attributes.get('concept_type', 'source')
     use_hierarchical = attributes.get('use_hierarchical_search', True)
     search_method = "hierarchical" if use_hierarchical else "regular"
-    
+
     # Get scope information
     scope = attributes.get('scope', None)
     source = attributes.get('source', None)
@@ -273,9 +272,9 @@ def data_discover_operator_explainer(output: Any, input_data: List[List[Dict[str
     collection = attributes.get('collection', None)
     auto_construct_scope = attributes.get('auto_construct_scope', True)
     search_scope = _construct_scope(scope, source, database, collection, concept_type, auto_construct_scope)
-    
+
     scope_info = f" within scope '{search_scope}'" if search_scope != '/' else ""
-    
+
     data_discover_explanation = {
         'output': output,
         'input_data': input_data,
@@ -329,6 +328,7 @@ class DataDiscoverOperator(Operator):
         "database": {"type": "str", "description": "Database name to limit search scope (requires source)", "required": False, "default": None},
         "collection": {"type": "str", "description": "Collection name to limit search scope (requires source and database)", "required": False, "default": None},
         "auto_construct_scope": {"type": "bool", "description": "Whether to auto-construct scope from individual attributes or use scope as-is", "required": False, "default": True},
+        "filter_names": {"type": "list", "description": "Filter out results with matching names in the filter list", "required": False, "default": []},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):

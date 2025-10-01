@@ -4,10 +4,11 @@ import logging
 
 import jsonpath_ng as jp
 from jsonmerge import merge
-import decimal 
+import decimal
+
 
 ### json utility functions
-## load json objects as an array from a file 
+## load json objects as an array from a file
 def load_json_array(json_file, single=False):
     json_array = []
     with open(json_file) as fp:
@@ -15,17 +16,17 @@ def load_json_array(json_file, single=False):
         cb_count = 0
         sb_count = 0
         for line in fp:
-            
+
             cb_count += line.count('{')
             sb_count += line.count('[')
             cb_count -= line.count('}')
             sb_count -= line.count(']')
             json_string += line
-            
+
             if single:
                 sb_count = 0
                 cb_count = 0
-                
+
             if sb_count == 0 and cb_count == 0:
                 json_element = json.loads(json_string)
                 json_array.append(json_element)
@@ -33,23 +34,24 @@ def load_json_array(json_file, single=False):
     return json_array
 
 
-## save json objects as an array from a file 
+## save json objects as an array from a file
 def save_json_array(file_path, json_array):
     with open(file_path, "w") as fp:
         for json_element in json_array:
             line = json.dumps(json_element)
             fp.write(line + "\n")
 
+
 ## jsonpath get
 def json_query(json_object, json_path_query, single=True, default=None):
 
     jpq = jp.parse(json_path_query)
-   
-    match_values = [ m.value for m in jpq.find(json_object) ]
+
+    match_values = [m.value for m in jpq.find(json_object)]
 
     r = match_values
     if single:
-        r =  match_values[0] if match_values else None
+        r = match_values[0] if match_values else None
 
     if r == None:
         if default == None:
@@ -58,6 +60,24 @@ def json_query(json_object, json_path_query, single=True, default=None):
             return default
     else:
         return r
+
+
+def json_filter_array(json_array, json_path_query, match_value, match=True):
+    filtered_array = []
+    for json_object in json_array:
+        value = json_query(json_object, json_path_query, single=True)
+        if match:
+            if match_value == value:
+                filtered_array.append(json_object)
+            else:
+                continue
+        else:
+            if match_value != value:
+                filtered_array.append(json_object)
+            else:
+                continue
+    return filtered_array
+
 
 def json_query_set(json_object, attribute, value, context='$'):
     jpq = jp.parse(context)
@@ -76,7 +96,8 @@ def json_query_set(json_object, attribute, value, context='$'):
 
 
 def json_query_add(json_object, attribute, value, context='$', single=True):
-    json_query_update(json_object, attribute, lambda match : value, context=context, add=True, single=single)
+    json_query_update(json_object, attribute, lambda match: value, context=context, add=True, single=single)
+
 
 def json_query_update(json_object, attribute, update_function, context='$', add=False, single=True):
     json_path_query = context + '.' + attribute
@@ -95,6 +116,7 @@ def json_query_update(json_object, attribute, update_function, context='$', add=
                 else:
                     match.context.value[field] = update_function(match)
 
+
 def _add(target, value, single=True):
     t = target
     if type(target) is list:
@@ -108,14 +130,14 @@ def _add(target, value, single=True):
                 return t + [value]
             else:
                 return t + [value]
-                #raise Exception("{} is not a list".format(value))
+                # raise Exception("{} is not a list".format(value))
     else:
         if type(value) is list:
             if single:
                 for v in value:
                     t = t + v
                 return t
-                #raise Exception("{} cannot be added to {}".format(value, target))
+                # raise Exception("{} cannot be added to {}".format(value, target))
             else:
                 for v in value:
                     t = t + v
@@ -125,10 +147,12 @@ def _add(target, value, single=True):
                 return t + value
             else:
                 return t + value
-                #raise Exception("{} is not a list".format(value))
+                # raise Exception("{} is not a list".format(value))
+
 
 def merge_json(original_json, update_json):
     return merge(original_json, update_json)
+
 
 def union_jsonarray_by_attribute(json_array_a, json_array_b, attr):
     m = {}
@@ -138,6 +162,7 @@ def union_jsonarray_by_attribute(json_array_a, json_array_b, attr):
         m[o[attr]] = o
 
     return list(m.values())
+
 
 ## flatten json
 def flatten_json(json_object, separator='___', num_marker='$$$', flattenList=False):
@@ -154,9 +179,9 @@ def flatten_json(json_object, separator='___', num_marker='$$$', flattenList=Fal
                     _flatten_recursively(a, prefix + num_marker + str(i) + num_marker + separator)
                     i += 1
             else:
-                result[prefix[:-len(separator)]] = x
+                result[prefix[: -len(separator)]] = x
         else:
-            result[prefix[:-len(separator)]] = x
+            result[prefix[: -len(separator)]] = x
 
     _flatten_recursively(json_object)
     return result
@@ -170,7 +195,7 @@ def unflatten_json(json_object, separator='___', num_marker='$$$', unflattenList
         r = result
         prev_r = None
         prev_ali = None
-        for i in range(0,len(al)):
+        for i in range(0, len(al)):
             ali = al[i]
             alix = _is_list_index(ali, num_marker)
             is_index = type(alix) == int
@@ -202,7 +227,7 @@ def unflatten_json(json_object, separator='___', num_marker='$$$', unflattenList
                                 r[alix] = {}
                         else:
                             r = r + [None] * (alix - len(r) + 1)
-                            r[alix]= {}
+                            r[alix] = {}
                             if prev_r is None:
                                 result = r
                             else:
@@ -218,15 +243,15 @@ def unflatten_json(json_object, separator='___', num_marker='$$$', unflattenList
                 r = r[alix]
     return result
 
+
 def tokenize_json(json_object, reserved_dict=None):
-    
+
     token2id = {}
     id2token = {}
 
     if reserved_dict is None:
         reserved_dict = dict()
 
-    
     def _tokenize_json_recursively(x, token2id, id2token):
         result = None
         if type(x) is dict:
@@ -252,7 +277,7 @@ def tokenize_json(json_object, reserved_dict=None):
                 id2token[id] = token
             result = id
         return result
-            
+
     tokenized_json = _tokenize_json_recursively(json_object, token2id, id2token)
 
     for id in reserved_dict:
@@ -261,12 +286,13 @@ def tokenize_json(json_object, reserved_dict=None):
 
     return tokenized_json, token2id, id2token
 
+
 def _is_list_index(s, num_marker='$$$'):
     try:
-        if s[0:len(num_marker)] != num_marker or s[len(s)-len(num_marker):] != num_marker:
+        if s[0 : len(num_marker)] != num_marker or s[len(s) - len(num_marker) :] != num_marker:
             return s
         else:
-            s = s[len(num_marker):len(s)-len(num_marker)]
+            s = s[len(num_marker) : len(s) - len(num_marker)]
         x = int(s)
         if x >= 0:
             return x
@@ -274,6 +300,7 @@ def _is_list_index(s, num_marker='$$$'):
             return s
     except ValueError:
         return s
+
 
 def safe_json_parse(text):
     """
@@ -291,6 +318,7 @@ def safe_json_parse(text):
     except json.JSONDecodeError as e:
         logging.warning(f"Failed to parse JSON: {e}")
         return {}
+
 
 def json_safe(obj):
     if isinstance(obj, decimal.Decimal):
