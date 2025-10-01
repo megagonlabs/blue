@@ -2,7 +2,6 @@ import re
 from blue.platform import Platform
 from blue.utils.string_utils import encode_websafe_no_padding
 from fastapi import Header
-from jsonschema.validators import Draft7Validator
 import pydash
 import jwt
 from jwt.algorithms import RSAAlgorithm
@@ -26,14 +25,6 @@ RESPONSE_501 = JSONResponse(status_code=501, content={"message": "The server lac
 
 def account_id_header(X_accountId: str = Header(None)):
     return
-
-
-class InvalidRequestJson(Exception):
-    status_code = 422
-
-    def __init__(self, errors):
-        super().__init__()
-        self.errors = errors
 
 
 def is_email_allowed(email: str) -> bool:
@@ -61,22 +52,6 @@ def verify_google_id_token(id_token, client_id, issuer):
         pydash.objects.set_(decoded_token, 'uid', uid)
         return decoded_token
     raise Exception('Empty public_key')
-
-
-def d7validate(validations, payload):
-    errors = {}
-    for error in sorted(
-        Draft7Validator({"type": "object", "additionalProperties": False, **validations}).iter_errors(payload),
-        key=str,
-    ):
-        abs_path = list(error.absolute_path)
-        if len(abs_path) == 0:
-            abs_path = [""]
-        messages = pydash.objects.get(errors, abs_path, [])
-        messages.append(error.message)
-        pydash.objects.set_(errors, abs_path, messages)
-    if len(errors) > 0:
-        raise InvalidRequestJson(errors)
 
 
 class PermissionDenied(Exception):
