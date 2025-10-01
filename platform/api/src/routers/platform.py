@@ -3,7 +3,6 @@ from curses import noecho
 import sys
 
 from fastapi import Depends, Request
-import pydash
 from authorizations.utils import account_id_header, acl_enforce
 
 ###### Add lib path
