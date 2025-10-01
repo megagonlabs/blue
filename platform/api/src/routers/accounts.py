@@ -16,8 +16,7 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, RESPONSE_501
-from authorizations.utils import account_id_header, verify_google_id_token, is_email_allowed, acl_enforce
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce, is_email_allowed, verify_google_id_token, RESPONSE_501
 from fastapi import Depends, Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse

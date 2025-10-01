@@ -4,7 +4,7 @@ import sys
 
 from fastapi import Depends, Request
 import pydash
-from authorizations.utils import account_id_header, acl_enforce
+from constant import PermissionDenied, account_id_header, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
