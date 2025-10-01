@@ -120,7 +120,7 @@ In the next step you will need to configure platform specific configuration. To 
 $ blue platform config
 ```
 
-As before you will most likely accept the default values for these configuration options. 
+As before you will most likely accept the default values for these configuration options. As before you can at any point change specific configuration, for example: `blue platform config BLUE_BUILD_IMG_SUFFIX -- "-private"` to use `-private` as suffix for docker images.
 
 While `BLUE_EMAIL_DOMAIN_WHITE_LIST` is by default `gmail.com`, you might want to change it to limit access.
 
