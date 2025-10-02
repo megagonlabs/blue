@@ -39,6 +39,8 @@ Here are a few examples to inspire you to build with blue:
 * agents that produces interactive graphical user interfaces and visualizations with your data (e.g. self-service business intelligence) 
 * a conversational agent that interfaces to existing predictive models and APIs (e.g. job search agent with predictive models and data)
 * agents that execute workflows processing text data, extracting and populating databases.
+* conversational applications with agents managing dialogue and performing task planning.
+* complex agentic data processing pipelines, with multi-modal operators
 
 
 # Want to try out blue demos?
@@ -51,7 +53,7 @@ Sounds interesting? Want to learn more? Read documentation below.
 
 # Outline of the Documentation:
 
-* [Orchestration Concepts](ORCHESTRATION-CONCEPTS.md) to learn more about Blue concepts
+* [Concepts](CONCEPTS.md) to learn more about Blue concepts
 * Install your own Blue environment
   * [Local Installation](LOCAL-INSTALLATION.md) more suited for trying out and development 
   * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
@@ -60,6 +62,15 @@ Sounds interesting? Want to learn more? Read documentation below.
 * [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
 * [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles
+
+# Where are blue libraries?
+
+Blue has two python libraries that you can use:
+* [blue-platform](https://pypi.org/project/blue-platform/): developers library for building agents, tools, operators, planners
+* [blue-cli](https://pypi.org/project/blue-cli/): cli to install and deploy blue
+
+[blue-cli](https://pypi.org/project/blue-cli/) is a good starting point to install and try out blue!
+
 
 </br>
 </br>
