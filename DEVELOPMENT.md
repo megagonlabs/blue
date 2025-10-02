@@ -16,4 +16,4 @@ To learn more about how to work with data and do data processing  go to [data](l
 
 # Utilities 
 
-To learn more about utilities that come with blue in your development go to [data](lib/src/blue/utils) for more details.
+To learn more about utilities that come with blue in your development go to [utils](lib/src/blue/utils) for more details.
