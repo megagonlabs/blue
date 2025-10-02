@@ -1,6 +1,9 @@
 ###### Formats
 from typing import List, Dict, Any, Callable, Optional
 
+import traceback
+import logging
+
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
@@ -60,7 +63,8 @@ The response should be a valid JSON array containing the following information f
 
 Here are additional requirements:
 - Create a total of ${num_alternatives} alternatives.
-- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object. - The output should be a JSON array, each containing an alternative set of CTEs. Even if only one alternative set is requested the output should be put in a JSON array with only one alternative set.
+- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object. 
+- The output should be a JSON array, each containing an alternative set of CTEs. Even if only one alternative set is requested the output should be put in a JSON array with only one alternative set.
 - Avoid using IN within a CTE. Instead breakdown further and create another CTE and have another CTE finally that uses JOIN to put the subqueries together. 
 - Use columns with ids sparingly. When joining especially different tables use columns that have values instead of ids.
 - There might be optional context provided. Use it to assist the query if provided.

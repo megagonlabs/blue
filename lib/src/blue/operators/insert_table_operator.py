@@ -2,6 +2,7 @@
 from typing import List, Dict, Any, Callable, Optional
 
 import traceback
+import logging
 
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
@@ -22,7 +23,7 @@ def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
     # Get data registry from properties - follow agent pattern
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
-        print("Error: Data registry not found")
+        logging.error("Error: Data registry not found")
         return input_data
 
     # Set collection to 'public' for SQLite sources even caller specifies a different collection
@@ -53,15 +54,14 @@ def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
 
             total_inserted += group_inserted
 
-        print(f"Successfully inserted {total_inserted} rows into table '{table}' in database '{database}' collection '{collection}' of source '{source}'.")
+        logging.info(f"Successfully inserted {total_inserted} rows into table '{table}' in database '{database}' collection '{collection}' of source '{source}'.")
 
         # Return summary of inserted data
         # return [[{"table": table, "rows_inserted": total_inserted, "source": source, "database": database, "collection": collection}]]
         return input_data
 
     except Exception as e:
-        print("EXCEPTION")
-        print(traceback.format_exc())
+        logging.error(traceback.format_exc())
         return input_data
 
 
@@ -217,8 +217,8 @@ def _insert_data_group(data_registry, source, database, collection, table, row_g
                 return None
 
         except Exception as e:
-            print(f"Error inserting group {group_idx + 1}, batch {i//batch_size + 1}: {str(e)}")
-            print(traceback.format_exc())
+            logging.error(f"Error inserting group {group_idx + 1}, batch {i//batch_size + 1}: {str(e)}")
+            logging.error(traceback.format_exc())
             return None
 
     return group_inserted

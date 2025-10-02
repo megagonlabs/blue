@@ -2,6 +2,9 @@
 import json
 from typing import List, Dict, Any, Callable, Optional
 
+import traceback
+import logging
+
 ###### External
 import psycopg2
 import mysql.connector
@@ -43,8 +46,8 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
     # get schema from data registry
     schema = data_registry.get_data_source_schema(source, database, collection)
-    print("SCHEMA:")
-    print(schema)
+    logging.debug("SCHEMA:")
+    logging.debug(schema)
     # convert schema to JSON string if it's a dictionary
     if isinstance(schema, dict):
         schema_str = json.dumps(schema, indent=2)
@@ -98,9 +101,10 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
     # If execution is enabled, execute the generated SQL
     if execute_query and generated_query:
         # use data registry to execute query
-        print(generated_query)
+        logging.info("Generated Query: " + generated_query)
         result = data_registry.execute_query(generated_query, source, database, collection)
-        print(result)
+        logging.debug("Result: ")
+        logging.debug(result)
         result = _format_execution_result_format(result)
         return result
     # if execution is disabled, return the sql query only

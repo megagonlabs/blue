@@ -1,10 +1,12 @@
 ###### Formats
 from typing import List, Dict, Any, Callable, Optional
 
+import traceback
+import logging
+
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.data.registry import DataRegistry
-import traceback
 
 ###############
 ### Data Discover Operator
@@ -34,6 +36,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
 
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
+        logging.error("Error: Data registry not found")
         return [[]]
 
     results = []
@@ -103,7 +106,7 @@ def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attr
                 current_page += 1
 
     except Exception as e:
-        traceback.print_exc()
+        logging.error(traceback.format_exc())
         return [[]]
 
     # limit results
