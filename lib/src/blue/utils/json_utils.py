@@ -332,11 +332,7 @@ def json_safe(obj):
 
 
 def summarize_json(data, depth=0, text_limit=100, depth_limit=3, list_limit=5, key_limit=5):
-    print(depth)
-    print(depth_limit)
-    print("----")
     if depth > depth_limit:
-        print("here")
         return "..."
     if not isinstance(data, (list, dict)):
         if isinstance(data, str):
