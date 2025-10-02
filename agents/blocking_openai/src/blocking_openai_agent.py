@@ -20,13 +20,12 @@ class BlockingOpenAIAgent(BlockingAgent, OpenAIAgent):
         super().__init__(**kwargs)
 
     def process_logic(self, input_dict, worker):
-        return super().execute_api_call(input = str(input_dict), properties = self.properties)
-    
+        return super().execute_api_call(input=str(input_dict), properties=self.properties)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="BLOCKING_OPENAI_AGENT", type=str)
+    parser.add_argument('--name', default="BLOCKING_OPENAI", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
