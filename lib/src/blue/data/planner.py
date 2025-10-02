@@ -534,7 +534,7 @@ class DataPlanner:
                     logging.info("    Executing...")
                     p.set_node_status(operator_node, str(Status.EXECUTING), provenance=provenance)
                     output = self.registry.execute_operator(operator_name, operator_server, None, kwargs)
-                    logging.info("   Summary Output: " + json.dumps(json_utils.summarize_json(output, depth_limit=4, list_limit=5, key_limit=8)))
+                    logging.info("   Summary Output: " + json.dumps(json_utils.summarize_json(output, depth_limit=5, list_limit=5, key_limit=10)))
                     logging.debug("    Output:")
                     logging.debug("    " + "None" if output is None else json.dumps(output))
                     if output is None:
