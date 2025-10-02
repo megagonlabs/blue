@@ -6,7 +6,7 @@ A key target use-case of Blue is enterprise, i.e. integrate an existing enterpri
 
 Blue is currently a research project to explore the design space of agent orchestration systems, agentic planning and data processing, to support a variety of use-cases: from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from applications working on purely relational data to multi-modal data  (incl. semi-structured text, graphs, and beyond), from purely textual interaction to interactive agents with user interfaces, charts, and beyond. 
 
-# How does Blue work?
+# What are key concepts in Blue?
 
 To help facilitate ‘Agentic for Enterprise’ we are introducing several concepts in the design of our framework, including:
 - **Streams** to facilitate data, control, and communication among agents
@@ -19,6 +19,10 @@ To help facilitate ‘Agentic for Enterprise’ we are introducing several conce
 - **Operators** to perform data-intenstive functions
 
 ![Stream](./docs/images/concepts.png)
+
+# How does Blue work?
+
+![Architecture](./docs/images/architecture.png)
 
 To get a glimpse of where we are heading with agentic architectures, read our papers:
 
