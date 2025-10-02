@@ -5,7 +5,7 @@ from pydantic import BaseModel, ValidationError
 import copy
 
 ###### Blue
-from blue.utils import json_utils, tool_utils
+from blue.utils import json_utils, tool_utils, log_utils
 from blue.utils.type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
 
 
@@ -33,6 +33,9 @@ class Tool:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self._initialize_logger()
+
+        # signature
         self.properties['signature'] = {}
         self._extract_signature()
 
@@ -55,6 +58,14 @@ class Tool:
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
 
     def _extract_signature(self):
         signature = tool_utils.extract_signature(self.function, mcp_format=True)
