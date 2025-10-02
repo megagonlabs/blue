@@ -2,7 +2,7 @@ Let's start with introducing concepts in blue.
 
 
 ---
-# orchestration concepts
+# concepts
 
 ## streams
 The central "orchestration" concept in Blue is a `stream`. A stream is essentially a continuous sequence of messages (data, instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each word is transmitted as they are typed. An LLM generating text can be another stream, and generated text can be output as they are being generated. 
@@ -25,6 +25,8 @@ Agents have a set of properties which defines options and settings regarding how
 ### worker
 A worker is a thread of an agent that is basically dedicated to a specific input stream for an input parameter. How a worker should process the input stream (processor function) is defined by the agent. Similarly an agent's properties are also passed on to any of its workers.
 
+### tools
+TODO: basic tool information
 
 ## session
 The central "context" concept in Blue is a `session`. A session is initiated by an agent, typically a user agent, and continously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
@@ -32,6 +34,7 @@ The central "context" concept in Blue is a `session`. A session is initiated by 
 ![Session](./docs/images/session.png)
 
 Above picture shows the process in more detail. The user agent creates a new stream and announces it in the session stream through a control message, `ADD STREAM` and specifies the stream's id as well as its tags. Another agent listening to the session stream sees this event and decides to listen to the user stream as its properties contains a listen property that includes `USER` tag.
+
 
 
 ## memory
@@ -45,6 +48,15 @@ Agents (i.e. agent workers) can store and share data among each other. Data is s
 
 As noted above messages can be both data and instructions (for other agents to execute, for example). A higher-level concept to instruct a number of agents in the nature of a workflow is called a plan. A plan can have a number of inputs, outputs, and agents that connect inputs to outputs in a sequence. Connections can also be defined between agents, connecting an agent's output to another agent's input. Once the plan object is constructed it can be submitted. [Coordinator](/lib/blue/agents/coordinator.py) agent is reponsible for the execution of the plan, i.e. issueing instruction messages for agents to execute and tracking progress.
 See [Plan](/lib/blue/plan.py) for more details and the `Planner Agent - Example` (`BASIC_PLANNER`) for an example.
+
+## task planner
+TODO: 
+
+## data planner
+TODO: 
+
+## data operators
+TODO: 
 
 </br>
 </br>
