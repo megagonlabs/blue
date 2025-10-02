@@ -4,7 +4,7 @@ Blue is an agent orchestration platform for building and deploying applications 
 
 A key target use-case of Blue is enterprise, i.e. integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide-variety of enterprise use-cases. We aim to leverage what already exist in the enterprise infrastructure, i.e. existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
 
-Blue is currently a research project to explore the design space of agent orchestration systems, to support a variety of use-cases: from data and domain-agnostic to data-aware design, from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from purely textual interaction to interactive agents with user interfaces, and beyond. 
+Blue is currently a research project to explore the design space of agent orchestration systems, agentic planning and data processing, to support a variety of use-cases: from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from applications working on purely relational data to multi-modal data  (incl. semi-structured text, graphs, and beyond), from purely textual interaction to interactive agents with user interfaces, charts, and beyond. 
 
 # How does Blue work?
 
@@ -14,6 +14,9 @@ To help facilitate ‘Agentic for Enterprise’ we are introducing several conce
 - **Registries** to capture metadata about data, agents and beyond
 - **Session** to provide context (and shared memory) for computation
 - **Plans** to represent workflows and execution of agents
+- **Planners** to craft task and data plans
+- **Tools** to interface with external sources and APIs
+- **Operators** to perform data-intenstive functions
 
 ![Stream](./docs/images/concepts.png)
 
