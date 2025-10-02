@@ -6,7 +6,7 @@
     "description": "Scans streams containing JSON documents to find matching records to given JSONPATH query. Record signatures are declared in the records property where each record with the following properties: variable (name of the variable), query (jsonpath query to match), and single (matching mode). variable is the name to assign to the matched data, query is the JSONPATH query to execute on JSON objects in the stream, and single when set to True only returns a single element, otherwise query returns a JSONArray if matched. If matches are found they are emitted to the output stream as well as recorded in the session memory. ",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-recorder-private:latest",
+      "image": "megagonlabs/blue-agent-recorder-private",
       "records": [],
       "display_name": "Recorder Agent",
       "categories": [
@@ -43,7 +43,7 @@
     "description": "Coordinates the execution of a plan defined as a directed-acyclic graph of agents by monitoring input and output streams from agents in the plan, issuing instructions to agents to execute. This is a system agent",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-coordinator-private:latest",
+      "image": "megagonlabs/blue-agent-coordinator-private",
       "tracker.autostart": false,
       "tracker.outputs": [
         "log.INFO"
@@ -99,7 +99,7 @@
     "description": "Constructs a prompt from properties and input collected and returns results from executing input prompt through OpenAI models that can be configured in properties.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-openai-private:latest",
+      "image": "megagonlabs/blue-agent-openai-private",
       "openai.api": "ChatCompletion",
       "openai.model": "gpt-4o",
       "input_json": "[{\"role\": \"user\"}]",
@@ -169,6 +169,21 @@
     "icon": null
   },
   {
+    "name": "BLOCKING_OPENAI",
+    "type": "agent",
+    "scope": "/",
+    "description": "Blocking OpenAI agent that waits for all input to be ready to initiate an OpenAI call",
+    "created_by": null,
+    "properties": {
+      "include_extra_input": true,
+      "wait_for_inputs": ["DEFAULT"],
+       "categories": [
+         "EXPERIMENTAL"
+      ]
+    },
+    "icon": "aperture:#16A5A5"
+  },
+  {
     "name": "PRESENTER",
     "type": "agent",
     "scope": "/",
@@ -177,7 +192,7 @@
     "properties": {
       "form": {},
       "schema": {},
-      "image": "megagonlabs/blue-agent-presenter-private:latest",
+      "image": "megagonlabs/blue-agent-presenter-private",
      
       "display_name": "Presenter Agent",
       "system_agent": false,
@@ -261,7 +276,7 @@
     "description": "Converts a natural language query to SQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2sql generation, and sql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2sql-private:latest",
+      "image": "megagonlabs/blue-agent-nl2sql-private",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -436,37 +451,6 @@
     "icon": null
   },
   {
-    "name": "NL2SQL___DM",
-    "type": "agent",
-    "scope": "/agent/NL2SQL",
-    "description": "NL2SQL for dialogue manager example",
-    "created_by": null,
-    "properties": {
-      "display_name": "NL-to-SQL Agent - Dialogue Manager Example",
-      "nl2q_execute": false,
-      "nl2q_discovery": false,
-      "nl2q_source": "postgres_example"
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "output",
-    "scope": "/agent/NL2SQL/agent/NL2SQL___DM",
-    "description": "transformed SQL",
-    "created_by": null,
-    "properties": {
-      "type": "json",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "tags": [
-          "QUERY", "SQL", "HIDDEN"
-        ]
-    },
-    "icon": null
-  },
-  {
     "name": "REQUESTOR",
     "type": "agent",
     "scope": "/",
@@ -475,7 +459,7 @@
     "properties": {
       "requestor.service": "",
       "display_name": "Requestor Agent",
-      "image": "megagonlabs/blue-agent-requestor-private:latest",
+      "image": "megagonlabs/blue-agent-requestor-private",
       "tracker.autostart": false,
       "tracker.output": [
         "log.INFO"
@@ -494,7 +478,7 @@
     "description": "Converts a natural language query to Cypher, executes, and returns the result, in and end to end manner with steps including data source selection, nl2cypher generation, and cypher execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2cypher-private:latest",
+      "image": "megagonlabs/blue-agent-nl2cypher-private",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -599,7 +583,7 @@
     "description": "Converts a natural language query to MongoQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2mongoql generation, and mongoql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2mongoql-private:latest",
+      "image": "megagonlabs/blue-agent-nl2mongoql-private",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -705,7 +689,7 @@
     "description": "Answering natural language questions and generating results by utilizing LLM models' internal knowledge. Works with any data source that has 'llm' as their protocol. Returns output as a JSON with keys `question`, `source`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2llm-private:latest",
+      "image": "megagonlabs/blue-agent-nl2llm-private",
       "nl2llm_source": null,
       "nl2llm_discovery": true,
       "nl2llm_discovery_source_protocols": ["openai"],
@@ -809,7 +793,7 @@
     "description": "Summarizes data by executing queries and retrieving query results, and eventually passing them to OpenAI to summarize",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-summarizer-private:latest",
+      "image": "megagonlabs/blue-agent-summarizer-private",
       "queries": {},
       "template": "",
       "input_template": "Fill in template with query results in the template below, return only the summary as natural language text, rephrasing the template contents: \n${input}",
@@ -895,7 +879,7 @@
     "description": "Executes a query on data source",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-query_executor-private:latest",
+      "image": "megagonlabs/blue-agent-query_executor-private",
       "output_filters": [
         "all"
       ],
@@ -973,7 +957,7 @@
     "description": "Given queries or data, injected into a visualization template, substitute query results, and render a visualization as specified in the template",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-visualizer-private:latest",
+      "image": "megagonlabs/blue-agent-visualizer-private",
       "template": {},
       "questions": {},
       "queries": {},
@@ -1084,7 +1068,7 @@
     "description": "Creates a data-driven document, optionally highlighting segments of the document using OpenAI",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-documenter-private:latest",
+      "image": "megagonlabs/blue-agent-documenter-private",
       "template": "",
       "questions": {},
       "queries": {},
@@ -1155,221 +1139,6 @@
         ],
         "excludes": []
       }
-    },
-    "icon": null
-  },
-  {
-    "name": "BASIC_PLANNER",
-    "type": "agent",
-    "scope": "/",
-    "description": "Planner example to demonstrate plan execution",
-    "created_by": null,
-    "properties": {
-      "image": "megagonlabs/blue-agent-basic_planner-private:latest",
-      "display_name": "Planner Agent - Example",
-      "system_agent": false,
-      "categories": [
-        "EXAMPLE"
-      ]
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "input",
-    "scope": "/agent/BASIC_PLANNER",
-    "description": "trigger",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "listens": {
-        "includes": [
-          "USER"
-        ],
-        "excludes": []
-      }
-    },
-    "icon": null
-  },
-  {
-    "name": "DIALOGUE_MANAGER",
-    "type": "agent",
-    "scope": "/",
-    "description": "A dialogue manager that detects user intents and invokes matching plan.",
-    "created_by": null,
-    "properties": {
-      "image": "megagonlabs/blue-agent-dialogue_manager-private:latest",
-      "display_name": "Dialogue Manager Agent",
-      "system_agent": false,
-      "intents": {},
-      "categories": [
-        "EXPERIMENTAL"
-      ]
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "input",
-    "scope": "/agent/DIALOGUE_MANAGER",
-    "description": "user input",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "listens": {
-        "includes": [
-          "USER"
-        ],
-        "excludes": []
-      }
-    },
-    "icon": null
-  },
-  {
-    "name": "DIALOGUE_MANAGER___EXAMPLE",
-    "type": "agent",
-    "scope": "/agent/DIALOGUE_MANAGER",
-    "description": "Example use case of dialogue manager.",
-    "created_by": null,
-    "properties": {
-      "intents": {
-        "investigate": {
-          "description": "The user is requesting job market statistics or insights that can be fulfilled by a single SQL query (e.g., 'What is the average salary for data scientists in New York?').",
-          "plan": [
-            [
-              "NL2SQL___DM",
-              "DEFAULT"
-            ],
-            [
-              "QUERYEXECUTOR",
-              "DEFAULT"
-            ],
-            [
-              "DIALOGUE_MANAGER___EXAMPLE",
-              "RESULT"
-            ]
-          ]
-        },
-        "job_search": {
-          "description": "The user is searching for job postings that match specific criteria (e.g., 'Show me remote software engineer jobs with at least 5 years of experience.').",
-          "plan": [
-            [
-              "OPENAI___EXTRACTOR",
-              "DEFAULT"
-            ],
-            [
-              "NL2SQL___DM",
-              "DEFAULT"
-            ],
-            [
-              "QUERYEXECUTOR",
-              "DEFAULT"
-            ],
-            [
-              "DIALOGUE_MANAGER___EXAMPLE",
-              "RESULT"
-            ]
-          ]
-        },
-        "summarize": {
-          "description": "The user wants a summary or aggregated insights over a group of job postings (e.g., 'Summarize the key skills required for product management roles in California.').",
-          "plan": [
-            [
-              "OPENAI___EXTRACTOR",
-              "DEFAULT"
-            ],
-            [
-              "NL2SQL___DM",
-              "DEFAULT"
-            ],
-            [
-              "QUERYEXECUTOR",
-              "DEFAULT"
-            ],
-            [
-              "OPENAI___QUERY_EXPLAINER",
-              "DEFAULT"
-            ],
-            [
-              "DIALOGUE_MANAGER___EXAMPLE",
-              "RESULT"
-            ]
-          ]
-        },
-        "default": {
-          "description": "The user\u2019s request does not fit into any of the above categories.",
-          "plan": [
-            [
-              "OPENAI___ROGUEAGENT",
-              "DEFAULT"
-            ],
-            [
-              "DIALOGUE_MANAGER___EXAMPLE",
-              "RESULT"
-            ]
-          ]
-        }
-      },
-      "display_name": "Dialogue Manager Agent - Example",
-      "intent_classifier_agent": "OPENAI___INTENT_CLASSIFIER",
-      "intent_rewriter_agent": "OPENAI___INTENT_REWRITER",
-      "conversation_memory": true
-    },
-    "icon": null
-  },
-  {
-    "name": "COUNTER",
-    "type": "agent",
-    "scope": "/",
-    "description": "Counter agent example to demonstrate data processing",
-    "created_by": null,
-    "properties": {
-      "image": "megagonlabs/blue-agent-counter-private:latest",
-      "display_name": "Counter Agent - Example",
-      "categories": [
-        "EXAMPLE"
-      ]
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "input",
-    "scope": "/agent/COUNTER",
-    "description": "trigger",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "listens": {
-        "includes": [
-          "USER"
-        ],
-        "excludes": []
-      }
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "output",
-    "scope": "/agent/COUNTER",
-    "description": "count",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "tags": ["COUNT"]
     },
     "icon": null
   },
@@ -1609,36 +1378,6 @@
     "icon": null
   },
   {
-    "name": "OPENAI___INTENT_REWRITER", 
-    "type": "agent", 
-    "scope": "/agent/OPENAI", 
-    "description": "Rewrites conversation history extracting and summarizing user intent", 
-    "created_by": null, 
-    "properties": {
-      "input_template": "Summarize the following USER-ASSISTANT conversation into a single, concise sentence describing the user's intended task. The summary should reflect the user's goal or intent, in an instruction style. Do not introduce new information. Only include what is stated or clearly implied. Respond only with JSON in the following format, nothing else. JSON response format: {\"rewrite\": \"<your_rewrite>\"}. Input: ${input}", 
-      "display_name": "OPENAI Intent Rewriter Agent", 
-      "icon": null
-    }
-  },
-  {
-    "name": "DEFAULT",
-    "type": "output",
-    "scope": "/agent/OPENAI/agent/OPENAI___INTENT_REWRITER",
-    "description": "rewritten intent and entities",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "tags": [
-          "EXTRACTIONS",
-          "HIDDEN"
-        ]
-    },
-    "icon": null
-  },
-  {
     "name": "OPENAI___QUERY_EXPLAINER",
     "type": "agent",
     "scope": "/agent/OPENAI",
@@ -1731,206 +1470,6 @@
     "icon": null
   },
   {
-    "name": "OPENAI___SEMANTIC_EXTRACTOR",
-    "type": "agent",
-    "scope": "/agent/OPENAI",
-    "description": "OPENAI Semantic Extractor Agent for extracting semantic entities from input",
-    "created_by": null,
-    "properties": {
-      "input_template": "The user will provide the entities that need to be extracted and text to extract entities from.\n Your job is to process the text and extract a list of concise values for each of the entities.\n The response should be valid JSON format with the entities and extracted values. Do not add any extra explanation. If there was no extractions return an empty JSON format.\n  Here is the user input: \n entities: ${entities} \n text: ${input}",
-      "tags": {},
-      "entities": {},
-      "display_name": "OPENAI Semantic Extractor Agent",
-      "openai.model": "gpt-4o-mini",
-      "output_strip": true,
-      "output_transformations": [
-        {
-          "transformation": "replace",
-          "from": "```json",
-          "to": ""
-        },
-        {
-          "transformation": "replace",
-          "from": "```",
-          "to": ""
-        }
-      ],
-      "output_cast": "json"
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "input",
-    "scope": "/agent/OPENAI/agent/OPENAI___SEMANTIC_EXTRACTOR",
-    "description": "user input",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "listens": {
-        "includes": [
-          "USER"
-        ],
-        "excludes": []
-      }
-    },
-    "icon": null
-  },
-  {
-    "name": "OPENAI___SEMANTIC_EXTRACTOR_EXAMPLE",
-    "type": "agent",
-    "scope": "/agent/OPENAI",
-    "description": "Example Semantic Extractor Agent to extract occupation sector, skill, and certifications",
-    "created_by": null,
-    "properties": {
-      "input_template": "The user will provide the entities  that need to be extracted and text to extract entities from.\n Your job is to process the text and extract a list of concise values for each of the entities.\n The response should be valid JSON format with the entities and extracted values. Do not add any extra explanation. If there was no extractions return an empty JSON format.\n  Here is the user input: \n entities: ${entities} \n text: ${input}",
-      "entities": {
-        "occupation sector": "occupation sector such as education, child development, healthcare, technology",
-        "skill": "list of skills for job",
-        "certifications": "job related certifications"
-      },
-      "display_name": "OPENAI Semantic Extractor Agent - Example",
-      "openai.model": "gpt-4o-mini",
-      "output_strip": true,
-      "output_transformations": [
-        {
-          "transformation": "replace",
-          "from": "```json",
-          "to": ""
-        },
-        {
-          "transformation": "replace",
-          "from": "```",
-          "to": ""
-        }
-      ],
-      "output_cast": "json"
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "input",
-    "scope": "/agent/OPENAI/agent/OPENAI___SEMANTIC_EXTRACTOR_EXAMPLE",
-    "description": "user input",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "listens": {
-        "includes": [
-          "USER"
-        ],
-        "excludes": []
-      }
-    },
-    "icon": null
-  },
-  {
-    "name": "OPENAI___SEMANTIC_FILTER",
-    "type": "agent",
-    "scope": "/agent/OPENAI",
-    "description": "OPENAI Semantic Filter",
-    "created_by": null,
-    "properties": {
-      "display_name": "OPENAI Semantic Filter Agent",
-      "openai.model": "gpt-4o-mini",
-      "output_strip": true,
-      "output_transformations": [
-        {
-          "transformation": "replace",
-          "from": "```json",
-          "to": ""
-        },
-        {
-          "transformation": "replace",
-          "from": "```",
-          "to": ""
-        }
-      ],
-      "input_template": "The user will provide some filter conditions and text to examine filter conditions on.\n Your job is to determine whether each of the filter conditions are true or false for the given text.\n The response should be valid JSON format. Do not add any extra explanation. \n The user will provide the entities that need to be extracted and text to extract entities from.\n Your job is to process the text and extract a list of concise values for each of the entities.\n The response should be valid JSON format with the entities and extracted values. Do not add any extra explanation. If there was no extractions return an empty JSON format.\n  Here is the user input: \n filter conditions: ${filter_conditions} \n text: ${input}",
-      "output_cast": "json",
-      "filter_conditions": {}
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "input",
-    "scope": "/agent/OPENAI/agent/OPENAI___SEMANTIC_FILTER",
-    "description": "user input",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "listens": {
-        "includes": [
-          "USER"
-        ],
-        "excludes": []
-      }
-    },
-    "icon": null
-  },
-  {
-    "name": "OPENAI___SEMANTIC_FILTER_EXAMPLE",
-    "type": "agent",
-    "scope": "/agent/OPENAI",
-    "description": "OPENAI Semantic Filter to filter soft and technical skills",
-    "created_by": null,
-    "properties": {
-      "display_name": "OPENAI Semantic Filter Agent - Example",
-      "openai.model": "gpt-4o-mini",
-      "output_strip": true,
-      "output_transformations": [
-        {
-          "transformation": "replace",
-          "from": "```json",
-          "to": ""
-        },
-        {
-          "transformation": "replace",
-          "from": "```",
-          "to": ""
-        }
-      ],
-      "input_template": "The user will provide some filter conditions and text to examine filter conditions on.\n Your job is to determine whether each of the filter conditions are true or false for the given text.\n The response should be valid JSON format. Do not add any extra explanation. \n The user will provide the entities that need to be extracted and text to extract entities from.\n Your job is to process the text and extract a list of concise values for each of the entities.\n The response should be valid JSON format with the entities and extracted values. Do not add any extra explanation. If there was no extractions return an empty JSON format.\n  Here is the user input: \n filter conditions: ${filter_conditions} \n text: ${input}",
-      "output_cast": "json",
-      "filter_conditions": {
-        "soft skills": "non-technical but important skills that enable individuals to collaborate effectively with others in a workplace",
-        "technical skills": "specialized abilities, knowledge, and techniques acquired to fullfill tasks in a workplace"
-      }
-    },
-    "icon": null
-  },
-  {
-    "name": "DEFAULT",
-    "type": "input",
-    "scope": "/agent/OPENAI/agent/OPENAI___SEMANTIC_FILTER_EXAMPLE",
-    "description": "user input",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null,
-      "listens": {
-        "includes": [
-          "USER"
-        ],
-        "excludes": []
-      }
-    },
-    "icon": null
-  },
-  {
     "OPENAI___VISUALIZER": {
       "name": "OPENAI___VISUALIZER",
       "type": "agent",
@@ -1993,16 +1532,6 @@
     "icon": null
   },
   {
-    "name": "OPENAI___INTENT_CLASSIFIER",
-    "type": "agent",
-    "scope": "/agent_group/openai_classifier_testing",
-    "description": "string",
-    "created_by": null,
-    "properties": {
-    },
-    "icon": null
-  },
-  {
     "name": "nl2sql_demo",
     "type": "agent_group",
     "scope": "/",
@@ -2016,96 +1545,6 @@
     "type": "agent",
     "scope": "/agent_group/nl2sql_demo",
     "description": "string",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "dialogue_manager_demo",
-    "type": "agent_group",
-    "scope": "/",
-    "description": "Try out the Dialogue Manager",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "OPENAI___EXTRACTOR",
-    "type": "agent",
-    "scope": "/agent_group/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "OPENAI___ROGUEAGENT",
-    "type": "agent",
-    "scope": "/agent_group/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "COORDINATOR",
-    "type": "agent",
-    "scope": "/agent_group/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "OPENAI___INTENT_CLASSIFIER",
-    "type": "agent",
-    "scope": "/agent_group/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "OPENAI___INTENT_REWRITER", 
-    "type": "agent", 
-    "scope": "/agent_group/dialogue_manager_demo", 
-    "description": "Rewrites conversation history by extracting and summarizing user intent", 
-    "created_by": null, 
-    "properties": {}, 
-    "icon": null
-  },
-  {
-    "name": "QUERYEXECUTOR",
-    "type": "agent",
-    "scope": "/agent_group/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "NL2SQL___DM",
-    "type": "agent",
-    "scope": "/agent_group/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "DIALOGUE_MANAGER___EXAMPLE",
-    "type": "agent",
-    "scope": "/agent_group/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "OPENAI___QUERY_EXPLAINER",
-    "type": "agent",
-    "scope": "/agent_group/dialogue_manager_demo",
-    "description": "",
     "created_by": null,
     "properties": {},
     "icon": null

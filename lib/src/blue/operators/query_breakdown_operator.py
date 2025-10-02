@@ -1,6 +1,9 @@
 ###### Formats
 from typing import List, Dict, Any, Callable, Optional
 
+import traceback
+import logging
+
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
 from blue.utils.service_utils import ServiceClient
@@ -47,7 +50,8 @@ class QueryBreakdownOperator(Operator, ServiceClient):
     PROMPT = """
 Your task is to process a natural language query, and break it down to its subqueries.  
 Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE).
-Each subquery should be sufficiently self-contained in terms of specific data to retrieve. Break down into as many subsqueries as necessary but don't do excessively. 
+Each subquery should be sufficiently self-contained in terms of specific data to retrieve. 
+Break down into as many subqueries as necessary but don't do excessively. 
 Only last subquery should together all the subqueries to answer the natural language query.
 Return the results in JSON format.
 The response should be a valid JSON array containing the following information for each CTE:
@@ -56,12 +60,14 @@ The response should be a valid JSON array containing the following information f
 - 'table':  name of the CTE table, use short generic table names 
 - 'columns': a list of columns of the table, each with a name and type (suitable for sql)
 - 'dependency': a list of dependent tables names, as defined in respective CTEs
-- 'generality': score of 0 to 10, where a score of 10 indicating whether the subsquery can be completed answered through public general knowledge sources and a score of 0 indicating subqeury can only be answered through private data sources
+- 'generality': score of 0 to 10, where a score of 10 indicating whether the subquery can be completed answered through public general knowledge sources and a score of 0 indicating subquery can only be answered through private data sources
 
 Here are additional requirements:
 - Create a total of ${num_alternatives} alternatives.
-- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object. - The output should be a JSON array, each containing an alternative set of CTEs. Even if only one alternative set is requested the output should be put in a JSON array with only one alternative set.
+- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object. 
+- The output should be a JSON array, each containing an alternative set of CTEs. Even if only one alternative set is requested the output should be put in a JSON array with only one alternative set.
 - Avoid using IN within a CTE. Instead breakdown further and create another CTE and have another CTE finally that uses JOIN to put the subqueries together. 
+- Dependency field should only contain table names defined in other CTEs.
 - Use columns with ids sparingly. When joining especially different tables use columns that have values instead of ids.
 - There might be optional context provided. Use it to assist the query if provided.
 - There might be specificed schema, whenever possible try to match it.
@@ -85,10 +91,11 @@ Output:
     PROPERTIES = {
         # openai related properties
         "openai.api": "ChatCompletion",
-        "openai.model": "gpt-4o",
+        # "openai.model": "gpt-4o",
+        "openai.model": "gpt-5",
         "openai.stream": False,
-        "openai.max_tokens": 4096,
-        "openai.temperature": 0,
+        # "openai.max_completion_tokens": 4096,
+        # "openai.temperature": 0,
         # io related properties
         "input_json": "[{\"role\": \"user\"}]",
         "input_context": "$[0]",

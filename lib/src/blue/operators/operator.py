@@ -1,16 +1,19 @@
 ###### Parsers, Formats, Utils
-import logging
 from typing import List, Dict, Any, Callable, Union, Optional, Any
 from dataclasses import dataclass
 from pydantic import BaseModel, ValidationError
 import copy
 import json
 
+import traceback
+import logging
+
 ###### Blue
 from blue.tools.tool import Tool
 from blue.utils import json_utils, tool_utils, uuid_utils
 from blue.utils.type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
 from blue.data.pipeline import DataPipeline, Status
+from blue.utils import log_utils
 
 ###############
 ### Operator
@@ -38,7 +41,7 @@ def default_operator_validator(input_data: List[List[Dict[str, Any]]], attribute
 def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate actual attributes (attributes) using the attribute definitions in properties."""
     # Need to get the attributes definition and validation error handling from properties
-    print("validator")
+    logging.debug("Validating attributes...")
     if properties is None:
         properties = {}
     attributes_def = properties.get("attributes", {})
@@ -48,7 +51,7 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
         # check if required attribute is present
         required = attrib_def.get("required", False)
         if required and attrib_name not in attributes:
-            print("failed for " + attrib_name)
+            logging.error("Failed for " + attrib_name)
             return False
         # validate attribute type
         if attrib_name in attributes:
@@ -57,7 +60,7 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
             if attrib_type:
                 try:
                     if not validate_parameter_type(attrib_value, attrib_type):
-                        print("failed type for " + attrib_name)
+                        logging.error("Failed type for " + attrib_name)
                         return False
                 except Exception as e:
                     # System failure in validation - handle based on configuration
@@ -68,15 +71,14 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
                         raise e
                     elif validation_error_handling == "log":
                         logging.error(error_msg)
-                        print(error_msg)
-                        print(attrib_name)
+                        logging.error(error_msg)
+                        logging.error(attrib_name)
                         return False
                     else:  # skip
                         # Continue with validation (treat as if validation passed)
-                        print("2")
-                        print(error_msg)
-                        print(attrib_name)
-                        logging.info(error_msg)
+                        logging.error(error_msg)
+                        logging.error(attrib_name)
+
     return True
 
 

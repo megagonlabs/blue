@@ -2,6 +2,7 @@
 from typing import List, Dict, Any, Callable, Optional
 
 import traceback
+import logging
 
 ###### Blue
 from blue.operators.operator import Operator, default_operator_validator, default_operator_explainer
@@ -22,7 +23,7 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
     # Get data registry from properties - follow agent pattern
     data_registry = _get_data_registry_from_properties(properties)
     if not data_registry:
-        print("Error: Data registry not found")
+        logging.error("Error: Data registry not found")
         # pass through input to output
         return input_data
 
@@ -40,13 +41,13 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
         if created_by:
             data_registry.set_record_data(name=database, type='database', scope=f'/source/{source}', key='created_by', value=created_by, rebuild=True)
 
-        print(f"Successfully created database '{database}' in source '{source}'.")
+        logging.info(f"Successfully created database '{database}' in source '{source}'.")
 
         # pass through input to output
         return input_data
 
     except Exception as e:
-        print(traceback.format_exc())
+        logging.error(traceback.format_exc())
         # pass through input to output
         return input_data
 

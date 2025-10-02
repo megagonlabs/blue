@@ -55,7 +55,12 @@ class UnionOperator(Operator):
     name = "union"
     description = "Given multiple input data sources, combine all records and remove exact duplicates"
     default_attributes = {
-        "match_option": {"type": "str", "description": "Matching strategy for duplicate detection: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)", "required": False, "default": "key_match"},
+        "match_option": {
+            "type": "str",
+            "description": "Matching strategy for duplicate detection: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)",
+            "required": False,
+            "default": "key_match",
+        },
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):

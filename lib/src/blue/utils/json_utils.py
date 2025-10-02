@@ -329,3 +329,22 @@ def json_safe(obj):
     elif isinstance(obj, dict):
         return {k: json_safe(v) for k, v in obj.items()}
     return obj
+
+
+def summarize_json(data, depth=0, text_limit=100, depth_limit=3, list_limit=5, key_limit=5):
+    if depth > depth_limit:
+        return "..."
+    if not isinstance(data, (list, dict)):
+        if isinstance(data, str):
+            return data[:text_limit] + ("" if len(data) < text_limit else "...")
+        return data
+    if isinstance(data, list):
+        return [summarize_json(item, depth=depth + 1, text_limit=text_limit, list_limit=list_limit, depth_limit=depth_limit) for item in data[:list_limit]]
+    if isinstance(data, dict):
+        all_keys = list(data.keys())
+        kept_keys = all_keys[:key_limit]
+        truncated_keys = all_keys[key_limit:]
+        d = dict([(key, summarize_json(data[key], depth=depth + 1, text_limit=text_limit, list_limit=list_limit, depth_limit=depth_limit)) for key in kept_keys])
+        if truncated_keys:
+            d["_truncated_keys"] = truncated_keys
+        return d

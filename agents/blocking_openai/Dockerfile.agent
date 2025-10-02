@@ -14,8 +14,8 @@ RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.co
 ADD src/requirements.agent /app/requirements.agent
 RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.agent
 
-ADD src/requirements.blocking_openai_agent /app/requirements.blocking_openai_agent
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.blocking_openai_agent
+ADD src/requirements.blocking_openai /app/requirements.blocking_openai
+RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.blocking_openai
 
 ADD src/requirements.registry /app/requirements.registry
 RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
@@ -29,4 +29,4 @@ RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.tool
 # Copy service files
 ADD /src /app/
 
-ENTRYPOINT ["python", "blocking_openai_agent.py"]
+ENTRYPOINT ["python", "blocking_openai.py"]
