@@ -22,6 +22,24 @@ from blue.scheduler import Scheduler
 #
 class Platform:
     def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+        """Initializes a new Platform instance.
+
+        This constructor constructs a canonical id (cid) given id, prefix and suffix, automatically creates a
+        unique id if not given.
+
+        Initializes a logger to use in platform.
+
+        Starts platform, connecting to db to store data, metadata and starts platform stream for agent and other
+        containers to listen to.
+
+        Parameters:
+            id (str): id of the platform,
+            sid (str): short id of the platform
+            cid (str): canonical id of the platform
+            prefix (str): prefix to build a canonical id
+            suffix (str): suffix to build a canonical id
+            properties (dict): dictionary of key-value pairs that identify properties of the platform
+        """
         self.connection = None
         self.name = name
         if id:
@@ -55,12 +73,24 @@ class Platform:
 
     ###### INITIALIZATION
     def _initialize(self, properties=None):
+        """Initializes platform, overriding default properties with given properties.
+
+        Initializes a logger to use in platform.
+
+        Parameters:
+            properties (dict): dictionary of key-value pairs that identify properties of the platform
+        """
         self._initialize_properties()
         self._update_properties(properties=properties)
 
         self._initialize_logger()
 
     def _initialize_properties(self):
+        """Initializes default properties.
+
+        Sets db connection properties, and platform trocker properties.
+
+        """
         self.properties = {}
 
         # db connectivity
@@ -72,6 +102,11 @@ class Platform:
         self.properties['tracker.perf.platform.period'] = 30
 
     def _update_properties(self, properties=None):
+        """Overrides default properties with given properties.
+
+        Parameters:
+            properties (dict): dictionary of key-value pairs that identify properties of the platform
+        """
         if properties is None:
             return
 
@@ -80,6 +115,10 @@ class Platform:
             self.properties[p] = properties[p]
 
     def _initialize_logger(self):
+        """Initializes platform logger to use in platform.
+
+        Sets logger configuration to include calls stack, and platform id.
+        """
         self.logger = log_utils.CustomLogger()
         # customize log
         self.logger.set_config_data(
@@ -90,18 +129,32 @@ class Platform:
 
     ###### SESSION
     def _init_session_cleanup_scheduler(self, callback=None):
+        """Initializes scheduler to clean up session data.
+
+        Uses `default_session_expiration_duration` to determine session expiration.
+
+        Parameters:
+            callback (callable): function to execute on schedule.
+        """
         key = 'default_session_expiration_duration'
         if key in self.properties:
             self.set_metadata('settings.session_expiration_duration', self.properties[key], nx=True)
         self.session_cleanup_scheduler = SessionCleanupScheduler(platform=self, callback=callback)
 
     def _start_session_cleanup_job(self):
+        """Starts session cleanup ."""
         self.session_cleanup_scheduler.start()
 
     def _stop_session_cleanup_job(self):
+        """Stops session cleanup ."""
         self.session_cleanup_scheduler.stop()
 
     def get_session_sids(self):
+        """Get session sids on platform.
+
+        Returns:
+            List of session sids (short id)
+        """
         keys = self.connection.keys(pattern=self.cid + ":SESSION:*:DATA")
         keys = "\n".join(keys)
         result = []
@@ -114,6 +167,11 @@ class Platform:
         return session_sids
 
     def get_sessions(self):
+        """Get session data for all sessions on platform
+
+        Returns:
+            List of session data as a dictionary.
+        """
         session_sids = self.get_session_sids()
 
         result = []
@@ -124,6 +182,14 @@ class Platform:
         return result
 
     def get_session(self, session_sid):
+        """Get session object for given session sid
+
+        Parameters:
+            session_sid(str): Session sid
+
+        Returns:
+            Session object for given session sid.
+        """
         session_sids = self.get_session_sids()
 
         if session_sid in set(session_sids):
@@ -132,12 +198,29 @@ class Platform:
             return None
 
     def create_session(self, created_by=None):
+        """Create a new Session object
+
+        Update platform metadata for user, if created_by is provided, to store owned sessions by user.
+        Parameters:
+            created_by(str): User id
+
+        Returns:
+            Session object created.
+        """
         session = Session(prefix=self.cid, properties=self.properties)
         if not pydash.is_empty(created_by):
             self.set_metadata(f'users.{created_by}.sessions.owner.{session.sid}', True)
         return session
 
     def delete_session(self, session_sid):
+        """Deletes the sesion, for given session sid.
+
+        Deletes session stream, data, and metadata from db.
+
+        Parameters:
+            session_sid(str): Session sid
+
+        """
         session_cid = self.cid + ":" + session_sid
 
         # delete session stream
@@ -156,7 +239,17 @@ class Platform:
         self.producer.write(data=message, dtype="json", label="INSTRUCTION")
 
     def join_session(self, session_sid, registry, agent, properties):
+        """Instructs an agent to join a given session
 
+        Writes a JOIN_SESSION control message to platform stream.
+
+        Parameters:
+            session_sid(str): Session sid
+            registry(str): Name of the agent registry
+            agent(str): Name of the agent
+            properties(dict): dictionary of key-value pairs that identify properties of the agent
+
+        """
         session_cid = self.cid + ":" + session_sid
 
         args = {}
@@ -168,6 +261,14 @@ class Platform:
 
     ###### METADATA RELATED
     def create_update_user(self, user):
+        """Creates of updates user metadata.
+
+        Writes a metadata to platform metadata, for given user.
+        Metadata includes uid, email, name, picture, role, etc.
+
+        Parameters:
+            user(dict): User metadata
+        """
         uid = user['uid']
         default_user_role = self.get_metadata('settings.default_user_role')
         if pydash.is_empty(default_user_role):
@@ -202,6 +303,7 @@ class Platform:
             return value
 
     def _init_metadata_namespace(self):
+        """Initializes platform metadat namespace on db"""
         # create namespaces for any session common data, and stream-specific data
         self.connection.json().set(
             self._get_metadata_namespace(),
@@ -211,12 +313,25 @@ class Platform:
         )
 
     def _get_metadata_namespace(self):
+        """Get metadata namespace
+
+        Returns:
+            metadata namespace string
+        """
         return self.cid + ":METADATA"
 
     def set_metadata(self, key, value, nx=False):
         self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def get_metadata(self, key=""):
+        """Get platform metadata, for key, or all metadata
+
+        Parameters:
+            key: key of the metadata
+
+        Returns:
+            metadata value for key, or all platform metadata if no key is given.
+        """
         value = self.connection.json().get(
             self._get_metadata_namespace(),
             Path("$" + ("" if pydash.is_empty(key) else ".") + key),
@@ -225,6 +340,7 @@ class Platform:
 
     ###### OPERATIONS
     def _start_producer(self):
+        """Starts platform stream producer"""
         # start, if not started
         if self.producer == None:
             producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, owner=self.sid)
@@ -232,22 +348,33 @@ class Platform:
             self.producer = producer
 
     def perf_tracker_callback(self, data, tracker=None, properties=None):
+        """Callback function for performance tracker"""
         pass
 
     def _init_tracker(self):
+        """Initialize platform performance tracker"""
         self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback=lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs))
 
     def _start_tracker(self):
+        """Starts platform performance tracker"""
         # start tracker
         self._tracker.start()
 
     def _stop_tracker(self):
+        """Stops platform performance tracker"""
         self._tracker.stop()
 
     def _terminate_tracker(self):
+        """Terminates platform performance tracker"""
         self._tracker.terminate()
 
     def _start(self):
+        """Starts platform
+
+        Initialize connection to db, initialize platform metadata.
+        Initializes platform tracker.
+        Starts platform stream producer.
+        """
         # self.logger.info('Starting session {name}'.format(name=self.sid))
         self._start_connection()
 
@@ -263,10 +390,18 @@ class Platform:
         self.logger.info('Started platform {name}'.format(name=self.sid))
 
     def _start_connection(self):
+        """Initialize connection to db
+
+        Uses pooled connection factory to obtain a db connection
+        """
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
     def stop(self):
+        """Stops platform
+
+        Stops platform tracker.
+        """
         # stop tracker
         self._stop_tracker()
 
@@ -275,11 +410,26 @@ class Platform:
 ### PlatformPerformanceTracker
 #
 class PlatformPerformanceTracker(PerformanceTracker):
+
     def __init__(self, platform, properties=None, callback=None):
+        """Initializes a new platform performance tracker, for platform.
+
+        This constructor constructs for platform, with specified properties, with an optional callback function.
+        Built on top of performance tracker that collects basic system performance.
+
+        Parameters:
+            platform (str): platform name
+            properties (dict): dictionary of key-value pairs that identify properties of the tracker
+            callback (callable): function to execute on schedule
+        """
         self.platform = platform
         super().__init__(prefix=platform.cid, properties=properties, inheritance="perf.platform", callback=callback)
 
     def collect(self):
+        """Collects platform performance data.
+
+        Performance data for platform additionally includes database connections.
+        """
         super().collect()
 
         ### platform group
@@ -320,12 +470,27 @@ class PlatformPerformanceTracker(PerformanceTracker):
 ### SessionCleanupScheduler
 #
 class SessionCleanupScheduler(Scheduler):
+
     def __init__(self, platform, callback):
+        """Initializes a scheduler for session cleanup.
+
+        This constructor constructs for scheduler for platform clean up expired session, with an optional callback function.
+        Built on top of scheduler.
+
+        Parameters:
+            platform (str): platform name
+            callback (callable): function to execute on schedule
+        """
         super().__init__(task=self.__session_cleanup)
         self.platform: Platform = platform
         self.callback = callback
 
     def __session_cleanup(self):
+        """Performs session cleanup.
+
+        Based on `session_expiration_duration` cleans an expired session using `last_activity_date` of session.
+
+        """
         sessions = self.platform.get_sessions()
         deleted_sessions = []
         session_expiration_duration = self.platform.get_metadata('settings.session_expiration_duration')
@@ -353,4 +518,5 @@ class SessionCleanupScheduler(Scheduler):
             self.callback(deleted_sessions)
 
     def set_job(self):
+        """Sets time to execute scheduler"""
         self.job = self.scheduler.every().day.at('00:00')
