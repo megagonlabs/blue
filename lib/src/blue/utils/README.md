@@ -31,8 +31,12 @@ This utility defines a base class (`Base`) that forms the core class for graph n
 
 ## JSON Utils
 
+This utility container helper functions to load and save json array (e.g. `load_json_array`, `save_json_array`), as well as query, set, and update json objects through json-path queries (e.g. `json_query`, `json_filter_array`, `json_query_set`, `json_query_update`), merging (`merge_json`) and summarizing json objects (`merge_json`).
+
 ## Log Utils
 
+Mainly this log util defines a `CustomLogger` with specific custom options and data to record and report with custom formatting such as `JSON`, through methods such as `set_config_option`, `set_config_output`, `set_config_data`, set log level `setLevel` and report logs for different levels such as `debug`, `warn`, `info`, `error`, etc.
+    
 ## Service Utils
 
 ## Similarity Utils
