@@ -153,7 +153,7 @@ class Platform:
         """Get session sids on platform.
 
         Returns:
-            List of session sids (short id)
+            (list[str]): List of session sids (short id)
         """
         keys = self.connection.keys(pattern=self.cid + ":SESSION:*:DATA")
         keys = "\n".join(keys)
@@ -170,7 +170,7 @@ class Platform:
         """Get session data for all sessions on platform
 
         Returns:
-            List of session data as a dictionary.
+            (list[dict]): List of session data as a dictionary.
         """
         session_sids = self.get_session_sids()
 
@@ -201,11 +201,12 @@ class Platform:
         """Create a new Session object
 
         Update platform metadata for user, if created_by is provided, to store owned sessions by user.
+
         Parameters:
             created_by(str): User id
 
         Returns:
-            Session object created.
+            (Session): Session object created.
         """
         session = Session(prefix=self.cid, properties=self.properties)
         if not pydash.is_empty(created_by):
@@ -219,7 +220,6 @@ class Platform:
 
         Parameters:
             session_sid(str): Session sid
-
         """
         session_cid = self.cid + ":" + session_sid
 
@@ -327,10 +327,10 @@ class Platform:
         """Get platform metadata, for key, or all metadata
 
         Parameters:
-            key: key of the metadata
+            key(str): key of the metadata
 
         Returns:
-            metadata value for key, or all platform metadata if no key is given.
+            (Any): metadata value for key, or all platform metadata if no key is given.
         """
         value = self.connection.json().get(
             self._get_metadata_namespace(),

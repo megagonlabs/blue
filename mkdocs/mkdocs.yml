@@ -1,15 +1,22 @@
 site_name: Blue Docs
+repo_url: https://github.com/rit-git/blue
 theme:
     name: material
     logo: assets/logo.svg
     favicon: assets/favicon.ico
     custom_dir: overrides
+    features:
+        - navigation.instant
+        - content.action.edit
+        - content.action.view
     icon:
         admonition:
             example: fontawesome/solid/laptop-code
+        repo: fontawesome/brands/github
 watch:
     - ../lib/src/blue
 plugins:
+    - offline
     - search
     - mkdocstrings:
           default_handler: python
@@ -21,9 +28,11 @@ markdown_extensions:
     - admonition
     - pymdownx.details
     - pymdownx.superfences
+    - pymdownx.magiclink
 extra:
     version:
         provider: mike
+        alias: true
     social:
         - icon: fontawesome/brands/linkedin
           link: https://www.linkedin.com/company/megagon-labs
