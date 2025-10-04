@@ -49,10 +49,11 @@ def query_breakdown_operator_explainer(output: Any, input_data: List[List[Dict[s
 class QueryBreakdownOperator(Operator, ServiceClient):
     PROMPT = """
 Your task is to process a natural language query, and break it down to its subqueries.  
-Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE).
-Each subquery should be sufficiently self-contained in terms of specific data to retrieve. 
-Break down into as many subqueries as necessary but don't do excessively. 
-Only last subquery should together all the subqueries to answer the natural language query.
+Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE):
+* Each subquery should be sufficiently self-contained and independent in terms of specific data to retrieve. 
+* Break down into as many subsqueries as necessary but don't do excessively. 
+* Only last subquery should join all the subqueries to answer the natural language query. Return the results in JSON format.
+
 Return the results in JSON format.
 The response should be a valid JSON array containing the following information for each CTE:
 - 'description': natural language description of the CTE, representing the subquery
@@ -76,6 +77,15 @@ Here are additional requirements:
 - The response should be well-formatted and easy to parse.
 - Output the JSON directly. Do not generate explanation or other additional output.
 
+Below is an example: 
+Query: 
+what jobs are available for data scientists in bay area? 
+
+Output: 
+[[[{"description":"Retrieve all jobs that are categorized as data scientist roles","sql":"SELECT job_title, company_name, location, role_category FROM jobs WHERE LOWER(role_category) LIKE '%data scientist%'","table":"ds_roles","columns":[{"name":"job_title","type":"VARCHAR"},{"name":"company_name","type":"VARCHAR"},{"name":"location","type":"VARCHAR"},{"name":"role_category","type":"VARCHAR"}],"dependency":[],"generality":3},{"description":"Retrieve locations that are considered part of the Bay Area","sql":"SELECT city, region FROM locations WHERE city IN ('San Francisco', 'San Jose', 'Oakland', 'Palo Alto', 'Mountain View', 'Sunnyvale', 'Berkeley')","table":"bay_locs","columns":[{"name":"city","type":"VARCHAR"},{"name":"region","type":"VARCHAR"}],"dependency":[],"generality":8},{"description":"Join data scientist job listings with Bay Area locations to find available data scientist jobs in the Bay Area","sql":"SELECT d.job_title, d.company_name, d.location FROM ds_roles d JOIN bay_locs b ON LOWER(d.location) = LOWER(b.city)","table":"ds_jobs_bayarea","columns":[{"name":"job_title","type":"VARCHAR"},{"name":"company_name","type":"VARCHAR"},{"name":"location","type":"VARCHAR"}],"dependency":["ds_roles","bay_locs"],"generality":2}]]
+
+Below is Your task:
+
 Query:
 ${query}
 
@@ -92,10 +102,10 @@ Output:
         # openai related properties
         "openai.api": "ChatCompletion",
         # "openai.model": "gpt-4o",
-        "openai.model": "gpt-5",
+        "openai.model": "gpt-4o",
         "openai.stream": False,
-        # "openai.max_completion_tokens": 4096,
-        # "openai.temperature": 0,
+        "openai.max_tokens": 4096,
+        "openai.temperature": 0,
         # io related properties
         "input_json": "[{\"role\": \"user\"}]",
         "input_context": "$[0]",
