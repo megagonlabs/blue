@@ -339,12 +339,12 @@ def summarize_json(data, depth=0, text_limit=100, depth_limit=3, list_limit=5, k
             return data[:text_limit] + ("" if len(data) < text_limit else "...")
         return data
     if isinstance(data, list):
-        return [summarize_json(item, depth=depth + 1, text_limit=text_limit, list_limit=list_limit, depth_limit=depth_limit) for item in data[:list_limit]]
+        return [summarize_json(item, depth=depth + 1, text_limit=text_limit, depth_limit=depth_limit, list_limit=list_limit, key_limit=key_limit) for item in data[:list_limit]]
     if isinstance(data, dict):
         all_keys = list(data.keys())
         kept_keys = all_keys[:key_limit]
         truncated_keys = all_keys[key_limit:]
-        d = dict([(key, summarize_json(data[key], depth=depth + 1, text_limit=text_limit, list_limit=list_limit, depth_limit=depth_limit)) for key in kept_keys])
+        d = dict([(key, summarize_json(data[key], depth=depth + 1, text_limit=text_limit, depth_limit=depth_limit, list_limit=list_limit, key_limit=key_limit)) for key in kept_keys])
         if truncated_keys:
             d["_truncated_keys"] = truncated_keys
         return d
