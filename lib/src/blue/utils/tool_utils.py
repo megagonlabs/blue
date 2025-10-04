@@ -7,6 +7,14 @@ from blue.utils import json_utils
 
 
 def annotation_to_type_str(annotation):
+    """Used to convert inspect annotations to type strings
+
+    Parameters:
+        annotation: Inspect annotation
+
+    Returns:
+        Type string
+    """
     if type(annotation) == type:
         if annotation == inspect._empty:
             return "unknown"
@@ -19,6 +27,15 @@ def annotation_to_type_str(annotation):
 
 
 def extract_signature(f, mcp_format=False):
+    """Extracts the signature of a function and returns it as a dictionary.
+
+    Parameters:
+        f: Function to extract signature from
+        mcp_format: If True, converts types to MCP format. Defaults to False.
+
+    Returns:
+        Dictionary containing function parameters and return type.
+    """
     signature = inspect.signature(f)
     inspection = {}
     inspection["parameters"] = {}
@@ -49,6 +66,14 @@ def extract_signature(f, mcp_format=False):
 
 
 def convert_type_string_to_mcp(type_str):
+    """Converts a type string to MCP format.
+
+    Parameters:
+        type_str: Type string to convert
+
+    Returns:
+        MCP format dictionary
+    """
     if type_str == "":
         return {"type": "unknown"}
     if type_str.lower() == "int" or type_str.lower() == "float":
