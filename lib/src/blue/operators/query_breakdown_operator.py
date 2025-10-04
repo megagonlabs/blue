@@ -65,8 +65,10 @@ The response should be a valid JSON array containing the following information f
 
 Here are additional requirements:
 - Create a total of ${num_alternatives} alternatives.
-- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object. 
-- The output should be a JSON array, each containing an alternative set of CTEs. Even if only one alternative set is requested the output should be put in a JSON array with only one alternative set.
+- The output should be a JSON array, each containing an alternative set of CTEs. 
+- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object in the array.
+- As such the overall output should be a JSON array of JSON arrays each representing an alternative set. The second level of JSONArray contains JSON objects.
+- Output should not be 3 levels of JSON Arrays. 
 - Avoid using IN within a CTE. Instead breakdown further and create another CTE and have another CTE finally that uses JOIN to put the subqueries together. 
 - Dependency field should only contain table names defined in other CTEs.
 - Use columns with ids sparingly. When joining especially different tables use columns that have values instead of ids.
