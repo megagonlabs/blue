@@ -18,6 +18,9 @@ watch:
 plugins:
     - offline
     - search
+    - document-dates:
+          type: timeago
+          show_author: false
     - mkdocstrings:
           default_handler: python
           handlers:

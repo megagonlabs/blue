@@ -188,7 +188,7 @@ class Platform:
             session_sid(str): Session sid
 
         Returns:
-            Session object for given session sid.
+            (Session): Session object for given session sid.
         """
         session_sids = self.get_session_sids()
 
