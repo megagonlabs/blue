@@ -82,6 +82,29 @@ This utils contains helper function such as:
 
 ## Tool Utils
 
+This util contains helper functions used with tools, including: 
+* `annotation_to_type_str(annotation)`: Used to convert inspect annotations to type strings
+* `extract_signature(f, mcp_format=False)`: Extracts the signature of a function and returns it as a dictionary
+* `convert_type_string_to_mcp(type_str)`: Converts a type string to MCP format
+  
 ## Type Utils
 
+This utils to used to convert string type representation to actual Python type for Pydantic. The current implementation depends on manual mapping of string type representation to actual Python type.
+
+Helper functions include:
+* `string_to_python_type(type_str: str) -> Any`: Convert string type representation to actual Python type for Pydantic.
+* `create_pydantic_model(parameters: Dict[str, Any]) -> Type[BaseModel]`: Create a Pydantic model dynamically from parameter definitions using Pydantic v2.
+* `validate_parameter_type(value: Any, expected_type: str) -> bool`: Validate that a parameter value matches the expected type using Pydantic v2.
+
+
 ## UUID Utils
+
+This utils contains helper function to create unique ids, parse and extract ids, including:
+
+* `create_uuid()`: Create a unique identifier
+* `split_ids(canonical_id)`: Split a canonical id into its components
+* `extract_sid(canonical_id)`: Extract the SID (short ID) from a canonical ID
+* `extract_name_id(canonical_id)`: Extract the name and ID from a canonical ID
+* `extract_prefix(canonical_id)`: Extract the prefix from a canonical ID
+* `concat_ids(*ids)`: Concatenate multiple ID components
+
