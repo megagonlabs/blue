@@ -10,6 +10,17 @@ import decimal
 ### json utility functions
 ## load json objects as an array from a file
 def load_json_array(json_file, single=False):
+    """Loads JSON objects from a file into an array.
+
+    It builds JSON array by oncatenating lines until a complete JSON object is formed where bracket counts match for both curly and square brackets.
+
+    Parameters:
+        json_file: JSON file path
+        single: If True, treats each line as a separate JSON object. Defaults to False.
+
+    Returns:
+        JSON array of objects
+    """
     json_array = []
     with open(json_file) as fp:
         json_string = ''
@@ -36,6 +47,12 @@ def load_json_array(json_file, single=False):
 
 ## save json objects as an array from a file
 def save_json_array(file_path, json_array):
+    """Saves JSON objects from an array to a file, one object per line.
+
+    Parameters:
+        file_path: File path to save JSON objects
+        json_array: Array of JSON objects to save
+    """
     with open(file_path, "w") as fp:
         for json_element in json_array:
             line = json.dumps(json_element)
@@ -44,7 +61,17 @@ def save_json_array(file_path, json_array):
 
 ## jsonpath get
 def json_query(json_object, json_path_query, single=True, default=None):
+    """Query JSON object using JSONPath.
 
+    Parameters:
+        json_object: JSON object to query
+        json_path_query: JSONPath query string
+        single: If True, returns a single value. Defaults to True.
+        default: Default value if no match is found. If None, returns None.
+
+    Returns:
+        Query results (single value or list of values)
+    """
     jpq = jp.parse(json_path_query)
 
     match_values = [m.value for m in jpq.find(json_object)]
@@ -63,6 +90,17 @@ def json_query(json_object, json_path_query, single=True, default=None):
 
 
 def json_filter_array(json_array, json_path_query, match_value, match=True):
+    """Filter JSON array based on a JSONPath query and match value.
+
+    Parameters:
+        json_array: JSON object to query
+        json_path_query: JSONPath query string
+        match_value: Value to match against
+        match: If True, keeps objects where the query result matches the match_value. If False, keeps objects where it does not match. Defaults to True.
+
+    Returns:
+        Filtered JSON array
+    """
     filtered_array = []
     for json_object in json_array:
         value = json_query(json_object, json_path_query, single=True)
@@ -80,6 +118,15 @@ def json_filter_array(json_array, json_path_query, match_value, match=True):
 
 
 def json_query_set(json_object, attribute, value, context='$'):
+    """Set attribute value in JSON object using JSONPath context.
+
+    Parameters:
+        json_object: JSON object to update
+        attribute: Attribute to set
+        value: Value to set
+        context: JSONPath query context. Defaults to '$'.
+
+    """
     jpq = jp.parse(context)
     matches = jpq.find(json_object)
     for match in matches:
@@ -96,10 +143,29 @@ def json_query_set(json_object, attribute, value, context='$'):
 
 
 def json_query_add(json_object, attribute, value, context='$', single=True):
+    """Add value to attribute in JSON object using JSONPath context.
+
+    Parameters:
+        json_object: JSON object to update
+        attribute: Attribute to add to
+        value: Value to add
+        context: JSONPath query context. Defaults to '$'.
+        single: If True, adds value as a single element. If False, extends the list. Defaults to True.
+    """
     json_query_update(json_object, attribute, lambda match: value, context=context, add=True, single=single)
 
 
 def json_query_update(json_object, attribute, update_function, context='$', add=False, single=True):
+    """Update attribute in JSON object using a function and JSONPath context.
+
+    Parameters:
+        json_object: JSON object to update
+        attribute: Attribute to update
+        update_function: Function that takes a match object and returns the new value
+        context: JSONPath query context. Defaults to '$'.
+        add: If True, adds the new value to the existing value. If False, replaces it. Defaults to False.
+        single: If True, updates value as a single element. If False, extends the list. Defaults to True.
+    """
     json_path_query = context + '.' + attribute
     jpq = jp.parse(json_path_query)
     matches = jpq.find(json_object)
@@ -151,10 +217,29 @@ def _add(target, value, single=True):
 
 
 def merge_json(original_json, update_json):
+    """Merge two JSON objects.
+
+    Parameters:
+        original_json: Original JSON object
+        update_json: JSON object to merge
+
+    Returns:
+        Merged JSON object
+    """
     return merge(original_json, update_json)
 
 
 def union_jsonarray_by_attribute(json_array_a, json_array_b, attr):
+    """Computes the union of two JSON arrays based on a specified attribute.
+
+    Parameters:
+        json_array_a: JSON array A
+        json_array_b: JSON array B
+        attr: Attribute to base the union on
+
+    Returns:
+        Union of the two JSON arrays based on the specified attribute
+    """
     m = {}
     for o in json_array_a:
         m[o[attr]] = o
@@ -166,6 +251,17 @@ def union_jsonarray_by_attribute(json_array_a, json_array_b, attr):
 
 ## flatten json
 def flatten_json(json_object, separator='___', num_marker='$$$', flattenList=False):
+    """Flattens a nested JSON object into a single-level dictionary.
+
+    Parameters:
+        json_object: JSON object to flatten
+        separator: Separator to use between nested keys. Defaults to '___'.
+        num_marker: Marker to denote list indices. Defaults to '$$$'.
+        flattenList: If True, flattens lists by including indices in keys. If False, keeps lists intact. Defaults to False.
+
+    Returns:
+        Flattened JSON object
+    """
     result = {}
 
     def _flatten_recursively(x, prefix=''):
@@ -188,6 +284,17 @@ def flatten_json(json_object, separator='___', num_marker='$$$', flattenList=Fal
 
 
 def unflatten_json(json_object, separator='___', num_marker='$$$', unflattenList=False):
+    """Unflattens a flattened JSON object back into a nested structure.
+
+    Parameters:
+        json_object: Flattened JSON object to unflatten
+        separator: Separator used between nested keys. Defaults to '___'.
+        num_marker: Marker used to denote list indices. Defaults to '$$$'.
+        unflattenList: If True, reconstructs lists from keys with indices.
+
+    Returns:
+        Nested JSON object
+    """
     result = {}
     for a in json_object:
         v = json_object[a]
@@ -245,6 +352,15 @@ def unflatten_json(json_object, separator='___', num_marker='$$$', unflattenList
 
 
 def tokenize_json(json_object, reserved_dict=None):
+    """Tokenizes strings in a JSON object, replacing them with unique integer IDs.
+
+    Parameters:
+        json_object:  JSON object to tokenize
+        reserved_dict: Dictionary of reserved tokens with their corresponding IDs. Defaults to None.
+
+    Returns:
+        Tuple of (tokenized JSON object, token to ID mapping, ID to token mapping)
+    """
 
     token2id = {}
     id2token = {}
@@ -303,8 +419,13 @@ def _is_list_index(s, num_marker='$$$'):
 
 
 def safe_json_parse(text):
-    """
-    Handles cases where JSON is wrapped in ```json ... ```
+    """Handles cases where JSON is wrapped in ```json ... ```
+
+    Parameters:
+        text: Text to parse
+
+    Returns:
+        Parsed JSON object or empty dict on failure
     """
     if text is None:
         return {}
@@ -321,6 +442,14 @@ def safe_json_parse(text):
 
 
 def json_safe(obj):
+    """Convert an object to a JSON-safe representation.
+
+    Parameters:
+        obj: Object to convert
+
+    Returns:
+        JSON-safe object
+    """
     if isinstance(obj, decimal.Decimal):
         # Convert to int if whole number, else float
         return int(obj) if obj % 1 == 0 else float(obj)
@@ -332,6 +461,19 @@ def json_safe(obj):
 
 
 def summarize_json(data, depth=0, text_limit=100, depth_limit=3, list_limit=5, key_limit=5):
+    """Summarizes a JSON object by truncating text, limiting depth, and restricting list and key counts.
+
+    Parameters:
+        data: JSON object to summarize
+        depth: Current depth of summarization. Defaults to 0.
+        text_limit: Maximum length of text strings. Defaults to 100.
+        depth_limit: Maximum depth of nested structures. Defaults to 3.
+        list_limit: Maximum number of list items to include. Defaults to 5.
+        key_limit: Maximum number of object keys to include. Defaults to 5.
+
+    Returns:
+        Summarized JSON object
+    """
     if depth > depth_limit:
         return "..."
     if not isinstance(data, (list, dict)):
