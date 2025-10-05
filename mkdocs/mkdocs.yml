@@ -18,9 +18,8 @@ watch:
 plugins:
     - offline
     - search
-    - document-dates:
+    - git-revision-date-localized:
           type: timeago
-          show_author: false
     - mkdocstrings:
           default_handler: python
           handlers:

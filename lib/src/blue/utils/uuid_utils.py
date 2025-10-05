@@ -7,7 +7,7 @@ def create_uuid():
     """Create a unique identifier.
 
     Returns:
-        Unique identifier string
+        (str): Unique identifier string
     """
     return str(hex(uuid.uuid4().fields[0]))[2:]
 
@@ -16,10 +16,10 @@ def split_ids(canonical_id):
     """Split a canonical id into its components.
 
     Parameters:
-        canonical_id: Canonical ID string
+        canonical_id (str): Canonical ID string
 
     Returns:
-        List of ID components
+        (list[str]): List of ID components
     """
     return canonical_id.split(Separator.ID)
 
@@ -28,10 +28,10 @@ def extract_sid(canonical_id):
     """Extract the SID (short ID) from a canonical ID.
 
     Parameters:
-        canonical_id: Canonical ID string
+        canonical_id (str): Canonical ID string
 
     Returns:
-        SID string
+        (str): SID string
     """
     return Separator.ID.join(extract_name_id(canonical_id))
 
@@ -40,10 +40,10 @@ def extract_name_id(canonical_id):
     """Extract the name and ID from a canonical ID.
 
     Parameters:
-        canonical_id: Canonical ID string
+        canonical_id (str): Canonical ID string
 
     Returns:
-        Tuple of (name, ID)
+        ((str, str)): Tuple of (name, ID)
     """
     return split_ids(canonical_id)[-2:]
 
@@ -52,10 +52,10 @@ def extract_prefix(canonical_id):
     """Extract the prefix from a canonical ID.
 
     Parameters:
-        canonical_id: Canonical ID string
+        canonical_id (str): Canonical ID string
 
     Returns:
-        Prefix string or None if not available
+        (str): Prefix string or None if not available
     """
     splits = split_ids(canonical_id)
     if len(splits) > 2:
@@ -70,6 +70,6 @@ def concat_ids(*ids):
         *ids: ID components to concatenate
 
     Returns:
-        Concatenated ID string
+        (str): Concatenated ID string
     """
     return Separator.ID.join(ids)

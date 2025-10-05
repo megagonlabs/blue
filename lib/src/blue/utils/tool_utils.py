@@ -13,7 +13,7 @@ def annotation_to_type_str(annotation):
         annotation: Inspect annotation
 
     Returns:
-        Type string
+        (str): Type string
     """
     if type(annotation) == type:
         if annotation == inspect._empty:
@@ -30,11 +30,11 @@ def extract_signature(f, mcp_format=False):
     """Extracts the signature of a function and returns it as a dictionary.
 
     Parameters:
-        f: Function to extract signature from
-        mcp_format: If True, converts types to MCP format. Defaults to False.
+        f (callable): Function to extract signature from
+        mcp_format (bool): If True, converts types to MCP format. Defaults to False.
 
     Returns:
-        Dictionary containing function parameters and return type.
+        (dict): Dictionary containing function parameters and return type.
     """
     signature = inspect.signature(f)
     inspection = {}
@@ -69,10 +69,10 @@ def convert_type_string_to_mcp(type_str):
     """Converts a type string to MCP format.
 
     Parameters:
-        type_str: Type string to convert
+        type_str (str): Type string to convert
 
     Returns:
-        MCP format dictionary
+        (dict): MCP format dictionary
     """
     if type_str == "":
         return {"type": "unknown"}

@@ -14,7 +14,7 @@ def camel_case(string):
         string (str): The input string to be converted.
 
     Returns:
-        The converted Camel Case string.
+        (str): The converted Camel Case string.
     """
     words = string.split("_")
     return " ".join(word.capitalize() for word in words)
@@ -49,10 +49,10 @@ def remove_non_alphanumeric(input_string):
     """Remove non-alphanumeric characters from a string, also replaces spaces with underscores.
 
     Parameters:
-        input_string: input string to be cleaned
+        input_string (str): input string to be cleaned
 
     Returns:
-        Cleaned string with only alphanumeric characters and underscores.
+        (str): Cleaned string with only alphanumeric characters and underscores.
     """
     # Use regex to remove all non-alphanumeric characters
     cleaned_string = re.sub(r"[^a-zA-Z0-9 ]", "", input_string)
