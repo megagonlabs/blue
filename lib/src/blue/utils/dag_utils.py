@@ -26,7 +26,21 @@ from blue.utils import uuid_utils, json_utils
 # T      T            T
 class Base:
     def __init__(self, id=None, label=None, type=None, properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        """Initialize the Base object, which serves as a foundational class for other entities, including Nodes and DAGs.
 
+        Each Base object is characterized by a unique identifier (id), an optional label, a type, and a set of properties.
+        The class also supports synchronization features to keep the object's state consistent with an external source
+
+        Args:
+            id: ID of the object. If None, a unique ID will be generated. Defaults to None.
+            label: Label of the object. Defaults to None.
+            type: Type of the object. Defaults to None.
+            properties:  Properties of the object as a dictionary. Defaults to None.
+            path: Path for synchronization context. Defaults to None.
+            synchronizer: Function to handle synchronization. Defaults to None.
+            auto_sync: If True, automatically synchronize changes. Defaults to False.
+            sync:  If True, force synchronization of instatiation regardless of auto_sync setting. Defaults to None.
+        """
         # create unique id
         if id is None:
             id = uuid_utils.create_uuid()
@@ -59,12 +73,27 @@ class Base:
         pass
 
     def set_data(self, key, value, sync=None):
+        """Set a data key-value pair.
+
+        Args:
+            key: Key to set.
+            value: Value to set.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None.
+        """
         self.__data__[key] = value
 
         # sync
         self.synchronize(key=key, value=value, sync=sync)
 
     def get_data(self, key=None):
+        """Get data by key.
+
+        Args:
+            key: Key to get. If None, return all data. Defaults to None.
+
+        Returns:
+            Value associated with the key, or the entire data dictionary if key is None.
+        """
         if key is None:
             return self.__data__
         elif key in self.__data__:
@@ -73,6 +102,17 @@ class Base:
             return None
 
     def append_data(self, key, value, unique=False, sync=None):
+        """Append a value to a list at the specified key, assumes key is a list.
+
+        Args:
+            key: Key of the list to append to.
+            value: Value to append.
+            unique: If True, only append if the value is not already in the list. Defaults to False.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+
+        Raises:
+            Exception: If the data at the specified key is not a list.
+        """
         l = self.get_data(key)
         if isinstance(l, list):
             if unique:
@@ -92,12 +132,27 @@ class Base:
 
     # basics
     def get_id(self):
+        """Get the ID of the object.
+
+        Returns:
+            ID of the object.
+        """
         return self.get_data("id")
 
     def get_label(self):
+        """Get the label of the object.
+
+        Returns:
+            Label of the object.
+        """
         return self.get_data("label")
 
     def get_type(self):
+        """Get the type of the object.
+
+        Returns:
+            Type of the object.
+        """
         return self.get_data("type")
 
     # properties
@@ -113,18 +168,38 @@ class Base:
             self.set_property(p, properties[p], sync=sync)
 
     def set_property(self, key, value, sync=None):
+        """Set a property key-value pair.
+
+        Args:
+            key: Key of the property.
+            value: Value of the property.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         properties = self.get_properties()
         properties[key] = value
 
         self.synchronize(key="properties." + key, value=value, sync=sync)
 
     def get_property(self, key):
+        """Get a property by key.
+
+        Args:
+            key: Key of the property.
+
+        Returns:
+            Value of the property, or None if the key does not exist.
+        """
         properties = self.get_properties()
         if key in properties:
             return properties[key]
         return None
 
     def get_properties(self):
+        """Get all properties.
+
+        Returns:
+            Dictionary with all properties.
+        """
         return self.get_data("properties")
 
     # sync
@@ -145,6 +220,21 @@ class Base:
 
     @classmethod
     def from_dict(cls, d, path=None, synchronizer=None, auto_sync=False, sync=None):
+        """Create an instance of the class from a dictionary.
+
+        Args:
+            d: Dictionary to create the instance from.
+            path: Path for synchronization context. Defaults to None.
+            synchronizer: Function to handle synchronization. Defaults to None.
+            auto_sync: If True, automatically synchronize changes. Defaults to False.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+
+        Raises:
+            Exception: If validation fails.
+
+        Returns:
+            Instance of the class
+        """
         d = cls._validate(d)
         if d:
             id = d['id']
@@ -160,6 +250,15 @@ class Base:
             raise Exception("Failed validation")
 
     def synchronize(self, key=None, value=None, single=True, sync=None):
+        """Synchronize the object or a specific key-value pair using the provided synchronizer function.
+
+        Args:
+            key: Key to synchronize. If None, synchronize the entire object. Defaults to None.
+            value: Value to synchronize. If None, the current value of the key will be retrieved. Defaults to None.
+            single: If True, expect a single value; if False, expect a list from JSON query. Defaults to True.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+
+        """
         # sync is not set
         if sync is None:
             # auto sync is off -> do not sync
@@ -187,11 +286,30 @@ class Base:
             self.synchronizer(context + "." + self.id, key, value)
 
     def synchronizer(self, path, key, value):
+        """Default synchronizer function that prints the synchronization action.
+
+        Args:
+            path: Path for synchronization context.
+            key: Key to synchronize.
+            value: Value to synchronize.
+        """
         print("synchronize: " + str(path) + "." + (str(key) if key else "NONE") + "=" + json.dumps(value))
 
 
 class Node(Base):
     def __init__(self, id=None, label=None, type=None, properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        """Initializer a Node in a DAG
+
+        Args:
+            id: ID of the node. Defaults to None.
+            label: Label of the node. Defaults to None.
+            type: Type of the node. Defaults to None.
+            properties: Properties of the node as a dictionary. Defaults to None.
+            path: Path for synchronization context. Defaults to None.
+            synchronizer: Function to handle synchronization. Defaults to None.
+            auto_sync: If True, automatically synchronize changes. Defaults to False.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
     def _init_data(self, sync=None):
@@ -211,6 +329,12 @@ class Node(Base):
         self.synchronize(key="prev", single=False, sync=sync)
 
     def connect_to(self, t, sync=None):
+        """Connect this node to another node.
+
+        Args:
+            t: Target node to connect to.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         # add next
         t_id = t.get_id()
         self._add_next(t_id, sync=sync)
@@ -236,6 +360,18 @@ class Node(Base):
 #
 class Entity(Base):
     def __init__(self, id=None, label=None, type="Entity", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        """Entity in an EntityDAG. Entities can be linked to nodes in the DAG.
+
+        Args:
+            id: ID of the entity. Defaults to None.
+            label: Label of the entity. Defaults to None.
+            type: Type of the entity. Defaults to "Entity".
+            properties: Properties of the entity as a dictionary. Defaults to None.
+            path: Path for synchronization context. Defaults to None.
+            synchronizer: Function to handle synchronization. Defaults to None.
+            auto_sync: If True, automatically synchronize changes. Defaults to False.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
 
@@ -244,6 +380,18 @@ class Entity(Base):
 #
 class DAG(Base):
     def __init__(self, id=None, label=None, type="DAG", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        """A Directed Acyclic Graph (DAG) structure to manage nodes and their connections.
+
+        Args:
+            id: ID of the DAG. Defaults to None.
+            label: Label of the DAG. Defaults to None.
+            type: Type of the DAG. Defaults to "DAG".
+            properties: Properties of the DAG as a dictionary. Defaults to None.
+            path: Path for synchronization context. Defaults to None.
+            synchronizer: Function to handle synchronization. Defaults to None.
+            auto_sync: If True, automatically synchronize changes. Defaults to False.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
     def _init_data(self, sync=None):
@@ -259,6 +407,18 @@ class DAG(Base):
         return True
 
     def create_node(self, id=None, label=None, type=None, properties=None, sync=None):
+        """Create a new node in the DAG.
+
+        Args:
+            id: ID of the node. Defaults to None.
+            label: Label of the node. Defaults to None.
+            type: Type of the node. Defaults to None.
+            properties: Properties of the node as a dictionary. Defaults to None.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+
+        Returns:
+            The created Node object.
+        """
         # verify node, first
         if not self._verify_node(label=label, type=type, properties=properties):
             raise Exception("Cannot create node due to failed varification")
@@ -279,6 +439,17 @@ class DAG(Base):
         return node
 
     def connect_nodes(self, f, t, sync=None):
+        """Connect two nodes in the DAG.
+
+        Args:
+            f: From node
+            t: To node
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+
+        Raises:
+            Exception: Undefined from node
+            Exception: Undefined to node
+        """
         if isinstance(f, Node):
             f_node = f
         else:
@@ -296,9 +467,23 @@ class DAG(Base):
         f_node.connect_to(t_node, sync=sync)
 
     def get_nodes(self):
+        """Get all nodes in the DAG.
+
+        Returns:
+
+        """
         return self.get_data("nodes")
 
     def get_node(self, n, cls=None):
+        """Get a node by ID or label.
+
+        Args:
+            n: Node ID or label
+            cls: Class type to return. Defaults to None.
+
+        Returns:
+            Node object or None if not found.
+        """
         if cls is None:
             cls = Node
 
@@ -310,6 +495,15 @@ class DAG(Base):
         return node
 
     def get_node_by_id(self, node_id, cls=None):
+        """Get a node by its ID.
+
+        Args:
+            node_id: Node ID
+            cls: Class type to return. Defaults to None.
+
+        Returns:
+            Node object or None if not found.
+        """
         nodes = self.get_nodes()
         if node_id in nodes:
             node_data = nodes[node_id]
@@ -320,6 +514,15 @@ class DAG(Base):
             return None
 
     def get_node_by_label(self, node_label, cls=None):
+        """Get a node by its label.
+
+        Args:
+            node_label: Node label
+            cls: Class type to return. Defaults to None.
+
+        Returns:
+            Node object or None if not found.
+        """
         map = self.get_data("map")
         node = None
         if node_label in map:
@@ -328,6 +531,14 @@ class DAG(Base):
         return node
 
     def get_prev_nodes(self, n):
+        """Get previous nodes connected to the given node.
+
+        Args:
+            n: Node ID or label
+
+        Returns:
+            List of previous Node objects.
+        """
         node = self.get_node(n)
         prev_nodes = []
         if node:
@@ -340,6 +551,14 @@ class DAG(Base):
         return prev_nodes
 
     def get_next_nodes(self, n):
+        """Get next nodes connected to the given node.
+
+        Args:
+            n: Node ID or label
+
+        Returns:
+            List of next Node objects.
+        """
         node = self.get_node(n)
         next_nodes = []
         if node:
@@ -352,6 +571,16 @@ class DAG(Base):
         return next_nodes
 
     def filter_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
+        """Filter nodes based on criteria, such as node type, having previous nodes, or having next nodes.
+
+        Args:
+            filter_node_type: List of node types to filter by. Defaults to None.
+            filter_hasPrev: Whether to filter nodes that have previous nodes. Defaults to None.
+            filter_hasNext: Whether to filter nodes that have next nodes. Defaults to None.
+
+        Returns:
+            Dictionary of filtered nodes.
+        """
         filtered_nodes = {}
 
         for node_id in self.get_nodes():
@@ -377,10 +606,28 @@ class DAG(Base):
         return filtered_nodes
 
     def count_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
+        """Count nodes based on criteria, such as node type, having previous nodes, or having next nodes.
+
+        Args:
+            filter_node_type: List of node types to filter by. Defaults to None.
+            filter_hasPrev: Whether to filter nodes that have previous nodes. Defaults to None.
+            filter_hasNext: Whether to filter nodes that have next nodes. Defaults to None.
+
+        Returns:
+            Count of filtered nodes.
+        """
         nodes = self.filter_nodes(filter_node_type=filter_node_type, filter_hasPrev=filter_hasPrev, filter_hasNext=filter_hasNext)
         return len(nodes)
 
     def is_node_leaf(self, n):
+        """Check if a node is a leaf node (has previous nodes but no next nodes).
+
+        Args:
+            n: Node ID or label
+
+        Returns:
+            True if the node is a leaf node, False otherwise.
+        """
         node = self.get_node(n)
         prev = node.get_data("prev")
         next = node.get_data("next")
@@ -391,12 +638,27 @@ class DAG(Base):
             return False
 
     def map(self, f, t, sync=None):
+        """Map a label to a node ID.
+
+        Args:
+            f: Label to map from.
+            t: Node ID to map to.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         map = self.get_data("map")
         map[f] = t
 
         self.synchronize(key="map." + f, value=t, sync=sync)
 
     def is_mapped(self, i):
+        """Check if a label is mapped to a node ID.
+
+        Args:
+            i: Label to check.
+
+        Returns:
+            True if the label is mapped, False otherwise.
+        """
         map = self.get_data("map")
         if i in map:
             return True
@@ -419,6 +681,18 @@ class DAG(Base):
 
 class EntityDAG(DAG):
     def __init__(self, id=None, label=None, type="DAG", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        """Entity DAG to manage entities
+
+        Args:
+            id: ID of the DAG. Defaults to None.
+            label: Label of the DAG. Defaults to None.
+            type: Type of the DAG. Defaults to "DAG".
+            properties: Properties of the DAG as a dictionary. Defaults to None.
+            path: Path for synchronization context. Defaults to None.
+            synchronizer: Function to handle synchronization. Defaults to None.
+            auto_sync: If True, automatically synchronize changes. Defaults to False.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
     def _init_data(self, sync=None):
@@ -427,6 +701,16 @@ class EntityDAG(DAG):
         self.set_data("entities", {}, sync=sync)
 
     def verify_entity(self, label=None, type=None, properties=None):
+        """Verify if an entity can be created, checks if label is unique.
+
+        Args:
+            label: Label of the entity. Defaults to None.
+            type: Type of the entity. Defaults to None.
+            properties: Properties of the entity as a dictionary. Defaults to None.
+
+        Returns:
+            True if the entity can be created, False otherwise.
+        """
         # verify if label is unique
         if label and self.is_mapped(label):
             return False
@@ -434,6 +718,21 @@ class EntityDAG(DAG):
         return True
 
     def create_entity(self, id=None, label=None, type=None, properties=None, sync=None):
+        """Create a new entity in the EntityDAG.
+
+        Args:
+            id: ID of the entity. Defaults to None.
+            label: Label of the entity. Defaults to None.
+            type: Type of the entity. Defaults to None.
+            properties: Properties of the entity as a dictionary. Defaults to None.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+
+        Raises:
+            Exception: Cannot create entity due to failed varification
+
+        Returns:
+            The created Entity object.
+        """
         # verify entity
         if not self.verify_entity(label=label, type=type, properties=properties):
             raise Exception("Cannot create entity due to failed varification")
@@ -469,10 +768,24 @@ class EntityDAG(DAG):
         return entity
 
     def has_entity_type(self, type):
+        """Check if an entity type exists, in the DAG.
+
+        Args:
+            type: Entity type to check.
+
+        Returns:
+            True if the entity type exists, False otherwise.
+        """
         entities = self.get_data("entities")
         return type in entities
 
     def add_entity_type(self, type, sync=None):
+        """Add a new entity type to the DAG.
+
+        Args:
+            type: Entity type to add.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         entities = self.get_data("entities")
         if type in entities:
             return
@@ -481,12 +794,30 @@ class EntityDAG(DAG):
         self.synchronize(key="entities." + type, value=entities[type], sync=sync)
 
     def get_entities(self, type=None):
+        """Get entities in the DAG, optionally filtered by type.
+
+        Args:
+            type: Entity type to filter by. Defaults to None.
+
+        Returns:
+            Dictionary of entities, either all or filtered by type.
+        """
         entities = self.get_data("entities")
         if type and type in entities:
             return entities[type]
         return entities
 
     def get_entity(self, e, type=None, cls=None):
+        """Get an entity by ID or label.
+
+        Args:
+            e: Entity ID or label
+            type: Type of the entity. Defaults to None.
+            cls: Class type to return. Defaults to None.
+
+        Returns:
+            Entity object or None if not found.
+        """
         if cls is None:
             cls = Entity
 
@@ -499,6 +830,16 @@ class EntityDAG(DAG):
         return entity
 
     def get_entity_by_id(self, entity_id, type=None, cls=None):
+        """Get an entity by its ID.
+
+        Args:
+            entity_id: ID of the entity.
+            type: Type of the entity. Defaults to None.
+            cls: Class type to return. Defaults to None.
+
+        Returns:
+            Entity object or None if not found.
+        """
         entities = self.get_entities(type=type)
 
         entity_data = None
@@ -518,6 +859,16 @@ class EntityDAG(DAG):
             return None
 
     def get_entity_by_label(self, entity_label, type=None, cls=None):
+        """Get an entity by its label.
+
+        Args:
+            entity_label: Label of the entity.
+            type: Type of the entity. Defaults to None.
+            cls: Class type to return. Defaults to None.
+
+        Returns:
+            Entity object or None if not found.
+        """
         map = self.get_data("map")
         entity = None
         if entity_label in map:
@@ -526,6 +877,17 @@ class EntityDAG(DAG):
         return entity
 
     def get_nodes_by_entity(self, e, type=None, cls=None, node_type=None):
+        """Get nodes associated with a specific entity, optionally filtered by node type.
+
+        Args:
+            e: Entity ID or label
+            type: Type of the entity. Defaults to None.
+            cls: Class type to return. Defaults to None.
+            node_type: Node type or list of node types to filter by. Defaults to None.
+
+        Returns:
+            List of Node objects associated with the entity, optionally filtered by node type.
+        """
         entity = self.get_entity(e, type=type, cls=cls)
         if entity is None:
             return []
@@ -546,6 +908,17 @@ class EntityDAG(DAG):
         return nodes
 
     def set_node_entity(self, n, e, field=None, sync=None):
+        """Set an entity for a specific node.
+
+        Args:
+            n: Node ID or label
+            e: Entity ID or label
+            field: Field to set the entity in the node. Defaults to None, which uses the entity type or "Entity".
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+
+        Raises:
+            Exception: Entity for non-existing node cannot be set
+        """
         node = self.get_node(n)
         if node is None:
             raise Exception("Entity for non-existing node cannot be set")
@@ -569,6 +942,20 @@ class EntityDAG(DAG):
                 node.set_data(field, entity.get_id(), sync=sync)
 
     def get_node_entity(self, n, type=None, cls=None, field=None):
+        """Get the entity associated with a specific node.
+
+        Args:
+            n: Node ID or label
+            type: Type of the entity. Defaults to None.
+            cls: Class type to return. Defaults to None.
+            field: Field to get the entity from the node. Defaults to None, which uses the entity type or "Entity".
+
+        Raises:
+            Exception: Entity for non-existing node cannot be get
+
+        Returns:
+            Entity object or None if not found.
+        """
         node = self.get_node(n)
         if node is None:
             raise Exception("Entity for non-existing node cannot be get")
@@ -595,9 +982,26 @@ class EntityDAG(DAG):
 
 class Plan(EntityDAG):
     def __init__(self, id=None, label=None, type="PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        """Instance of a Plan, which is an EntityDAG with additional merge functionality.
+
+        Args:
+            id: ID of the plan. Defaults to None.
+            label: Label of the plan. Defaults to None.
+            type: Type of the plan. Defaults to "PLAN".
+            properties: Properties of the plan as a dictionary. Defaults to None.
+            path: Path for synchronization context. Defaults to None.
+            synchronizer: Function to handle synchronization. Defaults to None.
+            auto_sync: If True, automatically synchronize changes. Defaults to False.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
     def merge(self, merge_plan, sync=None):
+        """Merge another plan into this plan.
+        Args:
+            merge_plan: Plan to merge into this plan.
+            sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
+        """
         nodes = self.get_nodes()
         entities = self.get_entities()
 

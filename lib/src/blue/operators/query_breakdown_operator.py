@@ -49,10 +49,11 @@ def query_breakdown_operator_explainer(output: Any, input_data: List[List[Dict[s
 class QueryBreakdownOperator(Operator, ServiceClient):
     PROMPT = """
 Your task is to process a natural language query, and break it down to its subqueries.  
-Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE).
-Each subquery should be sufficiently self-contained in terms of specific data to retrieve. 
-Break down into as many subqueries as necessary but don't do excessively. 
-Only last subquery should together all the subqueries to answer the natural language query.
+Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE):
+* Each subquery should be sufficiently self-contained and independent in terms of specific data to retrieve. 
+* Break down into as many subsqueries as necessary but don't do excessively. 
+* Only last subquery should join all the subqueries to answer the natural language query. Return the results in JSON format.
+
 Return the results in JSON format.
 The response should be a valid JSON array containing the following information for each CTE:
 - 'description': natural language description of the CTE, representing the subquery
@@ -64,8 +65,10 @@ The response should be a valid JSON array containing the following information f
 
 Here are additional requirements:
 - Create a total of ${num_alternatives} alternatives.
-- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object. 
-- The output should be a JSON array, each containing an alternative set of CTEs. Even if only one alternative set is requested the output should be put in a JSON array with only one alternative set.
+- The output should be a JSON array, each containing an alternative set of CTEs. 
+- Each alternative set of CTE should be in a JSON array with each CTE as a JSON object in the array.
+- As such the overall output should be a JSON array of JSON arrays each representing an alternative set. The second level of JSONArray contains JSON objects.
+- Output should not be 3 levels of JSON Arrays. 
 - Avoid using IN within a CTE. Instead breakdown further and create another CTE and have another CTE finally that uses JOIN to put the subqueries together. 
 - Dependency field should only contain table names defined in other CTEs.
 - Use columns with ids sparingly. When joining especially different tables use columns that have values instead of ids.
@@ -75,6 +78,15 @@ Here are additional requirements:
 - Please try to return non-empty output. If the query is not clear, please use your best judgement to return a non-empty output.
 - The response should be well-formatted and easy to parse.
 - Output the JSON directly. Do not generate explanation or other additional output.
+
+Below is an example: 
+Query: 
+what jobs are available for data scientists in bay area? 
+
+Output: 
+[[{"description":"Retrieve all jobs for data scientist roles","sql":"SELECT job_title, company_name, location FROM jobs WHERE LOWER(job_title) LIKE '%data scientist%'","table":"ds_roles","columns":[{"name":"job_title","type":"VARCHAR"},{"name":"company_name","type":"VARCHAR"},{"name":"location","type":"VARCHAR"}],"dependency":[],"generality":3},{"description":"Retrieve locations that are considered part of the Bay Area","sql":"SELECT city FROM locations WHERE city IN ('San Francisco', 'San Jose', 'Oakland', 'Palo Alto', 'Mountain View', 'Sunnyvale', 'Berkeley')","table":"bay_locs","columns":[{"name":"city","type":"VARCHAR"}],"dependency":[],"generality":8},{"description":"Join data scientist job listings with Bay Area locations to find available data scientist jobs in the Bay Area","sql":"SELECT d.job_title, d.company_name, d.location FROM ds_roles d JOIN bay_locs b ON LOWER(d.location) = LOWER(b.city)","table":"ds_jobs_bayarea","columns":[{"name":"job_title","type":"VARCHAR"},{"name":"company_name","type":"VARCHAR"},{"name":"location","type":"VARCHAR"}],"dependency":["ds_roles","bay_locs"],"generality":2}]]
+
+Below is Your task:
 
 Query:
 ${query}
@@ -92,10 +104,10 @@ Output:
         # openai related properties
         "openai.api": "ChatCompletion",
         # "openai.model": "gpt-4o",
-        "openai.model": "gpt-5",
+        "openai.model": "gpt-4o",
         "openai.stream": False,
-        # "openai.max_completion_tokens": 4096,
-        # "openai.temperature": 0,
+        "openai.max_tokens": 4096,
+        "openai.temperature": 0,
         # io related properties
         "input_json": "[{\"role\": \"user\"}]",
         "input_context": "$[0]",

@@ -18,6 +18,12 @@ from blue.utils import string_utils, json_utils
 #
 class ServiceClient:
     def __init__(self, name, properties=None):
+        """Initialize ServiceClient to support calling external services.
+
+        Args:
+            name: Name of the service client.
+            properties: Properties for the service client.
+        """
         self.name = name
 
         self._initialize(properties=properties)
@@ -52,20 +58,54 @@ class ServiceClient:
             self.properties[p] = properties[p]
 
     def get_properties(self, properties=None):
+        """Get properties, overriding with provided properties.
+
+        Args:
+            properties: Properties to override.
+
+        Returns:
+            Merged properties.
+        """
         if properties is None:
             properties = {}
         return json_utils.merge_json(self.properties, properties)
 
     def extract_input_params(self, input_data, properties=None):
+        """Extract input parameters from input data based on optional properties.
+
+        Args:
+            input_data: Input data to extract parameters from.
+            properties: Optional properties to use for extraction
+
+        Returns:
+            Extracted input parameters.
+        """
         properties = self.get_properties(properties=properties)
 
         return {"input": input_data}
 
     def extract_output_params(self, output_data, properties=None):
+        """Extract output parameters from output data based on optional properties.
+
+        Args:
+            output_data: Output data to extract parameters from.
+            properties: Optional properties to use for extraction
+
+        Returns:
+            Extracted output parameters.
+        """
         properties = self.get_properties(properties=properties)
         return {}
 
     def extract_api_properties(self, properties=None):
+        """Extract API-related properties based on service prefix.
+
+        Args:
+            properties: Optional properties to override.
+
+        Returns:
+            Extracted API properties.
+        """
         properties = self.get_properties(properties=properties)
 
         api_properties = {}
@@ -79,6 +119,16 @@ class ServiceClient:
         return api_properties
 
     def create_message(self, input_data, properties=None, additional_data=None):
+        """Create message to send to service based on input data and properties.
+
+        Args:
+            input_data: Input data to create the message.
+            properties: Optional properties to override.
+            additional_data: Additional data to be used for creating the message.
+
+        Returns:
+            Created message.
+        """
         # add properties to pass onto api
         message = self.extract_api_properties(properties=properties)
 
@@ -109,6 +159,14 @@ class ServiceClient:
         return message
 
     def create_output(self, response, properties=None):
+        """Create output from service response based on properties.
+
+        Args:
+            response: Service response to create output from.
+            properties: Optional properties to override.
+        Returns:
+            Created output.
+        """
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
@@ -125,12 +183,29 @@ class ServiceClient:
         return output_data
 
     def validate_input(self, input_data, properties=None):
+        """Validate input data based on properties.
+
+        Args:
+            input_data: Input data to validate.
+            properties: Optional properties to override.
+
+        Returns:
+            True if input is valid, False otherwise.
+        """
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
         return True
 
     def process_output(self, output_data, properties=None):
+        """Process output data based on properties, such as casting.
+        Args:
+            output_data: Output data to process.
+            properties: Optional properties to override.
+
+        Returns:
+            Processed output data.
+        """
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
@@ -144,10 +219,19 @@ class ServiceClient:
                 output_data = json.loads(output_data)
             elif properties['output_cast'].lower() == "str":
                 output_data = str(output_data)
-                
+
         return output_data
 
     def _preprocess_output(self, output_data, properties=None):
+        """Preprocess output data based on properties, such as stripping and transformations.
+
+        Args:
+            output_data: Output data to preprocess.
+            properties: Optional properties to override.
+
+        Returns:
+            Preprocessed output data.
+        """
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
@@ -177,6 +261,16 @@ class ServiceClient:
         return output_data
 
     def execute_api_call(self, input, properties=None, additional_data=None):
+        """Execute API call to the service with the given input and properties.
+
+        Args:
+            input: Input data for the API call.
+            properties: Optional properties to override.
+            additional_data: Additional data to be used for creating the message for the API call.
+
+        Returns:
+            Output from the service after processing.
+        """
         # create message from input
         message = self.create_message(input, properties=properties, additional_data=additional_data)
 
@@ -196,18 +290,40 @@ class ServiceClient:
         return output
 
     def get_service_prefix(self):
+        """Get service prefix from properties.
+
+        Returns:
+            Service prefix.
+        """
         service_prefix = self.name.lower()
         if 'service_prefix' in self.properties:
             service_prefix = self.properties['service_prefix']
         return service_prefix
 
     def get_service_address(self, properties=None):
+        """Get service address (URL) from properties.
+
+        Args:
+            properties: Optional properties to override.
+
+        Returns:
+            Service address (URL).
+        """
         properties = self.get_properties(properties=properties)
         if 'service_url' in properties:
             return properties['service_url']
         return None
 
     def call_service(self, url, data):
+        """Call the service at the given URL with the provided data.
+
+        Args:
+            url: Service URL.
+            data: Data to send to the service.
+
+        Returns:
+            Response from the service.
+        """
         logging.info("sending data to:" + str(url))
         logging.info(str(data))
         with connect(url) as websocket:

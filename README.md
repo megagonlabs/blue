@@ -141,3 +141,11 @@ For OSS components having different portions released under different licenses, 
 | 29 | uvicorn | No | Encode OSS Ltd | [link](https://github.com/encode/uvicorn) | BSD License | 
 | 30 | websocket_client | No | engn33r | [link](https://github.com/websocket-client/websocket-client.git) | Apache Software License | 
 | 31 | websockets | No | Aymeric Augustin and contributors | [link](https://github.com/python-websockets/websockets) | BSD License |
+| 32 | Ray | No | Ray Authors | [link](https://github.com/ray-project/ray) | Apache Software License |
+| 33 | click | No | Pallets | [link](https://github.com/pallets/click) | BSD License |
+| 34 | MCP | No | Anthropic, PBC | [link](https://github.com/modelcontextprotocol/python-sdk) | MIT Software License |
+| 35 | scikit-learn | No | The scikit-learn developers | [link](https://github.com/scikit-learn/scikit-learn) | BSD License|
+| 36 | umap-learn | No | Leland McInnes | [link](https://github.com/lmcinnes/umap) | BSD License |
+| 37 | mike | No | Jim Porter | [link](https://github.com/jimporter/mike) | BSD License |
+| 38 | mkdocstrings | No | Timothée Mazzucotelli | [link](https://github.com/mkdocstrings/mkdocstrings) | ISC Software License |
+| 39 | mkdocstrings-python | No | Timothée Mazzucotelli | [link](https://github.com/mkdocstrings/python) | ISC Software License |

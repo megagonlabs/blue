@@ -2,3 +2,4 @@ mike
 mkdocs-material
 mkdocstrings
 mkdocstrings-python
+mkdocs-git-revision-date-localized-plugin
