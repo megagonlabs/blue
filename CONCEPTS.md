@@ -101,17 +101,32 @@ Model registry catalogs avalaiable models. Like other registries it stores metad
 
 ## plans, planners
 
-As noted above messages can be both data and instructions (for other agents to execute, for example). A higher-level concept to instruct a number of agents in the nature of a workflow is called a plan. A plan can have a number of inputs, outputs, and agents that connect inputs to outputs in a sequence. Connections can also be defined between agents, connecting an agent's output to another agent's input. Once the plan object is constructed it can be submitted. [Coordinator](/lib/blue/agents/coordinator.py) agent is reponsible for the execution of the plan, i.e. issueing instruction messages for agents to execute and tracking progress.
-See [Plan](/lib/blue/plan.py) for more details and the `Planner Agent - Example` (`BASIC_PLANNER`) for an example.
+One key question is how to put together a number of resources (e.g. agents, operators, etc.) to perform more complex work. As noted above blue streams can contain instructions, for example for other agents to execute and process data in a stream. While this enables chaining at a low-level, blue also supports plans for agentic plans and data pipelines, where more complex work can be supported. Both agentic plans and data pipelines have the same underlying plan representations (see DAG Utils, Plan), they further specialize for specific workflows.
 
-## task planner
-TODO: 
+## task plans, planners
+
+As discussed above, while blue architecture and streams enables agents to operate autonomously using stream tags and listener approach, in open-ended
+scenarios such as conversational interactions, a task planner is essential to guide meaningful discourse. 
+
+A agentic task plan can have a number of inputs, outputs, and agents that connect inputs to outputs in a sequence. Connections can also be defined between agents, connecting an agent's output to another agent's input, as shown below:
+
+![AgenticPlan](./docs/images/agentic_plan.png)
+
+A task planner interprets user requests and devises a task plan that available agents can execute on plan steps and pass on data and instructions
+to other agents in a workflow manner. To seamlessly integrate into the architecture, we model the task planner as an agent itself. It listens to the initial user stream and formulates a task plan structured as directed acyclic graphs (DAGs) connecting agent input and outputs, and emits the plan into a stream. Each
+node within these DAGs represents a sub-task assigned to a specific agent. 
+
+The task planner utilizes metadata sourced from the agent registry to identify suitable agents for each sub-task. Once this DAG is formulated, similar to other agents, the task planner outputs the plan to a stream to be executed, which is picked up by a task coordinator agent. [Coordinator](/lib/blue/agents/coordinator.py) agent is reponsible for the execution of the plan, i.e. issueing instruction messages for agents to execute and tracking progress.
+
+In blue, a task planner can be interactive, initially presenting a plan to the user, in text form or as a UI, facilitating collaborative planning. The plan can also be dynamic and incremental, meaning it evolves step by step rather than being predetermined in its entirety. 
+
+See blue examples repo for an experimental task planner.
 
 ## data planner
-TODO: 
 
-## data operators
-TODO: 
+A data planner operates similarly but is focused on data processing. Given input data and task (e.g. question/answer) the data planner utilizes available operators (e.g. NL2SQL, JOIN) to create a plan and execute it. Data planner can be used by any agent, including the task planner.
+
+Data planner in blue is currently an experimental utility. See [Data Sources and Processing](lib/src/blue/data) for more details.
 
 </br>
 </br>
