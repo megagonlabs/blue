@@ -34,6 +34,9 @@ Below is the list of environment varibles and brief descriptions:
 - `BLUE_PUBLIC_DB_SERVER_PORT` - public port for the DB server (e.g. 6379)
 - `BLUE_PUBLIC_WEB_SERVER` - server address for the web application (e.g. localhost)
 - `BLUE_PUBLIC_WEB_SERVER_PORT` -  public port for the web application server (e.g. 3000)
+- `BLUE_PUBLIC_RAY_SERVER` - public address for the Ray cluster (e.g. localhost)
+- `BLUE_PUBLIC_RAY_SERVER_PORT` - public port for the Ray cluser (e.g. 6380)
+- `BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE` - public port range for Ray clients (e.g. 10000-10010)
 
 ##### deployment spec
 - `BLUE_DEPLOY_DEVELOPMENT` - set development mode, False or True (e.g. `True`)
@@ -49,12 +52,19 @@ Below is the list of environment varibles and brief descriptions:
 - `BLUE_DATA_REGISTRY_MODEL` - data registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
 - `BLUE_MODEL_REGISTRY` - model registry name (e.g. `default`)
 - `BLUE_MODEL_REGISTRY_MODEL` - model registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
+- `BLUE_TOOL_REGISTRY` - tool registry name (e.g. `default`)
+- `BLUE_TOOL_REGISTRY_MODEL` - tool registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
 - `BLUE_OPERATOR_REGISTRY` - operator registry name (e.g. `default`)
 - `BLUE_OPERATOR_REGISTRY_MODEL` - operator registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
 
 ##### deployment access control
 - `BLUE_RBAC_CONFIG_FOLDER` - folder path to the role-based access control configurations (e.g. /blue_data/config/rbac)
 - `BLUE_EMAIL_DOMAIN_WHITE_LIST` - allow domain list for web app authentication (e.g. `megagon.ai`)
+- `FIREBASE_SERVICE_CRED` - firebase service credentials
+- `FIREBASE_CLIENT_ID` - firebase client id 
+
+##### shared services
+- `BLUE_SERVICE_OPENAI_URL` - openai websocket service url (e.g. ws://blue_service_openai:8001)
 
 A default value for these environment variable is in `localhost.envrc`. You can update them for your own configuration and simply set them by `source localhost.envrc`. Alternatively you can use utilities such as [direnv](https://direnv.net/) is  to help management environment variables and save your configuration as `.envrc`
 
