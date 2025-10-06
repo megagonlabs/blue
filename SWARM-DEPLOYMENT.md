@@ -103,3 +103,4 @@ and the list should contain three services running: redis, api, and frontend
 If you want to see it in action on the web, you can bring up the frontend by browsing to `http://<BLUE_PUBLIC_WEB_SERVER>:BLUE_PUBLIC_WEB_SERVER_PORT` and the API documentation on `http://<BLUE_PUBLIC_API_SERVER>:BLUE_PUBLIC_API_SERVER_PORT/docs#/`
 
 </br>
+

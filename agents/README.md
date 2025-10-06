@@ -23,14 +23,14 @@ Use below links for quick accces:
 ---
 ## library
 
-To install blue-platform (v0.9), you can run:
+To install blue-platform (v1.0), you can run:
 ```
-pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue-platform==0.9
+pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue-platform==1.0
 ```
 
 Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
 ```
-$ pip install blue_cli==0.9
+$ pip install blue_cli==1.0
 ```
 
 
@@ -400,7 +400,7 @@ The above instruction essentially triggers an execution on Agent with name `<age
 
 # Template Agents
 
-See the [template agent](https://github.com/rit-git/blue-examples/tree/v0.9/agents/template) and [template interactive agent](https://github.com/rit-git/blue-examples/tree/v0.9/agents/template_interactive) in the blue-example repo, to get a head-start on writing agents from a template.
+See the [template agent](https://github.com/rit-git/blue-examples/tree/v1.0/agents/template) and [template interactive agent](https://github.com/rit-git/blue-examples/tree/v1.0/agents/template_interactive) in the blue-example repo, to get a head-start on writing agents from a template.
 
 ---
 

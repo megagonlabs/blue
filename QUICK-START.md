@@ -2,17 +2,30 @@
 
 Megagon Blue has a web application where you can:
 
-* [Login to blue platform](#login)
-* [Access the home screen](#home-screen)
-* [Create interactive sessions](#sessions)
-    * [Interact with session window](#interact-with-session-window)
-    * [Access and editing existing sessions properties](#access-and-editing-existing-sessions-properties)
-* Configuration:
-    * [Add and configure agents](#agent-registry)
-    * [Add and configure data sources](#data-registry)
-* [Access developer tools](#developer-tools)
-* [Access admin tools to monitor/debug and configure Megagon Blue platform](#admin-tools)  
-* [User settings](#user-settings)
+- [QuickStart guide](#quickstart-guide)
+  - [Login](#login)
+  - [Home screen](#home-screen)
+    - [Launch a session with pre-configured agent groups](#launch-a-session-with-pre-configured-agent-groups)
+    - [Change and add a new agent group](#change-and-add-a-new-agent-group)
+  - [Sessions](#sessions)
+    - [Create a new session](#create-a-new-session)
+    - [Interact with session window](#interact-with-session-window)
+    - [Access and editing existing sessions properties](#access-and-editing-existing-sessions-properties)
+  - [Agent registry](#agent-registry)
+    - [Agent deployment](#agent-deployment)
+  - [Data registry](#data-registry)
+    - [Data source sync](#data-source-sync)
+  - [Developer tools](#developer-tools)
+    - [Form designer](#form-designer)
+  - [Admin tools](#admin-tools)
+    - [Status](#status)
+    - [Agents](#agents)
+    - [Services](#services)
+    - [Users](#users)
+    - [Config](#config)
+  - [User settings](#user-settings)
+    - [Conversational view](#conversational-view)
+    - [Debugger](#debugger)
 
 ## Login
 To login:
@@ -21,8 +34,8 @@ To login:
 
 ![google_sign_in](docs/images/google_sign_in.png)
 
-- <u> For admin users </u> - Please sign in with the google account you used during the [installation](LOCAL-INSTALLATION.md) process
-- <u> For new users </u>  - Please sign on using a google account within the whitelisted email domain defined in the configuration BLUE_EMAIL_DOMAIN_WHITE_LIST set during the [installation](LOCAL-INSTALLATION.md).  Note that by default new users are created with guest role.  Administrators can grant admin role access using [admin tools > Users](#users)
+- <u> For administrator users </u> - Please sign in with the google account you used during the [installation](LOCAL-INSTALLATION.md) process
+- <u> For new users </u>  - Please sign on using a google account within the whitelisted email domain defined in the configuration BLUE_EMAIL_DOMAIN_WHITE_LIST set during the [installation](LOCAL-INSTALLATION.md).  Note that by default new users are created with guest role.  Administrators can grant administrator role access using [admin tools > Users](#users)
 
 
 - Home screen should appear once you have logged in successfully. 
@@ -48,8 +61,8 @@ To try a few of the demos you can click on one of the cards as shown below:
 ![homescreen_demos](docs/images/homescreen_demos.png)
 
 Documentation for the demos can be found here:
-* [NL2SQL](https://github.com/rit-git/blue-examples/tree/v0.9/demos/nl2sql): Translate user input text to SQL and execute it with data in the registry.
-* [Dialogue Manager](https://github.com/rit-git/blue-examples/tree/v0.9/demos/dialogue_manager): Identify user intent and execute plans
+* [NL2SQL](https://github.com/rit-git/blue-examples/tree/v1.0/demos/nl2sql): Translate user input text to SQL and execute it with data in the registry.
+* [Dialogue Manager](https://github.com/rit-git/blue-examples/tree/v1.0/demos/dialogue_manager): Identify user intent and execute plans
 (Note: please ensure that you follow the steps in the "try it out" section of the demo documentation)
 
 ### Change and add a new agent group
