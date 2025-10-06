@@ -8,9 +8,8 @@ Use below links for quick accces:
   - [basics](#basics)
   - [data processor](#data-processor)
   - [messages](#messages)
+  - [parameters](#parameters)
   - [properties](#properties)
-  - [tags](#tags)
-  - [listeners](#listeners)
   - [memory](#memory)
   - [interactive agents](#interactive-agents)
   - [instructable agents](#instructable-agents)
@@ -173,7 +172,7 @@ Upon processing the messages from stream and performing agent-specific computati
 
 `worker` has a number of function that can be used to write to streams: `write_bos`, `write_eos`, `write_data`, `write_control`, and `write`. `write_bos` and `write_eos` functions are shorthand to output `BOS` and `EOS` control messages. `write_data` takes a data parameter and outputs a `DATA` message, e,g. `write_data(3), write_data("hello"), write_data({'a': 3})`. `write_control` take `code` and `args` parameters and outputs a `CONTROL` message. Finally, `write` function outputs any message. 
 
-Each of these functions also take optional parameters: `output="DEFAULT", id=None, tags=None` where `output` is the output parameter name, `id` is an additional specific identifier on the output parameter, `tags` specify additional tags that can be set on the output stream.
+Each of these functions also take optional parameters: `output="DEFAULT", id=None, tags=None` where `output` is the output parameter name, `id` is an additional specific identifier on the output parameter, `tags` specify additional tags that can be set on the output stream, in addition to tags defined by the output parameter tags (see below [parameters](#parameters)). 
 
 
 Note messages in a stream can also be control messages. If an agent want to process such messages, they can do so, as shown below:
@@ -185,12 +184,65 @@ elif message.isControl():
 ```
 See [messages](#messages) for further details on messages and more.
 
-`input` is a parameter to the `processor` function. As agents can have multiple input parameters, if a stream is identified to be a particular input parameter, `input` parameter will be set to the name of the input parameter. See below [listeners](#listeners) to see how can identification is made. 
+`input` is a parameter to the `processor` function. As agents can have multiple input parameters, if a stream is identified to be a particular input parameter, `input` parameter will be set to the name of the input parameter. See below [parameters](#parameters) to see how can identification is made, as part of input parameter specification. 
 
 `properties` is another parameter to the `processor` function. It is essentially an agent's properties, which can be used in `processor` function to define the behavior of the computation. `properties` is essentially a dictionay object (can be nested) and specifici properties can be obtained simply by `properties[<property>]`, e.g. `properties["model"]`. See below [properties](#properties) for common and agent-specific properties.
 
 </br>
 </br>
+## parameters
+
+Each agent can define any number of input and output parameters. While `processor` function consumes one input at a time, `input` parameter specifies which input parameter the data corresponds to. When returning results from the `processor` function data return can automatically go into the `DEFAULT` output parameter, or you can use various `write` functions to specify a particular output parameter. All agents by default have a `DEFAULT` input parameter and `DEFAULT` output parameter. 
+
+Input and output parameters can either be specified as part of the agent properties or separately through `add_input` and `add_output` methods. 
+
+### input parameters
+
+Input parameters to an agent determines specific data to be processed by the agent. 
+
+Input parameters can be specified as part of the agent properties as below:
+```
+"inputs": {
+    <NAME>: {
+        "name": <NAME>,
+        "description": <DESCRIPTION>
+        "properties": {
+             "includes": [],
+             "excludes": []
+        }
+    }
+}
+```
+
+`includes` and `excludes` are list of tags (or tag regular expressions) to trigger the agent to listen to the stream based on its tags and invoke the `processor`.
+
+Input parameters can also be specified programmatically, through `add_input(name, description="...", includes=[], excludes=[])`
+
+So, in the above specification the `includes` list contains a list of regular expressions that are matched against stream tags. For example, above `.*` matches any sequence of characters, as such `includes` matches any tag. The `excludes` list similarly contains a list of regular expressions. In the above example though the list is empty, as such there are no exclusions.
+
+The mechanism of listening is as follows, with more details:
+
+Agents tag each stream they create, as you have seen above, `USER` agent tagged its output stream as `USER`. Agents by default tag each stream they produce by their own name. Additional, tags can be provided as a property (`tags`) of the agent output parameters, or at the time of creating a new stream (see [data processor](#data0processor) worker.write function tag parameter).
+
+Other agents in the session check if their `includes` and `excludes` list against the tags of the stream. `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags. To decide if a stream should be listened to, first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched, the stream is listened. If any one of `excludes` is matched the stream is not listened to. 
+
+### output parameters
+
+Output parameters of an agent determines specific data to be output by the agent. Outputs define default tags associated with the stream.
+
+Output parameters can be specified as part of the agent properties as below:
+```
+"outputs": {
+    <NAME>: {
+        "name": <NAME>,
+        "description": <DESCRIPTION>
+        "properties": {
+             "tags": []
+        }
+    }
+}
+```
+Output parameters can also be specified programmatically, through `add_output(name, description="...", tags=[])`
 
 ## messages
 
@@ -218,60 +270,16 @@ return [3, Message.EOS]
 
 Agents have a number of system specific properties as well as custom agent-specific properties. In the basic example, if you were to print the properties in the processor function, you would see:
 ```
-{'db.host': 'localhost', 'db.port': 6379, 'instructable': True, 'listens': {'DEFAULT': {'includes': ['.*'], 'excludes': []}}, 'tags': {'DEFAULT': []}}
+{'db.host': 'localhost', 'db.port': 6379, 'instructable': True, "inputs": {...}, "outputs": {...} }
 ```
 
 Above `db.host`, `db.port` would be system specific and set outside the context of agent, as part of the platform deployment. 
-There are also generic properties such as `listens` and `tags` that are defined for each agent specifying which streams to listen to and how to tag output streams. See [listeners](#listeners) and [tags](#tags) for more details. `instructable` is another generic property, which states that this agent can be instructed to execute externally by another agent (such as planner). See  [instructable agents](#instructable-agents) for more details.
+
+There are also generic properties such as `inputs` and `outputs` that are defined for each agent specifying which streams to listen to and how to tag output streams based on input and output paratemeter specifications. `instructable` is another generic property, which states that this agent can be instructed to execute externally by another agent (such as planner). See  [instructable agents](#instructable-agents) for more details.
 
 Beyond that any property is agent-specific and can be set to any key, value pair, and can be nested, as long as it can be serialized into JSON. Properties can be set hardcoded in code, set programmatically or interactively.
 
 
-</br>
-</br>
-
-## tags
-
-Each agent defines a `tags` property which defines what to tag each output stream. As such the `tags` property is organized by output parameter type and then for each output parameter it is a list of tags. Note the default output parameter is `DEFAULT`. 
-
-For example:
-```
-"tags": {
-    "DEFAULT": [ "A", "B" ],
-    "RESULT": ["C"]
-}
-```
-
-In the above example the `DEFAULT` output stream is tagged with `A` and `B` and `RESULT` output stream is tagged with `C`.
-
-Note, as you might recall tags on output streams can also be specified as part of the `write` functions on the `worker`.
-
-</br>
-</br>
-
-## listeners
-So, you might ask how did the `COUNTER` agent listened to output from the `USER` agent. 
-
-To decide which agents to listen to which streams, each agent defines a `listens` property and `includes` and `excludes` list. In the above example the `COUNTER` agent is made to list to `USER` streams by:
-```
-"listens": {
-   "DEFAULT": {
-      "includes" = ["USER"]
-      "excludes" = []
-   }
-}
-```
-
-
-To build more complex workflows though the `listens` property can be set more specifically per input parameter of the agent. As you recall `DEFAULT` is the default input parameter. So, in the above specification the `includes` list contains a list of regular expressions that are matched against stream tags. For example, above `.*` matches any sequence of characters, as such `includes` matches any tag. The `excludes` list similarly contains a list of regular expressions. In the above example though the list is empty, as such there are no exclusions.
-
-The mechanism of listening is as follows, with more details:
-
-Agents tag each stream they create, as you have seen above, `USER` agent tagged its output stream as `USER`. Agents by default tag each stream they produce by their own name. Additional, tags can be provided as a property (`tags`), or at the time of creating a new stream (see [data processor](#data0processor) worker.write function tag parameter).
-
-Other agents in the session check if their `includes` and `excludes` list against the tags of the stream. `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags. To decide if a stream should be listened to, first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched, the stream is listened. If any one of `excludes` is matched the stream is not listened to. 
-
-Once a match is found a worker is initiated to begin processing data on that stream, with the `input` set to the parameter for which a match is found.
 </br>
 </br>
 
@@ -303,11 +311,11 @@ Essentially the agent in its responses sends back a form that describes the ui l
 To support interactive agent development in the web interface there is a Form Designer tool that allows you to design ui and data schemas in an interactive manner, along with the documentation. 
 
 To return a UI, simply return a CONTROL message or write an output stream, for example:
-`worker.write_control(ControlCode.CREATE_FORM, args, output="FORM")`
+`worker.write_control(ControlCode.CREATE_FORM, form, output="FORM", id=<form_id> )`
 
-where the `args` is a JSON object with `uischema`, `schema` and optionnaly `data` sections. For example:
+where the `form` is a JSON object with `uischema`, `schema` and optionnaly `data` sections. For example:
 ```
-args = {
+form = {
       "schema": {
           "type": "object",
           "properties": {"name": {"type": "string"}}
@@ -333,7 +341,7 @@ args = {
   }
 ```
 
-When written each form will get a unique form id, or optionally you can set the form id, by passing in an optional parameter (`form_id=...`).
+When written each form will get a unique form id, or optionally you can set the form id, by passing in an optional parameter (`id=...`).
 
 Above specification would render:
 
@@ -359,10 +367,10 @@ Processing events from the web interface is similar to processing any data from 
                         name = worker.get_stream_data("name", stream=form_data_stream)
 
                         # close form
-                        args = {
+                        form = {
                             "form_id": form_id
                         }
-                        worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
+                        worker.write_control(ControlCode.CLOSE_FORM, form, output="FORM", id=form_id)
 
                     # process user input
                     else:
@@ -390,10 +398,10 @@ An instructable agent essentially means that the agent can be made to process da
 
 Sending an `EXECUTE_AGENT` message, essentially triggers execution. An example of such an instruction is:
 ```
-worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": <agent_name>, "context": <context>, "inputs": { <param>: <stream> }}) 
+worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": <agent_name>, "context": <context>, "properties": agent_properties,  "inputs": { <param>: <stream> }})
 ```
 
-The above instruction essentially triggers an execution on Agent with name `<agent_name>`, with `input=<param>` on stream `<stream>`. Context is an additional parameter, typically this can be set to session id but depending on the application logic you may want to set a different id for the context.
+The above instruction essentially triggers an execution on Agent with name `<agent_name>`, with `input=<param>` on stream `<stream>`. Context is an additional parameter, typically this can be set to session id but depending on the application logic you may want to set a different id for the context. If `properties` is defined then the agent overrides its default properties (on top of properties as defined in the agent registry) with the given properties.
 
 </br>
 </br>
