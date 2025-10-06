@@ -226,3 +226,4 @@ You can use conversational view user settings to show messages on opposite sides
 You can use debugging user settings to show debugger which expands the interactions and shows all the steps performed by Megagon Blue platform.  
 
 ![debugger](docs/images/debugger.png)
+
