@@ -30,10 +30,12 @@ pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue-platform==1.0
 
 Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
 ```
-$ pip install blue_cli==1.0
+$ pip install blue-platform==1.0
 ```
 
+Please replace the version number above with the specific version you would like to install.
 
+If you installed blue through `blue-cli` you already have `blue-platform` installed. 
 It is highly recommended that you use a virtual environment before installing blue-platform.
 
 ## basics
@@ -89,7 +91,7 @@ In the above code, USER agent sends two interactions (messsages). In the first `
 
 Now, let's create a COUNTER agent, again using the base Agent class. The counter agent will listen to the streams in the same session as the USER agent. Then, we define a `processor` function to process stream data.
 
-The signature of the `processor` function is `(message, input=None, properties=None, worker=None)`. `message` is the message received from the stream to process, `input` is the input parameter name, default is `DEFAULT`. `properties` is the agent properties, and finally `worker` is the specific worker instance. 
+The signature of the `processor` function is `(message, input=None, properties=None, worker=None)`. `message` is the message received from the stream to process, `input` is the input parameter name, default is `DEFAULT`. `properties` is the agent properties, and finally `worker` is the specific worker instance, which will be automatically set.
 
 Let's write below code to create a COUNTER agent with a custom `processor` function as below:
 
@@ -150,7 +152,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 ## data processor 
 
-As you have seen above, the `processor` function is called on each message in a stream to process and as such the `processor` function is the key to an agents behavior. 
+As you have seen above, the `processor` function is called on each message in a stream to process and as such developing the `processor` function is the key to defining an agents behavior. 
 
 The typical pattern of processing is as below:
 ```
