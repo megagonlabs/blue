@@ -10,6 +10,8 @@ from blue.utils import string_utils
 ### CustomFilter
 #
 class CustomFilter(logging.Filter):
+    """Custom filter which adds the call stack to the log record."""
+
     call_stack = ''
 
     def filter(self, record):
@@ -49,6 +51,8 @@ def replace_template(match):
 
 
 class CustomJsonFormatter(logging.Formatter):
+    """Custom JSON formatter for log records."""
+
     def __init__(self, data_config, output_format, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_config = data_config
@@ -79,7 +83,15 @@ class CustomJsonFormatter(logging.Formatter):
 ### CustomLogger
 #
 class CustomLogger:
+    """Custom logger with configurable format and output."""
+
     def __init__(self, config=None):
+        """Initialize the CustomLogger.
+
+        Args:
+            config: Configuration dictionary for the logger. If None, default configuration is used.
+
+        """
         self.root_logger = logging.getLogger()
         if config is None:
             self._init_default_config()
@@ -90,6 +102,7 @@ class CustomLogger:
         # self._initialize()
 
     def _init_default_config(self):
+        """Initialize the default configuration for the logger."""
         self.config = {}
         self.config['options'] = {"datefmt": "%Y-%m-%d %H:%M:%S"}
         self.config['output'] = {"format": "json"}
@@ -102,14 +115,31 @@ class CustomLogger:
         ]
 
     def set_config_option(self, key, value):
+        """Set a configuration option for the logger.
+
+        Args:
+            key: Key of the configuration option.
+            value: Value of the configuration option.
+        """
         self.config['options'][key] = value
         self._initialized = False
 
     def del_config_option(self, key):
+        """Delete a configuration option for the logger.
+
+        Args:
+            key: Key of the configuration option to delete.
+        """
         del self.config['options'][key]
         self._initialized = False
 
     def set_config_output(self, key, value):
+        """Set a configuration output option for the logger.
+
+        Args:
+            key: Key of the configuration output option.
+            value: Value of the configuration output option.
+        """
         self.config['output'][key] = value
         self._initialized = False
 
@@ -118,6 +148,13 @@ class CustomLogger:
         self._initialized = False
 
     def set_config_data(self, key, format, index=None):
+        """Set a configuration data option for the logger.
+
+        Args:
+            key: Key of the configuration data option.
+            format: Format string for the configuration data option.
+            index: Optional index to insert the configuration data option at. If None, append to the end.
+        """
         exists = False
         existing_index = -1
         existing_config = None
@@ -144,6 +181,11 @@ class CustomLogger:
         self._initialized = False
 
     def del_config_data(self, key):
+        """Delete a configuration data option for the logger.
+
+        Args:
+            key: Key of the configuration data option to delete.
+        """
         # identify index
         index = None
         for i, d in enumerate(self.config['data']):
@@ -155,28 +197,69 @@ class CustomLogger:
         self._initialized = False
 
     def setLevel(self, log_level):
+        """Set the logging level for the logger.
+
+        Args:
+            log_level: Logging level to set (e.g., logging.DEBUG, logging.INFO).
+        """
         self.logger.setLevel(log_level)
 
     def debug(self, message, *args, **kwargs):
+        """Log a message with DEBUG level.
+
+        Args:
+            message: Message to log.
+        """
         self.log(logging.DEBUG, message, *args, **kwargs)
 
     def info(self, message, *args, **kwargs):
+        """Log a message with INFO level.
+
+        Args:
+            message: Message to log.
+        """
         self.log(logging.INFO, message, *args, **kwargs)
 
     def warn(self, message, *args, **kwargs):
+        """Log a message with WARN level.
+
+        Args:
+            message: Message to log.
+        """
         self.log(logging.WARN, message, *args, **kwargs)
 
     def error(self, message, *args, **kwargs):
+        """Log a message with ERROR level.
+
+        Args:
+            message: Message to log.
+        """
         self.log(logging.ERROR, message, *args, **kwargs)
 
     def fatal(self, message, *args, **kwargs):
+        """Log a message with FATAL level.
+
+        Args:
+            message: Message to log.
+        """
         self.log(logging.FATAL, message, *args, **kwargs)
 
     def critical(self, message, *args, **kwargs):
+        """Log a message with CRITICAL level.
+
+        Args:
+            message: Message to log.
+        """
         self.log(logging.CRITICAL, message, *args, **kwargs)
 
     @caller_reader
     def log(self, level, message, *args, **kwargs):
+        """Log a message with the specified level.
+
+        Args:
+            level: Logging level (e.g., logging.DEBUG, logging.INFO).
+            message: M
+        """
         if not self._initialized:
             self._initialize()
         self.logger.log(level, message, *args, **kwargs)
