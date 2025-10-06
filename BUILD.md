@@ -6,6 +6,7 @@ It is recommended that you fork from the blue repo: `https://github.com/rit-git/
 
 ## configuration
 
+<<<<<<< HEAD
 Most of blue scripts require configuration of environment variables. Below is the list of environment varibles and brief descriptions:
 
 - `BLUE_AGENT_REGISTRY` - agent registry name (e.g. `default`)
@@ -23,6 +24,27 @@ Most of blue scripts require configuration of environment variables. Below is th
 - `BLUE_DEV_DOCKER_ORG` - docker org to push/pull blue agents and services, your own org or `megagonlabs` (e.g. `megagonlabs`)
 - `BLUE_EMAIL_DOMAIN_WHITE_LIST` - allow domain list for web app authentication (e.g. `megagon.ai`)
 - `BLUE_INSTALL_DIR` - directory containing blue source code (e.g. `~/blue`)
+=======
+Most of blue scripts require configuration of environment variables.
+
+Below is the list of environment varibles and brief descriptions:
+
+##### installation
+- `BLUE_DATA_DIR` - directory hosting data for blue, location for docker volume (e.g. `~/.blue/data`)
+- `BLUE_INSTALL_DIR` - directory containing blue source code (e.g. `~/blue`)
+
+#### build 
+- `BLUE_BUILD_LIB_SERVER`, pypi server name to publish python libraries, as specified in ~/.pypirc
+- `BLUE_BUILD_LIB_ARG`, specific index-url settings for blue lib, for public set to empty, for private set to `--extra-index-url <private_pypi_server> --trusted-host <private_pypy_server_ip>`
+- `BLUE_BUILD_CACHE_ARG`, cache option, set to empty or `--no-cache`
+- `BLUE_BUILD_IMG_SUFFIX`, additional image suffix, set to empty or `-private`
+- `BLUE_BUILD_PUBLISH`, if you want to push to docker hub set to `--push` otherwise leave empty
+- `BLUE_BUILD_PLATFORM` - list of platforms to build for (e.g. `linux/arm64/v8,linux/arm64,linux/arm/v7,linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/amd64/v4,linux/386`)
+- `BLUE_CORE_DOCKER_ORG` - docker org to push/pull core blue components (e.g. `megagonlabs`)
+- `BLUE_DEV_DOCKER_ORG` - docker org to push/pull blue agents and services, your own org or `megagonlabs` (e.g. `megagonlabs`)
+
+##### deployment servers
+>>>>>>> dev
 - `BLUE_PRIVATE_API_SERVER_PORT` - private port for the API server (e.g. 5050)
 - `BLUE_PRIVATE_DB_SERVER_PORT` - private port for the DB server (e.g. 6379)
 - `BLUE_PRIVATE_WEB_SERVER_PORT` - private port for the web application server (e.g. 3000)
@@ -32,10 +54,44 @@ Most of blue scripts require configuration of environment variables. Below is th
 - `BLUE_PUBLIC_DB_SERVER_PORT` - public port for the DB server (e.g. 6379)
 - `BLUE_PUBLIC_WEB_SERVER` - server address for the web application (e.g. localhost)
 - `BLUE_PUBLIC_WEB_SERVER_PORT` -  public port for the web application server (e.g. 3000)
+<<<<<<< HEAD
 - `BLUE_RBAC_CONFIG_FOLDER` - folder path to the role-based access control configurations (e.g. /blue_data/config/rbac)
 - `BLUE_BUILD_LIB_ARG`, specific index-url settings for blue lib, for public set to empty, for private set to `--extra-index-url <private_pypi_server> --trusted-host <private_pypy_server_ip>`
 - `BLUE_BUILD_CACHE_ARG`, cache option, set to empty or `--no-cache`
 - `BLUE_BUILD_IMG_SUFFIX`, additional image suffix, set to empty or `-private`
+=======
+- `BLUE_PUBLIC_RAY_SERVER` - public address for the Ray cluster (e.g. localhost)
+- `BLUE_PUBLIC_RAY_SERVER_PORT` - public port for the Ray cluser (e.g. 6380)
+- `BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE` - public port range for Ray clients (e.g. 10000-10010)
+
+##### deployment spec
+- `BLUE_DEPLOY_DEVELOPMENT` - set development mode, False or True (e.g. `True`)
+- `BLUE_DEPLOY_SECURE` - use HTTP vs HTTPS, False or True (e.g. `False``)
+- `BLUE_DEPLOY_TARGET` - deployment target, `localhost` or `swarm`(e.g. localhost)
+- `BLUE_DEPLOY_VERSION` - deployment version, `v1.0` or `latest`  (e.g. `v1.0`)
+
+##### deployment platform, registries
+- `BLUE_DEPLOY_PLATFORM` - platform name (e.g. `default`)
+- `BLUE_AGENT_REGISTRY` - agent registry name (e.g. `default`)
+- `BLUE_AGENT_REGISTRY_MODEL` - agent registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
+- `BLUE_DATA_REGISTRY` - data registry name (e.g. `default`)
+- `BLUE_DATA_REGISTRY_MODEL` - data registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
+- `BLUE_MODEL_REGISTRY` - model registry name (e.g. `default`)
+- `BLUE_MODEL_REGISTRY_MODEL` - model registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
+- `BLUE_TOOL_REGISTRY` - tool registry name (e.g. `default`)
+- `BLUE_TOOL_REGISTRY_MODEL` - tool registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
+- `BLUE_OPERATOR_REGISTRY` - operator registry name (e.g. `default`)
+- `BLUE_OPERATOR_REGISTRY_MODEL` - operator registry model path (e.g. `/blue_data/models/paraphrase-MiniLM-L6-v2`)
+
+##### deployment access control
+- `BLUE_RBAC_CONFIG_FOLDER` - folder path to the role-based access control configurations (e.g. /blue_data/config/rbac)
+- `BLUE_EMAIL_DOMAIN_WHITE_LIST` - allow domain list for web app authentication (e.g. `megagon.ai`)
+- `FIREBASE_SERVICE_CRED` - firebase service credentials
+- `FIREBASE_CLIENT_ID` - firebase client id 
+
+##### shared services
+- `BLUE_SERVICE_OPENAI_URL` - openai websocket service url (e.g. ws://blue_service_openai:8001)
+>>>>>>> dev
 
 A default value for these environment variable is in `localhost.envrc`. You can update them for your own configuration and simply set them by `source localhost.envrc`. Alternatively you can use utilities such as [direnv](https://direnv.net/) is  to help management environment variables and save your configuration as `.envrc`
 
@@ -84,10 +140,43 @@ $ cd $BLUE_INSTALL_DIR/platform/scripts
 
 #### build
 
+<<<<<<< HEAD
 Even when running blue locally during development, many components of blue should be run as docker containers. As such it is important to build the various docker images first.
 
 ##### building agents
 
+=======
+##### building libs
+Many of the blue components, including agents, platform api server, etc. use `blue-platform` library. `blue-platform` library can be built in `lib` directory by running the scripts:
+```
+$ cd lib
+$ ./scripts/build.sh
+$ ./scripts/publish.sh
+```
+
+`publish.sh` uses the pypi configuration in `~/.pypirc`. Ideally, during development you should use your own [pypiserver](https://pypi.org/project/pypiserver/) and add your configuration in the `.pypirc` file:
+e.g.
+
+```
+[distutils] 
+index-servers = 
+   pypi
+   mypypi
+
+[pypi]
+repository = https://upload.pypi.org/legacy/ 
+
+[mypypi]
+repository = http://1.2.3.4:8888/
+```
+
+And set `BLUE_BUILD_LIB_SERVER` to `mypypi`. Contact your local administrator if your organization already has a pypi server.
+
+##### building agents
+
+Even when running blue locally during development, many components of blue should be run as docker containers. As such it is important to build the various docker images first.
+
+>>>>>>> dev
 To build docker images for all agents, run:
 ```
 $ cd agents
@@ -105,7 +194,11 @@ $ ./docker_build_agent.sh
 To build docker images for all services that agents use, run:
 ```
 $ cd services
+<<<<<<< HEAD
 $ ./docker_build_all_services.sh.
+=======
+$ ./docker_build_all_services.sh
+>>>>>>> dev
 ```
 
 Or if you can also build images for certain services, you can do so by first changing to the directory for the service, for example, to build openai service only:
