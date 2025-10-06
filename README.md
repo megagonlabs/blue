@@ -4,9 +4,9 @@ Blue is an agent orchestration platform for building and deploying applications 
 
 A key target use-case of Blue is enterprise, i.e. integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide-variety of enterprise use-cases. We aim to leverage what already exist in the enterprise infrastructure, i.e. existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
 
-Blue is currently a research project to explore the design space of agent orchestration systems, to support a variety of use-cases: from data and domain-agnostic to data-aware design, from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from purely textual interaction to interactive agents with user interfaces, and beyond. 
+Blue is currently a research project to explore the design space of agent orchestration systems, agentic planning and data processing, to support a variety of use-cases: from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from applications working on purely relational data to multi-modal data  (incl. semi-structured text, graphs, and beyond), from purely textual interaction to interactive agents with user interfaces, charts, and beyond. 
 
-# How does Blue work?
+# What are key concepts in Blue?
 
 To help facilitate ‘Agentic for Enterprise’ we are introducing several concepts in the design of our framework, including:
 - **Streams** to facilitate data, control, and communication among agents
@@ -14,13 +14,20 @@ To help facilitate ‘Agentic for Enterprise’ we are introducing several conce
 - **Registries** to capture metadata about data, agents and beyond
 - **Session** to provide context (and shared memory) for computation
 - **Plans** to represent workflows and execution of agents
+- **Planners** to craft task and data plans
+- **Tools** to interface with external sources and APIs
+- **Operators** to perform data-intenstive functions
 
 ![Stream](./docs/images/concepts.png)
+
+# How does Blue work?
+
+![Architecture](./docs/images/architecture.png)
 
 To get a glimpse of where we are heading with agentic architectures, read our papers:
 
 * [A Blueprint Architecture of Compound AI Systems for Enterprise](https://arxiv.org/abs/2406.00584) [Compound AI Systems Workshop](https://sites.google.com/view/compound-ai-systems-workshop/home)
-* [Orchestrating Agents and Data for Enterprise: A Blueprint Architecture for Compound AI]() [Data-AI Systems Workshop at ICDE'25](https://dais-workshop-icde.github.io/)
+* [Orchestrating Agents and Data for Enterprise: A Blueprint Architecture for Compound AI](http://arxiv.org/abs/2504.08148) [Data-AI Systems Workshop at ICDE'25](https://dais-workshop-icde.github.io/)
 
 </br>
 
@@ -32,6 +39,8 @@ Here are a few examples to inspire you to build with blue:
 * agents that produces interactive graphical user interfaces and visualizations with your data (e.g. self-service business intelligence) 
 * a conversational agent that interfaces to existing predictive models and APIs (e.g. job search agent with predictive models and data)
 * agents that execute workflows processing text data, extracting and populating databases.
+* conversational applications with agents managing dialogue and performing task planning.
+* complex agentic data processing pipelines, with multi-modal operators
 
 
 # Want to try out blue demos?
@@ -42,18 +51,26 @@ You can try out a demos on our [blue-examples repository!](http://github.com/rit
 
 Sounds interesting? Want to learn more? Read documentation below.
 
-
 # Outline of the Documentation:
 
-* [Orchestration Concepts](ORCHESTRATION-CONCEPTS.md) to learn more about Blue concepts
+* [Concepts](CONCEPTS.md) to learn more about Blue concepts
 * Install your own Blue environment
   * [Local Installation](LOCAL-INSTALLATION.md) more suited for trying out and development 
   * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
 * [Quickstart Guide](QUICK-START.md) to learn basics of using blue web application.
-* [Demos](https://github.com/rit-git/blue-examples/tree/v0.9) to try out agentic demos with base and experimental agents
+* [Demos](https://github.com/rit-git/blue-examples/tree/v1.0) to try out agentic demos with base and experimental agents
 * [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
 * [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles
+
+# Where are blue libraries?
+
+Blue has two python libraries that you can use:
+* [blue-platform](https://pypi.org/project/blue-platform/): developers library for building agents, tools, operators, planners
+* [blue-cli](https://pypi.org/project/blue-cli/): cli to install and deploy blue
+
+[blue-cli](https://pypi.org/project/blue-cli/) is a good starting point to install and try out blue!
+
 
 </br>
 </br>
@@ -123,4 +140,12 @@ For OSS components having different portions released under different licenses, 
 | 28 | uuid | No | Ka-ping Yee | [link](http://zesty.ca/python/) | Python software license | 
 | 29 | uvicorn | No | Encode OSS Ltd | [link](https://github.com/encode/uvicorn) | BSD License | 
 | 30 | websocket_client | No | engn33r | [link](https://github.com/websocket-client/websocket-client.git) | Apache Software License | 
-| 31 | websockets | No | Aymeric Augustin and contributors | [link](https://github.com/python-websockets/websockets) | BSD License | 
+| 31 | websockets | No | Aymeric Augustin and contributors | [link](https://github.com/python-websockets/websockets) | BSD License |
+| 32 | Ray | No | Ray Authors | [link](https://github.com/ray-project/ray) | Apache Software License |
+| 33 | click | No | Pallets | [link](https://github.com/pallets/click) | BSD License |
+| 34 | MCP | No | Anthropic, PBC | [link](https://github.com/modelcontextprotocol/python-sdk) | MIT Software License |
+| 35 | scikit-learn | No | The scikit-learn developers | [link](https://github.com/scikit-learn/scikit-learn) | BSD License|
+| 36 | umap-learn | No | Leland McInnes | [link](https://github.com/lmcinnes/umap) | BSD License |
+| 37 | mike | No | Jim Porter | [link](https://github.com/jimporter/mike) | BSD License |
+| 38 | mkdocstrings | No | Timothée Mazzucotelli | [link](https://github.com/mkdocstrings/mkdocstrings) | ISC Software License |
+| 39 | mkdocstrings-python | No | Timothée Mazzucotelli | [link](https://github.com/mkdocstrings/python) | ISC Software License |

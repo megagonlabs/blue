@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-# Basic Example
-
-To start with a basic hello world example please go to [Basic Example](BASIC-EXAMPLE.md)
-
----
-
-=======
->>>>>>> dev
 # Agent Development
 
 To learn more about developing agents, please go to [agents](agents) for more details.
@@ -28,9 +19,6 @@ To learn more about how to work with data sources and do data processing, go to 
 To learn more about developing services that agents can interface with, go to [services](services) for details.
 
 
-<<<<<<< HEAD
-=======
 # Utilities 
 
 To learn more about utilities that come with blue in your development go to [utils](lib/src/blue/utils) for more details.
->>>>>>> dev
