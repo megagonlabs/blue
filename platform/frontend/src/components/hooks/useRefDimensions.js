@@ -1,30 +1,28 @@
 import _ from "lodash";
 import { useEffect, useState } from "react";
 export const useRefDimensions = (ref) => {
-    const [dimensions, setDimensions] = useState({});
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     useEffect(() => {
         function handleResize() {
-            // Set window width/height to state
+            // set window width/height to state
             if (ref.current) {
                 const { current } = ref;
                 const boundingRect = current.getBoundingClientRect();
                 const { width, height } = boundingRect;
-                if (
+                const shouldUpdate =
                     !_.isEqual(dimensions.width, width) ||
-                    !_.isEqual(dimensions.height, height)
-                )
-                    setDimensions({
-                        width: width,
-                        height: height,
-                    });
+                    !_.isEqual(dimensions.height, height);
+                if (shouldUpdate) {
+                    setDimensions({ width: width, height: height });
+                }
             }
         }
-        // Add event listener
+        // add event listener
         window.addEventListener("resize", handleResize);
-        // Call handler right away so state gets updated with initial window size
+        // call handler right away so state gets updated with initial window size
         handleResize();
-        // Remove event listener on cleanup
+        // remove event listener on cleanup
         return () => window.removeEventListener("resize", handleResize);
-    }, [ref]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [ref, dimensions]);
     return dimensions;
 };

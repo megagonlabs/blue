@@ -4,10 +4,6 @@ import logging
 ###### Blue
 from blue.agent import Agent
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 ##########################
 ### Agent.UserAgent
@@ -18,7 +14,13 @@ class UserAgent(Agent):
             kwargs['name'] = "USER"
         super().__init__(**kwargs)
 
-    
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        pass
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="user output")
+
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 

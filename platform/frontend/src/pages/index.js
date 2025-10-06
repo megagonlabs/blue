@@ -16,6 +16,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faArrowRight,
     faHourglassStart,
     faPen,
     faPlus,
@@ -127,7 +128,9 @@ export default function LaunchScreen() {
                                     gap: 20,
                                     padding: 15,
                                     whiteSpace: "pre-wrap",
-                                    cursor: "pointer",
+                                    cursor: permissions.canWriteSessions
+                                        ? "pointer"
+                                        : null,
                                     opacity: !isSocketOpen ? 0.6 : null,
                                     pointerEvents:
                                         creatingSession || !isSocketOpen
@@ -135,9 +138,11 @@ export default function LaunchScreen() {
                                             : null,
                                 }}
                                 className="agent-group-row"
-                                onClick={() =>
-                                    joinAgentGroupSession(agentGroup.name)
-                                }
+                                onClick={() => {
+                                    if (permissions.canWriteSessions) {
+                                        joinAgentGroupSession(agentGroup.name);
+                                    }
+                                }}
                             >
                                 <Card
                                     style={{
@@ -160,25 +165,36 @@ export default function LaunchScreen() {
                                     className="agent-group-row-actions"
                                     style={ROW_ACTION_STYLE}
                                 >
-                                    <Tooltip
-                                        content="Edit"
-                                        minimal
-                                        placement="left"
-                                    >
-                                        <Button
-                                            intent={Intent.PRIMARY}
-                                            icon={faIcon({ icon: faPen })}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                router.push(
-                                                    `/registry/${agentRegistryName}/agent_group/${agentGroup.name}`
-                                                );
-                                            }}
-                                            size="large"
-                                            variant="minimal"
-                                            disabled={creatingSession}
-                                        />
-                                    </Tooltip>
+                                    {(permissions.canWriteAgentRegistry ||
+                                        permissions.canReadAgentRegistry) && (
+                                        <Tooltip
+                                            content={
+                                                permissions.canWriteAgentRegistry
+                                                    ? "Edit"
+                                                    : "View"
+                                            }
+                                            minimal
+                                            placement="left"
+                                        >
+                                            <Button
+                                                intent={Intent.PRIMARY}
+                                                icon={faIcon({
+                                                    icon: permissions.canWriteAgentRegistry
+                                                        ? faPen
+                                                        : faArrowRight,
+                                                })}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    router.push(
+                                                        `/registry/${agentRegistryName}/agent_group/${agentGroup.name}`
+                                                    );
+                                                }}
+                                                size="large"
+                                                variant="minimal"
+                                                disabled={creatingSession}
+                                            />
+                                        </Tooltip>
+                                    )}
                                 </div>
                                 {creatingSession &&
                                     _.isEqual(launchGroup, agentGroup.name) && (

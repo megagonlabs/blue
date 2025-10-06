@@ -163,13 +163,13 @@ export default function App({ children }) {
             href: "/admin/status",
             text: "Status",
             icon: faWavePulse,
-            visible: _.isEqual(userRole, "admin"),
+            visible: _.isEqual(userRole, "administrator"),
         },
         admin_configurations: {
             href: "/admin/configs",
             text: "Configs",
             icon: faScrewdriverWrench,
-            visible: _.isEqual(userRole, "admin"),
+            visible: _.isEqual(userRole, "administrator"),
         },
     };
     const NUMBER_TO_ICON = {
@@ -424,33 +424,43 @@ export default function App({ children }) {
                                         </Link>
                                     );
                                 })}
-                                <Tooltip
-                                    minimal
-                                    placement="right"
-                                    content={
-                                        compactSidebar ? "New Session" : null
-                                    }
-                                >
-                                    <Button
-                                        intent={Intent.PRIMARY}
-                                        size="large"
-                                        text={!compactSidebar && "New Session"}
-                                        disabled={
-                                            creatingSession || !isSocketOpen
+                                {permissions.canWriteSessions && (
+                                    <Tooltip
+                                        minimal
+                                        placement="right"
+                                        content={
+                                            compactSidebar
+                                                ? "New Session"
+                                                : null
                                         }
-                                        icon={faIcon({ icon: faInboxArrowUp })}
-                                        onClick={() => {
-                                            if (
-                                                !isSocketOpen ||
-                                                !router.isReady
-                                            )
-                                                return;
-                                            appActions.session.createSession({
-                                                router,
-                                            });
-                                        }}
-                                    />
-                                </Tooltip>
+                                    >
+                                        <Button
+                                            intent={Intent.PRIMARY}
+                                            size="large"
+                                            text={
+                                                !compactSidebar && "New Session"
+                                            }
+                                            disabled={
+                                                creatingSession || !isSocketOpen
+                                            }
+                                            icon={faIcon({
+                                                icon: faInboxArrowUp,
+                                            })}
+                                            onClick={() => {
+                                                if (
+                                                    !isSocketOpen ||
+                                                    !router.isReady
+                                                )
+                                                    return;
+                                                appActions.session.createSession(
+                                                    {
+                                                        router,
+                                                    }
+                                                );
+                                            }}
+                                        />
+                                    </Tooltip>
+                                )}
                             </ButtonGroup>
                         </>
                     ) : null}

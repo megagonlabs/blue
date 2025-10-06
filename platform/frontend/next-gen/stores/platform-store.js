@@ -1,0 +1,194 @@
+import { encodeWebsafeBase64 } from "@/components/helper";
+import axios from "axios";
+import _ from "lodash";
+import { create } from "zustand";
+export const usePlatformStore = create((set, get) => ({
+    setState: ({ key, value }) => set({ [key]: value }),
+    users: { list: [], order: {}, loading: false, selected: new Set() },
+    services: { list: [], order: {}, loading: false, selected: new Set() },
+    agents: { list: [], order: {}, loading: false, selected: new Set() },
+    configurations: {
+        values: {},
+        loading: false,
+        emailsLoading: false,
+        selectedEmails: new Set(),
+    },
+    setUserTableOrder: (order) => {
+        set((state) => ({ users: { ...state.users, order } }));
+    },
+    setServiceTableOrder: (order) => {
+        set((state) => ({ services: { ...state.services, order } }));
+    },
+    setAgentTableOrder: (order) => {
+        set((state) => ({ agents: { ...state.agents, order } }));
+    },
+    updateAgentTableSelected: ({ agentName, checked = false }) => {
+        const { agents } = get();
+        let newSelected = _.cloneDeep(agents.selected);
+        if (checked) {
+            newSelected.add(agentName);
+        } else {
+            newSelected.delete(agentName);
+        }
+        set((state) => ({
+            agents: { ...state.agents, selected: newSelected },
+        }));
+    },
+    updateServiceTableSelected: ({ serviceName, checked = false }) => {
+        const { services } = get();
+        let newSelected = _.cloneDeep(services.selected);
+        if (checked) {
+            newSelected.add(serviceName);
+        } else {
+            newSelected.delete(serviceName);
+        }
+        set((state) => ({
+            services: { ...state.services, selected: newSelected },
+        }));
+    },
+    updateUserTableSelected: ({ uid, checked = false }) => {
+        const { users } = get();
+        let newSelected = _.cloneDeep(users.selected);
+        if (checked) {
+            newSelected.add(uid);
+        } else {
+            newSelected.delete(uid);
+        }
+        set((state) => ({ users: { ...state.users, selected: newSelected } }));
+    },
+    updateEmailTableSelected: ({ email, checked = false }) => {
+        const { configurations } = get();
+        let newSelected = _.cloneDeep(configurations.selectedEmails);
+        if (checked) {
+            newSelected.add(email);
+        } else {
+            newSelected.delete(email);
+        }
+        set((state) => ({
+            configurations: {
+                ...state.configurations,
+                selectedEmails: newSelected,
+            },
+        }));
+    },
+    addAllowedEmail: (email) => {
+        const { configurations } = get();
+        let newValues = _.cloneDeep(configurations.values);
+        const encodedEmail = encodeWebsafeBase64(email);
+        _.set(newValues, ["allowed_emails", encodedEmail], {
+            email,
+            allow: true,
+        });
+        set((state) => ({
+            configurations: { ...state.configurations, values: newValues },
+        }));
+    },
+    removeAllowedEmail: (email) => {
+        const { configurations } = get();
+        let newValues = _.cloneDeep(configurations.values);
+        const encodedEmail = encodeWebsafeBase64(email);
+        _.unset(newValues, ["allowed_emails", encodedEmail]);
+        set((state) => ({
+            configurations: { ...state.configurations, values: newValues },
+        }));
+    },
+    removeServiceFromList: ({ serviceNames }) => {
+        const { services } = get();
+        let newList = _.cloneDeep(services.list).filter(
+            (e) => _.isSet(serviceNames) && !serviceNames.has(e.service)
+        );
+        set((state) => ({ services: { ...state.services, list: newList } }));
+    },
+    updateUserTableRole: ({ uids, role }) => {
+        const { users } = get();
+        let newList = _.cloneDeep(users.list);
+        for (let i = 0; i < _.size(newList); i++) {
+            if (_.isSet(uids) && uids.has(newList[i].uid)) {
+                _.set(newList[i], "role", role);
+            }
+        }
+        set((state) => ({ users: { ...state.users, list: newList } }));
+    },
+    updateConfigurationValues: ({ key, value }) => {
+        const { configurations } = get();
+        let newValues = _.cloneDeep(configurations.values);
+        _.set(newValues, key, value);
+        set((state) => ({
+            configurations: { ...state.configurations, values: newValues },
+        }));
+    },
+    getConfigurations: () => {
+        set((state) => ({
+            configurations: { ...state.configurations, loading: true },
+        }));
+        axios.get("/platform/settings").then((response) => {
+            set((state) => ({
+                configurations: {
+                    ...state.configurations,
+                    values: _.get(response, "data.settings", {}),
+                    loading: false,
+                    selectedEmails: new Set(),
+                },
+            }));
+        });
+    },
+    getAllowedEmails: () => {
+        set((state) => ({
+            configurations: { ...state.configurations, emailsLoading: true },
+        }));
+        axios.get("/platform/settings").then((response) => {
+            const allowed_emails = _.get(
+                response,
+                "data.settings.allowed_emails",
+                {}
+            );
+            set((state) => ({
+                configurations: {
+                    ...state.configurations,
+                    values: { ...state.configurations.values, allowed_emails },
+                    emailsLoading: false,
+                    selectedEmails: new Set(),
+                },
+            }));
+        });
+    },
+    getUsers: () => {
+        set((state) => ({ users: { ...state.users, loading: true } }));
+        axios.get("/accounts/users").then((response) => {
+            set((state) => ({
+                users: {
+                    ...state.users,
+                    loading: false,
+                    selected: new Set(),
+                    list: _.get(response, "data.users", []),
+                },
+            }));
+        });
+    },
+    getServices: () => {
+        set((state) => ({ services: { ...state.services, loading: true } }));
+        axios.get("/containers/services").then((response) => {
+            set((state) => ({
+                services: {
+                    ...state.services,
+                    loading: false,
+                    selected: new Set(),
+                    list: _.get(response, "data.results", []),
+                },
+            }));
+        });
+    },
+    getAgents: () => {
+        set((state) => ({ agents: { ...state.agents, loading: true } }));
+        axios.get("/containers/agents").then((response) => {
+            set((state) => ({
+                agents: {
+                    ...state.agents,
+                    loading: false,
+                    selected: new Set(),
+                    list: _.get(response, "data.results", []),
+                },
+            }));
+        });
+    },
+}));

@@ -9,40 +9,22 @@ import pydash
 from redis.commands.json.path import Path
 
 ###### Blue
+from blue.core import Entity
 from blue.stream import ControlCode
 from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
-from blue.utils import uuid_utils
+from blue.utils import uuid_utils, log_utils
+
 
 
 ###############
 ### Session
 #
-class Session:
-    def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+class Session(Entity):
+    def __init__(self, id=None, sid=None, cid=None, prefix=None, suffix=None, properties=None):
+        super().__init__(name="SESSION", id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix)
+
         self.connection = None
-        self.name = name
-        if id:
-            self.id = id
-        else:
-            self.id = uuid_utils.create_uuid()
-
-        if sid:
-            self.sid = sid
-        else:
-            self.sid = self.name + ":" + self.id
-
-        self.prefix = prefix
-        self.suffix = suffix
-        self.cid = cid
-
-        if self.cid == None:
-            self.cid = self.sid
-
-            if self.prefix:
-                self.cid = self.prefix + ":" + self.cid
-            if self.suffix:
-                self.cid = self.cid + ":" + self.suffix
 
         # session stream
         self.producer = None
@@ -57,6 +39,8 @@ class Session:
     def _initialize(self, properties=None):
         self._initialize_properties()
         self._update_properties(properties=properties)
+
+        self._initialize_logger()
 
     def _initialize_properties(self):
         self.properties = {}
@@ -75,6 +59,15 @@ class Session:
 
     def get_stream(self):
         return self.producer.get_stream()
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
+        self.logger.set_config_data("session", self.sid, -1)
 
     ###### AGENTS, NOTIFICATION
     def add_agent(self, agent):
@@ -124,23 +117,15 @@ class Session:
         return list(agents.values())
 
     def notify(self, agent, output_stream, tags):
-
-        # create data namespace to share data on stream
-        data_success = self._init_stream_data_namespace(output_stream)
-        # logging.info("inited stream data namespace {} {}".format(output_stream, data_success))
-
-        # create metadata namespace for stream, metadata_success = True, if not existing
-        metadata_success = self._init_stream_metadata_namespace(output_stream, agent, tags)
-        # logging.info("inited stream metadata namespace {} {}".format(output_stream, metadata_success))
+        self._update_stream_metadata(output_stream, agent, tags)
 
         # add to stream to notify others, unless it exists
-        if metadata_success:
-            args = {}
-            args["session"] = self.cid
-            args["agent"] = agent.cid
-            args["stream"] = output_stream
-            args["tags"] = tags
-            self.producer.write_control(ControlCode.ADD_STREAM, args)
+        args = {}
+        args["session"] = self.cid
+        args["agent"] = agent.cid
+        args["stream"] = output_stream
+        args["tags"] = tags
+        self.producer.write_control(ControlCode.ADD_STREAM, args)
 
     ###### DATA/METADATA RELATED
     def __get_json_value(self, value):
@@ -160,7 +145,7 @@ class Session:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {"members": {}, 'pinned': {}},
+            {"members": {}, 'pinned': {}, 'debugger': {}},
             nx=True,
         )
 
@@ -302,26 +287,18 @@ class Session:
     def _get_stream_metadata_namespace(self, stream):
         return stream + ":METADATA"
 
-    def _init_stream_metadata_namespace(self, stream, agent, tags):
-        # create metadata namespaces for stream
+    def _update_stream_metadata(self, stream, agent, tags):
         metadata_tags = {}
         for tag in tags:
             metadata_tags.update({tag: True})
-        metadata = {'created_by': agent.name, 'id': agent.id, 'tags': metadata_tags}
-        return self.connection.json().set(self._get_stream_metadata_namespace(stream), "$", metadata, nx=True)
+
+        self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'created_by', agent.name)
+        self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'id', agent.id)
+        self.connection.json().set(self._get_stream_metadata_namespace(stream), "$." + 'tags', metadata_tags)
 
     ## session stream data
     def _get_stream_data_namespace(self, stream):
         return stream + ":DATA"
-
-    def _init_stream_data_namespace(self, stream):
-        # create namespaces for stream-specific data
-        return self.connection.json().set(
-            self._get_stream_data_namespace(stream),
-            "$",
-            {},
-            nx=True,
-        )
 
     def set_stream_data(self, stream, key, value):
         self.connection.json().set(
@@ -360,9 +337,18 @@ class Session:
     def to_dict(self):
         return {**self.get_metadata(), "id": self.sid}
 
+    def get_stream_debug_info(self):
+        streams_metadata_ids = self.connection.keys("*" + self.sid + "*:STREAM:METADATA")
+        debug_info = {}
+        for streams_metadata_id in streams_metadata_ids:
+            stream_id = streams_metadata_id[: -len(":METADATA")]
+            stream_metadata = self.connection.json().get(streams_metadata_id)
+            debug_info[stream_id] = stream_metadata
+
+        return debug_info
+
     ###### OPERATIONS
     def _start(self):
-        # logging.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
 
         # initialize session metadata
@@ -374,8 +360,6 @@ class Session:
         # start  producer to emit session events
         self._start_producer()
 
-        # logging.info("Started session {cid}".format(cid=self.cid))
-
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
@@ -384,7 +368,7 @@ class Session:
         # start, if not started
         if self.producer == None:
 
-            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties)
+            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, owner=self.sid)
             producer.start()
             self.producer = producer
 

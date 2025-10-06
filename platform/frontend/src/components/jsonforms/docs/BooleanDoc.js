@@ -23,6 +23,7 @@ export default function BooleanDoc({ closePanel }) {
         label: "",
         props: {
             switch: false,
+            large: false,
             style: {},
         },
         scope: "#/properties/...",
@@ -119,6 +120,58 @@ export default function BooleanDoc({ closePanel }) {
                                         name="boolean-doc-switch-true"
                                         style={{ margin: 0 }}
                                         label="switch: true"
+                                    />
+                                </Callout>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>large</Code>
+                            </td>
+                            <td>
+                                <strong>boolean</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    false
+                                </em>
+                                <div>
+                                    Whether this control should use large
+                                    styles.
+                                </div>
+                                <Callout
+                                    style={{
+                                        margin: 0,
+                                        marginTop: 5,
+                                        display: "flex",
+                                        gap: 10,
+                                        flexWrap: "wrap",
+                                    }}
+                                >
+                                    <Checkbox
+                                        name="boolean-doc-check-large-false"
+                                        style={{ margin: 0 }}
+                                        label="large: false"
+                                    />
+                                    <Checkbox
+                                        size="large"
+                                        name="boolean-doc-check-large-true"
+                                        style={{ margin: 0 }}
+                                        label="large: true"
+                                    />
+                                    <Switch
+                                        name="boolean-doc-switch-large-false"
+                                        style={{ margin: 0 }}
+                                        label="large: false"
+                                    />
+                                    <Switch
+                                        size="large"
+                                        name="boolean-doc-switch-large-true"
+                                        style={{ margin: 0 }}
+                                        label="large: true"
                                     />
                                 </Callout>
                             </td>

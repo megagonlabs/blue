@@ -5,12 +5,20 @@
         },
         "frontend": {
             "image": "blue-platform-frontend"
+        },
+        "ray": {
+            "image": "blue-platform-ray"
         }
-
     },
     "agents": {
         "nl2sql": {
             "image": "blue-agent-nl2sql"
+        },
+        "nl2cypher": {
+            "image": "blue-agent-nl2cypher"
+        },
+        "nl2mongoql": {
+            "image": "blue-agent-nl2mongoql"
         },
         "visualizer": {
             "image": "blue-agent-visualizer"
@@ -29,6 +37,9 @@
         },
         "openai": {
             "image": "blue-agent-openai"
+        },
+        "blocking_openai": {
+            "image": "blue-agent-blocking_openai"
         },
         "recorder": {
             "image": "blue-agent-recorder"
@@ -58,4 +69,3 @@
         }
     }
 }
-

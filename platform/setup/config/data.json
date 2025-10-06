@@ -1,19 +1,51 @@
 [
-  {
-    "name": "postgres_example",
-    "type": "source",
-    "scope": "/",
-    "description": "",
-    "properties": {
-      "connection": {
-        "host": "blue_db_postgres_example",
-        "port": 5432,
-        "protocol": "postgres",
-        "user": "postgres",
-        "password": "postgres"
-      },
-      "metadata": {}
+    {
+        "name": "postgres_example",
+        "type": "source",
+        "scope": "/",
+        "description": "The dataset is collected from Singaporean government website, mycareersfuture.sg consisting of over 20, 000 richly-structured job posts.",
+        "properties": {
+            "connection": {
+                "host": "blue_db_postgres_example",
+                "port": 5432,
+                "protocol": "postgres",
+                "user": "postgres",
+                "password": "postgres"
+            },
+            "metadata": {}
+        },
+        "icon": null
     },
-    "icon": null
-  }
+    {
+        "name": "internal",
+        "type": "source",
+        "scope": "/",
+        "description": "This is an internal database for storing temporary data during data processing.",
+        "properties": {
+            "connection": {
+                "database_directory": "/blue_data/data/sqlite/internal",
+                "protocol": "sqlite"
+            },
+            "metadata": {}
+        },
+        "icon": null
+    },
+    {
+        "name": "openai_example",
+        "type": "source",
+        "scope": "/",
+        "description": "OpenAI is a broad common-sense knowledge source that combines information from a wide variety of domains to help people understand, reason, and generate ideas. It draws on patterns from books, articles, websites, and other publicly available or licensed text to capture general knowledge about the world, including science, technology, history, culture, everyday facts, and human behavior. The information it contains spans both structured knowledge (like factual data, definitions, and procedures) and unstructured knowledge (like narratives, explanations, and reasoning styles). While it does not “know” in the human sense, it reflects a wide spectrum of human-authored content, making it useful for answering questions, summarizing complex topics, and supporting problem solving across many fields.",
+        "properties": {
+            "connection": {
+                "host": "blue_service_openai",
+                "port": 8001,
+                "protocol": "openai",
+                "user": "",
+                "password": ""
+            },
+            "metadata": {}
+        },
+        "icon": null
+    }
 ]
+

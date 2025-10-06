@@ -8,10 +8,6 @@ from blue.agent import Agent, AgentFactory
 from blue.agents.documenter import DocumenterAgent
 from blue.session import Session
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -25,8 +21,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # set logging
-    logging.getLogger().setLevel(args.loglevel.upper())
+    # logging
+    logging.getLogger().setLevel(logging.getLevelName(args.loglevel.upper()))
 
     # set properties
     properties = {}
@@ -52,15 +48,11 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(cid=args.session)
-            a = DocumenterAgent(
-                name=args.name, session=session, properties=properties
-            )
+            a = DocumenterAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
             session = Session()
-            a = DocumenterAgent(
-                name=args.name, session=session, properties=properties
-            )
+            a = DocumenterAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:

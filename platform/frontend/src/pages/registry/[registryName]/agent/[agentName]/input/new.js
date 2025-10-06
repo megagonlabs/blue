@@ -1,7 +1,4 @@
-import {
-    ENTITY_TYPE_LOOKUP,
-    REGISTRY_NESTING_SEPARATOR,
-} from "@/components/constant";
+import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
@@ -31,7 +28,6 @@ export default function New() {
     const agentName = _.get(router, "query.agentName", null);
     const { appState } = useContext(AppContext);
     const urlPrefix = `/registry/${appState.agent.registryName}/agent/${agentName}/input`;
-    const [namePrefix, setNamePrefix] = useState("");
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);
         _.set(newEntity, path, value);
@@ -41,7 +37,7 @@ export default function New() {
         if (!router.isReady) return;
         setLoading(true);
         axios[created ? "put" : "post"](`${urlPrefix}/${entity.name}`, {
-            name: `${namePrefix}${entity.name}`,
+            name: entity.name,
             description: entity.description,
         })
             .then(() => {
@@ -105,9 +101,15 @@ export default function New() {
         }
         const crumb0 = _.get(crumbs, 0, {});
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });
+        crumbs.push({
+            text: `New input`,
+            icon: _.has(ENTITY_TYPE_LOOKUP, "input")
+                ? ENTITY_TYPE_LOOKUP["input"].icon
+                : null,
+            start: false,
+            end: true,
+        });
         setBreadcrumbs(crumbs);
-        if (!_.isEmpty(value))
-            setNamePrefix(`${value}${REGISTRY_NESTING_SEPARATOR}`);
     }, [router]);
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
@@ -126,7 +128,6 @@ export default function New() {
             <div style={{ marginTop: 70 }}>
                 <NewEntity
                     type="input"
-                    namePrefix={namePrefix}
                     updateEntity={updateEntity}
                     saveEntity={saveEntity}
                     entity={entity}

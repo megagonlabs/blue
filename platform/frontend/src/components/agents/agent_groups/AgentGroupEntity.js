@@ -147,32 +147,35 @@ export default function AgentGroupEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element, index) => {
-                                if (!_.isEqual(element.type, "agent")) {
-                                    return null;
-                                }
-                                return (
-                                    <tr key={index}>
-                                        <td>
-                                            <Link
-                                                href={`${routerQueryPath}/agent/${element.name}`}
-                                            >
-                                                <Tag
-                                                    style={{
-                                                        pointerEvents: "none",
-                                                    }}
-                                                    minimal
-                                                    interactive
-                                                    large
-                                                    intent={Intent.PRIMARY}
+                            {_.values(_.get(entity, "contents.agent", {})).map(
+                                (element, index) => {
+                                    if (!_.isEqual(element.type, "agent")) {
+                                        return null;
+                                    }
+                                    return (
+                                        <tr key={index}>
+                                            <td>
+                                                <Link
+                                                    href={`${routerQueryPath}/agent/${element.name}`}
                                                 >
-                                                    {element.name}
-                                                </Tag>
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                                    <Tag
+                                                        style={{
+                                                            pointerEvents:
+                                                                "none",
+                                                        }}
+                                                        minimal
+                                                        interactive
+                                                        large
+                                                        intent={Intent.PRIMARY}
+                                                    >
+                                                        {element.name}
+                                                    </Tag>
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    );
+                                }
+                            )}
                             {canEditEntity && !edit && (
                                 <tr>
                                     <td>

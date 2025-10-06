@@ -53,33 +53,36 @@ export default function CollectionEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element, index) => {
-                                if (!_.isEqual(element.type, "entity")) {
-                                    return null;
-                                }
-                                return (
-                                    <tr key={index}>
-                                        <td>
-                                            <Link
-                                                href={`${routerQueryPath}/entity/${element.name}`}
-                                            >
-                                                <Tag
-                                                    style={{
-                                                        pointerEvents: "none",
-                                                    }}
-                                                    minimal
-                                                    interactive
-                                                    size="large"
-                                                    intent={Intent.PRIMARY}
+                            {_.values(_.get(entity, "contents.entity", {})).map(
+                                (element, index) => {
+                                    if (!_.isEqual(element.type, "entity")) {
+                                        return null;
+                                    }
+                                    return (
+                                        <tr key={index}>
+                                            <td>
+                                                <Link
+                                                    href={`${routerQueryPath}/entity/${element.name}`}
                                                 >
-                                                    {element.name}
-                                                </Tag>
-                                            </Link>
-                                        </td>
-                                        <td>{element.description}</td>
-                                    </tr>
-                                );
-                            })}
+                                                    <Tag
+                                                        style={{
+                                                            pointerEvents:
+                                                                "none",
+                                                        }}
+                                                        minimal
+                                                        interactive
+                                                        size="large"
+                                                        intent={Intent.PRIMARY}
+                                                    >
+                                                        {element.name}
+                                                    </Tag>
+                                                </Link>
+                                            </td>
+                                            <td>{element.description}</td>
+                                        </tr>
+                                    );
+                                }
+                            )}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>
@@ -103,7 +106,9 @@ export default function CollectionEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element, index) => {
+                            {_.values(
+                                _.get(entity, "contents.relation", {})
+                            ).map((element, index) => {
                                 if (!_.isEqual(element.type, "relation")) {
                                     return null;
                                 }

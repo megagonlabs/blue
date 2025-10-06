@@ -58,6 +58,8 @@ mkdir -p {BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM}/models
 # copy registries
 cp ${BLUE_INSTALL_DIR}/platform/setup/config/agents.json ${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM}/config/${BLUE_AGENT_REGISTRY}.agents.json
 cp ${BLUE_INSTALL_DIR}/platform/setup/config/data.json ${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM}/config/${BLUE_DATA_REGISTRY}.data.json
+cp ${BLUE_INSTALL_DIR}/platform/setup/config/models.json ${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM}/config/${BLUE_MODEL_REGISTRY}.models.json
+cp ${BLUE_INSTALL_DIR}/platform/setup/config/operators.json ${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM}/config/${BLUE_OPERATOR_REGISTRY}.operators.json
 
 # copy rbac
 cp -r ${BLUE_INSTALL_DIR}/platform/setup/config/rbac/* ${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM}/config/rbac/

@@ -11,8 +11,8 @@ import {
     Button,
     ButtonGroup,
     Classes,
+    Colors,
     DialogBody,
-    DialogFooter,
     Intent,
     NonIdealState,
     Popover,
@@ -77,41 +77,46 @@ export default function SessionData() {
         <>
             <DialogBody
                 className="margin-0"
-                style={{ padding: `0px ${darkMode ? 1 : 0}px` }}
+                style={{ padding: "1px 0px 0px", height: "calc(100% - 61px)" }}
             >
-                <div style={{ maxHeight: 463, minHeight: 141 }}>
-                    {!edit ? (
-                        _.isEmpty(data) ? (
-                            <div style={{ height: 141 }}>
-                                <NonIdealState
-                                    title="No Data"
-                                    icon={faIcon({
-                                        icon: faFolderOpen,
-                                        size: 50,
-                                    })}
-                                />
-                            </div>
-                        ) : (
-                            <div
-                                style={{ padding: 15 }}
-                                onDoubleClick={() => setEdit(true)}
-                            >
-                                <JsonViewer json={data} />
-                            </div>
-                        )
-                    ) : (
-                        <JsonEditor
-                            code={JSON.stringify(editData, null, 4)}
-                            setCode={(code) => {
-                                setEditData(JSON.parse(code));
-                            }}
-                            setLoading={setLoading}
-                            setError={setJsonError}
+                {!edit ? (
+                    _.isEmpty(data) ? (
+                        <NonIdealState
+                            title="No Data"
+                            icon={faIcon({
+                                icon: faFolderOpen,
+                                size: 50,
+                            })}
                         />
-                    )}
-                </div>
+                    ) : (
+                        <div
+                            style={{ padding: 15 }}
+                            onDoubleClick={() => setEdit(true)}
+                        >
+                            <JsonViewer json={data} />
+                        </div>
+                    )
+                ) : (
+                    <JsonEditor
+                        code={JSON.stringify(editData, null, 4)}
+                        setCode={(code) => {
+                            setEditData(JSON.parse(code));
+                        }}
+                        setLoading={setLoading}
+                        setError={setJsonError}
+                    />
+                )}
             </DialogBody>
-            <DialogFooter className="position-relative">
+            <div
+                className="border-top position-relative"
+                style={{
+                    padding: "10px 15px",
+                    borderBottomRightRadius: 4,
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY4
+                        : Colors.WHITE,
+                }}
+            >
                 <ButtonGroup>
                     {edit && (
                         <Popover
@@ -163,7 +168,7 @@ export default function SessionData() {
                         </Tag>
                     </div>
                 )}
-            </DialogFooter>
+            </div>
         </>
     );
 }

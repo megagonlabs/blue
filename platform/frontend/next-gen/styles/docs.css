@@ -1,0 +1,12 @@
+.docs-prop-default::before {
+    content: "=";
+    display: inline-block;
+    margin: 0 5px;
+}
+.docs-prop-table th:first-child {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+.docs-prop-table td:first-child {
+    padding-left: 0px;
+}

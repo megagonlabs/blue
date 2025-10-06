@@ -51,7 +51,7 @@ export default function GroupAgentSelector({
     const { agentGroupSelection } = appState.agent;
     const [edited, setEdited] = useState(false);
     const constructTree = (agent, prevPath, type) => {
-        const contents = _.values(_.get(agent, "contents", {})).filter(
+        const contents = _.values(_.get(agent, "contents.agent", {})).filter(
                 (content) => _.isEqual(_.get(content, "type", null), "agent")
             ),
             path = `${prevPath}${_.isEmpty(prevPath) ? "" : "."}${agent.name}`;
@@ -243,7 +243,7 @@ export default function GroupAgentSelector({
     }, [addedAgents]);
     useEffect(() => {
         setAddedAgents(
-            _.values(_.get(entity, "contents", {})).filter((content) =>
+            _.values(_.get(entity, "contents.agent", {})).filter((content) =>
                 _.isEqual(_.get(content, "type", null), "agent")
             )
         );

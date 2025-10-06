@@ -8,7 +8,7 @@ export const appAction = (dispatch) => ({
             type: "app/pendingRequests/set",
             payload: { key: requestKey, value: true },
         });
-        axios.get(`/accounts/profile/${payload}`).then((response) => {
+        axios.get(`/accounts/profile/uid/${payload}`).then((response) => {
             const user = _.get(response, "data.user", null);
             dispatch({
                 type: "app/users/profile/add",

@@ -4,7 +4,8 @@ import sys
 
 from fastapi import Depends, Request
 import pydash
-from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
+from authorizations.constant import PermissionDenied
+from authorizations.utils import account_id_header, acl_enforce
 
 ###### Parsers, Formats, Utils
 import re
@@ -40,8 +41,11 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 from blue.platform import Platform
 from blue.data.registry import DataRegistry
 
+from blue.metadata import MetaData
+
 ###### Properties
-from settings import ACL, PROPERTIES
+from blue.properties import PROPERTIES
+from settings import ACL
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -51,7 +55,9 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
-data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROPERTIES)
+data_registry = DataRegistry(id=data_registry_id, platform_id=platform_id, prefix=prefix, properties=PROPERTIES)
+
+metadata = MetaData(properties=PROPERTIES)
 
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data", dependencies=[Depends(account_id_header)])
@@ -103,11 +109,9 @@ def get_data_source(request: Request, source_name):
 @router.post("/{source_name}")
 def add_source(request: Request, source_name, data: DataSchema):
     source_db = data_registry.get_source(source_name)
-    if source_name in BANNED_ENTITY_NAMES:
-        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if source already exists, return 409 conflict error
     if not pydash.is_empty(source_db):
-        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{source_name}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'data_registry', ['write_all', 'write_own'])
     # TODO: properties
     data_registry.register_source(source_name, request.state.user['uid'], description=data.description, properties={}, rebuild=True)
@@ -290,6 +294,8 @@ def sync_source(request: Request, source_name, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     data_registry.sync_source(source_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
 
 
@@ -298,6 +304,8 @@ def sync_source_database(request: Request, source_name, database_name, recursive
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     data_registry.sync_source_database(source_name, database_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
 
 
@@ -306,4 +314,71 @@ def sync_source_database_collection(request: Request, source_name, database_name
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     data_registry.sync_source_database_collection(source_name, database_name, collection_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+### stat collection
+@router.put('/{source_name}/stats')
+def collect_source_stats(request: Request, source_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_source_stats(source_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/stats")
+def collect_source_database_stats(request: Request, source_name, database_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_source_database_stats(source_name, database_name, recursive=recursive, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/collection/{collection_name}/stats")
+def collect_source_database_collection_stats(request: Request, source_name, database_name, collection_name, recursive: bool = False, sample_limit=10):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.collect_source_database_collection_stats(source_name, database_name, collection_name, recursive=recursive, rebuild=True, sample_limit=sample_limit)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+### metadata collection
+@router.put('/{source_name}/metadata')
+def collect_source_metadata(request: Request, source_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    metadata.collect_source_metadata(data_registry, source_name, recursive=recursive, rebuild=True)
+
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/metadata")
+def collect_source_database_metadata(request: Request, source_name, database_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    metadata.collect_source_database_metadata(data_registry, source_name, database_name, recursive=recursive, rebuild=True)
+
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/collection/{collection_name}/metadata")
+def collect_source_database_collection_metadata(request: Request, source_name, database_name, collection_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    metadata.collect_source_database_collection_metadata(data_registry, source_name, database_name, collection_name, recursive=recursive, rebuild=True)
+
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})

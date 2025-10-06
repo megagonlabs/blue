@@ -1,6 +1,6 @@
 {
     "BLUE_DEPLOY_VERSION": { 
-        "default": "v0.9",
+        "default": "",
         "prompt": "Blue Deployment Version",
         "required": true,
         "cast": "str"
@@ -44,6 +44,42 @@
     "BLUE_DATA_REGISTRY_MODEL": { 
         "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Data Registry Model",
+        "required": false,
+        "cast": "file"
+    },
+    "BLUE_TOOL_REGISTRY": { 
+        "default": "default",
+        "prompt": "Tool Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_TOOL_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
+        "prompt": "Tool Registry Model",
+        "required": false,
+        "cast": "file"
+    },
+    "BLUE_OPERATOR_REGISTRY": { 
+        "default": "default",
+        "prompt": "Operator Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_OPERATOR_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
+        "prompt": "Operator Registry Model",
+        "required": false,
+        "cast": "file"
+    },
+    "BLUE_MODEL_REGISTRY": { 
+        "default": "default",
+        "prompt": "Model Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_MODEL_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
+        "prompt": "Model Registry Model",
         "required": false,
         "cast": "file"
     },
@@ -101,8 +137,32 @@
         "required": true,
         "cast": "int"
     },
+    "BLUE_PUBLIC_RAY_SERVER": { 
+        "default": "localhost",
+        "prompt": "Public IP/Name of Ray Cluster",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_PRIVATE_RAY_SERVER_PORT": { 
+        "default": 6380,
+        "prompt": "Private Port of Ray Cluster",
+        "required": false,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_RAY_SERVER_PORT": { 
+        "default": 6380,
+        "prompt": "Public Exposed Port of Ray Cluster",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE": { 
+        "default": "10000-10010",
+        "prompt": "Public Exposed Port Range of Ray Clients",
+        "required": false,
+        "cast": "str"
+    },
     "BLUE_EMAIL_DOMAIN_WHITE_LIST": {
-        "default": null,
+        "default": "gmail.com",
         "prompt": "Allowed email domains to sign in",
         "required": true,
         "cast": "str"
@@ -131,9 +191,21 @@
         "required": false,
         "cast": "str"
     },
+    "BLUE_SERVICE_OPENAI_URL": {
+        "default":"ws://blue_service_openai:8001",
+        "prompt": "Build Service OpenAI URL",
+        "required": false,
+        "cast": "str"
+    },
     "FIREBASE_SERVICE_CRED": {
         "default": "",
 	    "prompt": "FireBase Service Credentialls",
+        "required": false,
+        "cast": "str"
+    },
+    "FIREBASE_CLIENT_ID": {
+        "default": "blue-9d597",
+	    "prompt": "FireBase Client ID",
         "required": false,
         "cast": "str"
     },

@@ -142,8 +142,8 @@ export default function Agents() {
             ),
         },
         {
-            name: "Actions",
-            key: "actions",
+            name: "Action",
+            key: "action",
             cellRenderer: ({ rowIndex, data }) => (
                 <Cell style={CELL_STYLE}>
                     <ButtonGroup variant="minimal" style={{ marginTop: 4.5 }}>

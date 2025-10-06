@@ -12,11 +12,6 @@ from blue.stream import Stream, ControlCode
 from blue.utils import json_utils
 
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
-
 #######################
 class ObserverAgent(Agent):
     def __init__(self, **kwargs):
@@ -27,17 +22,15 @@ class ObserverAgent(Agent):
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 
-        # observer listens to everything
-        listeners = {}
-        self.properties["listens"] = listeners
-
-        default_listeners = {}
-        listeners["DEFAULT"] = default_listeners
-        default_listeners["includes"] = [".*"]
-        default_listeners["excludes"] = []
-
         # observer is not instructable
         self.properties['instructable'] = False
+
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="all messages", includes=[".*"])
+
+    def _initialize_outputs(self):
+        pass
 
     def response_handler(self, stream, message={}):
         try:
@@ -51,9 +44,9 @@ class ObserverAgent(Agent):
                 ws.send(json.dumps(message))
                 ws.close()
             else:
-                logging.info("{} : {}".format(stream, message))
+                self.logger.info("{} : {}".format(stream, message))
         except Exception as exception:
-            logging.error("{}: {}".format(stream, exception))
+            self.logger.error("{}: {}".format(stream, exception))
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         mode = None
@@ -93,10 +86,13 @@ class ObserverAgent(Agent):
                         try:
                             self.response_handler(
                                 stream=stream,
-                                message={**base_message, "message": {**base_message['message'], "label": "DATA", "contents": [json.loads(json_data) for json_data in data], "content_type": 'JSON'}},
+                                message={
+                                    **base_message,
+                                    "message": {**base_message['message'], "label": "DATA", "contents": [json.loads(json_data) for json_data in data], "content_type": 'JSON'},
+                                },
                             )
                         except Exception as exception:
-                            logging.error("{} : {}".format(stream, exception))
+                            self.logger.error("{} : {}".format(stream, exception))
                     else:
                         if len(data) > 0:
                             self.response_handler(

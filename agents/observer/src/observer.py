@@ -8,11 +8,6 @@ from blue.agent import Agent, AgentFactory
 from blue.agents.observer import ObserverAgent
 from blue.session import Session
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -26,8 +21,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # set logging
-    logging.getLogger().setLevel(args.loglevel.upper())
+    # logging
+    logging.getLogger().setLevel(logging.getLevelName(args.loglevel.upper()))
 
     # set properties
     properties = {}

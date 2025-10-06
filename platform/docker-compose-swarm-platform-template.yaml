@@ -1,7 +1,7 @@
 ---
 version: "3.8"
 x-blue-common: &blue-common # build: .
-    image: python:3.9.0
+    image: python:3.10.12
     environment: &blue-common-env
         BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
         BLUE_DEPLOY_VERSION: "${BLUE_DEPLOY_VERSION}"
@@ -9,19 +9,32 @@ x-blue-common: &blue-common # build: .
         BLUE_DEPLOY_SECURE: "${BLUE_DEPLOY_SECURE}"
         BLUE_DEPLOY_DEVELOPMENT: "${BLUE_DEPLOY_DEVELOPMENT}"
         BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
+        BLUE_PUBLIC_API_SERVER_PORT: "${BLUE_PUBLIC_API_SERVER_PORT}"
         BLUE_PRIVATE_API_SERVER_PORT: "${BLUE_PRIVATE_API_SERVER_PORT}"
         BLUE_PUBLIC_WEB_SERVER: "${BLUE_PUBLIC_WEB_SERVER}"
+        BLUE_PUBLIC_WEB_SERVER_PORT: "${BLUE_PUBLIC_WEB_SERVER_PORT}"
         BLUE_PRIVATE_WEB_SERVER_PORT: "${BLUE_PRIVATE_WEB_SERVER_PORT}"
+        BLUE_PUBLIC_DB_SERVER: "${BLUE_PUBLIC_RB_SERVER}"
+        BLUE_PUBLIC_DB_SERVER_PORT: "${BLUE_PUBLIC_DB_SERVER_PORT}"
+        BLUE_PRIVATE_DB_SERVER_PORT: "${BLUE_PRIVATE_DB_SERVER_PORT}"
+        BLUE_PUBLIC_RAY_SERVER: "${BLUE_PUBLIC_RAY_SERVER}"
+        BLUE_PUBLIC_RAY_SERVER_PORT: "${BLUE_PUBLIC_RAY_SERVER_PORT}"
+        BLUE_PRIVATE_RAY_SERVER_PORT: "${BLUE_PRIVATE_RAY_SERVER_PORT}"  
+        BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE: "${BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE}"     
         BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
         BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
         BLUE_MODEL_REGISTRY: "${BLUE_MODEL_REGISTRY}"
         BLUE_OPERATOR_REGISTRY: "${BLUE_OPERATOR_REGISTRY}"
+        BLUE_TOOL_REGISTRY: "${BLUE_TOOL_REGISTRY}"
         BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
         BLUE_DATA_REGISTRY_MODEL: "${BLUE_DATA_REGISTRY_MODEL}"
         BLUE_MODEL_REGISTRY_MODEL: "${BLUE_MODEL_REGISTRY_MODEL}"
         BLUE_OPERATOR_REGISTRY_MODEL: "${BLUE_OPERATOR_REGISTRY_MODEL}"
+        BLUE_TOOL_REGISTRY_MODEL: "${BLUE_TOOL_REGISTRY_MODEL}"
+        BLUE_SERVICE_OPENAI_URL: "${BLUE_SERVICE_OPENAI_URL}"
         BLUE_RBAC_CONFIG_FOLDER: "${BLUE_RBAC_CONFIG_FOLDER}"
         BLUE_EMAIL_DOMAIN_WHITE_LIST: "${BLUE_EMAIL_DOMAIN_WHITE_LIST}"
+        BLUE_FIREBASE_CLIENT_ID: "${BLUE_FIREBASE_CLIENT_ID}"
     depends_on: &blue-common-depends-on
         redis:
             condition: service_healthy
@@ -35,7 +48,7 @@ services:
                 constraints:
                     - node.labels.target == db
         ports:
-            - "${BLUE_PUBLIC_DB_SERVER_PORT}:6379"
+            - "${BLUE_PRIVATE_DB_SERVER_PORT}:6379"
         healthcheck:
             test: ["CMD", "redis-cli", "ping"]
             interval: 10s
@@ -52,8 +65,31 @@ services:
             <<: *blue-common-env
         restart: always
 
+    ray:
+        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-ray${BLUE_BUILD_IMG_SUFFIX}:v${BLUE_DEPLOY_VERSION}
+        hostname: blue_server_ray
+        deploy:
+            placement:
+                constraints:
+                    - node.labels.target == platform
+        ports:
+            - "${BLUE_PRIVATE_RAY_SERVER_PORT}:6380"
+            - "${BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE}:10000-10010"
+        networks:
+            - network_overlay
+        volumes:
+            - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+        labels:
+            blue.platform: "${BLUE_DEPLOY_PLATFORM}.ray"
+        environment:
+            <<: *blue-common-env
+        env_file:
+            - ray/ray.env
+        shm_size: '5.04gb'
+        restart: always
+
     api:
-        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-api${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION}
+        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-api${BLUE_BUILD_IMG_SUFFIX}:v${BLUE_DEPLOY_VERSION}
         hostname: blue_platform_api
         deploy:
             placement:
@@ -62,7 +98,7 @@ services:
         depends_on:
             - redis
         ports:
-            - "${BLUE_PUBLIC_API_SERVER_PORT}:5050"
+            - "${BLUE_PRIVATE_API_SERVER_PORT}:5050"
         networks:
             - network_overlay
         volumes:
@@ -77,14 +113,14 @@ services:
         restart: always
 
     frontend:
-        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION}
+        image: ${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend${BLUE_BUILD_IMG_SUFFIX}:v${BLUE_DEPLOY_VERSION}
         hostname: blue_platform_frontend
         deploy:
             placement:
                 constraints:
                     - node.labels.target == platform
         ports:
-            - "${BLUE_PUBLIC_WEB_SERVER_PORT}:3000"
+            - "${BLUE_PRIVATE_WEB_SERVER_PORT}:3000"
         networks:
             - network_overlay
         labels:

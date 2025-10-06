@@ -201,7 +201,27 @@ WORDS = (
     "maxime",
     "corrupti",
 )
-COMMON_WORDS = ("lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua")
+COMMON_WORDS = (
+    "lorem",
+    "ipsum",
+    "dolor",
+    "sit",
+    "amet",
+    "consectetur",
+    "adipisicing",
+    "elit",
+    "sed",
+    "do",
+    "eiusmod",
+    "tempor",
+    "incididunt",
+    "ut",
+    "labore",
+    "et",
+    "dolore",
+    "magna",
+    "aliqua",
+)
 
 
 def sentence():
@@ -283,8 +303,26 @@ def send_message(ws, session_id, connection_id, stream_id, message):
 
 session_id = input("session_id: ")
 connection_id = input("connection_id: ")
+STREAM_PREFIX = f"PLATFORM:default:SESSION:{session_id.replace('SESSION:', '')}:AGENT:TEST_CLIENT:Br4vCROn4C:OUTPUT:DEFAULT:<replace>:STREAM"
+progress = {'progress_id': 'progress_id', 'label': 'label', 'value': 0.5}
+stream_id = STREAM_PREFIX.replace('<replace>', f'{str(int(time.time() * 1000))}:PROGRESS')
+send_bos(ws, session_id, connection_id, stream_id)
+send_message(
+    ws,
+    session_id,
+    connection_id,
+    stream_id,
+    message={
+        "label": "CONTROL",
+        "contents": {"code": "PROGRESS", "args": progress},
+        "content_type": 'JSON',
+    },
+)
+send_eos(ws, session_id, connection_id, stream_id)
+time.sleep(2)
+sys.exit()
 for _ in range(1):
-    stream_id = f"local-test-client-{int(time.time() * 1000)}"
+    stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
     send_bos(ws, session_id, connection_id, stream_id)
@@ -292,7 +330,7 @@ for _ in range(1):
     send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(2)
 # sys.exit()
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
+stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
 send_bos(ws, session_id, connection_id, stream_id, metadata={"tags": {"WORKSPACE": True}})
 json_form = {
     "code": "CREATE_FORM",
@@ -329,6 +367,7 @@ send_message(
 )
 send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(2)
+# sys.exit()
 send_bos(ws, session_id, connection_id, stream_id, metadata={"tags": {"WORKSPACE": True}})
 json_form["code"] = 'UPDATE_FORM'
 json_form["args"]['uischema'] = {
@@ -375,7 +414,7 @@ time.sleep(1)
 send_eos(ws, session_id, connection_id, stream_id)
 # sys.exit()
 time.sleep(1)
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
+stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
 json_form = {
     "code": "CREATE_FORM",
     "args": {
@@ -540,7 +579,7 @@ ws.send(
 )
 send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(1)
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
+stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
 send_bos(ws, session_id, connection_id, stream_id)
 send_message(
     ws,
@@ -573,13 +612,19 @@ send_message(
 )
 send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(1)
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
+stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
 json_form = {
     "code": "CREATE_FORM",
     "args": {
         "schema": {
             "type": "object",
-            "properties": {"name": {"type": "string"}, "current_title": {"type": "string"}, "desired_title": {"type": "string"}, "desired_location": {"type": "string"}, "skills": {"type": "string"}},
+            "properties": {
+                "name": {"type": "string"},
+                "current_title": {"type": "string"},
+                "desired_title": {"type": "string"},
+                "desired_location": {"type": "string"},
+                "skills": {"type": "string"},
+            },
         },
         "uischema": {
             "type": "VerticalLayout",

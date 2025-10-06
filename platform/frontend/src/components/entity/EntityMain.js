@@ -74,19 +74,9 @@ export default function EntityMain({
             .delete(routerQueryPath)
             .then(() => {
                 let params = _.cloneDeep(routerQueryParams);
-                if (
-                    [
-                        "agent",
-                        "agent_group",
-                        "data",
-                        "operator",
-                        "model",
-                    ].includes(_.nth(params, -2))
-                ) {
-                    params.pop();
-                } else {
-                    params.splice(params.length - 2, 2);
-                }
+                const registryType = _.nth(params, 2);
+                params.splice(params.length - 2, 2);
+                _.set(params, [2], registryType);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: `Deleted ${entity.name} ${entity.type}`,
@@ -192,8 +182,7 @@ export default function EntityMain({
         ["source", "database", "collection"],
         entity.type
     );
-    const canDeregister = _.isEqual("database", entity.type);
-    const showActionMenu = canEditEntity || canSyncData || canDeregister;
+    const showActionMenu = canEditEntity || canSyncData;
     return (
         <>
             <EntityIconEditor
@@ -292,7 +281,7 @@ export default function EntityMain({
                             {entity.type}
                         </div>
                     </div>
-                    {showActionMenu ? (
+                    {showActionMenu && (
                         <div
                             style={{
                                 position: "absolute",
@@ -359,19 +348,21 @@ export default function EntityMain({
                                         content={
                                             <Menu size="large">
                                                 {_.isFunction(setEdit) &&
-                                                canEditEntity ? (
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            setEdit(true)
-                                                        }
-                                                        intent={Intent.PRIMARY}
-                                                        icon={faIcon({
-                                                            icon: faPen,
-                                                        })}
-                                                        text="Edit"
-                                                    />
-                                                ) : null}
-                                                {canDuplicateEntity ? (
+                                                    canEditEntity && (
+                                                        <MenuItem
+                                                            onClick={() =>
+                                                                setEdit(true)
+                                                            }
+                                                            intent={
+                                                                Intent.PRIMARY
+                                                            }
+                                                            icon={faIcon({
+                                                                icon: faPen,
+                                                            })}
+                                                            text="Edit"
+                                                        />
+                                                    )}
+                                                {canDuplicateEntity && (
                                                     <MenuItem
                                                         icon={faIcon({
                                                             icon: faClone,
@@ -381,8 +372,8 @@ export default function EntityMain({
                                                             duplicateEntity
                                                         }
                                                     />
-                                                ) : null}
-                                                {canSyncData ? (
+                                                )}
+                                                {canSyncData && (
                                                     <MenuItem
                                                         intent={Intent.SUCCESS}
                                                         icon={faIcon({
@@ -391,7 +382,7 @@ export default function EntityMain({
                                                         text="Sync"
                                                         onClick={syncData}
                                                     />
-                                                ) : null}
+                                                )}
                                                 {(canPullImage ||
                                                     canDeployAgent) && (
                                                     <MenuDivider title="Docker" />
@@ -503,7 +494,7 @@ export default function EntityMain({
                                 </ButtonGroup>
                             )}
                         </div>
-                    ) : null}
+                    )}
                 </SectionCard>
             </Section>
         </>

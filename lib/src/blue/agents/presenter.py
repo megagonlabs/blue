@@ -7,11 +7,6 @@ import pydash
 from blue.agent import Agent
 from blue.stream import Message, ControlCode
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
-
 
 #########################
 ### Agent.PresenterAgent
@@ -22,12 +17,19 @@ class PresenterAgent(Agent):
             kwargs['name'] = "PRESENTER"
         super().__init__(**kwargs)
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        return
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="Form data in structured format (JSON)", tags=["JSON"])
+
     def triggered(self, text, properties):
         # if instructed, consider it triggered
         if 'instructable' in properties:
             if properties['instructable']:
                 return True
-            
+
         triggers = properties['triggers']
         for trigger in triggers:
             if trigger.lower() in text.lower():
@@ -57,11 +59,8 @@ class PresenterAgent(Agent):
                         for element in schema:
                             form_data[element] = worker.get_stream_data(element + ".value", stream=form_data_stream)
 
-            
                         # close form
-                        args = {
-                            "form_id": form_id
-                        }
+                        args = {"form_id": form_id}
                         worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
 
                         ### stream form data
@@ -72,7 +71,7 @@ class PresenterAgent(Agent):
                             worker.write_eos(output=output)
                         else:
                             return [form_data, Message.EOS]
-                    
+
                     else:
                         path = data["path"]
                         timestamp = worker.get_stream_data(path + ".timestamp", stream=form_data_stream)
@@ -86,7 +85,7 @@ class PresenterAgent(Agent):
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
                                 },
-                                stream=form_data_stream
+                                stream=form_data_stream,
                             )
         else:
             if message.isEOS():
@@ -128,4 +127,3 @@ class PresenterAgent(Agent):
 
                 if worker:
                     worker.append_data(stream, data)
-

@@ -1,0 +1,103 @@
+:root {
+    --border-color: rgba(17, 20, 24, 0.15);
+    --border-color-dark: rgba(255, 255, 255, 0.2);
+    --colors-gray-3: #8f99a8;
+    --colors-dark-gray-2: #252a31;
+    --colors-white: #ffffff;
+}
+.full-parent-width {
+    width: 100%;
+}
+.full-parent-height {
+    height: 100%;
+}
+.full-parent-dimension {
+    width: 100%;
+    height: 100%;
+}
+.visibility-hidden {
+    visibility: hidden;
+}
+.pointer-events-none {
+    pointer-events: none;
+}
+.padding-0 {
+    padding: 0px !important;
+}
+.margin-0 {
+    margin: 0px !important;
+}
+.overflow-hidden {
+    overflow: hidden !important;
+}
+.border-top {
+    border-top: 1px solid var(--border-color);
+}
+.bp6-dark .border-top {
+    border-top: 1px solid var(--border-color-dark);
+}
+.border-bottom {
+    border-bottom: 1px solid var(--border-color);
+}
+.bp6-dark .border-bottom {
+    border-bottom: 1px solid var(--border-color-dark);
+}
+.border-right {
+    border-right: 1px solid var(--border-color);
+}
+.bp6-dark .border-right {
+    border-right: 1px solid var(--border-color-dark);
+}
+.border-left {
+    border-left: 1px solid var(--border-color);
+}
+.bp6-dark .border-left {
+    border-left: 1px solid var(--border-color-dark);
+}
+.border-all {
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+}
+.bp6-dark .border-all {
+    border-top: 1px solid var(--border-color-dark);
+    border-right: 1px solid var(--border-color-dark);
+    border-bottom: 1px solid var(--border-color-dark);
+    border-left: 1px solid var(--border-color-dark);
+}
+.user-selection-none {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+.border-radius-10 {
+    border-radius: 10px !important;
+}
+.multiline-ellipsis-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.scrollbar-none {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+.scrollbar-none::-webkit-scrollbar {
+    /* WebKit */
+    display: none;
+}
+.multiline-ellipsis-5 {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.z-index-21 {
+    z-index: 21;
+}

@@ -53,7 +53,9 @@ export default function DatabaseEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element, index) => {
+                            {_.values(
+                                _.get(entity, "contents.collection", {})
+                            ).map((element, index) => {
                                 if (!_.isEqual(element.type, "collection")) {
                                     return null;
                                 }

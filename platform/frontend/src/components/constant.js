@@ -70,7 +70,7 @@ export const ENTITY_TYPE_LOOKUP = {
         model: { icon: faCube, key: "model" },
         operator: { icon: faFunction, key: "operator" },
     },
-    END_OF_SSE_SIGNAL = "END_OF_EVENT_SIGNAL",
+    END_OF_EVENT_SIGNAL = "END_OF_EVENT_SIGNAL",
     JSONFORMS_RENDERERS = [
         ...vanillaRenderers,
         { tester: GroupTester, renderer: GroupRenderer },
@@ -136,7 +136,7 @@ export const ENTITY_TYPE_LOOKUP = {
     },
     MIN_ALLOTMENT_PANE = 321.094,
     USER_ROLES_LOOKUP = {
-        admin: {
+        administrator: {
             text: "Administrator",
         },
         member: { text: "Member" },

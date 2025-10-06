@@ -6,7 +6,9 @@ import pydash
 ###### Parsers, Formats, Utils
 import json
 import logging
-from constant import PermissionDenied, account_id_header, acl_enforce, d7validate
+from authorizations.constant import PermissionDenied
+from authorizations.utils import account_id_header, acl_enforce
+from validations.utils import d7validate
 from validations.base import BaseValidation
 
 ##### Typing
@@ -31,7 +33,8 @@ from blue.agents.registry import AgentRegistry
 from blue.utils import json_utils
 
 ###### Properties
-from settings import ACL, PROPERTIES
+from blue.properties import PROPERTIES
+from settings import ACL
 from server import connection
 
 ### Assign from platform properties
@@ -77,32 +80,24 @@ def session_acl_enforce(request: Request, session: dict, read=False, write=False
 
 
 def agent_join_session(registry_name, agent_name, properties, session_id):
-    properties_from_registry = agent_registry.get_agent_properties(agent_name)
+    # save api properties
+    api_properties = properties
 
-    # start with platform properties, merge properties from registry, then merge properties from API call
-    properties_from_api = properties
-    agent_properties = {}
+    # initialize properties, inputs, outputs
+    properties = {}
+
     # start from platform properties
-    agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
-    # check if derivate agent, if so merge
-    # <_name> or <_name>_<derivative__name>
-    ca = agent_name.split(Agent.SEPARATOR)
-    if len(ca) > 1:
-        parent_agent_name = ca[0]
+    properties = json_utils.merge_json(properties, PROPERTIES)
 
-        parent_properties_from_registry = agent_registry.get_agent_properties(parent_agent_name)
-        if parent_properties_from_registry:
-            agent_properties = json_utils.merge_json(agent_properties, parent_properties_from_registry)
+    # merge agent properties, recursively with input/output params
+    agent_properties = agent_registry.get_agent_properties(agent_name, recursive=True, include_params=True)
+    properties = json_utils.merge_json(properties, agent_properties)
 
-    # merge in registry properties
-    agent_properties = json_utils.merge_json(agent_properties, properties_from_registry)
     # merge in properties from the api
-    agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
-
-    # ASSUMPTION: agent is already deployed
+    properties = json_utils.merge_json(properties, api_properties)
 
     ## add agent to session
-    p.join_session(session_id, registry_name, agent_name, agent_properties)
+    p.join_session(session_id, registry_name, agent_name, properties)
 
 
 #############
@@ -202,6 +197,15 @@ async def update_session(request: Request, session_id):
     return JSONResponse(content={"message": "Success"})
 
 
+## debugger
+@router.get('/session/{session_id}/debugger')
+def get_session_debugger_information(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    debug_info = session.get_stream_debug_info()
+    return JSONResponse(content={"results": debug_info})
+
+
 ## members
 @router.get("/session/{session_id}/members")
 def list_session_members(request: Request, session_id):
@@ -223,9 +227,9 @@ def add_member_to_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
     session_dict = session.to_dict()
     session_acl_enforce(request, session_dict, write=True)
-    owner = pydash.objects.get(session_dict, 'owner', None)
+    owner = pydash.objects.get(session_dict, 'created_by', None)
     if pydash.is_equal(owner, uid):
-        return JSONResponse(status_code=400, content={"message": "Unable to add the owner as a member."})
+        return JSONResponse(status_code=400, content={"message": "Unable to add owner as member"})
     session.set_metadata(f'members.{uid}', True)
     p.set_metadata(f'users.{uid}.sessions.member.{session_id}', True)
     return JSONResponse(content={"message": "Success"})

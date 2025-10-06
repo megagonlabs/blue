@@ -1,12 +1,14 @@
-import { AppToaster } from "@/components/toaster";
+import { useToaster } from "@/components/contexts/ToasterContext";
 import {
     Button,
+    ButtonVariant,
     Callout,
     Classes,
     Colors,
     Dialog,
     DialogBody,
     Intent,
+    Size,
 } from "@blueprintjs/core";
 import axios from "axios";
 import { initializeApp } from "firebase/app";
@@ -24,7 +26,6 @@ const firebaseConfig = {
     appId: "1:342414327441:web:477d438a75d0d406e3c930",
     measurementId: "G-M74783LTXN",
 };
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -69,6 +70,7 @@ export default function Index() {
     const [done, setDone] = useState(false);
     const [profile, setProfile] = useState(null);
     const [ws, setWs] = useState(null);
+    const { appToaster } = useToaster();
     useEffect(() => {
         setLoading(true);
         const server = "localhost:25831";
@@ -76,10 +78,12 @@ export default function Index() {
         socket.onopen = () => {
             socket.send(JSON.stringify("REQUEST_CONNECTION_INFO"));
             setLoading(false);
-            AppToaster.show({
-                intent: Intent.SUCCESS,
-                message: `Connected to Blue CLI`,
-            });
+            if (appToaster) {
+                appToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: `Connected to Blue CLI`,
+                });
+            }
         };
         socket.onmessage = (event) => {
             try {
@@ -90,30 +94,36 @@ export default function Index() {
                 if (_.isEqual(type, "REQUEST_CONNECTION_INFO")) {
                     setProfile(message);
                 } else if (_.has(data, "error")) {
-                    AppToaster.show({
-                        intent: Intent.DANGER,
-                        message: data.error,
-                    });
+                    if (appToaster) {
+                        appToaster.show({
+                            intent: Intent.DANGER,
+                            message: data.error,
+                        });
+                    }
                 } else if (_.isEqual(data, "DONE")) {
                     setDone(true);
                     socket.close();
                 }
             } catch (e) {
-                AppToaster.show({
-                    intent: Intent.WARNING,
-                    message: e,
-                });
+                if (appToaster) {
+                    appToaster.show({
+                        intent: Intent.WARNING,
+                        message: e,
+                    });
+                }
                 console.log(event.data);
                 console.error(e);
             }
         };
         socket.onerror = () => {
-            AppToaster.show({
-                intent: Intent.DANGER,
-                message: `WebSocket connection to 'ws://${server}' failed`,
-            });
             setWs(null);
             setLoading(false);
+            if (appToaster) {
+                appToaster.show({
+                    intent: Intent.DANGER,
+                    message: `WebSocket connection to 'ws://${server}' failed`,
+                });
+            }
         };
         setWs(socket);
     }, []);
@@ -148,12 +158,14 @@ export default function Index() {
             })
             .catch((error) => {
                 setPopupOpen(false);
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.code ? `[${error.code}]` : ""} ${
-                        error.message
-                    }`,
-                });
+                if (appToaster) {
+                    appToaster.show({
+                        intent: Intent.DANGER,
+                        message: `${error.code ? `[${error.code}]` : ""} ${
+                            error.message
+                        }`,
+                    });
+                }
             });
     };
     return (
@@ -195,8 +207,8 @@ export default function Index() {
                         <Button
                             loading={popupOpen}
                             disabled={_.isNil(ws)}
-                            size="large"
-                            variant="outlined"
+                            size={Size.LARGE}
+                            variant={ButtonVariant.OUTLINED}
                             className={loading ? Classes.SKELETON : null}
                             text="Sign in with Google"
                             onClick={signInWithGoogle}

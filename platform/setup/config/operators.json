@@ -1,0 +1,40 @@
+[
+    {
+        "name": "blue_local",
+        "type": "server",
+        "scope": "/",
+        "description": "Operator server to execute local operators as part of blue distribution",
+        "created_by": null,
+        "properties": {
+            "connection": {
+                "host": "localhost",
+                "port": 0,
+                "protocol": "local",
+                "user": "",
+                "password": ""
+            },
+            "metadata": {}
+        },
+        "icon": null,
+        "contents": {}
+    },
+    {
+        "name": "blue_ray",
+        "type": "server",
+        "scope": "/",
+        "description": "Operator server to execute remote operators as part of blue distribution, on a ray cluster",
+        "created_by": null,
+        "properties": {
+            "connection": {
+                "host": "blue_server_ray",
+                "port": 10001,
+                "protocol": "ray",
+                "user": "",
+                "password": ""
+            },
+            "metadata": {}
+        },
+        "icon": null,
+        "contents": {}
+    }
+]

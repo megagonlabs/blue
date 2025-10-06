@@ -1,12 +1,13 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { axiosErrorToast, settlePromises } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import {
     Button,
     Card,
     Classes,
+    Colors,
     DialogBody,
-    DialogFooter,
     FormGroup,
     H4,
     H5,
@@ -31,6 +32,8 @@ export default function SessionBudget({
     setAllowQuickClose,
 }) {
     const { appState } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [budget, setBudget] = useState({});
     const [cost, setCost] = useState("");
@@ -200,10 +203,7 @@ export default function SessionBudget({
                     </Card>
                     <Card compact style={{ width: "calc(50% - 7.5px)" }}>
                         <H5 style={{ marginBottom: 10 }}>Accuracy</H5>
-                        <FormGroup
-                            label="Allocation"
-                            style={{ marginBottom: 10 }}
-                        >
+                        <FormGroup label="Target" style={{ marginBottom: 10 }}>
                             <NumericInput
                                 className={loading ? Classes.SKELETON : null}
                                 intent={accuracyError ? Intent.DANGER : null}
@@ -235,10 +235,7 @@ export default function SessionBudget({
                     </Card>
                     <Card compact style={{ width: "calc(50% - 7.5px)" }}>
                         <H5 style={{ marginBottom: 10 }}>Latency</H5>
-                        <FormGroup
-                            label="Allocation"
-                            style={{ marginBottom: 10 }}
-                        >
+                        <FormGroup label="Target" style={{ marginBottom: 10 }}>
                             <NumericInput
                                 className={loading ? Classes.SKELETON : null}
                                 intent={latencyError ? Intent.DANGER : null}
@@ -269,7 +266,16 @@ export default function SessionBudget({
                     </Card>
                 </div>
             </DialogBody>
-            <DialogFooter>
+            <div
+                className="border-top"
+                style={{
+                    padding: "10px 15px",
+                    borderBottomRightRadius: 4,
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY4
+                        : Colors.WHITE,
+                }}
+            >
                 <Button
                     disabled={costError || accuracyError || latencyError}
                     loading={loading}
@@ -279,7 +285,7 @@ export default function SessionBudget({
                     intent={Intent.SUCCESS}
                     icon={faIcon({ icon: faCheck })}
                 />
-            </DialogFooter>
+            </div>
         </>
     );
 }

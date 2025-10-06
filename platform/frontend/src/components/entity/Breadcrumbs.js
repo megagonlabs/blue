@@ -91,7 +91,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                 if (end) {
                     return (
                         <div style={BREADCRUMB_STYLE} key={index}>
-                            {!start || !end ? HYPHEN_ICON : null}
+                            {!start ? HYPHEN_ICON : null}
                             <Tag
                                 {...TAG_PROPS}
                                 icon={

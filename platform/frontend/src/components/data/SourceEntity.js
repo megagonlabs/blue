@@ -142,7 +142,9 @@ export default function SourceEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element, index) => {
+                            {_.values(
+                                _.get(entity, "contents.database", {})
+                            ).map((element, index) => {
                                 if (!_.isEqual(element.type, "database")) {
                                     return null;
                                 }

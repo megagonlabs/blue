@@ -174,7 +174,7 @@ export default function AuthConfigurationPopover({
                                 }
                             >
                                 {[
-                                    "admin",
+                                    "administrator",
                                     "developer",
                                     "member",
                                     "demo",

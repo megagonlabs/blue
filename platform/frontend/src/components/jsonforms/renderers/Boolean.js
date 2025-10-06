@@ -15,6 +15,7 @@ const BooleanRenderer = ({
     const { socket } = useSocket();
     const style = convertCss(_.get(uischema, "props.style", {}));
     const label = _.get(uischema, "label", null);
+    const large = _.get(uischema, "props.large", null);
     const labelElement = _.isString(label) ? (
         <label className={required ? "required" : null}>{label}</label>
     ) : null;
@@ -41,7 +42,7 @@ const BooleanRenderer = ({
                 checked={data}
                 label={labelElement}
                 style={style}
-                size="large"
+                size={large ? "large" : null}
                 onChange={handleOnChange}
             />
         );
@@ -52,7 +53,7 @@ const BooleanRenderer = ({
             checked={data}
             label={labelElement}
             style={style}
-            size="large"
+            size={large ? "large" : null}
             onChange={handleOnChange}
         />
     );

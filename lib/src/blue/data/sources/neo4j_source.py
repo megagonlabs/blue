@@ -35,22 +35,25 @@ RETURN label AS type, apoc.coll.sortMaps(collect({property:property, type:type})
 class NEO4JSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
-
-    ###### initialization
-    def _initialize_properties(self):
-        super()._initialize_properties()
-
-        # source protocol 
-        self.properties['protocol'] = "bolt"
+        self._schema_cache = {}
 
     ###### connection
+    def _initialize_connection_properties(self):
+        super()._initialize_connection_properties()
+
+        # set host, port, protocol
+        self.properties['connection']['host'] = 'localhost'
+        self.properties['connection']['port'] = 7687
+        self.properties['connection']['protocol'] = 'bolt'
+
     def _connect(self, **connection):
         host = connection['host']
         port = connection['port']
 
         user = connection['user']
         pwd = connection['password']
-        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)
+
+        connection_url = "bolt://" + host + ":" + str(port)
 
         return neo4j_connection.NEO4J_Connection(connection_url, user, pwd)
 
@@ -88,14 +91,6 @@ class NEO4JSource(DataSource):
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    def fetch_database_collection_schema(self, database, collection):
-        nodes_result = self.connection.run_query(APOC_META_NODE_PROPERTIES_QUERY)
-        relationships_result = self.connection.run_query(APOC_META_REL_QUERY)
-        rel_properties_result = self.connection.run_query(APOC_META_REL_PROPERTIES_QUERY)
-
-        schema = self.extract_schema(nodes_result, relationships_result, rel_properties_result)
-        return schema.to_json()
-
     def extract_schema(self, nodes_result, relationships_result, rel_properties_result):
         schema = DataSchema()
 
@@ -112,6 +107,30 @@ class NEO4JSource(DataSource):
                 schema.add_relation_property(key, prop['property'], prop['type'])
 
         return schema
+
+    def fetch_database_collection_entities(self, database, collection):
+        schema = self._fetch_and_extract_schema(database, collection)
+        return schema.get_entities()
+
+    def fetch_database_collection_relations(self, database, collection):
+        schema = self._fetch_and_extract_schema(database, collection)
+        return schema.get_relations()
+
+
+    # Internal helper with lightweight caching per (database, collection)
+    def _fetch_and_extract_schema(self, database, collection):
+        # Use cache key to avoid duplicate work in the same request cycle
+        cache_key = (database, collection)
+        
+        if cache_key not in self._schema_cache:
+            nodes_result = self.connection.run_query(APOC_META_NODE_PROPERTIES_QUERY)
+            relationships_result = self.connection.run_query(APOC_META_REL_QUERY)
+            rel_properties_result = self.connection.run_query(APOC_META_REL_PROPERTIES_QUERY)
+
+            schema = self.extract_schema(nodes_result, relationships_result, rel_properties_result)
+            self._schema_cache[cache_key] = schema
+
+        return self._schema_cache[cache_key]
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None):

@@ -14,12 +14,12 @@ from blue.connection import PooledConnectionFactory
 from blue.pubsub import Consumer, Producer
 from blue.session import Session
 from blue.tracker import PerformanceTracker, SystemPerformanceTracker, Metric, MetricGroup
-from blue.utils import json_utils, uuid_utils
-
+from blue.utils import json_utils, uuid_utils, log_utils
+from blue.agents.plan import AgenticPlan
+from blue.constant import Separator
 
 # system tracker
 system_tracker = None
-
 
 
 ###############
@@ -30,13 +30,12 @@ class AgentPerformanceTracker(PerformanceTracker):
         self.agent = agent
         super().__init__(prefix=agent.cid, properties=properties, inheritance="perf.platform.agent", callback=callback)
 
-    def collect(self): 
+    def collect(self):
         super().collect()
 
         ### agent group
         agent_group = MetricGroup(id="agent", label="Agent Info", visibility=False)
         self.data.add(agent_group)
-
 
         # agent info
         name_metric = Metric(id="name", label="Name", value=self.agent.name, visibility=False)
@@ -52,11 +51,10 @@ class AgentPerformanceTracker(PerformanceTracker):
 
         num_workers_metric = Metric(id="num_workers", label="Num Workers", value=len(list(self.agent.workers.values())), visibility=True)
         workers_group.add(num_workers_metric)
-        
+
         workers_list_group = MetricGroup(id="workers_list", label="Workers List", type="list")
         workers_group.add(workers_list_group)
 
- 
         for worker_id in self.agent.workers:
             worker = self.agent.workers[worker_id]
             stream = None
@@ -73,12 +71,12 @@ class AgentPerformanceTracker(PerformanceTracker):
             worker_cid_metric = Metric(id="cid", label="ID", value=worker.cid, type="text", visibility=False)
             worker_group.add(worker_cid_metric)
 
-            worker_stream_metric =  Metric(id="stream", label="Stream", value=stream, type="text")
+            worker_stream_metric = Metric(id="stream", label="Stream", value=stream, type="text")
             worker_group.add(worker_stream_metric)
-           
 
         return self.data.toDict()
-    
+
+
 ###############
 ### AgentFactoryPerformanceTracker
 #
@@ -87,10 +85,10 @@ class AgentFactoryPerformanceTracker(PerformanceTracker):
         self.agent_factory = agent_factory
         super().__init__(prefix=agent_factory.cid, properties=properties, inheritance="perf.platform.agentfactory", callback=callback)
 
-    def collect(self): 
+    def collect(self):
         super().collect()
 
-         ### db group
+        ### db group
         db_group = MetricGroup(id="database", label="Database Info")
         self.data.add(db_group)
 
@@ -102,34 +100,28 @@ class AgentFactoryPerformanceTracker(PerformanceTracker):
         db_connections_group.add(connections_factory_id)
 
         # db connection info
-        num_created_connections_metric = Metric(id="num_created_connections", label="Num Total Connections", type="series", value=self.agent_factory.connection_factory.count_created_connections())
+        num_created_connections_metric = Metric(
+            id="num_created_connections", label="Num Total Connections", type="series", value=self.agent_factory.connection_factory.count_created_connections()
+        )
         db_connections_group.add(num_created_connections_metric)
-        num_in_use_connections_metric = Metric(id="num_in_use_connections", label="Num In Use Connections", type="series", value=self.agent_factory.connection_factory.count_in_use_connections())
+        num_in_use_connections_metric = Metric(
+            id="num_in_use_connections", label="Num In Use Connections", type="series", value=self.agent_factory.connection_factory.count_in_use_connections()
+        )
         db_connections_group.add(num_in_use_connections_metric)
-        num_available_connections_metric = Metric(id="num_available_connections", label="Num Available Connections", type="series", value=self.agent_factory.connection_factory.count_available_connections())
+        num_available_connections_metric = Metric(
+            id="num_available_connections", label="Num Available Connections", type="series", value=self.agent_factory.connection_factory.count_available_connections()
+        )
         db_connections_group.add(num_available_connections_metric)
 
         return self.data.toDict()
+
 
 ###############
 ### Worker
 #
 class Worker:
     def __init__(
-        self,
-        input_stream,
-        input="DEFAULT",
-        name="WORKER",
-        id=None,
-        sid=None,
-        cid=None,
-        prefix=None,
-        suffix=None,
-        agent=None,
-        processor=None,
-        session=None,
-        properties={},
-        on_stop = None
+        self, input_stream, input="DEFAULT", name="WORKER", id=None, sid=None, cid=None, prefix=None, suffix=None, agent=None, processor=None, session=None, properties=None, on_stop=None
     ):
 
         self.name = name
@@ -160,14 +152,15 @@ class Worker:
         self.session = session
         self.agent = agent
 
+        if properties is None:
+            properties = {}
         self._initialize(properties=properties)
 
         self.input_stream = input_stream
+
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
-
-        self.properties = properties
+            self.processor = lambda *args, **kwargs: processor(*args, **kwargs, worker=self, properties=self.properties)
 
         self.producers = {}
         self.consumer = None
@@ -179,6 +172,8 @@ class Worker:
     def _initialize(self, properties=None):
         self._initialize_properties()
         self._update_properties(properties=properties)
+
+        self._initialize_logger()
 
     def _initialize_properties(self):
         self.properties = {}
@@ -193,6 +188,23 @@ class Worker:
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
+        agent_sid = "<NOT_SET>"
+        if self.agent:
+            agent_sid = self.agent.sid
+        self.logger.set_config_data("agent", agent_sid, -1)
+        self.logger.set_config_data("worker", self.sid, -1)
+        session_sid = "<NOT_SET>"
+        if self.session:
+            session_sid = self.session.sid
+        self.logger.set_config_data("session", session_sid, -1)
 
     def listener(self, message, input="DEFAULT"):
 
@@ -219,7 +231,7 @@ class Worker:
 
             else:
                 # error
-                logging.error("Unknown return type from processor function: " + str(result))
+                self.logger.error("Unknown return type from processor function: " + str(result))
                 return
 
     # TODO: this seems out of place...
@@ -310,13 +322,7 @@ class Worker:
                     message.setArg("form_id", id)
 
                 # start stream
-                event_producer = Producer(
-                    name="EVENT",
-                    id=form_id,
-                    prefix=prefix,
-                    suffix="STREAM",
-                    properties=self.properties,
-                )
+                event_producer = Producer(name="EVENT", id=form_id, prefix=prefix, suffix="STREAM", properties=self.properties, owner=self.agent.sid)
                 event_producer.start()
                 event_stream = event_producer.get_stream()
 
@@ -327,11 +333,7 @@ class Worker:
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
-                    event_stream,
-                    name=self.name,
-                    prefix=self.cid,
-                    listener=lambda message: self.listener(message, input="EVENT"),
-                    properties=self.properties,
+                    event_stream, name=self.name, prefix=self.cid, listener=lambda message: self.listener(message, input="EVENT"), properties=self.properties, owner=self.agent.sid
                 )
                 event_consumer.start()
             elif message.getCode() == ControlCode.UPDATE_FORM:
@@ -345,9 +347,8 @@ class Worker:
                     event_producer = self.agent.event_producers[form_id]
 
                 if event_producer is None:
-                    raise Exception("no matching event producer for form")                
+                    raise Exception("no matching event producer for form")
                 id = form_id
-
 
                 event_stream = event_producer.get_stream()
 
@@ -389,11 +390,11 @@ class Worker:
         return stream
 
     def _start(self):
-        # logging.info('Starting agent worker {name}'.format(name=self.sid))
+        # self.logger.info('Starting agent worker {name}'.format(name=self.sid))
 
         # start consumer only first on initial given input_stream
         self._start_consumer()
-        logging.info("Started agent worker {name}".format(name=self.sid))
+        self.logger.info("Started agent worker {name} for stream {stream}".format(name=self.sid, stream="none" if self.input_stream is None else self.input_stream))
 
     def _start_consumer(self):
         # start a consumer to listen to stream
@@ -408,7 +409,8 @@ class Worker:
             prefix=self.cid,
             listener=lambda message: self.listener(message, input=self.input),
             properties=self.properties,
-            on_stop=lambda sid: self.on_consumer_stop_handler(sid)
+            owner=self.agent.sid,
+            on_stop=lambda sid: self.on_consumer_stop_handler(sid),
         )
 
         self.consumer = consumer
@@ -427,13 +429,7 @@ class Worker:
             return self.producers[pid]
 
         # create producer for output
-        producer = Producer(
-            name="OUTPUT",
-            id=output,
-            prefix=prefix,
-            suffix="STREAM",
-            properties=self.properties,
-        )
+        producer = Producer(name="OUTPUT", id=output, prefix=prefix, suffix="STREAM", properties=self.properties, owner=self.agent.sid)
         producer.start()
         self.producers[pid] = producer
 
@@ -449,16 +445,11 @@ class Worker:
             # add additional tags from write
             if tags:
                 all_tags = all_tags.union(set(tags))
-            # add tags from properties
-            if "tags" in self.properties:
-                tags_by_param = self.properties["tags"]
-                # include tags from properties by output param
-                for param in tags_by_param:
-                    output_name = output.split(":")[0]
-                    # add params specific to outp
-                    if output_name == param:
-                        param_tags = tags_by_param[param]
-                        all_tags = all_tags.union(set(param_tags))
+            # add tags for specific output variable
+            output_name = output.split(":")[0]
+            output_tags = self.agent.get_output_tags(output_name)
+            if output_tags:
+                all_tags = all_tags.union(set(output_tags))
             all_tags = list(all_tags)
 
             self.session.notify(self.agent, output_stream, all_tags)
@@ -557,12 +548,11 @@ class Worker:
         if self.consumer:
             self.consumer.wait()
 
+
 ###############
 ### Agent
 #
 class Agent:
-    SEPARATOR = '___'
-
     def __init__(
         self,
         name="AGENT",
@@ -573,7 +563,7 @@ class Agent:
         suffix=None,
         session=None,
         processor=None,
-        properties={},
+        properties=None,
     ):
 
         self.name = name
@@ -599,17 +589,21 @@ class Agent:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
+        # input and outputs of an agent
+        self.inputs = {}
+        self.outputs = {}
+
+        if properties is None:
+            properties = {}
         self._initialize(properties=properties)
 
         # override, if necessary
         if processor is not None:
-            self.processor = lambda *args, **kwargs: processor(*args, **kwargs, properties=self.properties)
+            self.processor = lambda *args, **kwargs: processor(*args, **kwargs)
         else:
-            self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs, properties=self.properties)
+            self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs)
 
         self.session = None
-        if session:
-            self.join_session(session)
 
         # consumer for session stream
         self.session_consumer = None
@@ -622,11 +616,26 @@ class Agent:
 
         self._start()
 
+        # lastly, join session
+        if session:
+            self.join_session(session)
+
     ###### initialization
     def _initialize(self, properties=None):
         self._initialize_properties()
+
+        self._initialize_inputs()
+        self._initialize_outputs()
+
         self._update_properties(properties=properties)
 
+        # updates inputs/outputs if set in properties
+        self._update_inputs(properties=properties)
+        self._update_outputs(properties=properties)
+
+        self._initialize_logger()
+
+    ####### properties
     def _initialize_properties(self):
         self.properties = {}
 
@@ -637,31 +646,12 @@ class Agent:
         # instructable
         self.properties["instructable"] = True
 
-        ### include/exclude list of rules to listen to agents/tags
-        listeners = {}
-        self.properties["listens"] = listeners
-
-        # DEFAULT is the default input parameter
-        default_listeners = {}
-        listeners["DEFAULT"] = default_listeners
-        default_listeners["includes"] = []
-        default_listeners["excludes"] = []
-
-        ### default tags to tag output streams
-        tags = {}
-        self.properties["tags"] = tags
-
-        # DEFAULT is the default output parameter
-        default_tags = []
-        tags["DEFAULT"] = default_tags
-
         # perf tracker
         self.properties["tracker.perf.platform.agent.autostart"] = False
         self.properties["tracker.perf.platform.agent.outputs"] = ["log.INFO"]
 
-        # let consumer streams expire 
-        self.properties["consumer.expiration"] = 3600 #60 minutes
-
+        # let consumer streams expire
+        self.properties["consumer.expiration"] = 3600  # 60 minutes
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -671,32 +661,218 @@ class Agent:
         for p in properties:
             self.properties[p] = properties[p]
 
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT")
+
+    def _update_inputs(self, properties=None):
+        # update from agent properties
+        if 'inputs' in properties:
+            inputs = properties['inputs']
+            for input in inputs:
+                i = inputs[input]
+                d = i['description'] if 'description' in i else None
+                p = i['properties'] if 'properties' in i else None
+                self.update_input(input, description=d, properties=p)
+
+    def _update_outputs(self, properties=None):
+        # update from agent properties
+        if 'outputs' in properties:
+            outputs = properties['outputs']
+            for output in outputs:
+                o = outputs[output]
+                d = o['description'] if 'description' in o else None
+                p = o['properties'] if 'properties' in o else None
+                self.update_output(output, description=d, properties=p)
+
+    def update_input(self, name, description=None, properties=None):
+        # if name not in self.inputs:
+        #     return
+
+        includes = []
+        excludes = []
+
+        if properties is None:
+            properties = {}
+        if 'listens' in properties:
+            listens = properties['listens']
+            if 'includes' in listens:
+                includes = listens['includes']
+            if 'excludes' in listens:
+                excludes = listens['excludes']
+        self.add_input(name, description=description, includes=includes, excludes=excludes)
+
+    def update_output(self, name, description=None, properties=None):
+        # if name not in self.outputs:
+        #     return
+
+        tags = []
+        if properties is None:
+            properties = {}
+
+        if 'tags' in properties:
+            tags = properties['tags']
+
+        self.add_output(name, description=description, tags=tags)
+
+    def add_input(self, name, description=None, includes=None, excludes=None):
+        if description is None:
+            description = ""
+        if includes is None:
+            includes = []
+        if excludes is None:
+            excludes = []
+
+        self.inputs[name] = {"name": name, "description": description, "listens": {"includes": includes, "excludes": excludes}}
+
+    def add_output(self, name, description=None, tags=None):
+        if description is None:
+            description = ""
+        if tags is None:
+            tags = []
+
+        self.outputs[name] = {"name": name, "description": description, "tags": tags}
+
+    def get_input(self, name):
+        if name in self.inputs:
+            return self.inputs[name]
+        return None
+
+    def get_output(self, name):
+        if name in self.outputs:
+            return self.outputs[name]
+        return None
+
+    def has_input(self, name):
+        return name in self.inputs
+
+    def has_output(self, name):
+        return name in self.outputs
+
+    def set_input_description(self, name, description=None):
+        if description is None:
+            description = ""
+        if name in self.inputs:
+            self.inputs[name]['description'] = description
+
+    def get_input_description(self, name):
+        if name in self.inputs:
+            return self.inputs[name]['description']
+        return None
+
+    def set_output_description(self, name, description=None):
+        if description is None:
+            description = ""
+        if name in self.outputs:
+            self.outputs[name]['description'] = description
+
+    def get_output_description(self, name):
+        if name in self.outputs:
+            return self.outputs[name]['description']
+        return None
+
+    def add_input_include(self, name, include=None):
+        if include is None:
+            return
+
+        if name in self.inputs:
+            self.inputs[name]['listens']['includes'].append(include)
+
+    def remove_input_include(self, name, include=None):
+        if include is None:
+            return
+
+        if name in self.inputs:
+            self.inputs[name]['listens']['includes'].remove(include)
+
+    def input_includes(self, name, include):
+        if name in self.inputs:
+            return include in self.inputs[name]['listens']['includes']
+        return None
+
+    def get_input_includes(self, name):
+        if name in self.inputs:
+            return self.inputs[name]['listens']['includes']
+
+    def add_input_exclude(self, name, exclude=None):
+        if exclude is None:
+            return
+
+        if name in self.inputs:
+            self.inputs[name]['listens']['excludes'].append(exclude)
+
+    def remove_input_exclude(self, name, exclude=None):
+        if exclude is None:
+            return
+
+        if name in self.inputs:
+            self.inputs[name]['listens']['excludes'].remove(exclude)
+
+    def input_excludes(self, name, exclude):
+        if name in self.inputs:
+            return exclude in self.inputs[name]['listens']['excludes']
+        return None
+
+    def get_input_excludes(self, name):
+        if name in self.inputs:
+            return self.inputs[name]['listens']['excludes']
+
+    def add_output_tag(self, name, tag=None):
+        if tag is None:
+            return
+
+        if name in self.outputs:
+            self.outputs[name]['tags'].append(tag)
+
+    def remove_output_tag(self, name, tag=None):
+        if tag is None:
+            return
+
+        if name in self.outputs:
+            self.outputs[name]['tags'].remove(tag)
+
+    def has_output_tag(self, name, tag):
+        if name in self.outputs:
+            return tag in self.outputs[name]['tags']
+        return None
+
+    def get_output_tags(self, name):
+        if name in self.outputs:
+            return self.outputs[name]['tags']
+        return None
+
+    ####### logger
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
+        self.logger.set_config_data("agent", self.sid, -1)
+        session_sid = "<NOT_SET>"
+        self.logger.set_config_data("session", session_sid, -1)
+
     ###### database, data
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
-    # # override kwargs
-    # def __override_kwargs(self, kwargs, properties=None):
-    #     if kwargs is None:
-    #         kwargs = {}
-    #     if properties:
-    #         if 'properties' in kwargs:
-    #             del kwargs['properties']
-    #         kwargs['properties'] = properties
-    #     return kwargs
-
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT'
     def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None, properties=None):
-        # listen
-        logging.info("Creating worker for stream {stream} for param {param}...".format(stream=input_stream, param=input))
 
+        # check if listening already
+        if input_stream and input_stream in self.workers:
+            return self.workers[input_stream]
+
+        # listen
         if processor == None:
             processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
-            # processor = lambda *args, **kwargs: self.processor(*args, **self.__override_kwargs(kwargs, properties=properties))
 
-        
         # set prefix if context provided
         if context:
             prefix = context + ":" + self.sid
@@ -704,11 +880,14 @@ class Agent:
             # default agent's cid is prefix
             prefix = self.cid
 
-        # set properties
+        # override agent properties, if provided
         if properties is None:
-            properties = self.properties
+            properties = {}
 
-        logging.info(json.dumps(properties))
+        worker_properties = {}
+        worker_properties = json_utils.merge_json(worker_properties, self.properties)
+        worker_properties = json_utils.merge_json(worker_properties, properties)
+
         worker = Worker(
             input_stream,
             input=input,
@@ -717,17 +896,17 @@ class Agent:
             agent=self,
             processor=processor,
             session=self.session,
-            properties=properties,
-            on_stop=lambda sid: self.on_worker_stop_handler(sid)
+            properties=worker_properties,
+            on_stop=lambda sid: self.on_worker_stop_handler(sid),
         )
 
-        self.workers[worker.sid] = worker
+        self.workers[input_stream] = worker
 
         return worker
 
-    def on_worker_stop_handler(self, worker_sid):
-        if worker_sid in self.workers:
-            del self.workers[worker_sid]
+    def on_worker_stop_handler(self, worker_input_stream):
+        if worker_input_stream in self.workers:
+            del self.workers[worker_input_stream]
 
     ###### default processor, override
     def default_processor(
@@ -737,11 +916,7 @@ class Agent:
         properties=None,
         worker=None,
     ):
-        logging.info("default_processor: override")
-        logging.info(message)
-        logging.info(input)
-        logging.info(properties)
-        logging.info(worker)
+        pass
 
     ###### default processor, do not override
     def _instruction_processor(
@@ -751,26 +926,25 @@ class Agent:
         properties=None,
         worker=None,
     ):
-        # logging.info("instruction processor")
-        # logging.info(message)
-        # logging.info(input)
-        # logging.info(properties)
-        # logging.info(worker)
+
+        # self.logger.info("instruction processor")
+        # self.logger.info(message)
+        # self.logger.info(input)
+        # self.logger.info(properties)
+        # self.logger.info(worker)
 
         if message.getCode() == ControlCode.EXECUTE_AGENT:
             agent = message.getArg("agent")
             if agent == self.name:
+
                 context = message.getAgentContext()
 
                 # get additional properties
-                properties_from_instruction = message.getAgentProperties()
-                worker_properties = {}
-                worker_properties = json_utils.merge_json(worker_properties, self.properties)
-                worker_properties = json_utils.merge_json(worker_properties, properties_from_instruction)
+                properties = message.getAgentProperties()
 
                 input_params = message.getInputParams()
                 for input_param in input_params:
-                    self.create_worker(input_params[input_param], input=input_param, context=context, properties=worker_properties)
+                    self.create_worker(input_params[input_param], input=input_param, context=context, properties=properties)
 
     ###### session
     def join_session(self, session):
@@ -779,8 +953,13 @@ class Agent:
 
         self.session = session
 
+        # update logger
+        self.logger.del_config_data("session")
+        self.logger.set_config_data("session", self.session.sid, -1)
+
         if self.session:
             self.session.add_agent(self)
+            self._start_session_consumer()
 
     def leave_session(self):
         if self.session:
@@ -798,51 +977,42 @@ class Agent:
             if agent_cid == self.cid:
                 return
 
-            # agent define what to listen to using include/exclude expressions
-            # logging.info("Checking listener tags...")
-            matched_params = self._match_listen_to_tags(tags)
-            # logging.info("Done.")
+            # find matching inputs
+            matched_inputs = self._match_inputs_to_stream_tags(tags)
 
             # instructable
-            # logging.info("instructable? " + str(self.properties['instructable']))
+            # self.logger.info("instructable? " + str(self.properties['instructable']))
             if self.properties['instructable']:
                 if 'INSTRUCTION' in set(tags):
                     # create a special worker to list to streams with instructions
                     instruction_worker = self.create_worker(stream, input="INSTRUCTION", processor=lambda *args, **kwargs: self._instruction_processor(*args, **kwargs))
 
             # skip
-            if len(matched_params) == 0:
-                # logging.info("Skipping stream {stream} with {tags}...".format(stream=stream, tags=tags))
+            if len(matched_inputs) == 0:
+                # self.logger.info("Skipping stream {stream} with {tags}...".format(stream=stream, tags=tags))
                 return
 
-            for param in matched_params:
-                tags = matched_params[param]
+            for input in matched_inputs:
+                tags = matched_inputs[input]
 
                 # create worker
-                worker = self.create_worker(stream, input=param, context=stream)
+                worker = self.create_worker(stream, input=input, context=stream)
 
-                # logging.info("Spawned worker for stream {stream}...".format(stream=stream))
-        
+                # self.logger.info("Spawned worker for stream {stream}...".format(stream=stream))
+
         # session ended, stop agent
         elif message.isEOS():
             self.stop()
 
-    def _match_listen_to_tags(self, tags):
-        matched_params = {}
+    def _match_inputs_to_stream_tags(self, tags):
+        matched_inputs = {}
 
-        # default listeners
-        listeners_by_param = self.properties["listens"]
-        # logging.info(json.dumps(listeners_by_param, indent=3))
-        for param in listeners_by_param:
+        # check listeners for each input
+        for input in self.inputs:
             matched_tags = set()
 
-            param_listeners = listeners_by_param[param]
-            if 'includes' not in param_listeners:
-                continue
-            includes = param_listeners["includes"]
-            excludes = []
-            if 'excludes' in param_listeners:
-                excludes = param_listeners["excludes"]
+            includes = self.get_input_includes(input)
+            excludes = self.get_input_excludes(input)
 
             for i in includes:
                 p = None
@@ -851,7 +1021,7 @@ class Agent:
                     for tag in tags:
                         if p.match(tag):
                             matched_tags.add(tag)
-                            # logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
+                            # self.logger.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
                 elif type(i) == list:
                     m = set()
                     a = True
@@ -870,23 +1040,23 @@ class Agent:
                             break
                     if a:
                         matched_tags = matched_tags.union(m)
-                        # logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
+                        # self.logger.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
 
             # no matches for param
             if len(matched_tags) == 0:
                 continue
 
-            # found matched_tags for param
-            matched_params[param] = list(matched_tags)
+            # found matched_tags for input
+            matched_inputs[input] = list(matched_tags)
 
             for x in excludes:
                 p = None
                 if type(x) == str:
                     p = re.compile(x)
                     if p.match(tag):
-                        # logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
+                        # self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
                         # delete match
-                        del matched_params[param]
+                        del matched_inputs[input]
                         break
                 elif type(x) == list:
                     a = True
@@ -905,16 +1075,17 @@ class Agent:
                             a = False
                             break
                     if a:
-                        # logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
+                        # self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
                         # delete match
-                        del matched_params[param]
+                        del matched_inputs[input]
                         break
 
-        return matched_params
+        return matched_inputs
 
+    # interact
     def interact(self, data, output="DEFAULT", unique=True, eos=True):
         if self.session is None:
-            logging.error("No current session to interact with.")
+            self.logger.error("No current session to interact with.")
             return
 
         # update output, if unique
@@ -929,6 +1100,22 @@ class Agent:
 
         if eos:
             worker.write_eos(output=output)
+
+    # plan
+    def submit_plan(self, plan):
+        if self.session is None:
+            self.logger.error("No current session to submit.")
+            return
+
+        if not isinstance(plan, AgenticPlan):
+            self.logger.error("Incorrect plan type")
+            return
+
+        # create worker to submit plan for session
+        worker = self.create_worker(None)
+
+        # write plan, automatically notify session on BOS
+        plan.submit(worker)
 
     ## data
     def set_data(self, key, value):
@@ -947,7 +1134,7 @@ class Agent:
         pass
 
     def _init_tracker(self):
-        self._tracker = AgentPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+        self._tracker = AgentPerformanceTracker(self, properties=self.properties, callback=lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs))
 
     def _start_tracker(self):
         # start tracker
@@ -965,11 +1152,13 @@ class Agent:
         # init tracker
         self._init_tracker()
 
-        # if agent is associated with a session
-        if self.session:
-            self._start_session_consumer()
-
-        logging.info("Started agent {name}".format(name=self.name))
+        self.logger.info("Started agent {name}".format(name=self.name))
+        self.logger.info("Agent properties:")
+        self.logger.info(json.dumps(self.properties))
+        self.logger.info("Inputs:")
+        self.logger.info(json.dumps(self.inputs))
+        self.logger.info("Outputs:")
+        self.logger.info(json.dumps(self.outputs))
 
     def _start_session_consumer(self):
         # start a consumer to listen to session stream
@@ -977,12 +1166,7 @@ class Agent:
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.session_consumer = Consumer(
-                    session_stream,
-                    name=self.name,
-                    listener=lambda message: self.session_listener(message),
-                    properties=self.properties,
-                )
+                self.session_consumer = Consumer(session_stream, name=self.name, listener=lambda message: self.session_listener(message), properties=self.properties, owner=self.sid)
                 self.session_consumer.start()
 
     def stop(self):
@@ -991,21 +1175,23 @@ class Agent:
 
         # leave session
         self.leave_session()
+        if self.session_consumer is not None and isinstance(self.session_consumer, Consumer):
+            self.session_consumer.stop()
 
         # send stop to each worker
-        for worker_id in self.workers:
-            worker = self.workers[worker_id]
+        for worker_input_stream in self.workers:
+            worker = self.workers[worker_input_stream]
             worker.stop()
 
-        for worker_id in self.workers:
-            del self.workers[worker_id]
-        
+        for worker_input_stream in list(self.workers.keys()):
+            del self.workers[worker_input_stream]
 
     def wait(self):
         # send wait to each worker
-        for worker_id in self.workers:
-            worker = self.workers[worker_id]
+        for worker_input_stream in self.workers:
+            worker = self.workers[worker_input_stream]
             worker.wait()
+
 
 ###############
 ### AgentFactory
@@ -1026,7 +1212,7 @@ class AgentFactory:
         self.platform = platform
 
         self.name = "AGENT_FACTORY"
-        self.id = self._name 
+        self.id = self._name
         self.sid = self.name + ":" + self.id
 
         self.prefix = "PLATFORM:" + self.platform
@@ -1037,7 +1223,7 @@ class AgentFactory:
         self.platform_consumer = None
 
         # creation time
-        self.started = int(time.time()) #math.floor(time.time_ns() / 1000000)
+        self.started = int(time.time())  # math.floor(time.time_ns() / 1000000)
 
         self._start()
 
@@ -1045,6 +1231,8 @@ class AgentFactory:
     def _initialize(self, properties=None):
         self._initialize_properties()
         self._update_properties(properties=properties)
+
+        self._initialize_logger()
 
     def _initialize_properties(self):
         self.properties = {}
@@ -1060,7 +1248,7 @@ class AgentFactory:
         # system perf tracker
         self.properties["tracker.perf.system.autostart"] = True
         self.properties["tracker.perf.system.outputs"] = ["pubsub"]
-       
+
         # no consumer idle tracking
         self.properties['tracker.idle.consumer.autostart'] = False
 
@@ -1076,6 +1264,15 @@ class AgentFactory:
         # to never expire, as platform streams that agent
         # factories listen to are long running streams
         self.properties['consumer.expiration'] = None
+
+    def _initialize_logger(self):
+        self.logger = log_utils.CustomLogger()
+        # customize log
+        self.logger.set_config_data(
+            "stack",
+            "%(call_stack)s",
+        )
+        self.logger.set_config_data("agent_factory", self.sid, -1)
 
     ###### database, data
     def _start_connection(self):
@@ -1094,10 +1291,10 @@ class AgentFactory:
 
     def _init_tracker(self):
         # agent factory perf tracker
-        self._tracker = AgentFactoryPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+        self._tracker = AgentFactoryPerformanceTracker(self, properties=self.properties, callback=lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs))
 
         # system tracker
-        global system_tracker 
+        global system_tracker
         system_tracker = SystemPerformanceTracker(properties=self.properties)
 
     def _start_tracker(self):
@@ -1117,7 +1314,7 @@ class AgentFactory:
         self._init_tracker()
 
         self._start_consumer()
-        logging.info(
+        self.logger.info(
             "Started agent factory for agent: {name} in registry: {registry} on platform: {platform} ".format(
                 name=self._name,
                 registry=self._registry,
@@ -1131,22 +1328,17 @@ class AgentFactory:
     def _start_consumer(self):
         # platform stream
         stream = "PLATFORM:" + self.platform + ":STREAM"
-        self.platform_consumer = Consumer(
-            stream,
-            name=self._name + "_FACTORY",
-            listener=lambda message: self.platform_listener(message),
-            properties=self.properties,
-        )
+        self.platform_consumer = Consumer(stream, name=self._name + "_FACTORY", listener=lambda message: self.platform_listener(message), properties=self.properties, owner=self.sid)
         self.platform_consumer.start()
 
     def _extract_epoch(self, id):
         e = id.split("-")[0]
         return int(int(e) / 1000)
-    
+
     def platform_listener(self, message):
         # listen to platform stream
 
-        # logging.info("Processing: " + str(message))
+        # self.logger.info("Processing: " + str(message))
         id = message.getID()
 
         # only process newer instructions
@@ -1164,38 +1356,45 @@ class AgentFactory:
 
             # check match in canonical name space, i.e.
             # <base_name> or <base_name>___<derivative__name>___<derivative__name>...
-            ca = agent.split(Agent.SEPARATOR)
+            ca = agent.split(Separator.AGENT)
             base_name = ca[0]
 
             if self._name == base_name:
                 name = agent
 
-                # start with factory properties, merge properties from API call
-                properties_from_api = message.getArg("properties")
-                # properties_from_factory = self.properties
-                agent_properties = {}
-                # agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
-                agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
+                # check if already joined
+                s = Session(cid=session, properties=self.properties)
+                sas = s.list_agents()
+                sesion_agent_names = [sa['name'] for sa in sas]
+                if name in sesion_agent_names:
+                    return
+
+                # get properties
+                agent_properties = message.getArg("properties")
+
+                # start with agent factory properties, merge
+                properties = {}
+                properties = json_utils.merge_json(properties, self.properties)
+                properties = json_utils.merge_json(properties, agent_properties)
+
                 input = None
 
                 if "input" in agent_properties:
                     input = agent_properties["input"]
                     del agent_properties["input"]
 
-                logging.info("Launching Agent: " + name + "...")
-                logging.info("Agent Properties: " + json.dumps(agent_properties) + "...")
+                self.logger.info("Launching Agent: " + name + "...")
+                self.logger.info("Agent Properties: " + json.dumps(properties) + "...")
 
                 prefix = session + ":" + "AGENT"
                 a = self.create(
                     name=name,
                     prefix=prefix,
                     session=session,
-                    properties=agent_properties,
+                    properties=properties,
                 )
 
-                logging.info("Joined session: " + session)
+                self.logger.info("Joined session: " + session)
                 if input:
                     a.interact(input)
-                    logging.info("Interact: " + input)
-
-
+                    self.logger.info("Interact: " + input)

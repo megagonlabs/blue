@@ -11,47 +11,13 @@ from redis.commands.json.path import Path
 
 ###### Blue
 from blue.connection import PooledConnectionFactory
+from blue.constant import StringConstant, ConstantEncoder
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
-
-###############
-### Constant
-#
-class Constant:
-    def __init__(self, c):
-        self.c = c
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        elif isinstance(other, str):
-            return self.c == other
-        else:
-            return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __str__(self):
-        return self.c
-
-###############
-### ConstantEncoder
-#
-class ConstantEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Constant):
-            return str(obj)
-        else:
-            return json.JSONEncoder.default(self, obj)
 
 ###############
 ### MessageType
 #
-class MessageType(Constant):
+class MessageType(StringConstant):
     def __init__(self, c):
         super().__init__(c)
 
@@ -64,7 +30,7 @@ MessageType.CONTROL = MessageType("CONTROL")
 ###############
 ### ContentType
 #
-class ContentType(Constant):
+class ContentType(StringConstant):
     def __init__(self, c):
         super().__init__(c)
 
@@ -79,7 +45,7 @@ ContentType.JSON = ContentType("JSON")
 ###############
 ### ControlCode
 #
-class ControlCode(Constant):
+class ControlCode(StringConstant):
     def __init__(self, c):
         super().__init__(c)
 
@@ -185,7 +151,6 @@ class Message:
         if self.isControl():
             self.contents['args'][arg] = value
 
-
     # special for EXECUTE_AGENT
     def getAgent(self):
         if self.isControl():
@@ -193,14 +158,14 @@ class Message:
                 args = self.getArgs()
                 if "agent" in args:
                     return args['agent']
-                
+
         return None
 
     def getAgentContext(self):
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
                 args = self.getArgs()
-                if  "context" in args:
+                if "context" in args:
                     return args['context']
         return None
 
@@ -208,10 +173,10 @@ class Message:
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
                 args = self.getArgs()
-                if  "properties" in args:
+                if "properties" in args:
                     return args['properties']
         return {}
-    
+
     def getAgentProperty(self, property):
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
@@ -219,15 +184,15 @@ class Message:
                 if property in properties:
                     return properties[property]
         return None
-     
+
     def getInputParams(self):
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
                 args = self.getArgs()
-                if  "inputs" in args:
+                if "inputs" in args:
                     return args['inputs']
         return {}
-    
+
     def getInputParam(self, param):
         if self.isControl():
             if self.getCode() == ControlCode.EXECUTE_AGENT:
@@ -235,9 +200,6 @@ class Message:
                 if param in params:
                     return params[param]
         return None
-
-
-
 
     def fromJSON(message_json):
         d = json.loads(message_json)
@@ -287,7 +249,8 @@ class Stream:
     def __init__(self, cid, properties={}):
         self.cid = cid
         self._initialize(properties=properties)
-        self._start_connection()
+
+        self._start()
 
     def _initialize(self, properties=None):
         self._initialize_properties()
@@ -308,12 +271,63 @@ class Stream:
         for p in properties:
             self.properties[p] = properties[p]
 
-    def _start_connection(self):
-        self.connection_factory = PooledConnectionFactory(properties=self.properties)
-        self.connection = self.connection_factory.get_connection()
+    ##  data
+    def _get_data_namespace(self):
+        return self.cid + ":DATA"
 
+    def _init_data_namespace(self):
+        # create namespaces for stream-specific data
+        return self.connection.json().set(
+            self._get_data_namespace(),
+            "$",
+            {},
+            nx=True,
+        )
+
+    def set_data(self, key, value):
+        self.connection.json().set(
+            self._get_data_namespace(),
+            "$." + key,
+            value,
+        )
+
+    def get_data(self, key):
+        value = self.connection.json().get(
+            self._get_data_namespace(),
+            Path("$." + key),
+        )
+        return self.__get_json_value(value)
+
+    def get_all_data(self):
+        value = self.connection.json().get(
+            self._get_data_namespace(),
+            Path("$"),
+        )
+        return self.__get_json_value(value)
+
+    def append_data(self, key, value):
+        self.connection.json().arrappend(
+            self._get_data_namespace(),
+            "$." + key,
+            value,
+        )
+
+    def get_data_len(self, key):
+        return self.connection.json().arrlen(
+            self._get_data_namespace(),
+            Path("$." + key),
+        )
+
+    ##  metadata
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
+
+    def _init_metadata_namespace(self):
+        # create metadata namespace
+        return self.connection.json().set(self._get_metadata_namespace(), "$", {"created_by": "", "id": "", "tags": {}, "consumers": {}, "producers": {}}, nx=True)
+
+    def set_metadata(self, key, value, nx=False):
+        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def get_metadata(self, key=""):
         value = self.connection.json().get(
@@ -333,5 +347,15 @@ class Stream:
         else:
             return value
 
+    def _start(self):
+        self._start_connection()
 
+        # initialize session metadata
+        self._init_metadata_namespace()
 
+        # initialize session data
+        self._init_data_namespace()
+
+    def _start_connection(self):
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()

@@ -8,7 +8,7 @@ ARG git_branch
 RUN npm config set "//npm.fontawesome.com/:_authToken" ${fa_token}
 ENV PORT 3000
 COPY launch.sh launch.sh
-COPY ./src /src
+COPY ./next-gen /src
 RUN npm install
 RUN cat > .env.production
 RUN echo "NEXT_PUBLIC_GIT_SHORT=${git_short}" >> .env.production
@@ -20,4 +20,5 @@ RUN rm -f /src/public/__ENV.js
 RUN rm -f /src/.env.development
 RUN rm -rf /src/components
 RUN rm -rf /src/pages
+RUN rm -rf /src/stores
 CMD ["sh", "-c", "./launch.sh"]

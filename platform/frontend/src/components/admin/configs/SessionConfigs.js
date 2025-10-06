@@ -14,7 +14,7 @@ import {
 import axios from "axios";
 import classNames from "classnames";
 import { useState } from "react";
-export default function SessionConfigs({ loading, configs, setLoading }) {
+export default function SessionConfigs({ loading, configs }) {
     const [sessionExpirationDuration, setSessionExpirationDuration] =
         useState(3);
     const sessionExpirationDurationNumber = _.toNumber(
@@ -29,6 +29,7 @@ export default function SessionConfigs({ loading, configs, setLoading }) {
             _.get(configs, "session_expiration_duration", 3)
         );
     }, [configs]);
+    const [saving, setSaving] = useState(false);
     return (
         <Section compact title="Sessions">
             <SectionCard>
@@ -72,10 +73,10 @@ export default function SessionConfigs({ loading, configs, setLoading }) {
                         variant="minimal"
                         intent={Intent.SUCCESS}
                         text="Save"
-                        loading={loading}
+                        loading={saving}
                         disabled={sessionExpirationDurationError}
                         onClick={() => {
-                            setLoading(true);
+                            setSaving(true);
                             axios
                                 .put(
                                     "/platform/settings/session_expiration_duration",
@@ -92,7 +93,7 @@ export default function SessionConfigs({ loading, configs, setLoading }) {
                                     axiosErrorToast(error);
                                 })
                                 .finally(() => {
-                                    setLoading(false);
+                                    setSaving(false);
                                 });
                         }}
                     />

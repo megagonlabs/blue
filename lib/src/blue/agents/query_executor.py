@@ -8,11 +8,6 @@ from blue.stream import ContentType, Message
 from blue.data.registry import DataRegistry
 
 
-# set log level
-logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(ascstime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
-
 ############################
 ### Agent.QueryExecutorAgent
 #
@@ -33,7 +28,13 @@ class QueryExecutorAgent(Agent):
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
-                       
+
+    ####### inputs / outputs
+    def _initialize_inputs(self):
+        self.add_input("DEFAULT", description="input query")
+
+    def _initialize_outputs(self):
+        self.add_output("DEFAULT", description="query results", tags=["QUERY", "RESULT", "HIDDEN"])
 
     def execute_sql_query(self, path, query):
         result = None
@@ -43,19 +44,13 @@ class QueryExecutorAgent(Agent):
             # extract source, database, collection
             _, source, database, collection = path.split('/')
             # connect
-            source_connection  = self.registry.connect_source(source)
+            source_connection = self.registry.connect_source(source)
             # execute query
             result = source_connection.execute_query(query, database=database, collection=collection)
         except Exception as e:
             error = str(e)
 
-        return {
-            'question': question,
-            'source': path,
-            'query': query,
-            'result': result,
-            'error': error
-        }
+        return {'question': question, 'source': path, 'query': query, 'result': result, 'error': error}
 
     def _apply_filter(self, output):
         output_filters = ['all']
@@ -72,17 +67,11 @@ class QueryExecutorAgent(Agent):
         # max results
         if "output_max_results" in self.properties and self.properties['output_max_results']:
             if isinstance(result, list):
-                result = result[:self.properties['output_max_results']]
+                result = result[: self.properties['output_max_results']]
 
         message = None
         if 'all' in output_filters:
-            message = {
-                'question': question,
-                'source': source,
-                'query': query,
-                'result': result,
-                'error': error
-            }
+            message = {'question': question, 'source': source, 'query': query, 'result': result, 'error': error}
         elif len(output_filters) == 1:
             if 'question' in output_filters:
                 message = question
@@ -106,11 +95,10 @@ class QueryExecutorAgent(Agent):
                 message['result'] = result
             if 'error' in output_filters:
                 message['error'] = error
-        
+
         if message:
             return message
 
-    
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
         ##### Upon USER/Agent input text
@@ -122,8 +110,8 @@ class QueryExecutorAgent(Agent):
                 # extract json
                 input = " ".join(worker.get_data(stream))
 
-                # logging.info("input: "  + input)
-                
+                # self.logger.info("input: "  + input)
+
                 if worker:
                     if input.strip() != '':
                         try:
@@ -137,10 +125,9 @@ class QueryExecutorAgent(Agent):
                         except:
                             print("Input is not JSON")
                             pass
-                   
+
                     worker.write_eos()
 
-                
             elif message.isBOS():
                 stream = message.getStream()
 

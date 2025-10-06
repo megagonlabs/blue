@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
 ###### Settings
-from settings import FIREBASE_CLIENT_ID, PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
+from blue.properties import FIREBASE_CLIENT_ID, PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
 import jwt, requests
 
 # start redis connection
@@ -33,9 +33,11 @@ db_port = PROPERTIES['db.port']
 connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 
 ###### API Routers
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied, verify_google_id_token
-from routers import agents, data, sessions, containers, platform, accounts, status
-
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP
+from validations.constant import InvalidRequestJson
+from authorizations.constant import PermissionDenied
+from authorizations.utils import verify_google_id_token, is_email_allowed
+from routers import agents, data, models, operators, tools, sessions, containers, platform, accounts, status
 from ConnectionManager import ConnectionManager
 
 ###### Blue
@@ -43,6 +45,9 @@ from ConnectionManager import ConnectionManager
 from blue.platform import Platform
 from blue.agents.registry import AgentRegistry
 from blue.data.registry import DataRegistry
+from blue.model import ModelRegistry
+from blue.operators.registry import OperatorRegistry
+from blue.tools.registry import ToolRegistry
 from blue.tracker import SystemPerformanceTracker
 
 ### Assign from platform properties
@@ -50,6 +55,10 @@ platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
+model_registry_id = PROPERTIES["model_registry.name"]
+operator_registry_id = PROPERTIES["operator_registry.name"]
+tool_registry_id = PROPERTIES["tool_registry.name"]
+
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ####### Version
@@ -71,6 +80,15 @@ agent_registry.load("/blue_data/config/" + agent_registry_id + ".agents.json")
 data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROPERTIES)
 data_registry.load("/blue_data/config/" + data_registry_id + ".data.json")
 
+model_registry = ModelRegistry(id=model_registry_id, prefix=prefix, properties=PROPERTIES)
+model_registry.load("/blue_data/config/" + model_registry_id + ".models.json")
+
+operator_registry = OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=PROPERTIES)
+operator_registry.load("/blue_data/config/" + operator_registry_id + ".operators.json")
+
+tool_registry = ToolRegistry(id=tool_registry_id, prefix=prefix, properties=PROPERTIES)
+tool_registry.load("/blue_data/config/" + tool_registry_id + ".tools.json")
+
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
 api_server_port = PROPERTIES["api.server.port"]
@@ -80,7 +98,14 @@ web_server_port = PROPERTIES["web.server.port"]
 
 # only allow https or localhost connection; port must be specified
 # local & cloud frontend
-allowed_origins = ["http://localhost:3000", "http://localhost:3001", "http://localhost:25830", "https://" + web_server, "http://" + web_server + ":" + web_server_port]
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:25830",
+    "https://" + web_server,
+    "http://" + web_server + ":" + web_server_port,
+    "https://" + web_server + ":" + web_server_port,
+]
 
 
 def handle_signal(signum, frame):
@@ -120,6 +145,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(agents.router)
 app.include_router(data.router)
+app.include_router(models.router)
+app.include_router(operators.router)
+app.include_router(tools.router)
 app.include_router(sessions.router)
 app.include_router(containers.router)
 app.include_router(platform.router)
@@ -148,6 +176,8 @@ async def session_verification(request: Request, call_next):
                 else:
                     decoded_claims = verify_google_id_token(session_cookie, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
                 email = decoded_claims["email"]
+                if not is_email_allowed(email):
+                    raise auth.InvalidSessionCookieError("Invalid account")
                 email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
                 profile = {
                     "name": decoded_claims["name"],
@@ -160,27 +190,19 @@ async def session_verification(request: Request, call_next):
                 user_role = p.get_metadata(f'users.{profile["uid"]}.role')
                 profile['role'] = user_role
                 request.state.user = profile
-            except (
-                auth.InvalidSessionCookieError,
-                jwt.ExpiredSignatureError,
-                jwt.InvalidAudienceError,
-                jwt.InvalidIssuerError,
-                jwt.InvalidTokenError,
-                requests.exceptions.RequestException,
-                Exception,
-            ):
+            except (auth.InvalidSessionCookieError, jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError):
                 # session cookie is invalid, expired or revoked. force user to login.
                 response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked"}, status_code=401)
                 response.set_cookie("session", expires=0, path="/")
                 return response
         return await call_next(request)
     else:
-        # when authentication is disabled: upper layer needs to handle all identity and access verifications
-        # all requests here are operating under administrator role
+        # when authentication is disabled: upstream needs to handle all identity and access verifications
+        # all requests operate with administrator role
         uid = request.headers.get('X-accountId')
         if pydash.is_empty(uid):
             return JSONResponse(status_code=401, content={"message": "Account ID is unavailable"})
-        request.state.user = {'uid': uid, 'role': 'admin'}
+        request.state.user = {'uid': uid, 'role': 'administrator'}
         return await call_next(request)
 
 
@@ -201,22 +223,30 @@ async def unicorn_exception_handler_invalid_request_json(request: Request, exc: 
     return JSONResponse(status_code=exc.status_code, content={"json_errors": exc.errors})
 
 
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    logging.exception(str(exc))
+    return JSONResponse(status_code=500, content={"message": "Internal server error"})
+
+
 @app.exception_handler(PermissionDenied)
 async def unicorn_exception_handler_permission_denied(request: Request, exc: PermissionDenied):
     return JSONResponse(status_code=403, content={"message": "You don't have permission for this request."})
 
 
 @app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
-async def websocket_endpoint(websocket: WebSocket, ticket: str = None, debug_mode: bool = False):
-    # Accept the connection from the client
-    await connection_manager.connect(websocket, ticket, debug_mode)
+async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
+    # accept the connection from the client
+    await connection_manager.connect(websocket, ticket)
     try:
         while True:
             # Receive the message from the client
             data = await websocket.receive_text()
             json_data = json.loads(data)
             connection_id = connection_manager.find_connection_id(websocket)
-            if json_data["type"] == "OBSERVE_SESSION":
+            if json_data['type'] == 'CONNECTION_SESSION_ATTRIBUTES':
+                connection_manager.set_connection_session_attributes(connection_id, json_data["session_id"], json_data)
+            elif json_data["type"] == "OBSERVE_SESSION":
                 connection_manager.observe_session(connection_id, json_data["session_id"])
             elif json_data["type"] == "REQUEST_USER_AGENT_ID":
                 await connection_manager.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_manager.get_user_agent_id(connection_id), 'connection_id': connection_id}))
@@ -227,5 +257,5 @@ async def websocket_endpoint(websocket: WebSocket, ticket: str = None, debug_mod
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
                 await connection_manager.observer_session_message(json_data["connection_id"], json_data)
     except WebSocketDisconnect:
-        # Remove the connection from the list of active connections
+        # remove the connection from the list of active connections
         connection_manager.disconnect(websocket)

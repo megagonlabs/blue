@@ -1,18 +1,14 @@
-import { END_OF_SSE_SIGNAL } from "@/components/constant";
+import { END_OF_EVENT_SIGNAL } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import { Button, ButtonGroup, Card, Colors, Tooltip } from "@blueprintjs/core";
 import { faBan, faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function DockerContainerLogs({ containerId }) {
     const [isLive, setIsLive] = useState(false);
     const [lines, setLines] = useState([]);
-    const linesRef = useRef(lines);
-    useEffect(() => {
-        linesRef.current = lines;
-    }, [lines]);
     useEffect(() => {
         if (_.isEmpty(containerId)) return;
         const eventSource = new EventSource(
@@ -26,37 +22,34 @@ export default function DockerContainerLogs({ containerId }) {
         });
         eventSource.addEventListener("message", (event) => {
             const { epoch, line } = JSON.parse(event.data);
-            if (_.isEqual(line, END_OF_SSE_SIGNAL)) {
+            if (_.isEqual(line, END_OF_EVENT_SIGNAL)) {
                 setIsLive(false);
                 eventSource.close();
             } else {
-                setLines(
-                    _.sortBy(
-                        [
-                            ...linesRef.current,
-                            {
-                                epoch,
-                                line: (
-                                    <div>
-                                        <span
-                                            style={{
-                                                fontWeight: 600,
-                                                backgroundColor:
-                                                    Colors.LIGHT_GRAY4,
-                                            }}
-                                        >
-                                            {new Date(
-                                                line.slice(0, 30)
-                                            ).toLocaleString()}
-                                        </span>
-                                        {line.substring(30)}
-                                    </div>
-                                ),
-                            },
-                        ],
+                setLines((prevLines) => {
+                    const newLineEntry = {
+                        epoch,
+                        line: (
+                            <div>
+                                <span
+                                    style={{
+                                        fontWeight: 600,
+                                        backgroundColor: Colors.LIGHT_GRAY4,
+                                    }}
+                                >
+                                    {new Date(
+                                        line.slice(0, 30)
+                                    ).toLocaleString()}
+                                </span>
+                                {line.substring(30)}
+                            </div>
+                        ),
+                    };
+                    return _.uniqBy(
+                        _.sortBy([...prevLines, newLineEntry], "epoch"),
                         "epoch"
-                    )
-                );
+                    );
+                });
             }
         });
         return () => {
@@ -100,8 +93,8 @@ export default function DockerContainerLogs({ containerId }) {
                         padding: 5,
                     }}
                 >
-                    {lines.map(({ line }, index) => (
-                        <div key={index}>{line}</div>
+                    {lines.map(({ line, epoch }) => (
+                        <div key={epoch}>{line}</div>
                     ))}
                 </div>
             </Card>

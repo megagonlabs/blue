@@ -1,15 +1,14 @@
 import setuptools
+import os
+version = os.getenv("BLUE_DEPLOY_VERSION")
 
 setuptools.setup(
-    entry_points={
-    'console_scripts': [
-        'blue = blue_cli.blue:cli'
-    ]
-    },
+    entry_points={'console_scripts': ['blue = blue_cli.blue:cli']},
     packages=setuptools.find_packages(),
-    install_requires = [
-        "blue-platform==0.9",
-        "click==8.1.7",
+    version=version,
+    install_requires=[
+        "blue-platform==" + str(version),
+        "click==8.2.1",
         "tabulate==0.9.0",
         "requests==2.31.0",
         "websockets==11.0.3",
@@ -23,5 +22,5 @@ setuptools.setup(
         "redis==5.2.0",
         "docker==7.0.0",
         "uuid==1.30",
-    ]
+    ],
 )

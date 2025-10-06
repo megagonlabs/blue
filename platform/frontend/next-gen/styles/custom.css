@@ -1,0 +1,171 @@
+.react-resizable-handle {
+    opacity: 0;
+    z-index: 2;
+}
+.react-flow__edges {
+    z-index: 1;
+}
+:root {
+    --separator-border: var(--border-color) !important;
+    --focus-border: #2d72d2 !important;
+}
+:root .bp6-dark {
+    --separator-border: var(--border-color-dark) !important;
+}
+.react-grid-item.react-grid-placeholder {
+    border-radius: 10px;
+    background: var(--colors-gray-3) !important;
+}
+.react-draggable-dragging,
+.react-grid-item.resizing {
+    z-index: 4 !important;
+}
+.custom-card {
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    background-color: var(--colors-white);
+    border-radius: 2px;
+}
+.bp6-dark .custom-card {
+    border-top: 1px solid var(--border-color-dark);
+    border-bottom: 1px solid var(--border-color-dark);
+    border-right: 1px solid var(--border-color-dark);
+    border-left: 1px solid var(--border-color-dark);
+    background-color: var(--colors-dark-gray-2);
+    border-radius: 2px;
+}
+.interactive-card-border:hover {
+    box-shadow: rgba(76, 144, 240, 0.2) 0px 0px 0px 3px,
+        rgb(76, 144, 240) 0px 0px 0px 1px;
+}
+.bp6-dark .interactive-card-border:hover {
+    box-shadow: rgba(138, 187, 255, 0.2) 0px 0px 0px 3px,
+        rgb(138, 187, 255) 0px 0px 0px 1px !important;
+}
+.responsive-grid-container {
+    display: flex;
+    flex-flow: wrap;
+    --blue-gap: 10px;
+    gap: var(--blue-gap);
+}
+/* .classname[min-width~="0px"] {}
+.classname[min-width~="768px"] {}
+.classname[min-width~="992px"] {}
+.classname[min-width~="1200px"] {}
+.classname[min-width~="1600px"] {}
+.classname[min-width~="1920px"] {} */
+.responsive-grid-container[min-width~="0px"] .grid-item {
+    --blue-columns: 1;
+}
+.responsive-grid-container[min-width~="768px"] .grid-item {
+    --blue-columns: 2;
+}
+.responsive-grid-container[min-width~="992px"] .grid-item {
+    --blue-columns: 3;
+}
+.responsive-grid-container[min-width~="1200px"] .grid-item {
+    --blue-columns: 4;
+}
+.responsive-grid-container[min-width~="1600px"] .grid-item {
+    --blue-columns: 5;
+}
+.responsive-grid-container[min-width~="1920px"] .grid-item {
+    --blue-columns: 6;
+}
+.responsive-grid-container .grid-item {
+    width: calc(
+        (100% / var(--blue-columns)) - var(--blue-gap) +
+            (var(--blue-gap) / var(--blue-columns))
+    );
+}
+.split-pane-container {
+    display: flex;
+    flex-flow: wrap;
+    --blue-column-gap: 20px;
+    gap: 10px var(--blue-column-gap);
+}
+.split-pane-container[min-width~="0px"] .pane-item {
+    --blue-columns: 1;
+}
+.split-pane-container[min-width~="768px"] .pane-item {
+    --blue-columns: 2;
+}
+.split-pane-container .pane-item {
+    width: calc(
+        (100% / var(--blue-columns)) - var(--blue-column-gap) +
+            (var(--blue-column-gap) / var(--blue-columns))
+    );
+}
+.center-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.vertical-center {
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+.message-bubble-callout-content {
+    max-width: 100%;
+    min-width: 50px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    width: fit-content;
+    min-height: 21px;
+    overflow: hidden;
+}
+/* remember to add "&lrm;" at the end of the string */
+.reverse-ellipsis {
+    direction: rtl;
+    text-overflow: ellipsis;
+}
+table.bp6-html-table.table-header-sticky tbody tr:first-child td {
+    box-shadow: none;
+}
+.bp6-dark table.bp6-html-table.table-header-sticky tbody tr:first-child td {
+    box-shadow: none;
+}
+.session-list-card:hover .session-card-actions {
+    display: block !important;
+}
+span.bp6-menu-item-icon {
+    margin-right: 10px !important;
+}
+.bp6-running-text .bp6-entity-title {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin: 0 !important;
+    }
+}
+.user-role-configuration-permission-list li span.bp6-tag {
+    margin-right: 5px;
+    font-size: 12px;
+    line-height: 16px;
+    min-height: 20px;
+    min-width: 20px;
+    padding: 2px 6px;
+}
+.background-color-on-hover:hover {
+    background-color: #d3d8de !important;
+}
+.bp6-dark .background-color-on-hover:hover {
+    background-color: #404854 !important;
+}
+table.nerd-table td {
+    line-height: 30px;
+}
+.bp6-elevation-4.bp6-dark,
+.bp6-dark .bp6-elevation-4 {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2),
+        0 4px 8px rgba(255, 255, 255, 0.2),
+        0 18px 46px 6px rgba(255, 255, 255, 0.2) !important;
+}
