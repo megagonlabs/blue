@@ -12,6 +12,14 @@ tools_dict = {}
 
 ### add
 def add(numbers: List[int]) -> int:
+    """An example function that adds numbers.
+
+    Args:
+        numbers: A list of numbers to be added
+
+    Returns:
+        The sum of the numbers
+    """
     result = 0
     for number in numbers:
         result += number
@@ -30,6 +38,14 @@ tools_dict["add"] = add_tool
 
 ### multiply
 def multiply(numbers: List[int]) -> int:
+    """An example function that multiplies numbers.
+
+    Args:
+        numbers: A list of numbers to be multiplied
+
+    Returns:
+        The product of the numbers
+    """
     result = 1
     for number in numbers:
         result *= number
