@@ -20,7 +20,7 @@ class ServiceClient:
     def __init__(self, name, properties=None):
         """Initialize ServiceClient to support calling external services.
 
-        Args:
+        Parameters:
             name: Name of the service client.
             properties: Properties for the service client.
         """
@@ -60,7 +60,7 @@ class ServiceClient:
     def get_properties(self, properties=None):
         """Get properties, overriding with provided properties.
 
-        Args:
+        Parameters:
             properties: Properties to override.
 
         Returns:
@@ -73,7 +73,7 @@ class ServiceClient:
     def extract_input_params(self, input_data, properties=None):
         """Extract input parameters from input data based on optional properties.
 
-        Args:
+        Parameters:
             input_data: Input data to extract parameters from.
             properties: Optional properties to use for extraction
 
@@ -87,7 +87,7 @@ class ServiceClient:
     def extract_output_params(self, output_data, properties=None):
         """Extract output parameters from output data based on optional properties.
 
-        Args:
+        Parameters:
             output_data: Output data to extract parameters from.
             properties: Optional properties to use for extraction
 
@@ -100,7 +100,7 @@ class ServiceClient:
     def extract_api_properties(self, properties=None):
         """Extract API-related properties based on service prefix.
 
-        Args:
+        Parameters:
             properties: Optional properties to override.
 
         Returns:
@@ -121,7 +121,7 @@ class ServiceClient:
     def create_message(self, input_data, properties=None, additional_data=None):
         """Create message to send to service based on input data and properties.
 
-        Args:
+        Parameters:
             input_data: Input data to create the message.
             properties: Optional properties to override.
             additional_data: Additional data to be used for creating the message.
@@ -161,7 +161,7 @@ class ServiceClient:
     def create_output(self, response, properties=None):
         """Create output from service response based on properties.
 
-        Args:
+        Parameters:
             response: Service response to create output from.
             properties: Optional properties to override.
         Returns:
@@ -185,7 +185,7 @@ class ServiceClient:
     def validate_input(self, input_data, properties=None):
         """Validate input data based on properties.
 
-        Args:
+        Parameters:
             input_data: Input data to validate.
             properties: Optional properties to override.
 
@@ -199,7 +199,7 @@ class ServiceClient:
 
     def process_output(self, output_data, properties=None):
         """Process output data based on properties, such as casting.
-        Args:
+        Parameters:
             output_data: Output data to process.
             properties: Optional properties to override.
 
@@ -225,7 +225,7 @@ class ServiceClient:
     def _preprocess_output(self, output_data, properties=None):
         """Preprocess output data based on properties, such as stripping and transformations.
 
-        Args:
+        Parameters:
             output_data: Output data to preprocess.
             properties: Optional properties to override.
 
@@ -263,7 +263,7 @@ class ServiceClient:
     def execute_api_call(self, input, properties=None, additional_data=None):
         """Execute API call to the service with the given input and properties.
 
-        Args:
+        Parameters:
             input: Input data for the API call.
             properties: Optional properties to override.
             additional_data: Additional data to be used for creating the message for the API call.
@@ -303,7 +303,7 @@ class ServiceClient:
     def get_service_address(self, properties=None):
         """Get service address (URL) from properties.
 
-        Args:
+        Parameters:
             properties: Optional properties to override.
 
         Returns:
@@ -317,7 +317,7 @@ class ServiceClient:
     def call_service(self, url, data):
         """Call the service at the given URL with the provided data.
 
-        Args:
+        Parameters:
             url: Service URL.
             data: Data to send to the service.
 

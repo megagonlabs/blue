@@ -279,7 +279,7 @@ class Operator(Tool):
     #     """
     #     Main entry point for operator execution.
     #     This method orchestrates the complete execution flow and returns a structured result.
-    #     Args:
+    #     Parameters:
     #         input_data: List of data sources, each containing JSON array of records
     #         attributes: Operator-specific attribute values (actual values, not definitions)
     #     Returns:
@@ -355,7 +355,7 @@ class Operator(Tool):
     #     Execute the actual operator-specific logic.
     #     This method contains the core logic for each operator type.
     #     Operators should override this method with their specific implementation.
-    #     Args:
+    #     Parameters:
     #         input_data: List of datas, each containing JSON array of records
     #         attributes: Operator-specific attribute values
     #     Returns:
