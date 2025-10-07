@@ -1,0 +1,1 @@
+:::blue.tools.servers.mcp_server.MCPToolServer

@@ -17,7 +17,7 @@ class ToolServer:
     def __init__(self, name, properties={}):
         """Initialize a ToolServer instance.
 
-        Args:
+        Parameters:
             name: Name of the tool server
             properties: Properties of the tool server
         """
@@ -31,7 +31,7 @@ class ToolServer:
     def _initialize(self, properties=None):
         """Initialize the tool server with properties and logger.
 
-        Args:
+        Parameters:
             properties: Properties to override default properties.
         """
         self._initialize_properties()
@@ -117,7 +117,7 @@ class ToolServer:
     def add_tool(self, tool):
         """Add a tool to the server.
 
-        Args:
+        Parameters:
             tool: Tool object to add.
         """
         pass

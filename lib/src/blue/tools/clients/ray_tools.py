@@ -14,7 +14,7 @@ tools_dict = {}
 def add(numbers: List[int]) -> int:
     """An example function that adds numbers.
 
-    Args:
+    Parameters:
         numbers: A list of numbers to be added
 
     Returns:
@@ -40,7 +40,7 @@ tools_dict["add"] = add_tool
 def multiply(numbers: List[int]) -> int:
     """An example function that multiplies numbers.
 
-    Args:
+    Parameters:
         numbers: A list of numbers to be multiplied
 
     Returns:

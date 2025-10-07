@@ -28,7 +28,7 @@ class MCPToolClient(ToolClient):
     def __init__(self, name, properties={}):
         """Initialize an MCPToolClient instance.
 
-        Args:
+        Parameters:
             name: Name of the tool client
             properties: Properties of the tool client
         """
@@ -51,7 +51,7 @@ class MCPToolClient(ToolClient):
 
     def _init_connection(self, **connection):
         """Initialize connection to MCP tool server.
-        Args:
+        Parameters:
             connection: Connection parameters including host, port, protocol, subprotocol
         """
         c = copy.deepcopy(connection)
@@ -119,7 +119,7 @@ class MCPToolClient(ToolClient):
     def fetch_tool_metadata(self, tool):
         """Fetch metadata for a specific tool on MCP tool server.
 
-        Args:
+        Parameters:
             tool: Name of the tool
 
         Returns:
@@ -134,7 +134,7 @@ class MCPToolClient(ToolClient):
     def list_tools(self, filter_tools=None, detailed=True):
         """List available tools on MCP tool server.
 
-        Args:
+        Parameters:
             filter_tools: Tool name or list of tool names to filter. Defaults to None.
             detailed: Whether to return detailed tool information. Defaults to True.
 
@@ -146,7 +146,7 @@ class MCPToolClient(ToolClient):
     async def _list_tools(self, filter_tools=None, detailed=True):
         """List available tools on MCP tool server asynchronously.
 
-        Args:
+        Parameters:
             filter_tools: Tool name or list of tool names to filter. Defaults to None.
             detailed: Whether to return detailed tool information. Defaults to True.
 
@@ -209,7 +209,7 @@ class MCPToolClient(ToolClient):
     def execute_tool(self, tool, args, kwargs):
         """Execute a specific tool on MCP tool server.
 
-        Args:
+        Parameters:
             tool: Name of the tool
             args: Arguments for the tool function
             kwargs: Keyword arguments for the tool function
@@ -222,7 +222,7 @@ class MCPToolClient(ToolClient):
     async def _execute_tool(self, tool, args, kwargs):
         """Execute a specific tool on MCP tool server asynchronously.
 
-        Args:
+        Parameters:
             tool: Name of the tool
             args: Arguments for the tool function
             kwargs: Keyword arguments for the tool function

@@ -16,9 +16,9 @@ class ToolClient:
     def __init__(self, name, properties={}):
         """Initialize a ToolClient instance.
 
-        Args:
+        Parameters:
             name: Name of the tool client
-            properties: Properties of the tool client
+            properties (dict): Properties of the tool client
         """
         self.name = name
 
@@ -30,7 +30,7 @@ class ToolClient:
     def _initialize(self, properties=None):
         """Initialize the tool client with properties and logger.
 
-        Args:
+        Parameters:
             properties: Properties to override default properties.
         """
         self._initialize_properties()
@@ -48,7 +48,7 @@ class ToolClient:
     def _update_properties(self, properties=None):
         """Update properties with given properties.
 
-        Args:
+        Parameters:
             properties: Properties to override default properties.
         """
         if properties is None:
@@ -132,7 +132,7 @@ class ToolClient:
     def fetch_tool_metadata(self, tool):
         """Fetch metadata for a specific tool from the tool server.
 
-        Args:
+        Parameters:
             tool: Name of the tool
 
         Returns:
@@ -143,7 +143,7 @@ class ToolClient:
     def execute_tool(self, tool, args, kwargs):
         """Execute a specific tool on the tool server.
 
-        Args:
+        Parameters:
             tool: Name of the tool
             args: Args for the tool function
             kwargs: Keyword args for the tool function

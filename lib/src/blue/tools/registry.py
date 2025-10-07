@@ -18,7 +18,7 @@ class ToolRegistry(Registry):
     def __init__(self, name="TOOL_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         """Instantiate a ToolRegistry object.
 
-        Args:
+        Parameters:
             name: Name of the tool registry. Defaults to "TOOL_REGISTRY".
             id: ID of the tool registry. Defaults to None.
             sid: SID (Short ID) of the tool registry. Defaults to None.
@@ -38,7 +38,7 @@ class ToolRegistry(Registry):
     def register_server(self, server, created_by, description="", properties={}, rebuild=False):
         """Register a tool server to the registry.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             created_by: Creator of the tool server
             description: Description of the tool server. Defaults to "".
@@ -50,7 +50,7 @@ class ToolRegistry(Registry):
     def update_server(self, server, description=None, icon=None, properties=None, rebuild=False):
         """Update a tool server entry in the registry.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             description: Description of the tool server. Defaults to None.
             icon: Icon for the tool server. Defaults to None.
@@ -62,7 +62,7 @@ class ToolRegistry(Registry):
     def deregister_server(self, server, rebuild=False):
         """Deregister a tool server from the registry.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             rebuild: Whether to rebuild the registry index after deregistration. Defaults to False.
         """
@@ -80,7 +80,7 @@ class ToolRegistry(Registry):
     def get_server(self, server):
         """Get a specific registered tool server metadata.
 
-        Args:
+        Parameters:
             server: Name of the tool server
 
         Returns:
@@ -92,7 +92,7 @@ class ToolRegistry(Registry):
     def get_server_description(self, server):
         """Get the description of a specific registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
 
         Returns:
@@ -103,7 +103,7 @@ class ToolRegistry(Registry):
     def set_server_description(self, server, description, rebuild=False):
         """Set the description of a specific registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             description: New description for the tool server
             rebuild: Whether to rebuild the registry index after setting the new description. Defaults to False.
@@ -114,7 +114,7 @@ class ToolRegistry(Registry):
     def get_server_properties(self, server):
         """Get the properties of a specific registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
 
         Returns:
@@ -125,7 +125,7 @@ class ToolRegistry(Registry):
     def get_server_property(self, server, key):
         """Get a specific property of a registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             key: Property key
 
@@ -137,7 +137,7 @@ class ToolRegistry(Registry):
     def set_server_property(self, server, key, value, rebuild=False):
         """Set a specific property of a registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             key: Key of the property to set
             value: Value of the property to set
@@ -148,7 +148,7 @@ class ToolRegistry(Registry):
     def delete_server_property(self, server, key, rebuild=False):
         """Delete a specific property of a registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             key: Key of the property to delete
             rebuild: Whether to rebuild the registry index after deleting the property. Defaults to False.
@@ -159,7 +159,7 @@ class ToolRegistry(Registry):
     def register_server_tool(self, server, tool, description="", properties={}, rebuild=False):
         """Register a tool under a specific tool server in the registry.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
             description: Description of the tool. Defaults to "".
@@ -171,7 +171,7 @@ class ToolRegistry(Registry):
     def update_server_tool(self, server, tool, description=None, properties=None, rebuild=False):
         """Update a tool entry under a specific tool server in the registry.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
             description: Description of the tool. Defaults to None.
@@ -183,7 +183,7 @@ class ToolRegistry(Registry):
     def deregister_server_tool(self, server, tool, rebuild=False):
         """Deregister a tool from under a specific tool server in the registry.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Tool to deregister
             rebuild: Whether to rebuild the registry index after deregistration of the tool. Defaults to False.
@@ -194,7 +194,7 @@ class ToolRegistry(Registry):
     def get_server_tools(self, server):
         """Get all registered tools under a specific tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
 
         Returns:
@@ -205,7 +205,7 @@ class ToolRegistry(Registry):
     def get_server_tool(self, server, tool):
         """Get a specific registered tool metadata under a specific tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
 
@@ -218,7 +218,7 @@ class ToolRegistry(Registry):
     def get_server_tool_description(self, server, tool):
         """Get the description of a specific registered tool under a specific tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
 
@@ -230,7 +230,7 @@ class ToolRegistry(Registry):
     def set_server_tool_description(self, server, tool, description, rebuild=False):
         """Set the description of a specific registered tool under a specific tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
             description: New description for the tool
@@ -242,7 +242,7 @@ class ToolRegistry(Registry):
     def get_server_tool_properties(self, server, tool):
         """Get the properties of a specific registered tool under a specific tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
 
@@ -254,7 +254,7 @@ class ToolRegistry(Registry):
     def get_server_tool_property(self, server, tool, key):
         """Get a specific property of a registered tool under a specific tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
             key: Property key
@@ -267,7 +267,7 @@ class ToolRegistry(Registry):
     def set_server_tool_property(self, server, tool, key, value, rebuild=False):
         """Set a specific property of a registered tool under a specific tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
             key: Key of the property to set
@@ -281,7 +281,7 @@ class ToolRegistry(Registry):
     def get_server_connection(self, server):
         """Get the connection properties of a specific registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
 
         Returns:
@@ -292,7 +292,7 @@ class ToolRegistry(Registry):
     def set_server_connection(self, server, connection, rebuild=False):
         """Set the connection properties of a specific registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             connection: Connection properties to set
             rebuild: Whether to rebuild the registry index after setting the connection properties. Defaults to False.
@@ -302,7 +302,7 @@ class ToolRegistry(Registry):
     def connect_server(self, server):
         """Connect to a specific registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
 
         Returns:
@@ -338,7 +338,7 @@ class ToolRegistry(Registry):
     def execute_tool(self, tool, server, args, kwargs):
         """Execute a specific tool on a specific registered tool server.
 
-        Args:
+        Parameters:
             tool: Name of the tool
             server: Name of the tool server
             args: Arguments for the tool function
@@ -356,7 +356,7 @@ class ToolRegistry(Registry):
     def sync_all(self, recursive=False):
         """Sync all registered tool servers and their tools.
 
-        Args:
+        Parameters:
             recursive: Whether to recursively sync tools. Defaults to False.
         """
         # TODO
@@ -365,7 +365,7 @@ class ToolRegistry(Registry):
     def sync_server(self, server, recursive=False, rebuild=False):
         """Sync a specific registered tool server and its tools.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             recursive: Whether to recursively sync tools. Defaults to False.
             rebuild: Whether to rebuild the registry index after syncing. Defaults to False.
@@ -430,7 +430,7 @@ class ToolRegistry(Registry):
     def sync_server_tool(self, server, tool, connection=None, recursive=False, rebuild=False):
         """Sync a specific tool under a specific registered tool server.
 
-        Args:
+        Parameters:
             server: Name of the tool server
             tool: Name of the tool
             connection: Connection object to the tool server. If None, a new connection will be established. Defaults to None.

@@ -23,7 +23,7 @@ class RayToolClient(ToolClient):
     def __init__(self, name, tools={}, properties={}):
         """Initialize a RayToolClient instance.
 
-        Args:
+        Parameters:
             name: Name of the tool client
             tools: A dictionary of tool name to Tool object
             properties: Properties of the tool client
@@ -88,7 +88,7 @@ class RayToolClient(ToolClient):
     def fetch_tool_metadata(self, tool):
         """Fetch metadata for a specific tool on Ray tool server.
 
-        Args:
+        Parameters:
             tool: Name of the tool
 
         Returns:
@@ -108,7 +108,7 @@ class RayToolClient(ToolClient):
     def execute_tool(self, tool, args, kwargs):
         """Execute a specific tool on Ray tool server.
 
-        Args:
+        Parameters:
             tool: Name of the tool
             args: Arguments for the tool function
             kwargs: Keyword arguments for the tool function

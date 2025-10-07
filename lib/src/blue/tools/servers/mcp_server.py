@@ -25,7 +25,7 @@ class MCPToolServer(ToolServer):
     def __init__(self, name, properties={}):
         """Initialize an MCPToolServer instance.
 
-        Args:
+        Parameters:
             name: Name of the tool server
             properties: Properties of the tool server
         """
@@ -47,7 +47,7 @@ class MCPToolServer(ToolServer):
     def _connect(self, host="0.0.0.0", port=8123, protocol="mcp"):
         """Connect to MCP tool server.
 
-        Args:
+        Parameters:
             host: Host address. Defaults to 0.0.0.0
             port: Port number. Defaults to 8123
             protocol: Protocol type. Defaults to "mcp"
@@ -75,7 +75,7 @@ class MCPToolServer(ToolServer):
     def add_tool(self, tool):
         """Add a tool to the MCP tool server.
 
-        Args:
+        Parameters:
             tool: A Tool object
         """
         self.connection.add_tool(tool.function, tool.name, tool.description)
