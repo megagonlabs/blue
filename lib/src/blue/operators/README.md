@@ -72,3 +72,9 @@ Attributes are set at the time of execution either manually when designing the p
 Like attributes, operator properties are also a dictionary of key-value pairs that govern the execution of a instance of operation but more so on a macro level. For example, for a `SemanticExtractOperator` it would contain a property such as `openai.model`. 
 
 Properties are defined in the registry but can be overriden by the planner, particular by an optimizer to select a cheaper model to reduce costs.
+
+## Operator Servers
+
+Similar tool servers, there are also three types of operators servers, each come with different pros and cons for different use cases: Local operators that execute locally; Ray based operators execute remotely, and MCP based operators. 
+
+
