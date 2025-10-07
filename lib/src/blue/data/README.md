@@ -55,3 +55,23 @@ p.connect_nodes(o, r)
 
 ## Data Planner
 
+```
+import logging
+logging.getLogger().setLevel(logging.INFO)
+
+from blue.data.planner import DataPlanner, TaskType
+from blue.data.pipeline import DataPipeline
+
+properties = {
+    "db.host": "blue_db_redis",
+    "platform.name": "default",
+    "operator_registry.name": "default",
+    "data_registry.name": "default",
+    "plan_discover_operator": "/server/blue_ray/operator/plan_discover",
+}
+query = "what management positions are available in the southern part of singapore?"
+dp = DataPlanner(id="test", properties=properties)
+plan = dp.plan(query, TaskType.QUESTION_ANSWER, {})
+dp.execute(plan)
+```
+
