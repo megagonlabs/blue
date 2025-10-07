@@ -77,4 +77,44 @@ Properties are defined in the registry but can be overriden by the planner, part
 
 Similar tool servers, there are also three types of operators servers, each come with different pros and cons for different use cases: Local operators that execute locally; Ray based operators execute remotely, and MCP based operators. 
 
+## Operator Registry
+
+To interface with operators you can use  the operator registry by creating an instance of operator registry. Once you have an instance, you can query operator servers, operators on a server, execute operators, etc., very much like using tool registry.
+
+Below is an example:
+```
+from blue.operators.registry import OperatorRegistry
+
+platform_id = "default"
+operator_registry_id = "default"
+
+prefix = 'PLATFORM:' + platform_id
+registry = OperatorRegistry(id=operator_registry_id, prefix=prefix)
+
+# get list of servers
+operator_servers = registry.get_servers()
+
+# get list of operators on a server
+operators = registry.get_server_operators("blue_ray")
+
+# search operators
+registry.search_records("join tables", approximate=True, type="operator")
+
+# get instance of a operator
+operator = get_server_operator("blue_ray", "join")
+
+# execute opertor
+input_data = [
+        [{"job_id": 1, "name": "name A", "salary": 100000}, {"job_id": 2, "name": "name B", "location": "state B", "salary": 200000}],
+        [{"job_id": 2, "location": "city B"}, {"job_id": 3, "location": "city C"}],
+        [{"id": 1, "title": "title A"}, {"id": 4, "title": "title D"}, {"id": 2, "title": "title B"}],
+    ]
+
+   
+attributes = {"join_on": [["job_id"], ["job_id"], ["id"]], "join_type": "inner", "join_suffix": ["_employee", "_geometry", "_job_content"], "keep_keys": "left"}
+
+kwargs = {"input_data": input_data, "attributes": attributes}
+registry.execute_operator("join", "blue_ray", None, kwargs)
+```
+
 
