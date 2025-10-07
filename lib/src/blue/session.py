@@ -16,7 +16,6 @@ from blue.connection import PooledConnectionFactory
 from blue.utils import uuid_utils, log_utils
 
 
-
 ###############
 ### Session
 #

@@ -352,8 +352,6 @@ class Worker:
 
                 event_stream = event_producer.get_stream()
 
-                
-
                 # inject stream and form id into ui
                 self._update_form_ids(message.getArg("uischema"), event_stream, form_id)
 
