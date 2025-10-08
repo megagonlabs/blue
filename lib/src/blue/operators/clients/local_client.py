@@ -17,22 +17,67 @@ from blue.utils import json_utils
 ### LocalOperatorClient
 #
 class LocalOperatorClient(LocalToolClient, OperatorClient):
+    """Local client for operators, inherits from LocalToolClient and OperatorClient."""
+
     def __init__(self, name, operators={}, properties={}):
+        """Initialize the LocalOperatorClient.
+
+        Args:
+            name: Mame of the local operator client.
+            operators: Operators to be included as a dictionary of Operator objects. Defaults to {}.
+            properties: Properties for the client. Defaults to {}.
+        """
         super().__init__(name, tools=operators, properties=properties)
 
     ######### operator
     def fetch_operators(self):
+        """Fetch available operators from local client.
+
+        Returns:
+            List of available operators.
+        """
         return self.fetch_tools()
 
     def fetch_operator_metadata(self, operator):
+        """Fetch metadata for a specific operator from local client.
+
+        Args:
+            operator: Name of the operator.
+
+        Returns:
+            Dictionary containing operator metadata.
+        """
         return self.fetch_tool_metadata(operator)
 
     ######### execute operator
     def execute_operator(self, operator, args, kwargs):
+        """Execute a specific operator with given arguments.
+
+        Args:
+            operator: Name of the operator.
+            args: Arguments for the operator.
+            kwargs: Keyword arguments for the operator.
+
+        Returns:
+            Result of the operator execution
+        """
         return self.execute_tool(operator, args, kwargs)
 
     ######### refine operator
     def refine_operator(self, operator, args, kwargs):
+        """Refine the operator based on given arguments, returns list of possible refinements as DataPipeline objects.
+
+        Args:
+            operator: Name of the operator.
+            args: Arguments for the operator.
+            kwargs: Keyword arguments for the operator.
+
+        Raises:
+            Exception: No operator matching
+
+        Returns:
+            List of possible refinements as DataPipeline objects.
+        """
         if operator is None:
             raise Exception("No operator matching...")
 
@@ -45,6 +90,17 @@ class LocalOperatorClient(LocalToolClient, OperatorClient):
         return result
 
     def get_operator_attributes(self, operator):
+        """Get attributes of a specific operator.
+
+        Args:
+            operator: Name of the operator.
+
+        Raises:
+            Exception: No operator matching
+
+        Returns:
+            Dictionary of operator attributes.
+        """
         if operator is None:
             raise Exception("No operator matching...")
 
