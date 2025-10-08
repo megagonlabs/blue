@@ -6,6 +6,8 @@ import json
 ### Constant
 #
 class Constant:
+    """Base class for constants."""
+
     def __init__(self, c):
         self.c = c
 
@@ -28,6 +30,8 @@ class Constant:
 ### StringConstant
 #
 class StringConstant(Constant):
+    """Class for string constants."""
+
     def __init__(self, c):
         super().__init__(c)
 
@@ -42,6 +46,8 @@ class StringConstant(Constant):
 ### Separator
 #
 class Separator(StringConstant):
+    """Class for separator constants."""
+
     def __init__(self, c):
         super().__init__(c)
 
@@ -50,6 +56,8 @@ class Separator(StringConstant):
 ### ConstantEncoder
 #
 class ConstantEncoder(json.JSONEncoder):
+    """Custom JSON encoder for Constant objects."""
+
     def default(self, obj):
         if isinstance(obj, Constant):
             return str(obj)
