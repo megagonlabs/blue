@@ -13,6 +13,16 @@ from blue.data.registry import DataRegistry
 
 
 def data_discover_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Discover data sources using the data registry with search capabilities.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), not used for discovery.
+        attributes: Dictionary containing search parameters including search_query, approximate, hybrid, pagination settings, and scope information.
+        properties: Optional properties dictionary containing data registry information. Defaults to None.
+
+    Returns:
+        List containing discovered data sources matching the search criteria.
+    """
     # Extract attributes
     search_query = attributes.get('search_query', '')
     approximate = attributes.get('approximate', True)
@@ -227,7 +237,16 @@ def _transform_result(result, concept_type, data_registry, include_metadata):
 
 
 def data_discover_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate data discover operator attributes."""
+    """Validate data discover operator attributes.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -263,7 +282,16 @@ def data_discover_operator_validator(input_data: List[List[Dict[str, Any]]], att
 
 
 def data_discover_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain data discover operator output."""
+    """Generate explanation for data discover operator execution.
+
+    Args:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the data discovery operation.
+    """
     concept_type = attributes.get('concept_type', 'source')
     use_hierarchical = attributes.get('use_hierarchical_search', True)
     search_method = "hierarchical" if use_hierarchical else "regular"

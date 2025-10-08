@@ -21,6 +21,16 @@ from blue.properties import PROPERTIES
 
 
 def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Translate natural language questions into SQL queries using LLM models.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), not used for query processing.
+        attributes: Dictionary containing query parameters including question, source, protocol, database, collection, and other SQL generation settings.
+        properties: Optional properties dictionary containing service configuration and data registry information. Defaults to None.
+
+    Returns:
+        List containing SQL query results or the generated SQL query if execution is disabled.
+    """
     question = attributes.get('question', '')
     source = attributes.get('source', '')
     protocol = attributes.get('protocol', 'postgres')
@@ -112,12 +122,30 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
 
 def nl2sql_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate nl2sql operator attributes."""
+    """Validate nl2sql operator attributes.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     return default_operator_validator(input_data, attributes, properties)
 
 
 def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain nl2sql operator output. Currently only returns attributes and output"""
+    """Generate explanation for nl2sql operator execution.
+
+    Args:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the SQL generation and execution operation.
+    """
     nl2sql_explanation = {
         'output': output,
         "attributes": attributes,

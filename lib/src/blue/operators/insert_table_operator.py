@@ -13,6 +13,16 @@ from blue.data.registry import DataRegistry
 
 
 def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Insert data rows into database tables in a data source.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to insert.
+        attributes: Dictionary containing insertion parameters including source, database, collection, table, and batch_size.
+        properties: Optional properties dictionary containing data registry information. Defaults to None.
+
+    Returns:
+        List containing the input data passed through unchanged.
+    """
     # Extract attributes
     source = attributes.get('source', 'default_source')
     database = attributes.get('database', 'default')
@@ -66,7 +76,16 @@ def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
 
 
 def insert_table_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate insert table operator attributes."""
+    """Validate insert table operator attributes.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -94,7 +113,16 @@ def insert_table_operator_validator(input_data: List[List[Dict[str, Any]]], attr
 
 
 def insert_table_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain insert table operator output."""
+    """Generate explanation for insert table operator execution.
+
+    Args:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the table insertion operation.
+    """
     source = attributes.get('source', 'default_source')
     database = attributes.get('database', 'default')
     collection = attributes.get('collection', 'public')
