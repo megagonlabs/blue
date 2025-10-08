@@ -176,7 +176,7 @@ class Operator(Tool):
             properties: Properties dictionary for the operator. Defaults to None.
             validator: Validation function for operator attributes. Defaults to default_operator_validator.
             explainer: Explanation function for operator output. Defaults to default_operator_explainer.
-            refiner: Refinement function for operator planning. Defaults to default_operator_refiner.
+            refiner (callable): Refinement function for operator planning. Defaults to default_operator_refiner.
         """
         if function is None:
             function = default_operator_function
@@ -238,7 +238,7 @@ class Operator(Tool):
         """Get all operator attributes.
 
         Returns:
-            Dictionary containing all operator attributes and their definitions.
+            (dict): Dictionary containing all operator attributes and their definitions.
         """
         return self.properties["attributes"]
 
@@ -246,7 +246,7 @@ class Operator(Tool):
         """Update operator attributes with new definitions.
 
         Parameters:
-            attributes: Dictionary of attribute definitions to update. Defaults to None.
+            (dict, None): attributes: Dictionary of attribute definitions to update. Defaults to None.
         """
         if attributes is None:
             return
@@ -265,7 +265,7 @@ class Operator(Tool):
             attribute: Name of the attribute to retrieve.
 
         Returns:
-            Dictionary containing the attribute definition, or None if not found.
+            (dict, None): Dictionary containing the attribute definition, or None if not found.
         """
         attributes = self.get_attributes()
         if attribute in attributes:
@@ -279,7 +279,7 @@ class Operator(Tool):
             attribute: Name of the attribute.
 
         Returns:
-            String containing the attribute type, or None if not found.
+            (str, None): String containing the attribute type, or None if not found.
         """
         attribute = self.get_attribute(attribute)
         if attribute:
@@ -294,7 +294,7 @@ class Operator(Tool):
             attribute: Name of the attribute.
 
         Returns:
-            String containing the attribute description, or None if not found.
+            (str, None): String containing the attribute description, or None if not found.
         """
         attribute = self.get_attribute(attribute)
         if attribute:
@@ -307,7 +307,7 @@ class Operator(Tool):
 
         Parameters:
             attribute: Name of the attribute.
-            description: New description for the attribute.
+            description (str): New description for the attribute.
         """
         attribute = self.get_attribute(attribute)
         if attribute:
@@ -321,7 +321,7 @@ class Operator(Tool):
 
         Parameters:
             attribute: Name of the attribute.
-            required: Boolean indicating if the attribute is required.
+            required (bool): Boolean indicating if the attribute is required.
         """
         attribute = self.get_attribute(attribute)
         if attribute:
