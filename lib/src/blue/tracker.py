@@ -21,7 +21,18 @@ from blue.utils import uuid_utils
 ### Metric
 #
 class Metric:
+    """Basic Metric class to configure a metric for tracking"""
+
     def __init__(self, id=None, label=None, type=None, value=None, visibility=True):
+        """Initialize Metric
+
+        Args:
+            id: Unique identifier for the metric. Defaults to None.
+            label: Human-readable label for the metric. Defaults to None.
+            type: Type of the metric (e.g., gauge, counter). Defaults to None.
+            value: Value of the metric. Defaults to None.
+            visibility: Visibility of the metric. Defaults to True.
+        """
         self.id = id
         self.label = label
         self.type = type
@@ -30,24 +41,53 @@ class Metric:
         self.children = None
 
     def setValue(self, value):
+        """Set the value of the metric
+        Args:
+            value: The value to set for the metric.
+        """
         self.value = value
 
     def getValue(self):
+        """
+        Get the value of the metric
+        Returns:
+            The current value of the metric.
+        """
         return self.value
 
     def isVisible(self):
+        """Check if the metric is visible
+        Returns:
+            True if the metric is visible, False otherwise.
+        """
         return self.visibility
 
     def getLabel(self):
+        """Get the label of the metric
+        Returns:
+            The label of the metric.
+        """
         return self.label
 
     def getID(self):
+        """Get the ID of the metric
+        Returns:
+            The ID of the metric.
+        """
         return self.id
 
     def getType(self):
+        """Get the type of the metric
+        Returns:
+            The type of the metric.
+        """
         return self.type
 
     def toDict(self):
+        """Convert the metric to a dictionary representation
+        Returns:
+            A dictionary containing the metric's attributes.
+        """
         d = {"id": self.id, "label": self.label, "type": self.type, "visibility": self.visibility}
 
         d['value'] = self.value
@@ -59,14 +99,34 @@ class Metric:
 ### MetricGroup
 #
 class MetricGroup(Metric):
+    """MetricGroup class to group multiple metrics together"""
+
     def __init__(self, id=None, label=None, type="group", visibility=True):
+        """
+        Initialize MetricGroup
+        Args:
+            id: Unique identifier for the metric group. Defaults to None.
+            label: Human-readable label for the metric group. Defaults to None.
+            type: Type of the metric group. Defaults to "group".
+            visibility: Visibility of the metric group. Defaults to True.
+        """
         super().__init__(id=id, label=label, type=type, visibility=visibility)
         self.children = {}
 
     def add(self, child):
+        """
+        Add a child metric to the group
+        Args:
+            child: The Metric or MetricGroup to add as a child.
+        """
         self.children[child.id] = child
 
     def getValue(self, path):
+        """
+        Get the value of a metric by its path
+        Args:
+            path: The dot-separated path to the metric.
+        """
         cids = path.split(".")
 
         c = self
@@ -79,6 +139,11 @@ class MetricGroup(Metric):
                 return None
 
     def toDict(self):
+        """
+        Convert the metric group to a dictionary representation
+        Returns:
+            A dictionary containing the metric group's attributes and its children's attributes.
+        """
         d = super().toDict()
 
         d['data'] = {}
@@ -93,9 +158,22 @@ class MetricGroup(Metric):
 ### Tracker
 #
 class Tracker:
+    """Basic Tracker class to track and report metrics at regular intervals"""
 
     def __init__(self, name="TRACKER", id=None, sid=None, cid=None, label=None, prefix=None, suffix=None, properties=None, inheritance=None, callback=None):
-
+        """Initialize Tracker
+        Args:
+            name: Name of the tracker. Defaults to "TRACKER".
+            id: Unique identifier for the tracker. If None, a UUID will be generated. Defaults to None.
+            sid: Short identifier for the tracker. If None, it will be set to name:id. Defaults to None.
+            cid: Canonical identifier for the tracker. If None, it will be set to prefix:sid:suffix. Defaults to None.
+            label: Human-readable label for the tracker. Defaults to None.
+            prefix: Prefix for the canonical identifier. Defaults to None.
+            suffix: Suffix for the canonical identifier. Defaults to None.
+            properties: Dictionary of properties to configure the tracker. Defaults to None.
+            inheritance: Inheritance string for property inheritance. Defaults to None.
+            callback: Optional callback function to be called after tracking. Defaults to None.
+        """
         self.name = name
         if id:
             self.id = id
@@ -141,10 +219,18 @@ class Tracker:
 
     ###### INITIALIZATION
     def _initialize(self, properties=None):
+        """
+        Initialize tracker properties
+        Args:
+            properties: Dictionary of properties to configure the tracker. Defaults to None.
+        """
         self._initialize_properties()
         self._update_properties(properties=properties)
 
     def _initialize_properties(self):
+        """
+        Initialize default properties for the tracker.
+        """
         self.properties = {}
 
         # db connectivity
@@ -159,6 +245,11 @@ class Tracker:
         self.properties['tracker.expiration'] = None
 
     def _update_properties(self, properties=None):
+        """
+        Update tracker properties
+        Args:
+            properties: Dictionary of properties to configure the tracker. Defaults to None.
+        """
         if properties is None:
             return
 
@@ -187,12 +278,16 @@ class Tracker:
             path = pp
 
     def _auto_start(self):
+        """
+        Auto-start the tracker if configured to do so.
+        """
         if 'tracker.autostart' in self.properties:
             autostart = self.properties['tracker.autostart']
             if autostart:
                 self.start()
 
     def start(self):
+        """Start the tracker"""
         self.state = "RUNNING"
 
         self.started = self.get_current_epoch()
@@ -214,15 +309,17 @@ class Tracker:
         self._run_tracker()
 
     def _start_connection(self):
+        """Start the database connection"""
         if self.connection == None:
             self.connection_factory = PooledConnectionFactory(properties=self.properties)
             self.connection = self.connection_factory.get_connection()
 
     def stop(self):
+        """Stop the tracker"""
         self._stop_tracker()
 
     def _run_tracker(self):
-
+        """Run the tracker periodically based on the configured period and expiration, if set"""
         period = None
         if 'tracker.period' in self.properties:
             period = self.properties['tracker.period']
@@ -247,14 +344,17 @@ class Tracker:
             thread.start()
 
     def _stop_tracker(self):
+        """Stop the tracker and perform one last tracking operation"""
         # stop and track one last time
         self.state = "STOPPED"
         self.track()
 
     def terminate(self):
+        """Terminate the tracker immediately"""
         self._terminate_tracker()
 
     def _terminate_tracker(self):
+        """Terminate the tracker immediately"""
         # terminate immediately
         try:
             self.timer.cancel()
@@ -262,16 +362,24 @@ class Tracker:
             print(ex)
 
     def get_current_epoch(self):
+        """Get the current epoch time in seconds
+        Returns:
+            Current epoch time in seconds as an integer.
+        """
         return int(time.time())
 
     def getValue(self, path):
+        """Get the value of a metric by its path
+        Args:
+            path: The path of the metric to retrieve.
+        """
         if self.data:
             return self.data.getValue(path)
 
         return None
 
     def collect(self):
-
+        """Collect tracker metrics such as current and started time, process id, status and return as a dictionary"""
         ## top level tracker results
         self.data = MetricGroup(id=self.cid, label=self.label, type="tracker")
 
@@ -295,6 +403,7 @@ class Tracker:
         return self.data.toDict()
 
     def track(self):
+        """Track and report the collected metrics to the configured outputs"""
         data = self.collect()
 
         if 'tracker.output.indent' in self.properties:
@@ -324,11 +433,22 @@ class Tracker:
 ### IdleTracker
 #
 class IdleTracker(Tracker):
+    """IdleTracker to monitor consumer activity and report last active time"""
+
     def __init__(self, consumer, properties=None, callback=None):
+        """Initialize IdleTracker
+        Args:
+            consumer: The consumer object to monitor.
+            properties: Dictionary of properties to configure the tracker. Defaults to None.
+            callback: Optional callback function to be called after tracking. Defaults to None.
+        """
         self.consumer = consumer
         super().__init__(id="IDLE", prefix=consumer.sid, properties=properties, inheritance="idle.consumer", callback=callback)
 
     def _initialize_properties(self):
+        """
+        Initialize default properties for the IdleTracker.
+        """
         super()._initialize_properties()
 
         # tracking defaults
@@ -337,6 +457,11 @@ class IdleTracker(Tracker):
         self.properties['tracker.idle.period'] = 60
 
     def collect(self):
+        """
+        Collect IdleTracker metrics including last active time and return as a dictionary
+        Returns:
+            A dictionary containing the collected metrics.
+        """
         super().collect()
 
         # add last active time
@@ -350,10 +475,21 @@ class IdleTracker(Tracker):
 ### PerformanceTracker
 #
 class PerformanceTracker(Tracker):
+    """PerformanceTracker to monitor thread and system performance metrics"""
+
     def __init__(self, label=None, prefix=None, properties=None, inheritance=None, callback=None):
+        """Initialize PerformanceTracker
+        Args:
+            label: Human-readable label for the tracker. Defaults to None.
+            prefix: Prefix for the group. Defaults to None.
+            properties: Dictionary of properties to configure the tracker. Defaults to None.
+            inheritance: Inheritance string for property inheritance. Defaults to None.
+            callback: Optional callback function to be called after tracking. Defaults to None.
+        """
         super().__init__(id="PERF", label=label, prefix=prefix, properties=properties, inheritance=inheritance, callback=callback)
 
     def collect(self):
+        """Collect PerformanceTracker metrics including thread and system performance and return as a dictionary"""
         super().collect()
 
         ### Thread group
@@ -390,13 +526,22 @@ class PerformanceTracker(Tracker):
 ### SystemPerformanceTracker
 #
 class SystemPerformanceTracker(Tracker):
+    """SystemPerformanceTracker to monitor system performance metrics such as CPU, memory, and processes"""
+
     def __init__(self, label=None, properties=None, callback=None):
+        """Initialize SystemPerformanceTracker
+        Args:
+            label: Human-readable label for the tracker. Defaults to None.
+            properties: Dictionary of properties to configure the tracker. Defaults to None.
+            callback: Optional callback function to be called after tracking. Defaults to None.
+        """
         platform_id = "UNKNOWN"
         if properties and "platform.name" in properties:
             platform_id = properties["platform.name"]
         super().__init__(id="PERF", label=label, prefix="PLATFORM:" + platform_id + ":SYSTEM:" + socket.gethostname(), properties=properties, inheritance="perf.system", callback=callback)
 
     def collect(self):
+        """Collect SystemPerformanceTracker metrics such as CPU, memory, and processes and return as a dictionary"""
         super().collect()
 
         ### CPU group
