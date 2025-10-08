@@ -45,14 +45,8 @@ class DataRegistry(Registry):
         host = self.properties["db.host"]
         port = self.properties["db.port"]
 
-        # max connections
-        max_connections = None
-        if "db.max_connections" in self.properties:
-            max_connections = self.properties["db.max_connections"]
-
-        pool = redis.ConnectionPool(host=host, port=port, max_connections=max_connections, decode_responses=False)
-        self.connection_no_decode = redis.Redis(connection_pool=pool)
-
+        self.connection_no_decode = redis.Redis(host=host, port=port, decode_responses=False)
+        
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
