@@ -280,7 +280,7 @@ class Registry:
         if scope[len(scope) - 1] == '/':
             scope = scope[:-1]
 
-        return doc_prefix + ':' + self._encode(type) + ":" + self._encode(scope) + "/" + self._encode(name)
+        return doc_prefix + ':' + self._encode(type) + ":" + self._encode(scope) + "/" +  self._encode(type) + "/" + self._encode(name)
 
     def _delete_index_record(self, record, pipe=None):
         name = record['name']
