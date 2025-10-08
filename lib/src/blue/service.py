@@ -25,11 +25,24 @@ system_tracker = None
 
 
 class ServicePerformanceTracker(Tracker):
+    """Tracker for monitoring service performance metrics such as call count, average call length, and average response time."""
+
     def __init__(self, service, properties=None, callback=None):
+        """Initialize the ServicePerformanceTracker.
+
+        Args:
+            service: The service instance to track.
+            properties: Optional properties for the tracker. Defaults to None.
+            callback: Optional callback function to be called on data collection. Defaults to None.
+        """
         self.service = service
         super().__init__(id="PERF", prefix=service.cid, properties=properties, inheritance="perf.service", callback=callback)
 
     def collect(self):
+        """Collect performance metrics and return them as a dictionary. Performance metrics include call count, average call length, and average response time.
+        Returns:
+            Dictionary containing collected performance metrics.
+        """
         super().collect()
 
         ### cost group
@@ -116,6 +129,8 @@ class ServicePerformanceTracker(Tracker):
 
 
 class Service:
+    """Service class for handling communication with external APIs."""
+
     def __init__(
         self,
         name="SERVICE",
@@ -127,7 +142,18 @@ class Service:
         handler=None,
         properties={},
     ):
+        """Initialize the Service.
 
+        Args:
+            name: Name of the service. Defaults to "SERVICE".
+            id: Unique identifier for the service. Defaults to None.
+            sid: Short identifier for the service. Defaults to None.
+            cid: Canonical identifier for the service. Defaults to None.
+            prefix: Optional prefix for the cid. Defaults to None.
+            suffix: Optional suffix for the cid. Defaults to None.
+            handler: Callback function to handle service requests. Defaults to None.
+            properties: Additional properties for the service. Defaults to {}.
+        """
         self.name = name
         if id:
             self.id = id
@@ -163,12 +189,18 @@ class Service:
 
     ###### initialization
     def _initialize(self, properties=None):
+        """Initialize the service with properties.
+
+        Args:
+            properties: Additional properties for the service. Defaults to None.
+        """
         self._initialize_properties()
         self._update_properties(properties=properties)
 
         self._initialize_logger()
 
     def _initialize_properties(self):
+        """Initialize default properties for the service."""
         self.properties = {}
 
         # db connectivity
@@ -180,6 +212,10 @@ class Service:
         self.properties["tracker.perf.service.outputs"] = ["pubsub"]
 
     def _update_properties(self, properties=None):
+        """Update service properties with provided properties.
+        Args:
+            properties: Additional properties for the service. Defaults to None.
+        """
         if properties is None:
             return
 
@@ -188,6 +224,7 @@ class Service:
             self.properties[p] = properties[p]
 
     def _initialize_logger(self):
+        """Initialize the logger for the service."""
         self.logger = log_utils.CustomLogger()
         # customize log
         self.logger.set_config_data(
@@ -198,25 +235,31 @@ class Service:
 
     ###### database, data
     def _start_connection(self):
+        """Start the database connection using a pooled connection factory."""
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
     ##### tracker
     def stat_tracker_callback(self, data, tracker=None, properties=None):
+        """Callback function for service performance tracking."""
         pass
 
     def _init_tracker(self):
+        """Initialize the service performance tracker."""
         # service stat tracker
         self._tracker = ServicePerformanceTracker(self, properties=self.properties, callback=lambda *args, **kwargs: self.stat_tracker_callback(*args, **kwargs))
 
     def _start_tracker(self):
+        """Start the service performance tracker."""
         # start tracker
         self._tracker.start()
 
     def _stop_tracker(self):
+        """Stop the service performance tracker."""
         self._tracker.stop()
 
     def _terminate_tracker(self):
+        """Terminate the service performance tracker."""
         self._tracker.terminate()
 
     ## service metadata
@@ -232,6 +275,7 @@ class Service:
             return value
 
     def _init_metadata_namespace(self):
+        """Initialize the metadata namespace for the service, sets created_date and initializes key stats for websockets and total call count."""
         # create namespaces for metadata
         self.connection.json().set(
             self._get_metadata_namespace(),
@@ -250,15 +294,32 @@ class Service:
         self.set_metadata("stats.total_call_count", int(0), nx=True)
 
     def _get_metadata_namespace(self):
+        """Get the metadata namespace for the service."""
         return self.cid + ":METADATA"
 
     def set_metadata(self, key, value, nx=False):
+        """Set metadata for the service.
+        Args:
+            key: Metadata key to set.
+            value: Value to set for the metadata key.
+            nx: If True, set the value only if the key does not already exist. Defaults to False.
+        """
         self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def delete_metadata(self, key):
+        """Delete metadata for the service.
+        Args:
+            key: Metadata key to delete.
+        """
         self.connection.json().delete(self._get_metadata_namespace(), "$." + key)
 
     def get_metadata(self, key=""):
+        """Get metadata for the service.
+        Args:
+            key: Metadata key to retrieve. Defaults to "".
+        Returns:
+            Value of the metadata key, or None if the key does not exist.
+        """
         value = self.connection.json().get(
             self._get_metadata_namespace(),
             Path("$" + ("" if pydash.is_empty(key) else ".") + key),
@@ -266,6 +327,10 @@ class Service:
         return self.__get_json_value(value)
 
     def _init_socket_stats(self, websocket):
+        """Initialize socket statistics for a given websocket connection.
+        Args:
+            websocket: WebSocket connection object.
+        """
         # stats by websocket.id
         wsid = websocket.id
         self.set_metadata("stats.websockets." + str(wsid), {}, nx=True)
@@ -273,11 +338,24 @@ class Service:
         self.set_socket_stat(websocket, "created_date", int(time.time()), nx=True)
 
     def set_socket_stat(self, websocket, key, value, nx=False):
+        """Set a specific statistic for a given websocket connection.
+        Args:
+            websocket: WebSocket connection object.
+            key: Statistic key to set.
+            value: Value to set for the statistic key.
+            nx: If True, set the value only if the key does not already exist. Defaults to False.
+        """
         wsid = websocket.id
         self.set_metadata("stats.websockets." + str(wsid) + "." + key, value, nx=True)
 
     ###### handlers
     async def _handler(self, websocket):
+        """Handle incoming WebSocket messages and process them using the service's handler function.
+        Sets up socket statistics and processes messages in a loop until the connection is closed.
+
+        Args:
+            websocket: WebSocket connection object.
+        """
         self._init_socket_stats(websocket)
 
         while True:
@@ -303,14 +381,24 @@ class Service:
                 break
 
     async def start_listening_socket(self):
+        """Start listening for incoming WebSocket connections on port 8001."""
         async with websockets.serve(self._handler, "", 8001):
             await asyncio.Future()  # run forever
 
     ## default handler, override
     def default_handler(self, message, properties=None, websocket=None):
+        """Default handler for processing incoming messages. This method should be overridden by subclasses to implement custom behavior.
+        Args:
+            message: Incoming message to process.
+            properties: Additional properties for the handler. Defaults to None.
+            websocket: WebSocket connection object. Defaults to None.
+        Returns:
+            Response message. Should be overridden to provide meaningful responses.
+        """
         self.logger.info("default_handler: override")
 
     def _start(self):
+        """Start the service by establishing a database connection, initializing metadata, and starting the performance tracker if configured."""
         self._start_connection()
 
         # initialize session metadata
@@ -322,4 +410,5 @@ class Service:
         self.logger.info("Started service {name}".format(name=self.name))
 
     def stop(self):
+        """Stop the service by stopping and terminating the performance tracker."""
         self.logger.info("Stopped servie {name}".format(name=self.name))
