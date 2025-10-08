@@ -295,14 +295,14 @@ class Session(Entity):
 
     def update_budget_use(self, cost=None, accuracy=None, latency=None):
         """
+        !!! warning "Not Implemented"
+
         Update budget usage metadata for the session by incrementing existing values.
 
         Parameters:
             cost: Cost usage value to increment.
             accuracy: Accuracy usage value to increment.
             latency: Latency usage value to increment.
-
-        !!! warning "Not Implemented"
         """
         # TODO
         pass

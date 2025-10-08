@@ -26,7 +26,7 @@ class Metric:
     def __init__(self, id=None, label=None, type=None, value=None, visibility=True):
         """Initialize Metric
 
-        Args:
+        Parameters:
             id: Unique identifier for the metric. Defaults to None.
             label: Human-readable label for the metric. Defaults to None.
             type: Type of the metric (e.g., gauge, counter). Defaults to None.
@@ -42,7 +42,8 @@ class Metric:
 
     def setValue(self, value):
         """Set the value of the metric
-        Args:
+
+        Parameters:
             value: The value to set for the metric.
         """
         self.value = value
@@ -50,6 +51,7 @@ class Metric:
     def getValue(self):
         """
         Get the value of the metric
+
         Returns:
             The current value of the metric.
         """
@@ -57,6 +59,7 @@ class Metric:
 
     def isVisible(self):
         """Check if the metric is visible
+
         Returns:
             True if the metric is visible, False otherwise.
         """
@@ -64,6 +67,7 @@ class Metric:
 
     def getLabel(self):
         """Get the label of the metric
+
         Returns:
             The label of the metric.
         """
@@ -71,6 +75,7 @@ class Metric:
 
     def getID(self):
         """Get the ID of the metric
+
         Returns:
             The ID of the metric.
         """
@@ -78,6 +83,7 @@ class Metric:
 
     def getType(self):
         """Get the type of the metric
+
         Returns:
             The type of the metric.
         """
@@ -104,7 +110,8 @@ class MetricGroup(Metric):
     def __init__(self, id=None, label=None, type="group", visibility=True):
         """
         Initialize MetricGroup
-        Args:
+
+        Parameters:
             id: Unique identifier for the metric group. Defaults to None.
             label: Human-readable label for the metric group. Defaults to None.
             type: Type of the metric group. Defaults to "group".
@@ -116,7 +123,8 @@ class MetricGroup(Metric):
     def add(self, child):
         """
         Add a child metric to the group
-        Args:
+
+        Parameters:
             child: The Metric or MetricGroup to add as a child.
         """
         self.children[child.id] = child
@@ -124,7 +132,8 @@ class MetricGroup(Metric):
     def getValue(self, path):
         """
         Get the value of a metric by its path
-        Args:
+
+        Parameters:
             path: The dot-separated path to the metric.
         """
         cids = path.split(".")
@@ -141,6 +150,7 @@ class MetricGroup(Metric):
     def toDict(self):
         """
         Convert the metric group to a dictionary representation
+
         Returns:
             A dictionary containing the metric group's attributes and its children's attributes.
         """
@@ -162,7 +172,8 @@ class Tracker:
 
     def __init__(self, name="TRACKER", id=None, sid=None, cid=None, label=None, prefix=None, suffix=None, properties=None, inheritance=None, callback=None):
         """Initialize Tracker
-        Args:
+
+        Parameters:
             name: Name of the tracker. Defaults to "TRACKER".
             id: Unique identifier for the tracker. If None, a UUID will be generated. Defaults to None.
             sid: Short identifier for the tracker. If None, it will be set to name:id. Defaults to None.
@@ -221,7 +232,8 @@ class Tracker:
     def _initialize(self, properties=None):
         """
         Initialize tracker properties
-        Args:
+
+        Parameters:
             properties: Dictionary of properties to configure the tracker. Defaults to None.
         """
         self._initialize_properties()
@@ -247,7 +259,8 @@ class Tracker:
     def _update_properties(self, properties=None):
         """
         Update tracker properties
-        Args:
+
+        Parameters:
             properties: Dictionary of properties to configure the tracker. Defaults to None.
         """
         if properties is None:
@@ -363,6 +376,7 @@ class Tracker:
 
     def get_current_epoch(self):
         """Get the current epoch time in seconds
+
         Returns:
             Current epoch time in seconds as an integer.
         """
@@ -370,7 +384,8 @@ class Tracker:
 
     def getValue(self, path):
         """Get the value of a metric by its path
-        Args:
+
+        Parameters:
             path: The path of the metric to retrieve.
         """
         if self.data:
@@ -437,7 +452,8 @@ class IdleTracker(Tracker):
 
     def __init__(self, consumer, properties=None, callback=None):
         """Initialize IdleTracker
-        Args:
+
+        Parameters:
             consumer: The consumer object to monitor.
             properties: Dictionary of properties to configure the tracker. Defaults to None.
             callback: Optional callback function to be called after tracking. Defaults to None.
@@ -459,6 +475,7 @@ class IdleTracker(Tracker):
     def collect(self):
         """
         Collect IdleTracker metrics including last active time and return as a dictionary
+
         Returns:
             A dictionary containing the collected metrics.
         """
@@ -479,7 +496,8 @@ class PerformanceTracker(Tracker):
 
     def __init__(self, label=None, prefix=None, properties=None, inheritance=None, callback=None):
         """Initialize PerformanceTracker
-        Args:
+
+        Parameters:
             label: Human-readable label for the tracker. Defaults to None.
             prefix: Prefix for the group. Defaults to None.
             properties: Dictionary of properties to configure the tracker. Defaults to None.
@@ -530,7 +548,8 @@ class SystemPerformanceTracker(Tracker):
 
     def __init__(self, label=None, properties=None, callback=None):
         """Initialize SystemPerformanceTracker
-        Args:
+
+        Parameters:
             label: Human-readable label for the tracker. Defaults to None.
             properties: Dictionary of properties to configure the tracker. Defaults to None.
             callback: Optional callback function to be called after tracking. Defaults to None.
