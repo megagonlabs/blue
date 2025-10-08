@@ -1,0 +1,1 @@
+:::blue.operators.delete_operator

@@ -23,7 +23,7 @@ from blue.properties import PROPERTIES
 def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Translate natural language questions into SQL queries using LLM models.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]), not used for query processing.
         attributes: Dictionary containing query parameters including question, source, protocol, database, collection, and other SQL generation settings.
         properties: Optional properties dictionary containing service configuration and data registry information. Defaults to None.
@@ -124,7 +124,7 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 def nl2sql_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate nl2sql operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -138,7 +138,7 @@ def nl2sql_operator_validator(input_data: List[List[Dict[str, Any]]], attributes
 def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for nl2sql operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.

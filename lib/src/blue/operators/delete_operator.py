@@ -11,7 +11,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 def delete_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Delete records from the first data source at specified positions.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]), uses the first data source for deletion.
         attributes: Dictionary containing deletion parameters including delete_idx.
         properties: Optional properties dictionary. Defaults to None.
@@ -50,7 +50,7 @@ def delete_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 def delete_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate delete operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -85,7 +85,7 @@ def delete_operator_validator(input_data: List[List[Dict[str, Any]]], attributes
 def delete_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for delete operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.

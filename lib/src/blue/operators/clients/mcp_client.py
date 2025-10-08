@@ -21,7 +21,7 @@ class MCPOperatorClient(MCPToolClient, OperatorClient):
     def __init__(self, name, properties={}):
         """Initialize the MCPOperatorClient.
 
-        Args:
+        Parameters:
             name: Name of the MCP operator client.
             properties: Properties for the client. Defaults to {}.
         """
@@ -39,7 +39,7 @@ class MCPOperatorClient(MCPToolClient, OperatorClient):
     def fetch_operator_metadata(self, operator):
         """Fetch metadata for a specific operator from MCP client.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
 
         Returns:
@@ -51,7 +51,7 @@ class MCPOperatorClient(MCPToolClient, OperatorClient):
     def execute_operator(self, operator, args, kwargs):
         """Execute a specific operator with given arguments.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
             args: Arguments for the operator.
             kwargs: Keyword arguments for the operator.
@@ -66,7 +66,7 @@ class MCPOperatorClient(MCPToolClient, OperatorClient):
         """Refine the operator based on given arguments, returns list of possible refinements as DataPipeline objects.
         Currently, MCP does not support operator refinement, so this method returns an empty list.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
             args: Arguments for the operator.
             kwargs: Keyword arguments for the operator.
@@ -81,7 +81,7 @@ class MCPOperatorClient(MCPToolClient, OperatorClient):
         """Get attributes of a specific operator.
         Currently, MCP does not support fetching operator attributes, so this method returns an empty dictionary.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
 
         Returns:

@@ -1,0 +1,1 @@
+:::blue.operators.insert_table_operator

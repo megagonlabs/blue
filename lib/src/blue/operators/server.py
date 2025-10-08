@@ -18,7 +18,7 @@ class OperatorServer(ToolServer):
     def __init__(self, name, properties={}):
         """Initialize the OperatorServer.
 
-        Args:
+        Parameters:
             name: Name of the operator server.
             properties: Properties for the server. Defaults to {}.
         """

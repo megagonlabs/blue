@@ -15,7 +15,7 @@ from blue.data.registry import DataRegistry
 def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Insert data rows into database tables in a data source.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to insert.
         attributes: Dictionary containing insertion parameters including source, database, collection, table, and batch_size.
         properties: Optional properties dictionary containing data registry information. Defaults to None.
@@ -78,7 +78,7 @@ def insert_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
 def insert_table_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate insert table operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -115,7 +115,7 @@ def insert_table_operator_validator(input_data: List[List[Dict[str, Any]]], attr
 def insert_table_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for insert table operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.

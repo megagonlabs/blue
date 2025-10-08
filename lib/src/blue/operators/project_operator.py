@@ -11,7 +11,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 def project_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Project records to keep only specified keys and optionally rename them (key-wise projection).
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]), uses the first data source for projection.
         attributes: Dictionary containing projection parameters including kept_keys and key_mapping.
         properties: Optional properties dictionary. Defaults to None.
@@ -48,7 +48,7 @@ def project_operator_function(input_data: List[List[Dict[str, Any]]], attributes
 def project_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate project operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -83,7 +83,7 @@ def project_operator_validator(input_data: List[List[Dict[str, Any]]], attribute
 def project_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for project operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.

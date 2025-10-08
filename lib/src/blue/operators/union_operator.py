@@ -11,7 +11,7 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 def union_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Perform N-way union on multiple data sources with exact duplicate removal.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to union, requires at least 1 data source.
         attributes: Dictionary containing union parameters including match_option.
         properties: Optional properties dictionary. Defaults to None.
@@ -38,7 +38,7 @@ def union_operator_function(input_data: List[List[Dict[str, Any]]], attributes: 
 def union_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate union operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -62,7 +62,7 @@ def union_operator_validator(input_data: List[List[Dict[str, Any]]], attributes:
 def union_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for union operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.
