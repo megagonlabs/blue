@@ -25,10 +25,8 @@ from blue.data.sources.mysql_source import MySQLDBSource
 from blue.data.sources.sqlite_source import SQLiteDBSource
 from blue.data.sources.openai_source import OpenAISource
 
-### connection
-from blue.connection import PooledConnectionFactory
-
 ###### Backend, Databases
+import redis
 from redis.commands.json.path import Path
 from redis.commands.search.field import TextField, VectorField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
@@ -41,14 +39,19 @@ from redis.commands.search.query import Query
 class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, platform_id=platform_id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
+        self._init_binary_connections()
+        
+    def _init_binary_connections(self):
+        host = self.properties["db.host"]
+        port = self.properties["db.port"]
 
-        # Instance connection (raw bytes, decode_responses=False)
-        self.connection_factory_no_decode = PooledConnectionFactory(
-            properties=self.properties,
-            decode_responses=False,
-            use_instance_pool=True
-        )
-        self.connection_no_decode = self.connection_factory_no_decode.get_connection()
+        # max connections
+        max_connections = None
+        if "db.max_connections" in self.properties:
+            max_connections = self.properties["db.max_connections"]
+
+        pool = redis.ConnectionPool(host=host, port=port, max_connections=max_connections, decode_responses=False)
+        self.connection_no_decode = redis.Redis(connection_pool=pool)
 
     ###### initialization
     def _initialize_properties(self):
