@@ -30,7 +30,7 @@ class ServicePerformanceTracker(Tracker):
     def __init__(self, service, properties=None, callback=None):
         """Initialize the ServicePerformanceTracker.
 
-        Args:
+        Parameters:
             service: The service instance to track.
             properties: Optional properties for the tracker. Defaults to None.
             callback: Optional callback function to be called on data collection. Defaults to None.
@@ -40,6 +40,7 @@ class ServicePerformanceTracker(Tracker):
 
     def collect(self):
         """Collect performance metrics and return them as a dictionary. Performance metrics include call count, average call length, and average response time.
+
         Returns:
             Dictionary containing collected performance metrics.
         """
@@ -144,7 +145,7 @@ class Service:
     ):
         """Initialize the Service.
 
-        Args:
+        Parameters:
             name: Name of the service. Defaults to "SERVICE".
             id: Unique identifier for the service. Defaults to None.
             sid: Short identifier for the service. Defaults to None.
@@ -191,7 +192,7 @@ class Service:
     def _initialize(self, properties=None):
         """Initialize the service with properties.
 
-        Args:
+        Parameters:
             properties: Additional properties for the service. Defaults to None.
         """
         self._initialize_properties()
@@ -213,7 +214,8 @@ class Service:
 
     def _update_properties(self, properties=None):
         """Update service properties with provided properties.
-        Args:
+
+        Parameters:
             properties: Additional properties for the service. Defaults to None.
         """
         if properties is None:
@@ -299,7 +301,8 @@ class Service:
 
     def set_metadata(self, key, value, nx=False):
         """Set metadata for the service.
-        Args:
+
+        Parameters:
             key: Metadata key to set.
             value: Value to set for the metadata key.
             nx: If True, set the value only if the key does not already exist. Defaults to False.
@@ -308,14 +311,16 @@ class Service:
 
     def delete_metadata(self, key):
         """Delete metadata for the service.
-        Args:
+
+        Parameters:
             key: Metadata key to delete.
         """
         self.connection.json().delete(self._get_metadata_namespace(), "$." + key)
 
     def get_metadata(self, key=""):
         """Get metadata for the service.
-        Args:
+
+        Parameters:
             key: Metadata key to retrieve. Defaults to "".
         Returns:
             Value of the metadata key, or None if the key does not exist.
@@ -328,7 +333,8 @@ class Service:
 
     def _init_socket_stats(self, websocket):
         """Initialize socket statistics for a given websocket connection.
-        Args:
+
+        Parameters:
             websocket: WebSocket connection object.
         """
         # stats by websocket.id
@@ -339,7 +345,8 @@ class Service:
 
     def set_socket_stat(self, websocket, key, value, nx=False):
         """Set a specific statistic for a given websocket connection.
-        Args:
+
+        Parameters:
             websocket: WebSocket connection object.
             key: Statistic key to set.
             value: Value to set for the statistic key.
@@ -353,7 +360,7 @@ class Service:
         """Handle incoming WebSocket messages and process them using the service's handler function.
         Sets up socket statistics and processes messages in a loop until the connection is closed.
 
-        Args:
+        Parameters:
             websocket: WebSocket connection object.
         """
         self._init_socket_stats(websocket)
@@ -388,7 +395,8 @@ class Service:
     ## default handler, override
     def default_handler(self, message, properties=None, websocket=None):
         """Default handler for processing incoming messages. This method should be overridden by subclasses to implement custom behavior.
-        Args:
+
+        Parameters:
             message: Incoming message to process.
             properties: Additional properties for the handler. Defaults to None.
             websocket: WebSocket connection object. Defaults to None.
