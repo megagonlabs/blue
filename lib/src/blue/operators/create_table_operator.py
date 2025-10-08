@@ -15,7 +15,7 @@ from blue.data.registry import DataRegistry
 def create_table_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Create tables (entities) in database collections using the data registry.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]), passes through unchanged.
         attributes: Dictionary containing table creation parameters including source, database, collection, table, columns, and other table properties.
         properties: Optional properties dictionary containing data registry information. Defaults to None.
@@ -94,7 +94,7 @@ def create_table_operator_function(input_data: List[List[Dict[str, Any]]], attri
 def create_table_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate create table operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -178,7 +178,7 @@ def create_table_operator_validator(input_data: List[List[Dict[str, Any]]], attr
 def create_table_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for create table operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.

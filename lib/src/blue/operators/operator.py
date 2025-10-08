@@ -22,7 +22,7 @@ from blue.utils import log_utils
 def default_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Default function for operator. It should be overridden by each operator.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to process.
         attributes: Dictionary containing operator-specific parameters.
         properties: Optional properties dictionary. Defaults to None.
@@ -36,7 +36,7 @@ def default_operator_function(input_data: List[List[Dict[str, Any]]], attributes
 def default_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
     """Default refiner for operator. It should be overridden by each operator.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to process.
         attributes: Dictionary containing operator-specific parameters.
         properties: Optional properties dictionary. Defaults to None.
@@ -50,7 +50,7 @@ def default_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes:
 def default_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Default validator for operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -68,7 +68,7 @@ def default_operator_validator(input_data: List[List[Dict[str, Any]]], attribute
 def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate actual attributes (attributes) using the attribute definitions in properties.
 
-    Args:
+    Parameters:
         attributes: Dictionary containing actual attribute values to validate.
         properties: Optional properties dictionary containing attribute definitions. Defaults to None.
 
@@ -120,7 +120,7 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
 def default_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Default explainer for operator output.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) that was processed.
         attributes: The attributes used for the operation.
@@ -152,7 +152,7 @@ class Operator(Tool):
     Input data for operators: always expects multiple Data as [data_1, data_2, ...] (list of lists of dictionaries)
     Output data for operators: same as input data, always returns a list of JSON array of records. If there is only one data returned, it will return a list with one element (data).
 
-    Args:
+    Parameters:
         name: Name of the operator.
         function: The operator function to execute. Defaults to default_operator_function.
         description: Description of the operator. Defaults to None.
@@ -164,10 +164,12 @@ class Operator(Tool):
 
     PROPERTIES = {}
 
-    def __init__(self, name: str, function: Callable = None, description: str = None, properties: Dict[str, Any] = None, validator: Callable = None, explainer: Callable = None, refiner: Callable = None):
+    def __init__(
+        self, name: str, function: Callable = None, description: str = None, properties: Dict[str, Any] = None, validator: Callable = None, explainer: Callable = None, refiner: Callable = None
+    ):
         """Initialize the Operator.
 
-        Args:
+        Parameters:
             name: Name of the operator.
             function: The operator function to execute. Defaults to default_operator_function.
             description: Description of the operator. Defaults to None.
@@ -243,7 +245,7 @@ class Operator(Tool):
     def update_attributes(self, attributes=None):
         """Update operator attributes with new definitions.
 
-        Args:
+        Parameters:
             attributes: Dictionary of attribute definitions to update. Defaults to None.
         """
         if attributes is None:
@@ -259,7 +261,7 @@ class Operator(Tool):
     def get_attribute(self, attribute):
         """Get a specific operator attribute definition.
 
-        Args:
+        Parameters:
             attribute: Name of the attribute to retrieve.
 
         Returns:
@@ -273,7 +275,7 @@ class Operator(Tool):
     def get_attribute_type(self, attribute):
         """Get the type of a specific operator attribute.
 
-        Args:
+        Parameters:
             attribute: Name of the attribute.
 
         Returns:
@@ -288,7 +290,7 @@ class Operator(Tool):
     def get_attribute_description(self, attribute):
         """Get the description of a specific operator attribute.
 
-        Args:
+        Parameters:
             attribute: Name of the attribute.
 
         Returns:
@@ -303,7 +305,7 @@ class Operator(Tool):
     def set_attribute_description(self, attribute, description):
         """Set the description of a specific operator attribute.
 
-        Args:
+        Parameters:
             attribute: Name of the attribute.
             description: New description for the attribute.
         """
@@ -317,7 +319,7 @@ class Operator(Tool):
     def set_attribute_required(self, attribute, required):
         """Set whether a specific operator attribute is required.
 
-        Args:
+        Parameters:
             attribute: Name of the attribute.
             required: Boolean indicating if the attribute is required.
         """
@@ -331,7 +333,7 @@ class Operator(Tool):
     def set_attribute_hidden(self, attribute, hidden):
         """Set whether a specific operator attribute is hidden.
 
-        Args:
+        Parameters:
             attribute: Name of the attribute.
             hidden: Boolean indicating if the attribute is hidden.
         """
@@ -345,7 +347,7 @@ class Operator(Tool):
     def is_attribute_required(self, attribute):
         """Check if a specific operator attribute is required.
 
-        Args:
+        Parameters:
             attribute: Name of the attribute.
 
         Returns:
@@ -360,7 +362,7 @@ class Operator(Tool):
     def is_attribute_hidden(self, attribute):
         """Check if a specific operator attribute is hidden.
 
-        Args:
+        Parameters:
             attribute: Name of the attribute.
 
         Returns:
@@ -383,7 +385,7 @@ class Operator(Tool):
     def update_hyperparameters(self, hyperparameters=None):
         """Update operator hyperparameters with new values.
 
-        Args:
+        Parameters:
             hyperparameters: Dictionary of hyperparameter values to update. Defaults to None.
         """
         if hyperparameters is None:
@@ -397,7 +399,7 @@ class Operator(Tool):
     def is_operator(cls, function_or_operator) -> bool:
         """Check if a tool/operator is actually an operator.
 
-        Args:
+        Parameters:
             function_or_operator: The object to check.
 
         Returns:
@@ -411,7 +413,7 @@ class Operator(Tool):
     def get_tool_type(cls, function_or_operator) -> str:
         """Get the type of a function/operator.
 
-        Args:
+        Parameters:
             function_or_operator: The object to check.
 
         Returns:
@@ -520,7 +522,7 @@ class Operator(Tool):
 def declarative_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Default function for declarative operator, simply passes execution to sub plans.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to process.
         attributes: Dictionary containing operator-specific parameters.
         properties: Optional properties dictionary containing plan definitions. Defaults to None.
@@ -536,7 +538,7 @@ def declarative_operator_function(input_data: List[List[Dict[str, Any]]], attrib
 def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
     """Default refiner for declarative operator, returning plans declaratively specified as operator properties.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to process.
         attributes: Dictionary containing operator-specific parameters.
         properties: Optional properties dictionary containing plan definitions. Defaults to None.
@@ -643,7 +645,7 @@ def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attribu
 def declarative_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate declarative operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -657,7 +659,7 @@ def declarative_operator_validator(input_data: List[List[Dict[str, Any]]], attri
 def declarative_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for declarative operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.
@@ -678,7 +680,7 @@ class DeclarativeOperator(Operator):
     """DeclarativeOperator is a specialized Operator that declaratively specifies the execution of the operator as a set of plans.
     Declarative plans are specified as part of the operator attributes `plans` which are added to the main plan as part of the planning / refine phase.
 
-    Args:
+    Parameters:
         properties: Properties dictionary containing plan definitions and other operator properties. Defaults to None.
     """
 

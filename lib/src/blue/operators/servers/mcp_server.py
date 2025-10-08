@@ -10,7 +10,7 @@ class MCPOperatorServer(MCPToolServer, OperatorServer):
     def __init__(self, name, properties={}):
         """Initialize the MCPOperatorServer.
 
-        Args:
+        Parameters:
             name: Name of the MCP operator server.
             properties: Properties for the server. Defaults to {}.
         """
@@ -24,7 +24,7 @@ class MCPOperatorServer(MCPToolServer, OperatorServer):
     def add_operator(self, operator):
         """Add an operator to the MCP server.
 
-        Args:
+        Parameters:
             operator: Operator object to be added.
         """
         super().add_tool(operator)

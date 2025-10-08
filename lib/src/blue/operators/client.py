@@ -23,7 +23,7 @@ class OperatorClient(ToolClient):
     def __init__(self, name: str = "OperatorClient", properties: Dict[str, Any] = None):
         """Initialize the OperatorClient.
 
-        Args:
+        Parameters:
             name: Name of the client. Defaults to "OperatorClient".
             properties: Properties for the client. Defaults to None.
         """
@@ -52,7 +52,7 @@ class OperatorClient(ToolClient):
     def fetch_operator_metadata(self, operator):
         """Fetch metadata for a specific operator.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
 
         Returns:
@@ -63,7 +63,7 @@ class OperatorClient(ToolClient):
     def execute_operator(self, operator, args=None, kwargs=None):
         """Execute a specific operator with given arguments.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
             args: Arguments for the operator. Defaults to None.
             kwargs: Keyword arguments for the operator. Defaults to None.
@@ -76,7 +76,7 @@ class OperatorClient(ToolClient):
     def refine_operator(self, operator, args=None, kwargs=None):
         """Refine the operator based on given arguments, returns list of possible refinements as DataPipeline objects.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
             args: Arguments for the operator. Defaults to None.
             kwargs: Keyword arguments for the operator. Defaults to None.
@@ -89,7 +89,7 @@ class OperatorClient(ToolClient):
     def get_operator_attributes(self, operator):
         """Get attributes of a specific operator.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
 
         Returns:

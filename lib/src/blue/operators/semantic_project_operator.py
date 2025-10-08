@@ -13,7 +13,7 @@ from blue.properties import PROPERTIES
 def semantic_project_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Project records to select and rename columns using LLM-based mapping resolution.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to project.
         attributes: Dictionary containing projection parameters including projection_instructions.
         properties: Optional properties dictionary containing service configuration. Defaults to None.
@@ -54,7 +54,7 @@ def semantic_project_operator_function(input_data: List[List[Dict[str, Any]]], a
 def semantic_project_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate semantic project operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -78,7 +78,7 @@ def semantic_project_operator_validator(input_data: List[List[Dict[str, Any]]], 
 def semantic_project_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for semantic project operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.

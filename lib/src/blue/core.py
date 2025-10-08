@@ -17,6 +17,7 @@ class Entity:
 
     def __init__(self, name=None, id=None, sid=None, cid=None, prefix=None, suffix=None):
         """Initialize the Entity.
+
         Parameters:
             name: Name of the entity.
             id: Unique identifier for the entity.

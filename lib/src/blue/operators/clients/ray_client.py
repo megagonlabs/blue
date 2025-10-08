@@ -22,7 +22,7 @@ class RayOperatorClient(RayToolClient, OperatorClient):
     def __init__(self, name, operators={}, properties={}):
         """Initialize the RayOperatorClient.
 
-        Args:
+        Parameters:
             name: Name of the ray operator client.
             operators: List of operators to be included as a dictionary of Operator objects. Defaults to {}.
             properties: Properties for the client. Defaults to {}.
@@ -41,7 +41,7 @@ class RayOperatorClient(RayToolClient, OperatorClient):
     def fetch_operator_metadata(self, operator):
         """Fetch metadata for a specific operator from ray client.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
 
         Returns:
@@ -53,7 +53,7 @@ class RayOperatorClient(RayToolClient, OperatorClient):
     def execute_operator(self, operator, args, kwargs):
         """Execute a specific operator with given arguments.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
             args: Arguments for the operator.
             kwargs: Keyword arguments for the operator.
@@ -67,7 +67,7 @@ class RayOperatorClient(RayToolClient, OperatorClient):
     def refine_operator(self, operator, args, kwargs):
         """Refine the operator based on given arguments, returns list of possible refinements as DataPipeline objects.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
             args: Arguments for the operator.
             kwargs: Keyword arguments for the operator.
@@ -98,7 +98,7 @@ class RayOperatorClient(RayToolClient, OperatorClient):
     def get_operator_attributes(self, operator):
         """Get attributes of a specific operator.
 
-        Args:
+        Parameters:
             operator: Name of the operator.
 
         Raises:

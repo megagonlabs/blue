@@ -14,7 +14,7 @@ from blue.properties import PROPERTIES
 def semantic_transform_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Transform data into target fields and values using LLM-based transformations.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to transform.
         attributes: Dictionary containing transformation parameters including input_meta, output_desc, and strategy.
         properties: Optional properties dictionary containing service configuration. Defaults to None.
@@ -77,7 +77,7 @@ def semantic_transform_operator_function(input_data: List[List[Dict[str, Any]]],
 def semantic_transform_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate semantic transform operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -107,7 +107,7 @@ def semantic_transform_operator_validator(input_data: List[List[Dict[str, Any]]]
 def semantic_transform_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for semantic transform operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.

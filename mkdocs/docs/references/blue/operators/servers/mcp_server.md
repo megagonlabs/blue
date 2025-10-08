@@ -1,0 +1,1 @@
+:::blue.operators.servers.mcp_server.MCPOperatorServer

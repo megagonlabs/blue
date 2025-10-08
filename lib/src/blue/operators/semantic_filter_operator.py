@@ -13,7 +13,7 @@ from blue.properties import PROPERTIES
 def semantic_filter_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Filter records based on natural language conditions using LLM models.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to filter.
         attributes: Dictionary containing filtering parameters including filter_conditions, context, demonstrations, and return_idx.
         properties: Optional properties dictionary containing service configuration. Defaults to None.
@@ -46,7 +46,7 @@ def semantic_filter_operator_function(input_data: List[List[Dict[str, Any]]], at
 def semantic_filter_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate semantic filter operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -80,7 +80,7 @@ def semantic_filter_operator_validator(input_data: List[List[Dict[str, Any]]], a
 def semantic_filter_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for semantic filter operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.

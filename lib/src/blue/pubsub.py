@@ -28,6 +28,7 @@ class Consumer:
 
     def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, owner=None, listener=None, properties=None, on_stop=None):
         """Initialize the Consumer.
+
         Parameters:
             stream: Stream identifier to consume from.
             name: Name of the consumer. Defaults to "STREAM".
@@ -94,6 +95,7 @@ class Consumer:
     ###### initialization
     def _initialize(self, properties=None):
         """Initialize the consumer with properties.
+
         Parameters:
             properties: Properties to configure the consumer.
         """
@@ -111,6 +113,7 @@ class Consumer:
 
     def _update_properties(self, properties=None):
         """Update consumer properties with provided values.
+
         Parameters:
             properties: Dictionary of properties to update.
         """
@@ -396,6 +399,7 @@ class Producer:
         properties=None,
     ):
         """Initialize the Producer.
+
         Parameters:
             name: Name of the producer. Defaults to "STREAM".
             id: Unique identifier for the producer. If None, a UUID will be generated.
@@ -440,6 +444,7 @@ class Producer:
     ###### INITIALIZATION
     def _initialize(self, properties=None):
         """Initialize the producer with properties.
+
         Parameters:
             properties: Properties to configure the producer.
         """
@@ -458,6 +463,7 @@ class Producer:
 
     def _update_properties(self, properties=None):
         """Update producer properties with provided values.
+
         Parameters:
             properties: Dictionary of properties to update.
         """
@@ -527,6 +533,7 @@ class Producer:
 
     def write_data(self, data):
         """Write a data message to the stream.
+
         Parameters:
             data: Data to be written to the stream. Can be int, float, str, or dict.
         """
@@ -544,6 +551,7 @@ class Producer:
 
     def write_control(self, code, args):
         """Write a control message to the stream.
+
         Parameters:
             code: Control code for the message.
             args: Arguments for the control message.
@@ -552,6 +560,7 @@ class Producer:
 
     def write(self, message):
         """Write a message to the stream.
+
         Parameters:
             message: Message object to be written to the stream.
         """
@@ -559,6 +568,7 @@ class Producer:
 
     def _write_message_to_stream(self, json_message):
         """Internal method to write a JSON message to the Redis stream.
+
         Parameters:
             json_message: JSON representation of the message to be written.
         """

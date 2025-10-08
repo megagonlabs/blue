@@ -13,7 +13,7 @@ from blue.properties import PROPERTIES
 def semantic_extract_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
     """Extract entities from natural language text fields using LLM models.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records with text fields to extract entities from.
         attributes: Dictionary containing extraction parameters including entities, context, demonstrations, and extract_with_single_prompt.
         properties: Optional properties dictionary containing service configuration. Defaults to None.
@@ -52,7 +52,7 @@ def semantic_extract_operator_function(input_data: List[List[Dict[str, Any]]], a
 def semantic_extract_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
     """Validate semantic extract operator attributes.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
         attributes: Dictionary containing operator attributes to validate.
         properties: Optional properties dictionary. Defaults to None.
@@ -91,7 +91,7 @@ def semantic_extract_operator_validator(input_data: List[List[Dict[str, Any]]], 
 def semantic_extract_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Generate explanation for semantic extract operator execution.
 
-    Args:
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.
