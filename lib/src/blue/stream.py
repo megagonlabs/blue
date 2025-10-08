@@ -121,7 +121,7 @@ class Message:
         """
         Initialize a Message object.
 
-        Args:
+        Parameters:
             label: MessageType indicating whether the message is DATA or CONTROL.
             contents: The actual content of the message. For DATA, it can be int, float, str, or dict. For CONTROL, it is a dict with 'code' and 'args'.
             content_type: ContentType indicating the type of content (INT, FLOAT, STR, JSON).
@@ -149,7 +149,8 @@ class Message:
     def setID(self, id):
         """
         Set the ID of the message.
-        Args:
+
+        Parameters:
             id: ID to be set for the message.
         """
         self.id = id
@@ -157,6 +158,7 @@ class Message:
     def getID(self):
         """
         Get the ID of the message.
+
         Returns:
             ID of the message.
         """
@@ -165,7 +167,8 @@ class Message:
     def setStream(self, stream):
         """
         Set the stream of the message.
-        Args:
+
+        Parameters:
             stream: Stream to be set for the message.
         """
         self.stream = stream
@@ -173,6 +176,7 @@ class Message:
     def getStream(self):
         """
         Get the stream of the message.
+
         Returns:
             Stream of the message.
         """
@@ -181,6 +185,7 @@ class Message:
     def getData(self):
         """
         Get the data contents of the message.
+
         Returns:
             The data contents of the message if it is of type DATA, None otherwise.
         """
@@ -191,6 +196,7 @@ class Message:
     def getContents(self):
         """
         Get the contents of the message.
+
         Returns:
             The contents of the message.
         """
@@ -199,6 +205,7 @@ class Message:
     def getContentType(self):
         """
         Get the content type of the message.
+
         Returns:
             ContentType of the message.
         """
@@ -207,6 +214,7 @@ class Message:
     def isData(self):
         """
         Check if the message is of type DATA.
+
         Returns:
             True if the message is DATA, False otherwise.
         """
@@ -215,6 +223,7 @@ class Message:
     def isControl(self):
         """
         Check if the message is of type CONTROL.
+
         Returns:
             True if the message is CONTROL, False otherwise.
         """
@@ -223,6 +232,7 @@ class Message:
     def isBOS(self):
         """
         Check if the message is the beginning of a stream.
+
         Returns:
             True if the message is the beginning of a stream, False otherwise.
         """
@@ -231,6 +241,7 @@ class Message:
     def isEOS(self):
         """
         Check if the message is the end of a stream.
+
         Returns:
             True if the message is the end of a stream, False otherwise.
         """
@@ -239,6 +250,7 @@ class Message:
     def getCode(self):
         """
         Get the code of the message.
+
         Returns:
             ControlCode of the message if it is of type CONTROL, None otherwise.
         """
@@ -249,6 +261,7 @@ class Message:
     def getArgs(self):
         """
         Get the arguments of the message.
+
         Returns:
             Arguments of the message if it is of type CONTROL, None otherwise.
         """
@@ -259,8 +272,10 @@ class Message:
     def getArg(self, arg):
         """
         Get a specific argument of the message.
-        Args:
+
+        Parameters:
             arg: The name of the argument to retrieve.
+
         Returns:
             The value of the argument if it is of type CONTROL, None otherwise.
         """
@@ -273,7 +288,8 @@ class Message:
     def setArg(self, arg, value):
         """
         Set a specific argument of the message.
-        Args:
+
+        Parameters:
             arg: The name of the argument to set.
             value: The value to set for the argument.
         """
@@ -284,6 +300,7 @@ class Message:
     def getAgent(self):
         """
         Get the agent of the message in the control message EXECUTE_AGENT.
+
         Returns:
             The agent of the message if it is of type CONTROL and the code is EXECUTE_AGENT, None otherwise.
         """
@@ -298,6 +315,7 @@ class Message:
     def getAgentContext(self):
         """
         Get the context of the message in the control message EXECUTE_AGENT.
+
         Returns:
             The context of the message if it is of type CONTROL and the code is EXECUTE_AGENT, None otherwise.
         """
@@ -311,6 +329,7 @@ class Message:
     def getAgentProperties(self):
         """
         Get the properties of the message in the control message EXECUTE_AGENT.
+
         Returns:
             The properties of the message if it is of type CONTROL and the code is EXECUTE_AGENT, None otherwise.
         """
@@ -324,8 +343,10 @@ class Message:
     def getAgentProperty(self, property):
         """
         Get a specific property of the message in the control message EXECUTE_AGENT.
-        Args:
+
+        Parameters:
             property: The name of the property to retrieve.
+
         Returns:
             The value of the property if it is of type CONTROL and the code is EXECUTE_AGENT, None otherwise.
         """
@@ -339,6 +360,7 @@ class Message:
     def getInputParams(self):
         """
         Get the input parameters of the message in the control message EXECUTE_AGENT.
+
         Returns:
             The input parameters of the message if it is of type CONTROL and the code is EXECUTE_AGENT, None otherwise.
         """
@@ -352,8 +374,10 @@ class Message:
     def getInputParam(self, param):
         """
         Get a specific input parameter of the message in the control message EXECUTE_AGENT.
-        Args:
+
+        Parameters:
             param: The name of the input parameter to retrieve.
+
         Returns:
             The value of the input parameter if it is of type CONTROL and the code is EXECUTE_AGENT, None otherwise.
         """
@@ -367,8 +391,10 @@ class Message:
     def fromJSON(message_json):
         """
         Deserialize a JSON-encoded message.
-        Args:
+
+        Parameters:
             message_json: The JSON-encoded message to deserialize.
+
         Returns:
             A Message object representing the deserialized message.
         """
@@ -385,6 +411,7 @@ class Message:
     def toJSON(self):
         """
         Serialize the message to a JSON-encoded string.
+
         Returns:
             A JSON-encoded string representing the message.
         """
@@ -437,7 +464,8 @@ class Stream:
     def _initialize(self, properties=None):
         """
         Initialize the stream with default and provided properties.
-        Args:
+
+        Parameters:
             properties: Optional dictionary of properties to override defaults.
         """
         self._initialize_properties()
@@ -456,7 +484,8 @@ class Stream:
     def _update_properties(self, properties=None):
         """
         Update the properties of the stream.
-        Args:
+
+        Parameters:
             properties: Optional dictionary of properties to update.
         """
         if properties is None:
@@ -470,8 +499,9 @@ class Stream:
     def _get_data_namespace(self):
         """
         Get the data namespace for the stream.
+
         Returns:
-            The data namespace string.
+            (str): The data namespace string.
         """
         return self.cid + ":DATA"
 
@@ -490,7 +520,8 @@ class Stream:
     def set_data(self, key, value):
         """
         Set the data for a specific key in the stream.
-        Args:
+
+        Parameters:
             key: The key to set.
             value: The value to set.
         """
@@ -503,8 +534,10 @@ class Stream:
     def get_data(self, key):
         """
         Get the data for a specific key in the stream.
-        Args:
+
+        Parameters:
             key: The key to get.
+
         Returns:
             The value associated with the key, or None if the key does not exist.
         """
@@ -517,8 +550,9 @@ class Stream:
     def get_all_data(self):
         """
         Get all data for the stream.
+
         Returns:
-            A dictionary containing all data in the stream.
+            (dict): A dictionary containing all data in the stream.
         """
         value = self.connection.json().get(
             self._get_data_namespace(),
@@ -529,7 +563,8 @@ class Stream:
     def append_data(self, key, value):
         """
         Append data to a specific key in the stream.
-        Args:
+
+        Parameters:
             key: The key to append to.
             value: The value to append.
         """
@@ -542,10 +577,11 @@ class Stream:
     def get_data_len(self, key):
         """
         Get the length of the data array for a specific key in the stream.
-        Args:
+
+        Parameters:
             key: The key to get the length for.
         Returns:
-            The length of the data array, or 0 if the key does not exist.
+            (int): The length of the data array, or 0 if the key does not exist.
         """
         return self.connection.json().arrlen(
             self._get_data_namespace(),
@@ -555,8 +591,9 @@ class Stream:
     ##  metadata
     def _get_metadata_namespace(self):
         """Get the metadata namespace for the stream.
+
         Returns:
-            The metadata namespace string.
+            (str): The metadata namespace string.
         """
         return self.cid + ":METADATA"
 
@@ -568,17 +605,19 @@ class Stream:
     def set_metadata(self, key, value, nx=False):
         """
         Set the metadata for a specific key in the stream.
-        Args:
+
+        Parameters:
             key: The key to set.
             value: The value to set.
-            nx: If True, set the value only if it does not already exist.
+            nx (bool): If True, set the value only if it does not already exist.
         """
         self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def get_metadata(self, key=""):
         """
         Get the metadata for a specific key in the stream.
-        Args:
+
+        Parameters:
             key: The key to get.
         Returns:
             The value associated with the key, or None if the key does not exist.
