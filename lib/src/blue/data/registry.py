@@ -39,9 +39,9 @@ from redis.commands.search.query import Query
 class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, platform_id=platform_id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
-        self._init_binary_connections()
+        self._init_binary_connection()
         
-    def _init_binary_connections(self):
+    def _init_binary_connection(self):
         host = self.properties["db.host"]
         port = self.properties["db.port"]
 

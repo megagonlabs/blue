@@ -43,8 +43,7 @@ class PooledConnectionFactory:
         if PooledConnectionFactory.__pool is None:
             PooledConnectionFactory.__pool_id = uuid_utils.create_uuid()
             PooledConnectionFactory.__pool = redis.connection.ConnectionPool(host=host, port=port, max_connections=max_connections, decode_responses=decode_responses)
-
-        
+       
     def get_id(self):
         return PooledConnectionFactory.__pool_id
 
