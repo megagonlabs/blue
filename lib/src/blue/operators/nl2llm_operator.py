@@ -14,7 +14,16 @@ from blue.properties import PROPERTIES
 
 
 def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    """Process natural language query using LLM models and return structured data"""
+    """Process natural language query using LLM models and return structured data.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), not used for query processing.
+        attributes: Dictionary containing query parameters including query, context, and attrs.
+        properties: Optional properties dictionary containing service configuration. Defaults to None.
+
+    Returns:
+        List containing structured data results from the natural language query.
+    """
     # Extract attributes
     query = attributes.get('query', '')
     context = attributes.get('context', '')
@@ -40,7 +49,16 @@ def nl2llm_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
 
 def nl2llm_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate nl2llm operator attributes."""
+    """Validate nl2llm operator attributes.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     if not default_operator_validator(input_data, attributes, properties):
         return False
 
@@ -53,7 +71,16 @@ def nl2llm_operator_validator(input_data: List[List[Dict[str, Any]]], attributes
 
 
 def nl2llm_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain nl2llm operator output."""
+    """Generate explanation for nl2llm operator execution.
+
+    Args:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return {
         'output': output,
         "attributes": attributes,

@@ -11,6 +11,16 @@ from blue.properties import PROPERTIES
 
 
 def semantic_project_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Project records to select and rename columns using LLM-based mapping resolution.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to project.
+        attributes: Dictionary containing projection parameters including projection_instructions.
+        properties: Optional properties dictionary containing service configuration. Defaults to None.
+
+    Returns:
+        List containing projected records with selected and renamed columns.
+    """
     projection_instructions = attributes.get('projection_instructions', '')
 
     if not input_data or not input_data[0]:
@@ -42,7 +52,16 @@ def semantic_project_operator_function(input_data: List[List[Dict[str, Any]]], a
 
 
 def semantic_project_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate semantic project operator attributes."""
+    """Validate semantic project operator attributes.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -57,7 +76,16 @@ def semantic_project_operator_validator(input_data: List[List[Dict[str, Any]]], 
 
 
 def semantic_project_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain semantic project operator output."""
+    """Generate explanation for semantic project operator execution.
+
+    Args:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 

@@ -11,7 +11,16 @@ from blue.properties import PROPERTIES
 
 
 def semantic_filter_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    """Filter records based on natural language conditions using LLM models"""
+    """Filter records based on natural language conditions using LLM models.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to filter.
+        attributes: Dictionary containing filtering parameters including filter_conditions, context, demonstrations, and return_idx.
+        properties: Optional properties dictionary containing service configuration. Defaults to None.
+
+    Returns:
+        List containing filtered records or indices based on return_idx setting.
+    """
     filter_conditions = attributes.get('filter_conditions', {})
     context = attributes.get('context', '')
     demonstrations = attributes.get('demonstrations', '')
@@ -35,7 +44,16 @@ def semantic_filter_operator_function(input_data: List[List[Dict[str, Any]]], at
 
 
 def semantic_filter_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate semantic filter operator attributes."""
+    """Validate semantic filter operator attributes.
+
+    Args:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -60,7 +78,16 @@ def semantic_filter_operator_validator(input_data: List[List[Dict[str, Any]]], a
 
 
 def semantic_filter_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain semantic filter operator output. Currently only returns attributes and output"""
+    """Generate explanation for semantic filter operator execution.
+
+    Args:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 
