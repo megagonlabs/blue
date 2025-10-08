@@ -32,15 +32,15 @@ class Consumer:
         Parameters:
             stream: Stream identifier to consume from.
             name: Name of the consumer. Defaults to "STREAM".
-            id: Unique identifier for the consumer. If None, a UUID will be generated.
-            sid: Short identifier for the consumer. If None, it will be generated from name and id.
-            cid: Canonical identifier for the consumer. If None, it will be generated from sid, prefix, and suffix.
-            prefix: Optional prefix for the cid.
-            suffix: Optional suffix for the cid.
+            id (str): Unique identifier for the consumer. If None, a UUID will be generated.
+            sid (str): Short identifier for the consumer. If None, it will be generated from name and id.
+            cid (str): Canonical identifier for the consumer. If None, it will be generated from sid, prefix, and suffix.
+            prefix (str): Optional prefix for the cid.
+            suffix (str): Optional suffix for the cid.
             owner: Owner of the consumer for metadata
             listener: Callback function to process each message.
             properties: Properties for the consumer. Defaults to None.
-            on_stop: Callback function to be called when the consumer stops.
+            on_stop (callable): Callback function to be called when the consumer stops.
         """
         self.stream_cid = stream
         self.name = name
@@ -584,7 +584,7 @@ class Producer:
     def read_all(self):
         """Read all messages from the stream.
         Returns:
-            List of Message objects read from the stream.
+            (list[Message]): List of Message objects read from the stream.
         """
         sl = self.connection.xlen(self.cid)
         m = self.connection.xread(streams={self.cid: "0"}, count=sl, block=200)

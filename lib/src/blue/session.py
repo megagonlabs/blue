@@ -42,7 +42,8 @@ class Session(Entity):
     ###### INITIALIZATION
     def _initialize(self, properties=None):
         """Initialize session properties and logger.
-        Args:
+
+        Parameters:
             properties: Dictionary of properties to configure the session. Defaults to None.
         """
         self._initialize_properties()
@@ -60,7 +61,8 @@ class Session(Entity):
 
     def _update_properties(self, properties=None):
         """Update session properties with provided values.
-        Args:
+
+        Parameters:
             properties: Dictionary of properties to update. Defaults to None.
         """
         if properties is None:
@@ -72,6 +74,7 @@ class Session(Entity):
 
     def get_stream(self):
         """Get the session's stream identifier.
+
         Returns:
             The session's stream identifier.
         """
@@ -92,7 +95,8 @@ class Session(Entity):
         """
         Add an agent to the session and initialize its data namespace.
         Announces agent addition via control message to the session stream.
-        Args:
+
+        Parameters:
             agent: Agent object to be added to the session.
         """
         self._init_agent_data_namespace(agent)
@@ -110,7 +114,8 @@ class Session(Entity):
     def remove_agent(self, agent):
         """
         Remove an agent from the session and announce its removal via control message to the session stream.
-        Args:
+
+        Parameters:
             agent: Agent object to be removed from the session.
         """
         ### TODO: Purge agent memory, probably not..
@@ -130,6 +135,7 @@ class Session(Entity):
     def list_agents(self):
         """
         List all agents currently in the session.
+
         Returns:
             List of agents in the session.
         """
@@ -154,7 +160,8 @@ class Session(Entity):
         """
         Notify the session about a new output stream created by an agent.
         Updates stream metadata and announces the new stream via control message to the session stream.
-        Args:
+
+        Parameters:
             agent: Agent object that created the output stream.
             output_stream: Identifier of the output stream.
             tags: List of tags associated with the output stream.
@@ -205,7 +212,8 @@ class Session(Entity):
     def set_metadata(self, key, value, nx=False):
         """
         Set metadata for the session.
-        Args:
+
+        Parameters:
             key: Metadata key.
             value: Metadata value.
             nx: If True, set the value only if the key does not already exist. Defaults to False.
@@ -215,8 +223,10 @@ class Session(Entity):
     def get_metadata(self, key=""):
         """
         Get metadata for the session.
-        Args:
+
+        Parameters:
             key: Metadata key. If empty, returns all metadata. Defaults to "".
+
         Returns:
             Metadata value or all metadata if key is empty.
         """
@@ -236,19 +246,21 @@ class Session(Entity):
 
     def get_budget(self):
         """Get the overall budget metadata for the session.
+
         Returns:
-            Dictionary containing overall budget metadata.
+            (dict): Dictionary containing overall budget metadata.
         """
         return self.get_metadata('budget')
 
     def set_budget_allocation(self, cost=None, accuracy=None, latency=None, nx=False):
         """
         Set budget allocation metadata for the session.
-        Args:
+
+        Parameters:
             cost: Cost allocation value.
             accuracy: Accuracy allocation value.
             latency: Latency allocation value.
-            nx: If True, set the value only if the key does not already exist. Defaults to False.
+            nx (bool): If True, set the value only if the key does not already exist. Defaults to False.
         """
         if cost is not None:
             self.set_metadata('budget.allocation.cost', cost, nx)
@@ -259,6 +271,7 @@ class Session(Entity):
 
     def get_budget_allocation(self):
         """Get the budget allocation metadata for the session.
+
         Returns:
             Dictionary containing budget allocation metadata.
         """
@@ -267,7 +280,8 @@ class Session(Entity):
     def _set_budget_use(self, cost=None, accuracy=None, latency=None):
         """
         Set budget usage metadata for the session.
-        Args:
+
+        Parameters:
             cost: Cost usage value.
             accuracy: Accuracy usage value.
             latency: Latency usage value.
@@ -282,19 +296,22 @@ class Session(Entity):
     def update_budget_use(self, cost=None, accuracy=None, latency=None):
         """
         Update budget usage metadata for the session by incrementing existing values.
-        Args:
+
+        Parameters:
             cost: Cost usage value to increment.
             accuracy: Accuracy usage value to increment.
             latency: Latency usage value to increment.
-        Not implemented yet.
+
+        !!! warning "Not Implemented"
         """
         # TODO
         pass
 
     def get_budget_use(self):
         """Get the budget usage metadata for the session.
+
         Returns:
-            Dictionary containing budget usage metadata.
+            (dict): Dictionary containing budget usage metadata.
         """
         return self.get_metadata(key='budget.use')
 
@@ -311,31 +328,36 @@ class Session(Entity):
 
     def _get_data_namespace(self):
         """Get the data namespace for the session.
+
         Returns:
-         The data namespace for the session.
+            The data namespace for the session.
         """
 
         return self.cid + ":DATA"
 
     def set_data(self, key, value):
         """Set session data for a specific key.
-        Args:
+
+        Parameters:
             key: Data key.
-            value: Data value.
+            value (Any): Data value.
         """
         self.connection.json().set(self._get_data_namespace(), "$." + key, value)
 
     def delete_data(self, key):
         """Delete session data for a specific key.
-        Args:
-            key: Data key to delete.
+
+        Parameters:
+            key (str): Data key to delete.
         """
         self.connection.json().delete(self._get_data_namespace(), "$." + key)
 
     def get_data(self, key):
         """Get session data for a specific key.
-        Args:
-            key: Data key.
+
+        Parameters:
+            key (str): Data key.
+
         Returns:
             Data value for the specified key.
         """
@@ -344,15 +366,17 @@ class Session(Entity):
 
     def get_all_data(self):
         """Get all session data.
+
         Returns:
-            Dictionary containing all session data.
+            (dict): Dictionary containing all session data.
         """
         value = self.connection.json().get(self._get_data_namespace(), Path("$"))
         return self.__get_json_value(value)
 
     def append_data(self, key, value):
         """Append a value to a list in session data for a specific key.
-        Args:
+
+        Parameters:
             key: Data key.
             value: Value to append to the list.
         """
@@ -360,18 +384,22 @@ class Session(Entity):
 
     def get_data_len(self, key):
         """Get the length of a list in session data for a specific key.
-        Args:
+
+        Parameters:
             key: Data key.
+
         Returns:
-            Length of the list for the specified key.
+            (int): Length of the list for the specified key.
         """
         return self.connection.json().arrlen(self._get_data_namespace(), "$." + key)
 
     ## session agent data (shared by all workers of an agent)
     def _get_agent_data_namespace(self, agent):
         """Get the data namespace for a specific agent in the session.
-        Args:
+
+        Parameters:
             agent: Agent object.
+
         Returns:
             The data namespace for the specified agent.
         """
@@ -379,7 +407,8 @@ class Session(Entity):
 
     def _init_agent_data_namespace(self, agent):
         """Initialize data namespace for a specific agent in the session.
-        Args:
+
+        Parameters:
             agent: Agent object.
         """
         # create namespaces for stream-specific data
@@ -392,7 +421,8 @@ class Session(Entity):
 
     def set_agent_data(self, agent, key, value):
         """Set data for a specific key in an agent's data namespace.
-        Args:
+
+        Parameters:
             agent: Agent object.
             key: Data key.
             value: Data value.
@@ -405,11 +435,13 @@ class Session(Entity):
 
     def get_agent_data(self, agent, key):
         """Get data for a specific key in an agent's data namespace.
-        Args:
+
+        Parameters:
             agent: Agent object.
             key: Data key.
+
         Returns:
-            Data value for the specified key.
+            (Any): Data value for the specified key.
         """
         value = self.connection.json().get(
             self._get_agent_data_namespace(agent),
@@ -419,10 +451,12 @@ class Session(Entity):
 
     def get_all_agent_data(self, agent):
         """Get all data in an agent's data namespace.
-        Args:
+
+        Parameters:
             agent: Agent object.
+
         Returns:
-            Dictionary containing all data for the specified agent.
+            (dict): Dictionary containing all data for the specified agent.
         """
         value = self.connection.json().get(
             self._get_agent_data_namespace(agent),
@@ -432,7 +466,8 @@ class Session(Entity):
 
     def append_agent_data(self, agent, key, value):
         """Append a value to a list in an agent's data namespace for a specific key.
-        Args:
+
+        Parameters:
             agent: Agent object.
             key: Data key.
             value: Value to append to the list.
@@ -445,9 +480,11 @@ class Session(Entity):
 
     def get_agent_data_len(self, agent, key):
         """Get the length of a list in an agent's data namespace for a specific key.
-        Args:
+
+        Parameters:
             agent: Agent object.
             key: Data key.
+
         Returns:
             Length of the list for the specified key.
         """
@@ -465,7 +502,8 @@ class Session(Entity):
     def _update_stream_metadata(self, stream, agent, tags):
         """
         Update metadata for a specific stream in the session with agent and tags information.
-        Args:
+
+        Parameters:
             stream: Stream identifier.
             agent: Agent object that created the stream.
             tags: List of tags associated with the stream.
@@ -481,8 +519,10 @@ class Session(Entity):
     ## session stream data
     def _get_stream_data_namespace(self, stream):
         """Get the data namespace for a specific stream in the session.
-        Args:
+
+        Parameters:
             stream: Stream identifier.
+
         Returns:
             The data namespace for the specified stream.
         """
@@ -490,7 +530,8 @@ class Session(Entity):
 
     def set_stream_data(self, stream, key, value):
         """Set data for a specific key in a stream's data namespace.
-        Args:
+
+        Parameters:
             stream: Stream identifier.
             key: Data key.
             value: Data value to set.
@@ -503,9 +544,11 @@ class Session(Entity):
 
     def get_stream_data(self, stream, key):
         """Get data for a specific key in a stream's data namespace.
-        Args:
+
+        Parameters:
             stream: Stream identifier.
             key: Data key.
+
         Returns:
             Data value for the specified key.
         """
@@ -517,8 +560,10 @@ class Session(Entity):
 
     def get_all_stream_data(self, stream):
         """Get all data in a stream's data namespace.
-        Args:
+
+        Parameters:
             stream: Stream identifier.
+
         Returns:
             All data in the stream's data namespace.
         """
@@ -530,7 +575,8 @@ class Session(Entity):
 
     def append_stream_data(self, stream, key, value):
         """Append a value to a list in a stream's data namespace for a specific key.
-        Args:
+
+        Parameters:
             stream: Stream identifier.
             key: Data key.
             value: Value to append to the list.
@@ -543,9 +589,11 @@ class Session(Entity):
 
     def get_stream_data_len(self, stream, key):
         """Get the length of a list in a stream's data namespace for a specific key.
-        Args:
+
+        Parameters:
             stream: Stream identifier.
             key: Data key.
+
         Returns:
             Length of the list for the specified key.
         """
@@ -556,6 +604,7 @@ class Session(Entity):
 
     def to_dict(self):
         """Get a dictionary representation of the session, including its metadata.
+
         Returns:
             Dictionary containing session metadata and identifier.
         """
@@ -563,6 +612,7 @@ class Session(Entity):
 
     def get_stream_debug_info(self):
         """Get debug information for all streams in the session.
+
         Returns:
             Dictionary containing debug information for all streams.
         """

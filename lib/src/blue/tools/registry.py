@@ -96,7 +96,7 @@ class ToolRegistry(Registry):
             server: Name of the tool server
 
         Returns:
-            Description of the specified tool server
+            (str): Description of the specified tool server
         """
         return super().get_record_description(server, 'server', '/')
 
@@ -105,8 +105,8 @@ class ToolRegistry(Registry):
 
         Parameters:
             server: Name of the tool server
-            description: New description for the tool server
-            rebuild: Whether to rebuild the registry index after setting the new description. Defaults to False.
+            description (str): New description for the tool server
+            rebuild (bool): Whether to rebuild the registry index after setting the new description. Defaults to False.
         """
         super().set_record_description(server, 'server', '/', description, rebuild=rebuild)
 
@@ -127,10 +127,10 @@ class ToolRegistry(Registry):
 
         Parameters:
             server: Name of the tool server
-            key: Property key
+            key (str): Property key
 
         Returns:
-            Value of the specified property key for the tool server
+            (Any): Value of the specified property key for the tool server
         """
         return super().get_record_property(server, 'server', '/', key)
 
@@ -139,9 +139,9 @@ class ToolRegistry(Registry):
 
         Parameters:
             server: Name of the tool server
-            key: Key of the property to set
-            value: Value of the property to set
-            rebuild: Whether to rebuild the registry index after setting the property. Defaults to False.
+            key (str): Key of the property to set
+            value (Any): Value of the property to set
+            rebuild (bool): Whether to rebuild the registry index after setting the property. Defaults to False.
         """
         super().set_record_property(server, 'server', '/', key, value, rebuild=rebuild)
 
@@ -150,8 +150,8 @@ class ToolRegistry(Registry):
 
         Parameters:
             server: Name of the tool server
-            key: Key of the property to delete
-            rebuild: Whether to rebuild the registry index after deleting the property. Defaults to False.
+            key (str): Key of the property to delete
+            rebuild (bool): Whether to rebuild the registry index after deleting the property. Defaults to False.
         """
         super().delete_record_property(server, 'server', '/', key, rebuild=rebuild)
 
@@ -162,9 +162,9 @@ class ToolRegistry(Registry):
         Parameters:
             server: Name of the tool server
             tool: Name of the tool
-            description: Description of the tool. Defaults to "".
+            description (str): Description of the tool. Defaults to "".
             properties: Properties of the tool. Defaults to {}.
-            rebuild: Whether to rebuild the registry index after registration of the tool. Defaults to False.
+            rebuild (bool): Whether to rebuild the registry index after registration of the tool. Defaults to False.
         """
         super().register_record(tool, 'tool', f'/server/{server}', description=description, properties=properties, rebuild=rebuild)
 
@@ -174,9 +174,9 @@ class ToolRegistry(Registry):
         Parameters:
             server: Name of the tool server
             tool: Name of the tool
-            description: Description of the tool. Defaults to None.
+            description (str): Description of the tool. Defaults to None.
             properties: Properties of the tool. Defaults to None.
-            rebuild: Whether to rebuild the registry index after update of the tool. Defaults to False.
+            rebuild (bool): Whether to rebuild the registry index after update of the tool. Defaults to False.
         """
         super().update_record(tool, 'tool', f'/server/{server}', description=description, properties=properties, rebuild=rebuild)
 
@@ -186,7 +186,7 @@ class ToolRegistry(Registry):
         Parameters:
             server: Name of the tool server
             tool: Tool to deregister
-            rebuild: Whether to rebuild the registry index after deregistration of the tool. Defaults to False.
+            rebuild (bool): Whether to rebuild the registry index after deregistration of the tool. Defaults to False.
         """
         record = self.get_server_tool(server, tool)
         super().deregister(record, rebuild=rebuild)
@@ -223,7 +223,7 @@ class ToolRegistry(Registry):
             tool: Name of the tool
 
         Returns:
-            Description of the specified tool under the specified tool server
+            (str): Description of the specified tool under the specified tool server
         """
         return super().get_record_description(tool, 'tool', f'/server/{server}')
 
@@ -233,8 +233,8 @@ class ToolRegistry(Registry):
         Parameters:
             server: Name of the tool server
             tool: Name of the tool
-            description: New description for the tool
-            rebuild: Whether to rebuild the registry index after setting the new description for the tool. Defaults to False.
+            description (str): New description for the tool
+            rebuild (bool): Whether to rebuild the registry index after setting the new description for the tool. Defaults to False.
         """
         super().set_record_description(tool, 'tool', f'/server/{server}', description, rebuild=rebuild)
 
@@ -257,10 +257,10 @@ class ToolRegistry(Registry):
         Parameters:
             server: Name of the tool server
             tool: Name of the tool
-            key: Property key
+            key (str): Property key
 
         Returns:
-            Value of the specified property key for the tool under the specified tool server
+            (Any): Value of the specified property key for the tool under the specified tool server
         """
         return super().get_record_property(tool, 'tool', f'/server/{server}', key)
 
@@ -270,9 +270,9 @@ class ToolRegistry(Registry):
         Parameters:
             server: Name of the tool server
             tool: Name of the tool
-            key: Key of the property to set
-            value: Value of the property to set
-            rebuild: Whether to rebuild the registry index after setting the property. Defaults to False.
+            key (str): Key of the property to set
+            value (Any): Value of the property to set
+            rebuild (bool): Whether to rebuild the registry index after setting the property. Defaults to False.
         """
         super().set_record_property(tool, 'tool', f'/server/{server}', key, value, rebuild=rebuild)
 
@@ -295,7 +295,7 @@ class ToolRegistry(Registry):
         Parameters:
             server: Name of the tool server
             connection: Connection properties to set
-            rebuild: Whether to rebuild the registry index after setting the connection properties. Defaults to False.
+            rebuild (bool): Whether to rebuild the registry index after setting the connection properties. Defaults to False.
         """
         self.set_server_property(server, 'connection', connection, rebuild=rebuild)
 
@@ -357,7 +357,7 @@ class ToolRegistry(Registry):
         """Sync all registered tool servers and their tools.
 
         Parameters:
-            recursive: Whether to recursively sync tools. Defaults to False.
+            recursive (bool): Whether to recursively sync tools. Defaults to False.
         """
         # TODO
         pass
@@ -367,8 +367,8 @@ class ToolRegistry(Registry):
 
         Parameters:
             server: Name of the tool server
-            recursive: Whether to recursively sync tools. Defaults to False.
-            rebuild: Whether to rebuild the registry index after syncing. Defaults to False.
+            recursive (bool): Whether to recursively sync tools. Defaults to False.
+            rebuild (bool): Whether to rebuild the registry index after syncing. Defaults to False.
         """
         connection = self.connect_server(server)
         if connection:
@@ -434,8 +434,8 @@ class ToolRegistry(Registry):
             server: Name of the tool server
             tool: Name of the tool
             connection: Connection object to the tool server. If None, a new connection will be established. Defaults to None.
-            recursive: Whether to recursively sync. Defaults to False.
-            rebuild: Whether to rebuild the registry index after syncing. Defaults to False.
+            recursive (bool): Whether to recursively sync. Defaults to False.
+            rebuild (bool): Whether to rebuild the registry index after syncing. Defaults to False.
         """
         if connection is None:
             connection = self.connect_server(server)
