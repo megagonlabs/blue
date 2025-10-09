@@ -65,13 +65,38 @@ class SQLiteDBSource(DataSource):
 
     ######### source
     def fetch_metadata(self):
+        """
+        Fetch metadata for source.
+
+        Args:
+            None.
+
+        Returns:
+            dict: Metadata dictionary (currently empty for SQLite).
+        """
         return {}
 
     def fetch_schema(self):
+        """
+        Fetch schema for source.
+
+        Args:
+            None.
+
+        Returns:
+            dict: Metadata dictionary (currently empty for SQLite).
+        """
+       
         return {}
 
     ######### database
     def fetch_databases(self):
+        """
+        List all SQLite databases in the configured data directory.
+
+        Returns:
+            list[str]: Names of database files (without the '.db' extension).
+        """
         # get list of dbs from data directory
         ls = os.listdir(self._get_database_directory())
         # return only .db files
@@ -85,11 +110,31 @@ class SQLiteDBSource(DataSource):
         return dbs
 
     def fetch_database_metadata(self, database):
+        """
+        Fetch metadata for a specific database.
+
+        Args:
+            database (str): Database name.
+
+        Returns:
+            dict: Metadata dictionary (currently empty for SQLite).
+        """
         return {}
 
     
     def create_database(self, database, properties={}, overwrite=False):
         """Create a new SQLite database file."""
+        """
+        Create a new SQLite database file.
+
+        Args:
+            database (str): Name of the database to create.
+            properties (dict, optional): Additional properties (unused in SQLite).
+            overwrite (bool, optional): If True, overwrite existing database file.
+
+        Returns:
+            dict: Status of the operation: {"status": "success"} or {"status": "skipped"}.
+        """
         # Check if database file already exists
         db_path = self._get_database_path(database)
         if os.path.exists(db_path):
@@ -123,15 +168,51 @@ class SQLiteDBSource(DataSource):
 
     ######### database/collection
     def fetch_database_collections(self, database):
+        """
+        Fetch the list of logical 'collections' (schemas or namespaces) in the specified SQLite database.
+
+        Since SQLite does not support multiple schemas or collections like other RDBMS systems
+        (e.g., PostgreSQL), this method returns a single default collection name "public" so that
+        a consistent data registry entry can be created for the database.
+
+        Args:
+            database (str): The name or path of the SQLite database file.
+
+        Returns:
+            list[str]: A list containing a single element, "public".
+        """
         ## for sqlite, there is no collection actually. We are returning "public" to have data registry entry
         collections = []
         collections.append("public")
         return collections 
         
     def fetch_database_collection_metadata(self, database, collection):
+        """
+        Fetch metadata for a given 'collection' within the SQLite database.
+
+        Since SQLite does not have the concept of separate collections or schemas,
+        this function returns an empty metadata dictionary placeholder for consistency
+        with other database source implementations.
+
+        Args:
+            database (str): The name or path of the SQLite database file.
+            collection (str): The logical collection name (typically "public").
+
+        Returns:
+            dict: An empty dictionary, as SQLite does not support collection-level metadata.
+        """
         return {}
 
     def fetch_enum_types(self, db_connection):
+        """
+        Fetch enumerated types for a database connection.
+
+        Args:
+            db_connection (sqlite3.Connection): Active SQLite database connection.
+
+        Returns:
+            list: List of enum types (currently empty for SQLite).
+        """
         # TODO
         return []
 
@@ -177,6 +258,16 @@ class SQLiteDBSource(DataSource):
 
     
     def fetch_database_collection_relations(self, database, collection):
+        """
+        Fetch relationships (foreign keys) within a database collection.
+
+        Args:
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+
+        Returns:
+            dict: Collection-level relationship metadata (currently empty for SQLite).
+        """
         return {}
     
 
@@ -248,6 +339,29 @@ class SQLiteDBSource(DataSource):
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
+        """
+        Execute a SQL query against a SQLite database and return results as JSON-compatible records.
+
+        Args:
+            query (str): The SQL query string to execute.
+            database (str, optional): Name of the SQLite database to run the query against. 
+                                    Must be provided, otherwise raises Exception.
+            collection (str, optional): Collection name. Ignored for SQLite but included for interface consistency.
+            optional_properties (dict, optional): Dictionary of optional execution properties:
+                - 'commit' (bool): If True, commits the transaction after executing the query.
+
+        Returns:
+            list[dict]: List of rows represented as dictionaries where keys are column names.
+                        Returns an empty list if the query does not return any rows or no cursor description.
+
+        Raises:
+            Exception: If `database` is not provided.
+
+        Notes:
+            - If the query modifies data and 'commit' is True, changes are committed.
+            - Automatically disconnects from the database after execution.
+            - Converts SQLite query results to a JSON-compatible format using pandas.
+        """
         if database is None:
             raise Exception("No database provided")
 
@@ -278,13 +392,28 @@ class SQLiteDBSource(DataSource):
     ######### stats
 
     def fetch_source_stats(self):
+        """
+        Fetch source-level statistics for the SQLite source.
+
+        Returns:
+            dict: Source-level statistics (currently empty for SQLite).
+        """
         # TODO:
         stats = {}
         return stats
 
     def fetch_database_stats(self, database):
         """
-        Fetch basic stats for an SQLite database file.
+        Fetch basic statistics for an SQLite database.
+
+        Args:
+            database (str): Name of the database to analyze.
+
+        Returns:
+            dict: A dictionary containing database-level statistics:
+                - size_bytes (int): Size of the database file in bytes.
+                - table_count (int): Total number of tables in the database.
+            
         """
         stats = {}
        
@@ -313,6 +442,21 @@ class SQLiteDBSource(DataSource):
 
 
     def fetch_collection_stats(self, database, collection_name, entities, relations):
+        """
+        Collect basic statistics for a database collection (schema grouping).
+
+        Computes counts of entities (tables) and relations within the given
+        collection for reporting or registry enrichment.
+
+        Args:
+            database (str): Name of the database the collection belongs to.
+            collection_name (str): Name of the collection.
+            entities (list): List of entity definitions (e.g., tables).
+            relations (list): List of relationships between entities.
+
+        Returns:
+            dict: Dictionary containing counts of entities and relations.
+        """
         
         stats = {}
         num_entities = len(entities)
@@ -326,11 +470,23 @@ class SQLiteDBSource(DataSource):
 
     def fetch_entity_stats(self, database, collection, entity):
         """
-        Fetch stats for a single SQLite table (entity).
+        Fetch basic statistics for a single SQLite table (entity).
+
+        Args:
+            database (str): Name of the SQLite database.
+            collection (str): Collection name (ignored for SQLite, included for interface consistency).
+            entity (str): Name of the table (entity) to analyze.
+
         Returns:
-            row_count: number of rows in the table
+            dict: A dictionary containing:
+                - row_count (int or None): Number of rows in the table. 
+                Returns None if the query fails or an error occurs.
+        
+        Notes:
+            - The `collection` parameter is ignored since SQLite does not support schemas.
+            - Logs are not raised for SQLite errors; instead, `row_count` is set to None.
         """
-        ### collection is ignored, 
+        
         stats = {}
         table_name = entity
         db_path = self._get_database_path(database)
@@ -352,8 +508,24 @@ class SQLiteDBSource(DataSource):
 
     def fetch_property_stats(self, database, collection, table, property_name, sample_limit=10):
         """
-        SQLite version of property stats.
-        collection is ignored (no schemas in SQLite).
+        Fetch basic statistics for a column/property in a SQLite table.
+
+        Args:
+            database (str): Name or path of the SQLite database.
+            collection (str): Ignored in SQLite (no schema support).
+            table (str): Table name to analyze.
+            property_name (str): Column name to fetch stats for.
+            sample_limit (int, optional): Number of sample values to retrieve. Defaults to 10.
+
+        Returns:
+            dict: Dictionary containing property statistics:
+                - count: number of non-null values
+                - distinct_count: number of unique values
+                - null_count: number of null values
+                - sample_values: list of sample non-null values
+                - min: minimum value (if numeric/date)
+                - max: maximum value (if numeric/date)
+                - most_common_vals: empty list (not supported in SQLite)
         """
         db_path = self._get_database_path(database)
         

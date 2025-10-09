@@ -45,13 +45,35 @@ class MySQLDBSource(DataSource):
 
     ######### source
     def fetch_metadata(self):
+        """
+        Fetch high-level metadata for the MySQL source connection.
+
+        Currently a placeholder method. 
+        Returns:
+            dict: Currently returns an empty dictionary.
+        """
         return {}
 
     def fetch_schema(self):
+        """
+        Retrieve global schema metadata for the MySQL source.
+
+        Returns:
+            dict: Currently returns an empty dictionary.
+        """
         return {}
 
     ######### database
     def fetch_databases(self):
+        """
+        Retrieve a list of available MySQL databases, excluding system schemas.
+
+        Executes `SHOW DATABASES` and filters out MySQL system databases like
+        `information_schema`, `performance_schema`, `sys`, and `mysql`.
+
+        Returns:
+            list[str]: List of user-defined databases.
+        """
         query = "SHOW DATABASES;"
         cursor = self.connection.cursor(buffered=True)
         cursor.execute(query)
@@ -65,9 +87,27 @@ class MySQLDBSource(DataSource):
         return dbs
 
     def fetch_database_metadata(self, database):
+        """
+        Fetch high-level metadata for a specific MySQL database.
+
+        Args:
+            database (str): Name of the database.
+
+        Returns:
+            dict: currently empty.
+        """
         return {}
 
     def fetch_database_schema(self, database):
+        """
+        Retrieve schema definition for a MySQL database.
+
+        Args:
+            database (str): Name of the database.
+
+        Returns:
+            dict: Schema definition, currently empty.
+        """
         return {}
 
     ######### database/collection
@@ -87,15 +127,50 @@ class MySQLDBSource(DataSource):
         return None
 
     def fetch_database_collections(self, database):
+        """
+        Return a default 'public' collection for MySQL databases.
+
+        Since MySQL does not use named schemas (collections) like PostgreSQL,
+        this method returns a single collection called 'public' for registry consistency.
+
+        Args:
+            database (str): Name of the database.
+
+        Returns:
+            list[str]: Always returns ['public'].
+        """
         ## for mysql, there is no collection. We return "public" to create data registry entry
         collections = []
         collections.append("public")
         return collections 
         
     def fetch_database_collection_metadata(self, database, collection):
+        """
+        Placeholder for future collection-level metadata extraction in MySQL.
+
+        Args:
+            database (str): Name of the database.
+            collection (str): The placeholder collection name ("public").
+
+        Returns:
+            dict: Currently empty.
+        """
         return {}
 
     def fetch_database_collection_entities(self, database, collection):
+        """
+        Extract entity (table) and property (column) metadata from a MySQL database.
+
+        Queries `information_schema.columns` to gather table and column structure,
+        including enumeration values for `ENUM` data types.
+
+        Args:
+            database (str): Name of the database.
+            collection (str): Collection name (always 'public' for MySQL).
+
+        Returns:
+            dict: Mapping of entities (tables) to their properties and types.
+        """
         # connect to specific database (not source directly)
         db_connection = self._db_connect(database)
 
@@ -128,11 +203,33 @@ class MySQLDBSource(DataSource):
         return schema.get_entities()
 
     def fetch_database_collection_relations(self, database, collection):
+        """
+        Placeholder for relationship extraction between MySQL tables.
+
+        Args:
+            database (str): Database name.
+            collection (str): Collection name (always 'public').
+
+        Returns:
+            dict: Currently empty.
+        """
         return {}
     
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
+        """
+        Execute a SQL query on a MySQL database and return the result as JSON.
+
+        Args:
+            query (str): SQL query to execute.
+            database (str, optional): Name of the database to execute against.
+            collection (str, optional): Placeholder argument for consistency.
+            optional_properties (dict, optional): Optional flags such as commit.
+
+        Returns:
+            list[dict]: Query results as a list of JSON-compatible dictionaries.
+        """
         if database is None:
             raise Exception("No database provided")
 
@@ -157,6 +254,16 @@ class MySQLDBSource(DataSource):
     ######### stats
 
     def fetch_source_stats(self):
+        """
+        Collect high-level metadata about the MySQL source connection.
+
+        Executes a simple query (e.g., `SELECT version()`) to verify connectivity
+        and retrieve basic version information.
+
+        Returns:
+            dict: A dictionary containing source-level statistics such as version
+            or error details if collection fails.
+        """
             
         stats = {}
 
@@ -172,6 +279,20 @@ class MySQLDBSource(DataSource):
         return stats
 
     def fetch_database_stats(self, database):
+        """
+        Collect size-related statistics for a given MySQL database.
+
+        Computes the total size (data + index) of all tables in the specified schema
+        using the `information_schema.tables` system view.
+
+        Args:
+            database (str): Name of the database (schema) to inspect.
+
+        Returns:
+            dict: A JSON-safe dictionary containing database-level statistics such
+            as total size in bytes.
+        """
+        
             
         conn = self._db_connect(database)
         cur = conn.cursor()
@@ -197,7 +318,23 @@ class MySQLDBSource(DataSource):
 
     
     def fetch_collection_stats(self, database, collection_name, entities, relations):
-            
+        """
+        Collect basic statistics for a database collection (schema grouping).
+
+        Computes counts of entities (tables) and relations within the given
+        collection for reporting or registry enrichment.
+
+        Args:
+            database (str): Name of the database the collection belongs to.
+            collection_name (str): Name of the collection.
+            entities (list): List of entity definitions (e.g., tables).
+            relations (list): List of relationships between entities.
+
+        Returns:
+            dict: Dictionary containing counts of entities and relations.
+        """
+        
+        
         stats = {}
         num_entities = len(entities)
         num_relations = len(relations)
@@ -210,10 +347,19 @@ class MySQLDBSource(DataSource):
     
     def fetch_entity_stats(self, database, collection, entity):
         """
-        For MySQL:
-        - `database` is the schema (selected when connecting)
-        - `collection` can be ignored 
-        - `entity` is the table
+        Collect basic statistics for a single entity (table) in a MySQL database.
+
+        Executes a `COUNT(*)` query to determine the total number of rows.
+        The `collection` argument is ignored for MySQL sources.
+
+        Args:
+            database (str): Name of the database (schema) containing the entity.
+            collection (str): Unused for MySQL but included for interface consistency.
+            entity (str): Name of the table to analyze.
+
+        Returns:
+            dict: A JSON-safe dictionary containing entity-level stats, such as
+            row count.
         """
         
         conn = self._db_connect(database)
@@ -236,7 +382,38 @@ class MySQLDBSource(DataSource):
         return json_utils.json_safe(stats)
 
     def fetch_property_stats(self, database, collection, table, property_name, sample_limit=10):
-    
+        """
+        Fetch basic statistics for a specific column (property) in a MySQL table.
+
+        This method queries `INFORMATION_SCHEMA.COLUMNS` and the target table to
+        compute statistics such as counts, distinct values, nulls, sample values,
+        min/max (for numeric/date types), and most common values.
+
+        Args:
+            database (str): Name of the database to connect to.
+            collection (str): Schema name in MySQL (equivalent to database namespace).
+            table (str): The table name containing the property.
+            property_name (str): The column (property) name to analyze.
+            sample_limit (int, optional): Maximum number of sample non-null values 
+                to retrieve. Defaults to 10.
+
+        Returns:
+            dict: A dictionary containing the following statistics:
+                - count (int): Number of non-null values in the column.
+                - distinct_count (int): Number of distinct non-null values.
+                - null_count (int): Number of null values.
+                - sample_values (list): Up to `sample_limit` example non-null values.
+                - min (Any or None): Minimum value (if supported by the column type).
+                - max (Any or None): Maximum value (if supported by the column type).
+                - most_common_vals (list): Up to 5 most frequent values.
+
+        Notes:
+            - Min/max are computed only for numeric, date, timestamp, boolean, and enum types.
+            - "Most common values" are computed by grouping and counting occurrences,
+            since MySQL does not expose statistics like PostgreSQL's `pg_stats`.
+            - Returns an empty dict if the query fails.
+        """
+        
         conn = self._db_connect(database)
         cursor = conn.cursor()
 

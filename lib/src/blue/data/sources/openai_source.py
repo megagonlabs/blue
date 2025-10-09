@@ -106,34 +106,99 @@ Output:
 
     ######### source
     def fetch_metadata(self):
+        """
+        Fetch general metadata for the OpenAI source.
+
+        Returns:
+            dict: Empty dictionary, as OpenAI does not expose metadata like databases.
+        """
         return {}
 
     def fetch_schema(self):
+        """
+        Fetch the overall schema of the OpenAI source.
+
+        Returns:
+            dict: Empty dictionary 
+        """
         return {}
 
     ######### database
     def fetch_databases(self):
+        """
+        Fetch available databases in the OpenAI source.
+
+        Returns:
+            list: Contains a single virtual database ['openai'].
+        """
         dbs = []
         dbs.append("openai")
         return dbs
 
     def fetch_database_metadata(self, database):
+        """
+        Fetch metadata for a given virtual OpenAI database.
+
+        Args:
+            database (str): The virtual database name.
+
+        Returns:
+            dict: Empty dictionary since OpenAI databases are virtual.
+        """
         return {}
 
     def fetch_database_schema(self, database):
+        """
+        Fetch the schema of the specified OpenAI database.
+
+        Args:
+            database (str): The virtual database name.
+
+        Returns:
+            dict: Empty dictionary
+        """
         return {}
 
     ######### database/collection
     def fetch_database_collections(self, database):
+        """
+        Fetch collections  in the OpenAI database.
+
+        Args:
+            database (str): The virtual database name.
+
+        Returns:
+            list: A single virtual collection ['public'].
+        """
         collections = []
         collections.append("public")
         return collections
 
 
     def fetch_database_collection_metadata(self, database, collection):
+        """
+        Fetch metadata for a specific OpenAI collection.
+
+        Args:
+            database (str): The virtual database name.
+            collection (str): The virtual collection name.
+
+        Returns:
+            dict: Empty dictionary, as no collection metadata is stored.
+        """
         return {}
 
     def fetch_database_collection_entities(self, database, collection):
+        """
+        Fetch entities (analogous to tables) and their attributes for OpenAI.
+
+        Args:
+            database (str): The virtual database name.
+            collection (str): The virtual collection name.
+
+        Returns:
+            dict: Dictionary of one virtual entity with a single text attribute.
+        """
         table_name = "openai_entity"
         column_name = "openai_entity_attribute"
         data_type = "text"
@@ -147,10 +212,29 @@ Output:
         return schema.get_entities()
 
     def fetch_database_collection_relations(self, database, collection):
+        """
+        Fetch relationships between entities in an OpenAI collection.
+
+        Args:
+            database (str): The virtual database name.
+            collection (str): The virtual collection name.
+
+        Returns:
+            dict: Empty dictionary since no relationships exist in OpenAI source.
+        """
         return {}
 
 
     def get_service_address(self, properties=None):
+        """
+        Construct and return the WebSocket service address for OpenAI interaction.
+
+        Args:
+            properties (dict, optional): Optional properties to override connection info.
+
+        Returns:
+            str: Service address in 'ws://host:port' format.
+        """
         service_address = f"ws://{self.host}:{self.port}"
         return service_address
 
