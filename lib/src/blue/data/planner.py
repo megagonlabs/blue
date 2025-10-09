@@ -15,6 +15,7 @@ from blue.utils import json_utils
 
 class TaskType(Constant):
     """Task types for DataPlanner:
+
     - QUESTION_ANSWER: for question answering tasks
     - DATA_TRANSFORM: for data transformation tasks (Not implemented yet)
     """
