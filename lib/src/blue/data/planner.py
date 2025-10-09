@@ -40,7 +40,8 @@ class DataPlanner:
 
     def __init__(self, name="DATA_PLANNER", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         """Initialize DataPlanner with optional name, id, sid, cid, prefix, suffix, and properties.
-        Args:
+
+        Parameters:
             name (str): Name of the planner.
             id (str): Unique identifier for the planner. If not provided, a random UUID is generated.
             sid (str): Short identifier. If not provided, constructed from name and id.
@@ -80,7 +81,7 @@ class DataPlanner:
         """
         Initialize the planner with default and provided properties.
 
-        Args:
+        Parameters:
             properties: Properties for the planner. Defaults to None.
         """
         self._initialize_properties()
@@ -102,7 +103,8 @@ class DataPlanner:
     def _update_properties(self, properties=None):
         """
         Update the planner properties with provided properties.
-        Args:
+
+        Parameters:
             properties: Properties to update. Defaults to None.
         """
         if properties is None:
@@ -116,7 +118,8 @@ class DataPlanner:
         """Create a data processing plan based on the task, data, and attributes.
         In current implementation, only supports QUESTION_ANSWER task type, and simply relies on a predefined plan_discover operator.
         This can be extended to use LLMs for more complex planning in future.
-        Args:
+
+        Parameters:
             plan_data (str): The data to be processed.
             plan_task (TaskType): The type of task to be performed.
             plan_attributes (dict): Additional attributes for the plan.
@@ -206,7 +209,8 @@ class DataPlanner:
 
     def propogate_failure_recursively(self, p, n, provenance="$"):
         """Propogate failure status recursively to next nodes and parent nodes if applicable.
-        Args:
+
+        Parameters:
             p (DataPipeline): The data pipeline.
             n (Node): The current node where failure occurred.
             provenance (str): Provenance string for tracking. Defaults to "$"."
@@ -250,9 +254,11 @@ class DataPlanner:
 
     def get_inherited_properties(self, p, operator_node):
         """Get inherited properties for an operator node from its parent pipeline and parent operator if applicable.
-        Args:
+
+        Parameters:
             p (DataPipeline): The data pipeline.
             operator_node (Node): The operator node to get inherited properties for.
+
         Returns:
             dict: Inherited properties.
         """
@@ -288,9 +294,11 @@ class DataPlanner:
 
     def get_inherited_attributes(self, p, operator_node):
         """Get inherited attributes for an operator node from its parent pipeline and parent operator if applicable.
-        Args:
+
+        Parameters:
             p (DataPipeline): The data pipeline.
             operator_node (Node): The operator node to get inherited attributes for.
+
         Returns:
             dict: Inherited attributes.
         """
@@ -326,9 +334,11 @@ class DataPlanner:
     def map_pipeline_to_operator_attributes(self, parent_pipeline_attributes, operator_entity):
         """Map parent pipeline attributes to operator attributes.
         This is a placeholder function and currently does not perform any mapping.
-        Args:
+
+        Parameters:
             parent_pipeline_attributes (dict): Attributes of the parent pipeline.
             operator_entity (Entity): The operator entity to map attributes for.
+
         Returns:
             dict: Mapped operator attributes."""
         operator_name = operator_entity.get_data("name")
@@ -350,10 +360,12 @@ class DataPlanner:
     def map_operator_to_opearator_attributes(self, parent_operator_attributes, operator_entity, parent_operator_entity):
         """Map parent operator attributes to operator attributes.
         This is a simple rule-based mapper based on operator names.
-        Args:
+
+        Parameters:
             parent_operator_attributes (dict): Attributes of the parent operator.
             operator_entity (Entity): The operator entity to map attributes for.
             parent_operator_entity (Entity): The parent operator entity.
+
         Returns:
             dict: Mapped operator attributes.
         """
@@ -395,7 +407,8 @@ class DataPlanner:
     def execute(self, p):
         """
         Execute the data pipeline recursively starting from the plan input node.
-        Args:
+
+        Parameters:
             p (DataPipeline): The data pipeline to execute.
         """
         plan_input_node = p.get_plan_input()
@@ -416,10 +429,12 @@ class DataPlanner:
     def aggregate_inputs(self, p, n, provenance=None):
         """
         Aggregate inputs from previous nodes for the current node to prepare for execution.
-        Args:
+
+        Parameters:
             p (DataPipeline): The data pipeline.
             n (Node): The current node to aggregate inputs for.
             provenance (str): Provenance string for tracking. Defaults to None.
+
         Returns:
             tuple: A tuple containing:
                 - input_data (list): Aggregated input data from previous nodes.
@@ -454,9 +469,11 @@ class DataPlanner:
     def get_node_pipeline_entity(self, p, n):
         """
         Get the pipeline entity for a given node if it is part of a pipeline.
-        Args:
+
+        Parameters:
             p (DataPipeline): The data pipeline.
             n (Node): The node to get the pipeline entity for.
+
         Returns:
             Entity: The pipeline entity if the node is part of a pipeline, otherwise None.
         """
@@ -465,9 +482,11 @@ class DataPlanner:
     def get_node_parent_operator_entity(self, p, n):
         """
         Get the parent operator entity for a given node if it is part of a pipeline.
-        Args:
+
+        Parameters:
             p (DataPipeline): The data pipeline.
             n (Node): The node to get the parent operator entity for.
+
         Returns:
             Entity: The parent operator entity if the node is part of a pipeline, otherwise None.
         """
@@ -481,9 +500,11 @@ class DataPlanner:
     def get_node_parent_operator_node(self, p, n):
         """
         Get the parent operator node for a given node if it is part of a pipeline.
-        Args:
+
+        Parameters:
             p (DataPipeline): The data pipeline.
             n (Node): The node to get the parent operator node for.
+
         Returns:
             Node: The parent operator node if the node is part of a pipeline, otherwise None.
         """
@@ -500,7 +521,7 @@ class DataPlanner:
         Execute a node and its children recursively, updating statuses and handling failures as needed.
         Provenance is used to track the execution path and passed on recursively.
 
-        Args:
+        Parameters:
             p (DataPipeline): The data pipeline.
             node (Node): The node to execute.
             provenance (str): The provenance string.
@@ -688,19 +709,19 @@ class DataPlanner:
 
     ######
     def _start_connection(self):
-        """ Start the database connection. """
+        """Start the database connection."""
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
     def _start(self):
-        """ Start the planner by establishing database connection and initializing the operator registry. """
+        """Start the planner by establishing database connection and initializing the operator registry."""
         self._start_connection()
 
         # initialize registry
         self._init_registry()
 
     def _init_registry(self):
-        """ Initialize the operator registry for the planner. """
+        """Initialize the operator registry for the planner."""
         # create instance of agent registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id

@@ -1,7 +1,7 @@
 ###############
 ### DataSchema
 #
-class DataSchema():
+class DataSchema:
     def __init__(self):
         """Initialize empty containers for entities and relations."""
         self.entities = {}
@@ -11,7 +11,7 @@ class DataSchema():
         """
         Check if an entity exists in the schema.
 
-        Args:
+        Parameters:
             key (str): The entity name or identifier.
 
         Returns:
@@ -25,7 +25,7 @@ class DataSchema():
 
         If the entity already exists, a unique suffix is appended (e.g., "__1").
 
-        Args:
+        Parameters:
             key (str): The name of the entity.
 
         Returns:
@@ -36,23 +36,21 @@ class DataSchema():
             entity_obj = self.entities[key]
             index = entity_obj["index"] + 1
             entity_obj["index"] = index
-      
+
         unique_key = key
         if index > 0:
-            unique_key = key + "__" + str(index) 
+            unique_key = key + "__" + str(index)
 
         entity_obj = {
             'name': key,
             'index': index,
             'description': '',
             'created_by': None,
-            'properties': {},     # type info only
-            'contents': {         # hierarchical child info
-                'attributes': {}   # attributes 
-            },
-            'icon': None
+            'properties': {},  # type info only
+            'contents': {'attributes': {}},  # hierarchical child info  # attributes
+            'icon': None,
         }
-        
+
         self.entities[unique_key] = entity_obj
 
         return key
@@ -61,7 +59,7 @@ class DataSchema():
         """
         Add a property (attribute) to an existing entity.
 
-        Args:
+        Parameters:
             key (str): The entity key.
             attribute (str): The name of the attribute.
             type (str): The type or description of the attribute.
@@ -75,14 +73,12 @@ class DataSchema():
             'info': type,
             'description': None,
         }
-        
-        
-    
+
     def _relation_encoding(self, source, relation, target):
         """
         Create a unique encoded key for a relation.
 
-        Args:
+        Parameters:
             source (str): The source entity name.
             relation (str): The relationship type.
             target (str): The target entity name.
@@ -90,15 +86,15 @@ class DataSchema():
         Returns:
             str: Encoded relation identifier string.
         """
-        s = source + " " + relation + " " + target 
+        s = source + " " + relation + " " + target
         return s.replace(" ", "__")
-        # return "(" + source + ")" + "-" + relation + "->" + "(" + target + ")" 
+        # return "(" + source + ")" + "-" + relation + "->" + "(" + target + ")"
 
     def has_relation(self, source, relation, target):
         """
         Check if a relation exists in the schema.
 
-        Args:
+        Parameters:
             source (str): Source entity name.
             relation (str): Relation name.
             target (str): Target entity name.
@@ -107,15 +103,15 @@ class DataSchema():
             bool: True if the relation exists, False otherwise.
         """
         relation_encoding = self._relation_encoding(source, relation, target)
-        return relation_encoding in self.relations 
+        return relation_encoding in self.relations
 
-    def add_relation(self, source, relation, target):  
+    def add_relation(self, source, relation, target):
         """
         Add a relation between two entities in the schema.
 
         If the same relation already exists, a numeric suffix is appended.
 
-        Args:
+        Parameters:
             source (str): Source entity name.
             relation (str): Relation name.
             target (str): Target entity name.
@@ -129,10 +125,10 @@ class DataSchema():
             relation_obj = self.relations[key]
             index = relation_obj["index"] + 1
             relation_obj["index"] = index
-      
+
         unique_key = key
         if index > 0:
-            unique_key = key + "__" + str(index) 
+            unique_key = key + "__" + str(index)
 
         relation_obj = {}
         relation_obj['name'] = relation
@@ -149,7 +145,7 @@ class DataSchema():
         """
         Add a property to an existing relation.
 
-        Args:
+        Parameters:
             key (str): Relation key.
             property (str): Property name.
             type (str): Property type or description.
@@ -203,7 +199,7 @@ class DataSchema():
             s += "key: " + key + '\n'
             s += "  name: " + name + '\n'
             s += "  index: " + str(index) + '\n'
-            s += "  properties: " +  '\n'
+            s += "  properties: " + '\n'
             for property in properties:
                 s += "    " + property + ": " + properties[property] + '\n'
 
@@ -220,7 +216,7 @@ class DataSchema():
             s += "  index: " + str(index) + '\n'
             s += "  source: " + source + '\n'
             s += "  target: " + target + '\n'
-            s += "  properties: " +  '\n'
+            s += "  properties: " + '\n'
             for property in properties:
                 s += "    " + property + ": " + properties[property] + '\n'
 

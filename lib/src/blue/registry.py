@@ -30,7 +30,7 @@ class Registry:
         """
         Initialize a registry instance with optional identifiers, type, namespace prefix/suffix, and properties.
 
-        Args:
+        Parameters:
             name (str, optional): Registry name (default "REGISTRY").
             type (str, optional): Registry type (default "record").
             id (str, optional): Unique ID for the registry instance. Generated if not provided.
@@ -42,7 +42,7 @@ class Registry:
             properties (dict, optional): Dictionary of properties (e.g., database connectivity, embeddings model).
 
         Initializes the registry, properties, logger, and starts a connection to the underlying datastore.
-        """    
+        """
 
         self.name = name
 
@@ -82,7 +82,7 @@ class Registry:
         """
         Initialize internal state including properties, embeddings, vector dimensions, and logger.
 
-        Args:
+        Parameters:
             properties (dict, optional): Overrides for default registry properties.
         """
         self._initialize_properties()
@@ -98,7 +98,7 @@ class Registry:
         Initialize default properties for the registry, including database host/port
         and default embeddings model.
         """
-        
+
         self.properties = {}
 
         # db connectivity
@@ -112,7 +112,7 @@ class Registry:
         """
         Update registry properties with a given dictionary, overriding defaults.
 
-        Args:
+        Parameters:
             properties (dict, optional): Dictionary of properties to update.
         """
 
@@ -299,13 +299,13 @@ class Registry:
         """
         Index a single record (or recursively its nested contents) in the Redis search index.
 
-        Args:
+        Parameters:
             record (dict): The record to index. Must include 'name', 'type', and 'scope'.
                 Optionally may contain 'description' and nested 'contents'.
             recursive (bool, optional): If True, recursively index nested records in 'contents'.
             pipe (redis.client.Pipeline, optional): Redis pipeline to batch multiple operations.
 
-        Notes:
+        !!! note
             - Deferred initialization of the embeddings model occurs if it has not been loaded.
             - Records missing required fields ('name', 'type', 'scope') are skipped.
             - Nested contents, if present, are indexed recursively when `recursive=True`.
@@ -344,7 +344,7 @@ class Registry:
         """
         Create and store a single document in the Redis search index with embedding vector.
 
-        Args:
+        Parameters:
             name (str): Name of the entity.
             type (str): Type of the entity.
             scope (str): Scope or category of the entity.
@@ -352,7 +352,7 @@ class Registry:
             values (list, optional): Additional attribute values to include (currently unused).
             pipe (redis.client.Pipeline, optional): Redis pipeline to batch multiple operations.
 
-        Notes:
+        !!! note
             - The method combines `name` and `description` to compute the embedding vector.
             - If a Redis pipeline is provided, the document is added to the pipeline; otherwise,
             a new pipeline is created and executed immediately.
@@ -386,7 +386,7 @@ class Registry:
         """
         Compute the key for a document in the search index.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
@@ -394,24 +394,24 @@ class Registry:
         Returns:
             str: Document key.
         """
-        
+
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
 
         if scope[len(scope) - 1] == '/':
             scope = scope[:-1]
 
-        return doc_prefix + ':' + self._encode(type) + ":" + self._encode(scope) + "/" +  self._encode(type) + "/" + self._encode(name)
+        return doc_prefix + ':' + self._encode(type) + ":" + self._encode(scope) + "/" + self._encode(type) + "/" + self._encode(name)
 
     def _delete_index_record(self, record, pipe=None):
         """
         Delete a record and all nested records from the search index.
 
-        Args:
+        Parameters:
             record (dict): Record to delete.
             pipe: Optional Redis pipeline for batch deletion.
         """
-        
+
         name = record['name']
         type = record['type']
         scope = record['scope']
@@ -431,7 +431,7 @@ class Registry:
         """
         Delete a document from the search index by key.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
@@ -463,7 +463,7 @@ class Registry:
         Supports exact keyword matching, approximate vector search, or a hybrid
         combination of both. Optionally filters results by record type and scope.
 
-        Args:
+        Parameters:
             keywords (str): The text or query keywords to search for.
             type (str, optional): Filter by record type (e.g., 'entity', 'collection').
             scope (str, optional): Filter by record scope (e.g., database or source name).
@@ -478,7 +478,7 @@ class Registry:
                 record fields such as `name`, `type`, `id`, `scope`,
                 and optionally `score` when using vector search.
         """
-        
+
         # deferred initialization
         if self.embeddings_model is None:
             self._init_search_index()
@@ -548,7 +548,7 @@ class Registry:
         """
         Compute the embedding vector for a given text using the embeddings model.
 
-        Args:
+        Parameters:
             text (str): Input text.
 
         Returns:
@@ -566,7 +566,7 @@ class Registry:
         Creates and stores a record with basic metadata (name, type, scope, description, etc.).
         Optionally rebuilds the search index for the new record.
 
-        Args:
+        Parameters:
             name (str): The record name.
             type (str): The record type (e.g., 'entity', 'collection').
             scope (str): The scope or parent context (e.g., database name).
@@ -608,8 +608,8 @@ class Registry:
         """
         Register a record and its nested contents from a JSON structure.
         Supports recursive registration of all child records within the JSON object.
-        
-        Args:
+
+        Parameters:
             record (dict): Record definition containing fields like name, type, scope, properties, and contents.
             recursive (bool, optional): Whether to register nested records under 'contents' recursively.
             rebuild (bool, optional): Whether to rebuild the index after registration.
@@ -617,7 +617,7 @@ class Registry:
         Returns:
             None
         """
-        
+
         name = None
         if 'name' in record:
             name = record['name']
@@ -667,7 +667,7 @@ class Registry:
         Constructs a minimal record update payload and delegates the update
         to `update_record_json` for merging with the existing record data.
 
-        Args:
+        Parameters:
             name (str): The record name.
             type (str): The record type.
             scope (str): The record scope.
@@ -679,7 +679,7 @@ class Registry:
         Returns:
             tuple: The original and merged record dictionaries.
         """
-        
+
         record = {}
         record['name'] = name
         record['type'] = type
@@ -697,7 +697,7 @@ class Registry:
         Fetches the existing record, merges it with new values, and re-registers
         the result. Can optionally apply updates recursively to nested records.
 
-        Args:
+        Parameters:
             record (dict): Partial or complete record update in JSON form.
             recursive (bool, optional): Whether to update nested records recursively.
             rebuild (bool, optional): Whether to rebuild the index after update.
@@ -705,7 +705,7 @@ class Registry:
         Returns:
             tuple: The original and merged record dictionaries.
         """
-        
+
         name = None
         if 'name' in record:
             name = record['name']
@@ -729,13 +729,13 @@ class Registry:
         """
         Parse a JSON path string into a dictionary of keys and values.
 
-        Args:
+        Parameters:
             path (str): JSON path.
 
         Returns:
             dict: Extracted key-value mapping.
         """
-        
+
         pa = path.split("/")[1:]
         o = {}
         keys = pa[::2]
@@ -804,7 +804,7 @@ class Registry:
         Returns:
             dict: Record data.
         """
-        
+
         sp = self._get_record_path(name, type, scope)
 
         record = self.connection.json().get(self._get_data_namespace(), Path(sp))
@@ -825,7 +825,7 @@ class Registry:
         Returns:
             Any: Decoded value of the field.
         """
-        
+
         p = self._get_record_path(name, type, scope)
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
 
@@ -843,11 +843,11 @@ class Registry:
         """
         Set or update a specific key-value pair in a registry record.
 
-        This method encodes the key and value for safe JSON storage, updates the 
-        underlying data in the registry’s datastore, and optionally rebuilds the 
+        This method encodes the key and value for safe JSON storage, updates the
+        underlying data in the registry’s datastore, and optionally rebuilds the
         record’s index entry.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope (namespace or hierarchical path).
@@ -856,7 +856,7 @@ class Registry:
             rebuild (bool, optional): Whether to rebuild the search index entry after update. Defaults to False.
 
         """
-        
+
         p = self._get_record_path(name, type, scope)
         encoded_value = self._encode_dict(value)
 
@@ -876,11 +876,11 @@ class Registry:
         """
         Delete a specific key or field from a registry record.
 
-        This method removes a property or subfield from the JSON structure stored in 
-        the registry. Optionally, it can rebuild the record’s index entry to reflect 
+        This method removes a property or subfield from the JSON structure stored in
+        the registry. Optionally, it can rebuild the record’s index entry to reflect
         the deletion.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
@@ -888,7 +888,7 @@ class Registry:
             rebuild (bool, optional): Whether to rebuild the search index entry after deletion. Defaults to False.
 
         """
-        
+
         p = self._get_record_path(name, type, scope)
         self.connection.json().delete(self._get_data_namespace(), p + '.' + key)
 
@@ -901,7 +901,7 @@ class Registry:
         """
         Retrieve the textual description of a registry record.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
@@ -910,14 +910,14 @@ class Registry:
             str or None: Description text if present, otherwise None.
 
         """
-        
+
         return self.get_record_data(name, type, scope, 'description')
 
     def set_record_description(self, name, type, scope, description, rebuild=False):
         """
         Set or update the 'description' field of a record in the registry.
 
-        Args:
+        Parameters:
             name (str): Name of the record/entity.
             type (str): Type of the record/entity.
             scope (str): Scope or category of the record/entity.
@@ -932,7 +932,7 @@ class Registry:
         """
         Retrieve all custom properties of a registry record.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
@@ -941,14 +941,14 @@ class Registry:
             dict: Dictionary of property key-value pairs.
 
         """
-        
+
         return self.get_record_data(name, type, scope, 'properties')
 
     def get_record_property(self, name, type, scope, key):
         """
         Retrieve a specific property value from a registry record.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
@@ -958,7 +958,7 @@ class Registry:
             Any: Value of the property if found, otherwise None.
 
         """
-        
+
         encoded_key = self._encode(key)
         escaped_key = '["' + encoded_key + '"]'
         return self.get_record_data(name, type, scope, 'properties' + '.' + escaped_key)
@@ -967,7 +967,7 @@ class Registry:
         """
         Set or update a specific property for a registry record.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
@@ -975,7 +975,7 @@ class Registry:
             value (Any): Property value.
             rebuild (bool, optional): Whether to rebuild the search index after update. Defaults to False.
         """
-        
+
         encoded_key = self._encode(key)
         escaped_key = '["' + encoded_key + '"]'
         self.set_record_data(name, type, scope, 'properties' + '.' + escaped_key, value, rebuild=rebuild)
@@ -984,14 +984,14 @@ class Registry:
         """
         Delete a specific property from a registry record.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
             key (str): Property name to delete.
             rebuild (bool, optional): Whether to rebuild the search index entry after deletion. Defaults to False.
         """
-        
+
         encoded_key = self._encode(key)
         escaped_key = '["' + encoded_key + '"]'
         self.delete_record_data(name, type, scope, 'properties' + '.' + escaped_key, rebuild=rebuild)
@@ -1000,7 +1000,7 @@ class Registry:
         """
         Retrieve all nested contents (child elements) of a registry record.
 
-        Args:
+        Parameters:
             name (str): Record name.
             type (str): Record type.
             scope (str): Record scope.
@@ -1008,14 +1008,14 @@ class Registry:
         Returns:
             list[dict]: List of nested content items or an empty list if none exist.
         """
-        
+
         return self.get_record_data(name, type, scope, 'contents.*', single=False)
 
     def filter_record_contents(self, name, type, scope, filter_type=None, filter_name=None, single=False):
         """
         Filter the contents of a registry record by type and/or name.
 
-        Args:
+        Parameters:
             name (str): Name of the parent record.
             type (str): Type of the parent record.
             scope (str): Scope of the parent record.
@@ -1026,7 +1026,7 @@ class Registry:
         Returns:
             list or dict: Filtered child records matching the criteria, or a single record if `single=True`.
         """
-        
+
         query = ""
         if filter_type:
             query = query + '@type=="' + filter_type + '"'
@@ -1047,7 +1047,7 @@ class Registry:
             dict: The complete data stored under the source's data namespace.
                 If no data exists, returns an empty dictionary.
 
-        Notes:
+        !!! note
             - Uses the underlying JSON connection to fetch all data.
             - Only the top-level object is returned, not individual records.
         """
@@ -1066,7 +1066,7 @@ class Registry:
             list[dict]: A list of record dictionaries. Each dictionary represents a record
                         without its nested 'contents'.
 
-        Notes:
+        !!! note
             - Uses JSONPath to extract all records under the 'contents' hierarchy.
             - Deep copies are made to avoid modifying the original data.
         """
@@ -1085,7 +1085,7 @@ class Registry:
         """
         Remove a record (and nested contents) from the registry, optionally updating the index.
         """
-        
+
         if record is not None:
             name = record['name']
             type = record['type']
@@ -1105,7 +1105,7 @@ class Registry:
         """
         List records in the registry under a given scope, optionally filtered by type.
 
-        Args:
+        Parameters:
             type (str, optional): Type of records to retrieve. If None, all types are returned.
             scope (str, optional): Registry scope/path to search in. Defaults to "/".
             recursive (bool, optional): If True, include records in all nested sub-scopes. Defaults to False.
@@ -1113,7 +1113,7 @@ class Registry:
         Returns:
             list: Decoded records matching the criteria. Returns an empty list if no records are found.
         """
-        
+
         sp = self._get_scope_path(scope, type=type, recursive=recursive)
 
         if type:
@@ -1132,7 +1132,7 @@ class Registry:
         """
         Filter records by matching their properties against a given set of property criteria.
 
-        Args:
+        Parameters:
             type (str, optional): Type of records to filter (e.g., "collection", "attribute").
                 Defaults to None, meaning all types are considered.
             scope (str, optional): Scope to search records within. Defaults to "/".
@@ -1146,7 +1146,7 @@ class Registry:
         Returns:
             list: A list of records (dicts) whose properties match the given filter criteria.
         """
-        
+
         def match_props(record_props, filter_props):
             for k, v in filter_props.items():
                 if isinstance(v, dict):
@@ -1203,10 +1203,10 @@ class Registry:
         """
         Save all records from the registry to a JSON file.
 
-        Args:
+        Parameters:
             output_file (str): Path to the output file where records will be written.
 
-        Notes:
+        !!! note
             - Only writes if the specified file exists.
             - Records include nested contents and all metadata.
         """
@@ -1219,10 +1219,10 @@ class Registry:
         """
         Load records from a JSON file into the registry.
 
-        Args:
+        Parameters:
             input_file (str): Path to the JSON file containing the records.
 
-        Notes:
+        !!! note
             - Only loads if the file exists.
             - Existing records in the registry will be updated/merged.
         """
@@ -1236,10 +1236,10 @@ class Registry:
         """
         Load records into the registry from a JSON string.
 
-        Args:
+        Parameters:
             input_string (str): JSON string representing a list of records.
 
-        Notes:
+        !!! note
             - Existing records in the registry will be updated/merged.
             - Handles nested contents automatically.
         """

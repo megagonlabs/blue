@@ -67,7 +67,7 @@ class NEO4JSource(DataSource):
         Fetch high-level metadata for the Neo4j source.
 
         Returns:
-            dict: Metadata about the source. 
+            dict: Metadata about the source.
             Default implementation returns empty dict.
         """
         return {}
@@ -101,7 +101,7 @@ class NEO4JSource(DataSource):
         """
         Fetch metadata for a specific database.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
 
         Returns:
@@ -114,7 +114,7 @@ class NEO4JSource(DataSource):
         Fetch the schema for a specific Neo4j database, including node labels
         and relationship types.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
 
         Returns:
@@ -130,7 +130,7 @@ class NEO4JSource(DataSource):
 
         In Neo4j, each database is treated as a single collection.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
 
         Returns:
@@ -143,7 +143,7 @@ class NEO4JSource(DataSource):
         """
         Fetch metadata for a specific collection (database) in Neo4j.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
             collection (str): Name of the collection (usually same as database).
 
@@ -156,7 +156,7 @@ class NEO4JSource(DataSource):
         """
         Build a DataSchema object from query results describing nodes, relationships, and relationship properties.
 
-        Args:
+        Parameters:
             nodes_result (list[dict]): List of node definitions with labels and properties.
             relationships_result (list[dict]): List of relationship definitions.
             rel_properties_result (list[dict]): List of relationship property definitions.
@@ -187,7 +187,7 @@ class NEO4JSource(DataSource):
         This method retrieves the database schema and extracts the entities
         (node labels) present in the specified collection.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
             collection (str): Name of the collection (usually same as database).
 
@@ -205,7 +205,7 @@ class NEO4JSource(DataSource):
         This method retrieves the database schema and extracts the relationships
         between entities present in the specified collection.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
             collection (str): Name of the collection (usually same as database).
 
@@ -216,12 +216,11 @@ class NEO4JSource(DataSource):
         schema = self._fetch_and_extract_schema(database, collection)
         return schema.get_relations()
 
-
     # Internal helper with lightweight caching per (database, collection)
     def _fetch_and_extract_schema(self, database, collection):
         # Use cache key to avoid duplicate work in the same request cycle
         cache_key = (database, collection)
-        
+
         if cache_key not in self._schema_cache:
             nodes_result = self.connection.run_query(APOC_META_NODE_PROPERTIES_QUERY)
             relationships_result = self.connection.run_query(APOC_META_REL_QUERY)
@@ -238,10 +237,10 @@ class NEO4JSource(DataSource):
         Execute a Cypher query against the Neo4j database.
 
         This method sends the provided Cypher query to the connected Neo4j
-        instance and returns the results. It does not limit execution to a 
+        instance and returns the results. It does not limit execution to a
         single transaction or single record.
 
-        Args:
+        Parameters:
             query (str): The Cypher query string to execute.
             database (str, optional): Name of the database to target. Defaults to None.
             collection (str, optional): Name of the collection/schema. Defaults to None.

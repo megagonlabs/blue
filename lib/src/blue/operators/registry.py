@@ -17,7 +17,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Initialize the OperatorRegistry.
 
-        Args:
+        Parameters:
             name (str): Registry name. Default is "OPERATOR_REGISTRY".
             id (str, optional): Unique registry ID.
             sid (str, optional): Session ID.
@@ -33,7 +33,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Register a new operator under a specific server.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
             description (str, optional): Description of the operator.
@@ -46,7 +46,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `register_server_operator`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name.
             description (str, optional): Description of the tool.
@@ -59,7 +59,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Update the metadata or properties of an existing operator.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
             description (str, optional): New description text.
@@ -73,7 +73,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `update_server_operator`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name.
             description (str, optional): New description text.
@@ -86,7 +86,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Deregister (remove) an operator from a specific server.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name to remove.
             rebuild (bool, optional): Whether to rebuild the search index.
@@ -98,7 +98,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `deregister_server_operator`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name to remove.
             rebuild (bool, optional): Whether to rebuild the index.
@@ -109,7 +109,7 @@ class OperatorRegistry(ToolRegistry):
         """
         List all operators registered under a given server.
 
-        Args:
+        Parameters:
             server (str): Server name.
 
         Returns:
@@ -121,7 +121,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `get_server_operators`.
 
-        Args:
+        Parameters:
             server (str): Server name.
 
         Returns:
@@ -133,7 +133,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Retrieve a single operator record from a given server.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
 
@@ -146,7 +146,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `get_server_operator`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name.
 
@@ -160,7 +160,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Retrieve the description text of a specific operator.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
 
@@ -173,7 +173,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `get_server_operator_description`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name.
 
@@ -186,7 +186,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Update the description of a server operator.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
             description (str): New description text.
@@ -198,7 +198,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `set_server_operator_description`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name.
             description (str): New description text.
@@ -211,7 +211,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Get the properties dictionary of a specific server operator.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
 
@@ -224,7 +224,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `get_server_operator_properties`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name.
 
@@ -237,7 +237,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Retrieve a single property value of a server operator.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
             key (str): Property key.
@@ -251,7 +251,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Delete a specific property from a server operator.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
             key (str): Property key to remove.
@@ -259,12 +259,11 @@ class OperatorRegistry(ToolRegistry):
         """
         super().delete_record_property(operator, 'operator', f'/server/{server}', key, rebuild=rebuild)
 
-
     def get_server_tool_property(self, server, tool, key):
         """
         Alias for `get_server_operator_property`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name.
             key (str): Property key.
@@ -278,7 +277,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Set or update a property of a server operator.
 
-        Args:
+        Parameters:
             server (str): Server name.
             operator (str): Operator name.
             key (str): Property key.
@@ -291,7 +290,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `set_server_operator_property`.
 
-        Args:
+        Parameters:
             server (str): Server name.
             tool (str): Tool name.
             key (str): Property key.
@@ -311,7 +310,7 @@ class OperatorRegistry(ToolRegistry):
         - `ray`
         - `mcp`
 
-        Args:
+        Parameters:
             server (str): Server name.
 
         Returns:
@@ -349,7 +348,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Execute a remote operator on a specific server.
 
-        Args:
+        Parameters:
             operator (str): Operator name.
             server (str): Server name.
             args (list): Positional arguments.
@@ -368,7 +367,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Alias for `execute_operator`.
 
-        Args:
+        Parameters:
             tool (str): Tool name.
             server (str): Server name.
             args (list): Positional arguments.
@@ -383,7 +382,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Refine or adjust operator output using a remote server connection.
 
-        Args:
+        Parameters:
             operator (str): Operator name.
             server (str): Server name.
             args (list): Positional arguments.
@@ -402,7 +401,7 @@ class OperatorRegistry(ToolRegistry):
         """
         Retrieve metadata or attributes of a given operator from a connected server.
 
-        Args:
+        Parameters:
             operator (str): Operator name.
             server (str): Server name.
 

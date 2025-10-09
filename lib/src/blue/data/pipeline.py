@@ -22,6 +22,7 @@ from blue.utils import uuid_utils, log_utils, dag_utils
 class Status(Constant):
     """
     Status of a node in a data pipeline:
+
     - INITED: node is created, initialized (e.g., input data is not processed yet)
     - REFINING: node is being refined (e.g., input data is being processed for refinement)
     - REFINED: node is refined (e.g., input data is processed for refinement)
@@ -47,6 +48,7 @@ Status.FAILED = Status("FAILED")
 class NodeType(Constant):
     """
     Type of a node in a data pipeline:
+
     - INPUT: node is an input node
     - OUTPUT: node is an output node
     - OPERATOR: node is an operator node
@@ -64,6 +66,7 @@ NodeType.OPERATOR = NodeType("OPERATOR")
 class EntityType(Constant):
     """
     Type of an entity in a data pipeline:
+
     - OPERATOR: entity is an operator
     - DATA_PIPELINE: entity is a data pipeline
     """
@@ -101,7 +104,8 @@ class DataPipeline(dag_utils.Plan):
     ):
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
         """ Initialize a DataPipeline object.
-        Args:
+        
+        Parameters:
             id (str): Unique identifier for the data pipeline. If None, a UUID will be generated.
             label (str): Label for the data pipeline.
             type (str): Type of the data pipeline. Default is "DATA_PIPELINE".
@@ -131,7 +135,8 @@ class DataPipeline(dag_utils.Plan):
     def _initialize_attributes(self, sync=None):
         """
         Initialize attributes dictionary if not already present.
-        Args:
+
+        Parameters:
             sync: Synchronization flag.
         """
         self.set_data("attributes", {}, sync=sync)
@@ -139,7 +144,8 @@ class DataPipeline(dag_utils.Plan):
     def _update_attributes(self, attributes=None, sync=None):
         """
         Update attributes dictionary with new values.
-        Args:
+
+        Parameters:
             attributes: Dictionary of attributes to update.
             sync: Synchronization flag.
         """
@@ -153,7 +159,8 @@ class DataPipeline(dag_utils.Plan):
     def set_attribute(self, key, value, sync=None):
         """
         Set an attribute for the data pipeline.
-        Args:
+
+        Parameters:
             key (str): Attribute key.
             value: Attribute value.
             sync: Synchronization flag.
@@ -166,8 +173,10 @@ class DataPipeline(dag_utils.Plan):
     def get_attribute(self, key):
         """
         Get an attribute for the data pipeline.
-        Args:
+
+        Parameters:
             key (str): Attribute key.
+
         Returns:
             value: Attribute value or None if not found.
         """
@@ -179,8 +188,9 @@ class DataPipeline(dag_utils.Plan):
     def get_attributes(self):
         """
         Get all attributes for the data pipeline.
+
         Returns:
-            dict: Dictionary of attribute key-value pairs.
+            (dict): Dictionary of attribute key-value pairs.
         """
         return self.get_data("attributes")
 
@@ -188,7 +198,8 @@ class DataPipeline(dag_utils.Plan):
     def set_plan_provenance(self, plan_provenance, sync=None):
         """
         Set the plan provenance for the data pipeline.
-        Args:
+
+        Parameters:
             plan_provenance (str): Plan provenance string.
             sync: Synchronization flag.
         """
@@ -197,6 +208,7 @@ class DataPipeline(dag_utils.Plan):
     def get_plan_provenance(self):
         """
         Get the plan provenance for the data pipeline.
+
         Returns:
             str: Plan provenance string.
         """
@@ -206,7 +218,8 @@ class DataPipeline(dag_utils.Plan):
     def set_plan_input_id(self, input_id, sync=None):
         """
         Set the plan input node ID for the data pipeline.
-        Args:
+
+        Parameters:
             input_id: Input node ID.
             sync: Synchronization flag.
         """
@@ -215,7 +228,8 @@ class DataPipeline(dag_utils.Plan):
     def set_plan_input(self, i, sync=None):
         """
         Set the plan input for the data pipeline.
-        Args:
+
+        Parameters:
             i: Input node object, id, or label.
             sync: Synchronization flag.
         """
@@ -231,8 +245,10 @@ class DataPipeline(dag_utils.Plan):
     def get_plan_input_id(self, pipeline=None):
         """
         Get the plan input ID for the data pipeline.
-        Args:
+
+        Parameters:
             pipeline: Pipeline entity or ID.
+
         Returns:
             Plan input ID.
         """
@@ -245,8 +261,10 @@ class DataPipeline(dag_utils.Plan):
     def get_plan_input(self, pipeline=None):
         """
         Get the plan input node for the data pipeline.
-        Args:
+
+        Parameters:
             pipeline: Pipeline entity or ID.
+
         Returns:
             Plan input node.
         """
@@ -256,7 +274,8 @@ class DataPipeline(dag_utils.Plan):
     def set_plan_output_id(self, output_id, sync=None):
         """
         Set the plan output node ID for the data pipeline.
-        Args:
+
+        Parameters:
             output_id: Output node ID.
             sync: Synchronization flag.
         """
@@ -265,7 +284,8 @@ class DataPipeline(dag_utils.Plan):
     def set_plan_output(self, o, sync=None):
         """
         Set the plan outputfor the data pipeline.
-        Args:
+
+        Parameters:
             o: Output node object, id, or label.
             sync: Synchronization flag.
         """
@@ -281,8 +301,10 @@ class DataPipeline(dag_utils.Plan):
     def get_plan_output_id(self, pipeline=None):
         """
         Get the plan output ID for the data pipeline.
-        Args:
+
+        Parameters:
             pipeline: Pipeline entity or ID.
+
         Returns:
             Plan output ID.
         """
@@ -295,8 +317,10 @@ class DataPipeline(dag_utils.Plan):
     def get_plan_output(self, pipeline=None):
         """
         Get the plan output node for the data pipeline.
-        Args:
+
+        Parameters:
             pipeline: Pipeline entity or ID.
+
         Returns:
             Plan output node.
         """
@@ -307,7 +331,8 @@ class DataPipeline(dag_utils.Plan):
     def set_node_value(self, n, value=None, provenance=None, sync=None):
         """
         Set the node value for a node in the data pipeline.
-        Args:
+
+        Parameters:
             n: Node object, id, or label.
             value: Value to set.
             provenance: Provenance information.
@@ -325,9 +350,11 @@ class DataPipeline(dag_utils.Plan):
     def get_node_value(self, n, provenance=None):
         """
         Get the node values for a node in the data pipeline, optionally filtered by provenance.
-        Args:
+
+        Parameters:
             n: Node object, id, or label.
             provenance: Provenance information.
+
         Returns:
             Node value.
         """
@@ -344,8 +371,10 @@ class DataPipeline(dag_utils.Plan):
     def get_node_values(self, n):
         """
         Get all node values for a node in the data pipeline.
-        Args:
+
+        Parameters:
             n: Node object, id, or label.
+
         Returns:
             dict: Dictionary of provenance-value pairs.
         """
@@ -355,7 +384,8 @@ class DataPipeline(dag_utils.Plan):
     def set_node_status(self, n, status=None, provenance=None, sync=None):
         """
         Set the node status for a node in the data pipeline, optionally for specific provenance.
-        Args:
+
+        Parameters:
             n: Node object, id, or label.
             status: Status to set.
             provenance: Provenance information.
@@ -373,9 +403,11 @@ class DataPipeline(dag_utils.Plan):
     def get_node_status(self, n, provenance=None):
         """
         Get the node status for a node in the data pipeline, optionally filtered by provenance.
-        Args:
+
+        Parameters:
             n: Node object, id, or label.
             provenance: Provenance information.
+
         Returns:
             Node status.
         """
@@ -392,8 +424,10 @@ class DataPipeline(dag_utils.Plan):
     def get_node_statuses(self, n):
         """
         Get all node statuses for a node in the data pipeline.
-        Args:
+
+        Parameters:
             n: Node object, id, or label.
+
         Returns:
             dict: Dictionary of provenance-status pairs.
         """
@@ -403,7 +437,8 @@ class DataPipeline(dag_utils.Plan):
     def set_node_provenance(self, n):
         """
         Set the node provenance for a node in the data pipeline.
-        Args:
+
+        Parameters:
             n: Node object, id, or label.
         """
         node = self.get_node(n)
@@ -414,7 +449,8 @@ class DataPipeline(dag_utils.Plan):
     def define_input(self, label=None, value=None, provenance=None, properties={}, sync=None):
         """
         Define an input node in the data pipeline.
-        Args:
+
+        Parameters:
             label: Node label.
             value: Input value.
             provenance: Provenance information.
@@ -438,7 +474,8 @@ class DataPipeline(dag_utils.Plan):
     def define_output(self, label=None, value=None, provenance=None, properties={}, sync=None):
         """
         Define an output node in the data pipeline.
-        Args:
+
+        Parameters:
             label: Node label.
             value: Output value.
             provenance: Provenance information.
@@ -462,7 +499,8 @@ class DataPipeline(dag_utils.Plan):
     def define_operator(self, name, label=None, attributes={}, properties={}, sync=None):
         """
         Define an operator node in the data pipeline.
-        Args:
+
+        Parameters:
             name: Operator name.
             label: Node label.
             attributes: Node attributes.
@@ -492,7 +530,8 @@ class DataPipeline(dag_utils.Plan):
     def create_operator(self, name, label=None, attributes={}, properties={}, sync=None):
         """
         Create an operator entity.
-        Args:
+
+        Parameters:
             name: Operator name (full path, e.g. /server/<server>/operator/<operator>).
             label: Operator label.
             attributes: Operator attributes.

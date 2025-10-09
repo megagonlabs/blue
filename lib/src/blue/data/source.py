@@ -15,7 +15,7 @@ class DataSource:
         """
         Initialize a generic data source.
 
-        Args:
+        Parameters:
             name (str): Name of the source.
             properties (dict, optional): Additional configuration properties.
         """
@@ -40,7 +40,7 @@ class DataSource:
         """
         Initialize default properties, including connection settings.
         """
-        
+
         self.properties = {}
 
         # connection properties
@@ -50,7 +50,7 @@ class DataSource:
         """
         Override default properties with provided dictionary.
 
-        Args:
+        Parameters:
             properties (dict, optional): Properties to update.
         """
         if properties is None:
@@ -136,7 +136,7 @@ class DataSource:
         """
         Retrieve metadata for a specific database.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
 
         Returns:
@@ -149,7 +149,7 @@ class DataSource:
         """
         Retrieve the schema of a specific database.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
 
         Returns:
@@ -162,7 +162,7 @@ class DataSource:
         """
         Create a new database in the data source.
 
-        Args:
+        Parameters:
             database (str): Name of the new database.
             properties (dict, optional): Database-specific configuration options.
 
@@ -176,7 +176,7 @@ class DataSource:
         """
         List all collections in a database.
 
-        Args:
+        Parameters:
             database (str): Database name.
 
         Returns:
@@ -188,7 +188,7 @@ class DataSource:
         """
         Fetch metadata for a collection.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection (str): Collection name.
 
@@ -201,7 +201,7 @@ class DataSource:
         """
         Retrieve entities (tables, objects, or equivalent) for a specific collection.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
             collection (str): Name of the collection or schema.
 
@@ -215,7 +215,7 @@ class DataSource:
         """
         Retrieve relationships (e.g., foreign keys or links) between entities in a collection.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
             collection (str): Name of the collection or schema.
 
@@ -229,7 +229,7 @@ class DataSource:
         """
         Create a new collection (schema, table group, or equivalent) in a database.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection (str): Name of the new collection.
             properties (dict, optional): Collection-specific properties.
@@ -255,7 +255,7 @@ class DataSource:
         """
         Create a new entity (table, object, or equivalent) within a collection.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection (str): Collection or schema name.
             entity (str): Name of the entity to create.
@@ -272,7 +272,7 @@ class DataSource:
         """
         Create a new relationship between entities within a collection.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection (str): Collection or schema name.
             relation (str): Name or identifier of the relation.
@@ -288,7 +288,7 @@ class DataSource:
         """
         Execute a query on the data source and return results.
 
-        Args:
+        Parameters:
             query (str): Query string to execute.
             database (str, optional): Target database name.
             collection (str, optional): Target collection name.
@@ -316,11 +316,11 @@ class DataSource:
         """
         Retrieve statistics for a specific database.
 
-        Args:
+        Parameters:
             database (str): Database name.
 
         Returns:
-            dict or None: Database-level statistics such as size, table count, 
+            dict or None: Database-level statistics such as size, table count,
                         or other relevant metrics. Default is None.
         """
         return None
@@ -329,7 +329,7 @@ class DataSource:
         """
         Retrieve statistics for a specific collection (schema) in a database.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection_name (str): Collection or schema name.
             schema_json (dict, optional): Schema definition for computing statistics.
@@ -345,7 +345,7 @@ class DataSource:
         """
         Retrieve statistics for a specific entity (table/object) in a collection.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection (str): Collection or schema name.
             entity (str): Entity name.
@@ -360,7 +360,7 @@ class DataSource:
         """
         Retrieve statistics for a specific property (column/attribute) of an entity.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection (str): Collection or schema name.
             entity (str): Entity name.

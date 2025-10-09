@@ -25,7 +25,7 @@ class AgentRegistry(Registry):
         """
         Register a new agent group in the registry.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             created_by (str): Creator identifier.
             description (str, optional): Description for the group.
@@ -39,7 +39,7 @@ class AgentRegistry(Registry):
         """
         Update metadata for an existing agent group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             description (str, optional): New description.
             icon (optional): Icon reference for the group.
@@ -52,7 +52,7 @@ class AgentRegistry(Registry):
         """
         Remove an agent group from the registry.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group to remove.
             rebuild (bool, optional): Whether to rebuild dependent indexes after deletion.
         """
@@ -73,20 +73,20 @@ class AgentRegistry(Registry):
         """
         Retrieve a single agent group record by name.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
 
         Returns:
             dict: Metadata of the agent group, or None if not found.
         """
-        
+
         return super().get_record(agent_group, 'agent_group', '/')
 
     def get_agent_group_description(self, agent_group):
         """
         Get the description of a specific agent group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
 
         Returns:
@@ -98,7 +98,7 @@ class AgentRegistry(Registry):
         """
         Set or update the description for a specific agent group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             description (str): New description.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
@@ -109,7 +109,7 @@ class AgentRegistry(Registry):
         """
         Set a custom property for an agent group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             key (str): Property name.
             value: Property value.
@@ -122,7 +122,7 @@ class AgentRegistry(Registry):
         """
         Retrieve all agents belonging to a specific agent group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
 
         Returns:
@@ -134,7 +134,7 @@ class AgentRegistry(Registry):
         """
         Retrieve a specific agent from an agent group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             agent (str): Name of the agent.
 
@@ -147,7 +147,7 @@ class AgentRegistry(Registry):
         """
         Register a new agent under a specific agent group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             agent (str): Name of the agent.
             description (str, optional): Description of the agent.
@@ -160,7 +160,7 @@ class AgentRegistry(Registry):
         """
         Update metadata for an existing agent within a group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             agent (str): Name of the agent.
             description (str, optional): New description.
@@ -173,7 +173,7 @@ class AgentRegistry(Registry):
         """
         Remove a specific agent from an agent group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             agent (str): Name of the agent to remove.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
@@ -186,7 +186,7 @@ class AgentRegistry(Registry):
         """
         Get all properties of a specific agent in a group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             agent (str): Name of the agent.
 
@@ -199,7 +199,7 @@ class AgentRegistry(Registry):
         """
         Retrieve a single property value of an agent within a group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             agent (str): Name of the agent.
             key (str): Property key.
@@ -213,7 +213,7 @@ class AgentRegistry(Registry):
         """
         Set or update a property for an agent in a group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             agent (str): Name of the agent.
             key (str): Property name.
@@ -226,7 +226,7 @@ class AgentRegistry(Registry):
         """
         Delete a property for an agent within a group.
 
-        Args:
+        Parameters:
             agent_group (str): Name of the agent group.
             agent (str): Name of the agent.
             key (str): Property name to delete.
@@ -239,7 +239,7 @@ class AgentRegistry(Registry):
         """
         Register a new agent in the registry.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             created_by (str): Identifier of the creator.
             description (str, optional): Description of the agent.
@@ -253,7 +253,7 @@ class AgentRegistry(Registry):
         """
         Update metadata for an existing agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             description (str, optional): Updated description.
             icon (optional): Icon associated with the agent.
@@ -267,7 +267,7 @@ class AgentRegistry(Registry):
         """
         Remove an existing agent from the registry.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent to remove.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
         """
@@ -279,7 +279,7 @@ class AgentRegistry(Registry):
         """
         List all registered agents under a given scope.
 
-        Args:
+        Parameters:
             scope (str, optional): Registry scope path. Defaults to root ('/').
             recursive (bool, optional): Whether to include nested agents.
 
@@ -292,7 +292,7 @@ class AgentRegistry(Registry):
         """
         Retrieve a specific agent record.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
 
         Returns:
@@ -305,7 +305,7 @@ class AgentRegistry(Registry):
         """
         Get the description of a specific agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
 
         Returns:
@@ -318,7 +318,7 @@ class AgentRegistry(Registry):
         """
         Set or update the description of an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             description (str): Description text.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
@@ -330,7 +330,7 @@ class AgentRegistry(Registry):
         """
         Get the parent agent (if any) from the hierarchical name.
 
-        Args:
+        Parameters:
             agent (str): Hierarchical agent name.
 
         Returns:
@@ -346,7 +346,7 @@ class AgentRegistry(Registry):
         """
         Retrieve all properties of an agent, optionally including parent and I/O params.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             recursive (bool, optional): Whether to include inherited parent properties.
             include_params (bool, optional): Whether to include input/output parameters.
@@ -406,7 +406,7 @@ class AgentRegistry(Registry):
         """
         Get a specific property of an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             key (str): Property key.
 
@@ -421,7 +421,7 @@ class AgentRegistry(Registry):
         """
         Set or update a property for an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             key (str): Property key.
             value: Property value.
@@ -434,7 +434,7 @@ class AgentRegistry(Registry):
         """
         Delete a property from an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             key (str): Property key to delete.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
@@ -447,7 +447,7 @@ class AgentRegistry(Registry):
         """
         Get the image reference associated with an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
 
         Returns:
@@ -460,7 +460,7 @@ class AgentRegistry(Registry):
         """
         Set or update the image reference for an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             image (str): Image reference or URL.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
@@ -472,7 +472,7 @@ class AgentRegistry(Registry):
         """
         Register a new input parameter for an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Input parameter name.
             description (str, optional): Description of the parameter.
@@ -486,7 +486,7 @@ class AgentRegistry(Registry):
         """
         Update metadata for an existing agent input parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Input parameter name.
             description (str, optional): Updated description.
@@ -500,7 +500,7 @@ class AgentRegistry(Registry):
         """
         Retrieve all input parameters for an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
 
         Returns:
@@ -513,7 +513,7 @@ class AgentRegistry(Registry):
         """
         Retrieve a single input parameter definition.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Input parameter name.
 
@@ -527,7 +527,7 @@ class AgentRegistry(Registry):
         """
         Set or overwrite a specific input parameter for an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Input parameter name.
             description (str): Parameter description.
@@ -541,7 +541,7 @@ class AgentRegistry(Registry):
         """
         Delete a specific input parameter from an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Input parameter name.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
@@ -554,7 +554,7 @@ class AgentRegistry(Registry):
         """
         Register a new output parameter for an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Output parameter name.
             description (str, optional): Description of the parameter.
@@ -568,7 +568,7 @@ class AgentRegistry(Registry):
         """
         Update metadata for an existing output parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Output parameter name.
             description (str, optional): Updated description.
@@ -582,7 +582,7 @@ class AgentRegistry(Registry):
         """
         Retrieve all output parameters for an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
 
         Returns:
@@ -595,7 +595,7 @@ class AgentRegistry(Registry):
         """
         Retrieve a single output parameter definition.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Output parameter name.
 
@@ -609,7 +609,7 @@ class AgentRegistry(Registry):
         """
         Set or overwrite a specific output parameter for an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Output parameter name.
             description (str): Parameter description.
@@ -623,7 +623,7 @@ class AgentRegistry(Registry):
         """
         Delete a specific output parameter from an agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             parameter (str): Output parameter name.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
@@ -637,7 +637,7 @@ class AgentRegistry(Registry):
         """
         Retrieve all properties of a specific input parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             input (str): Input parameter name.
 
@@ -651,7 +651,7 @@ class AgentRegistry(Registry):
         """
         Get a single property of a specific input parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             input (str): Input parameter name.
             key (str): Property key.
@@ -666,7 +666,7 @@ class AgentRegistry(Registry):
         """
         Set or update a property for an input parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             input (str): Input parameter name.
             key (str): Property name.
@@ -681,7 +681,7 @@ class AgentRegistry(Registry):
         """
         Delete a property from an input parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             input (str): Input parameter name.
             key (str): Property name to delete.
@@ -696,7 +696,7 @@ class AgentRegistry(Registry):
         """
         Retrieve all properties of a specific output parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             output (str): Output parameter name.
 
@@ -711,7 +711,7 @@ class AgentRegistry(Registry):
         """
         Get a single property of a specific output parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             output (str): Output parameter name.
             key (str): Property name.
@@ -726,7 +726,7 @@ class AgentRegistry(Registry):
         """
         Set or update a property for an output parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             output (str): Output parameter name.
             key (str): Property name.
@@ -740,7 +740,7 @@ class AgentRegistry(Registry):
         """
         Delete a property from an output parameter.
 
-        Args:
+        Parameters:
             agent (str): Name of the agent.
             output (str): Output parameter name.
             key (str): Property name to delete.
@@ -755,7 +755,7 @@ class AgentRegistry(Registry):
         """
         List agents derived from a given agent.
 
-        Args:
+        Parameters:
             agent (str): Name of the base agent.
 
         Returns:

@@ -17,7 +17,6 @@ class MongoDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
         self._schema_cache = {}
-       
 
     ###### connection
     def _initialize_connection_properties(self):
@@ -75,7 +74,7 @@ class MongoDBSource(DataSource):
         """
         Fetch metadata for a specific database.
 
-        Args:
+        Parameters:
             database (str): Database name.
 
         Returns:
@@ -87,7 +86,7 @@ class MongoDBSource(DataSource):
         """
         Fetch schema information for a specific database.
 
-        Args:
+        Parameters:
             database (str): Database name.
 
         Returns:
@@ -101,7 +100,7 @@ class MongoDBSource(DataSource):
         """
         List all collections within a database.
 
-        Args:
+        Parameters:
             database (str): Database name.
 
         Returns:
@@ -114,7 +113,7 @@ class MongoDBSource(DataSource):
         """
         Fetch metadata for a specific collection within a database.
 
-        Args:
+        Parameters:
             database (str): Name of the database.
             collection (str): Name of the collection.
 
@@ -133,18 +132,17 @@ class MongoDBSource(DataSource):
 
         coll = self.connection[database][collection]
         sample = coll.find_one()
-        
+
         schema = self.extract_schema(sample)
 
         self._schema_cache[cache_key] = schema
         return schema
 
-
     def fetch_database_collection_entities(self, database, collection):
         """
         Fetch entities (document structures) for a collection.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection (str): Collection name.
 
@@ -154,12 +152,11 @@ class MongoDBSource(DataSource):
         schema = self._get_collection_schema(database, collection)
         return schema.get_entities()
 
-
     def fetch_database_collection_relations(self, database, collection):
         """
         Fetch relations (document nesting relationships) for a collection.
 
-        Args:
+        Parameters:
             database (str): Database name.
             collection (str): Collection name.
 
@@ -173,7 +170,7 @@ class MongoDBSource(DataSource):
         """
         Recursively infer schema structure from a sample MongoDB document.
 
-        Args:
+        Parameters:
             sample (dict): Sample document for inference.
             schema (DataSchema, optional): Existing schema object to update.
             source (str, optional): Current entity source node.
@@ -211,7 +208,7 @@ class MongoDBSource(DataSource):
         """
         Execute a MongoDB query on a specific collection.
 
-        Args:
+        Parameters:
             query (str): JSON-formatted MongoDB query string.
             database (str, optional): Target database name.
             collection (str, optional): Target collection name.
@@ -219,7 +216,7 @@ class MongoDBSource(DataSource):
 
         Returns:
             list[dict]: List of documents matching the query, with `_id` as string.
-        
+
         Raises:
             Exception: If `database` or `collection` is not provided.
         """

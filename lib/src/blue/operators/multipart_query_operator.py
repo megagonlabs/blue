@@ -18,11 +18,14 @@ def multipart_query_operator_function(input_data: List[List[Dict[str, Any]]], at
     """
     Orchestrate the execution of multi-part query, starting with data discovery, leading to execution.
 
-    Note: MultipartQueryOperator only does plan refinement. This function simply returns empty output.
+    !!! note
+        MultipartQueryOperator only does plan refinement. This function simply returns empty output.
+
     Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]), each array represents a part of the multipart query plan.
         attributes: Dictionary containing operator attributes including serialize.
         properties: Optional properties dictionary. Defaults to None.
+
     Returns:
         Empty list.
     """
@@ -33,7 +36,7 @@ def multipart_query_operator_function(input_data: List[List[Dict[str, Any]]], at
 def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
     """Refine the multipart query plan by constructing a data pipeline for each subquery comprising data discovery, query routing, data insertion.
 
-    Args:
+    Parameters:
         input_data: List of JSON arrays (List[List[Dict[str, Any]]]), each array represents a part of the multipart query plan.
         attributes: Dictionary containing operator attributes including serialize
         properties: Optional properties dictionary. Defaults to None.
@@ -255,10 +258,12 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
 def multipart_query_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
     """Explain multipart query operator output.
-    Args:
+
+    Parameters:
         output: The output result from the operator execution.
         input_data: The input data that was processed.
         attributes: The attributes used for the operation.
+
     Returns:
         Dictionary containing explanation of the operation.
     """

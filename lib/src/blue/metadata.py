@@ -53,10 +53,10 @@ class MetaData(ServiceClient):
         information, suitable for guiding an LLM to produce a JSON-formatted
         description of the entity and its attributes.
 
-        Args:
+        Parameters:
             entity_obj (dict): A dictionary representing the entity, from
-                the data registry.  
-            attributes (list[dict]): A list of attribute definitions. 
+                the data registry.
+            attributes (list[dict]): A list of attribute definitions.
 
         Returns:
             str: A formatted multi-line string prompt, instructing the LLM to produce
@@ -65,7 +65,7 @@ class MetaData(ServiceClient):
                 - "attributes": Mapping of attribute names to their descriptions.
 
         """
-        
+
         # Extract basic info
         name = entity_obj.get("name", "Unknown")
         scope = entity_obj.get("scope", "Unknown")
@@ -118,7 +118,7 @@ class MetaData(ServiceClient):
         Builds a prompt from the entity and its attributes, then calls the
         external LLM API to produce the enriched description.
 
-        Args:
+        Parameters:
             entity (dict): The entity metadata to enrich.
             attributes (dict): Attribute data associated with the entity.
 
@@ -135,7 +135,7 @@ class MetaData(ServiceClient):
         If recursive is True, iterates through all databases under the source
         and collects/enriches their metadata.
 
-        Args:
+        Parameters:
             data_registry (DataRegistry): Registry instance for metadata access/storage.
             source (str): Identifier of the data source.
             recursive (bool, optional): Whether to include child databases. Defaults to False.
@@ -160,7 +160,7 @@ class MetaData(ServiceClient):
         back into the data registry. Optionally, it can also recurse into
         collections to collect their metadata.
 
-        Args:
+        Parameters:
             data_registry (DataRegistry): The registry object that manages sources,
                 databases, collections, and metadata.
             source (str): Identifier for the data source.
@@ -209,7 +209,7 @@ class MetaData(ServiceClient):
         using the LLM-based enrichment process, and stores them in the data registry if missing.
         Optionally, also generates a collection-level description.
 
-        Args:
+        Parameters:
             data_registry (DataRegistry): Registry instance for accessing and storing metadata.
             source (str): Identifier of the data source.
             database (str): Name of the database containing the collection.
@@ -220,7 +220,7 @@ class MetaData(ServiceClient):
         Returns:
             None
         """
-        
+
         entities = data_registry.get_source_database_collection_entities(source, database, collection)
 
         entity_descriptions = {}
@@ -277,7 +277,7 @@ class MetaData(ServiceClient):
         Constructs a formatted text prompt using entity-level descriptions and
         metadata, suitable for passing to an LLM or enrichment API.
 
-        Args:
+        Parameters:
             collection_name (str): The name of the collection.
             entity_descriptions (dict): Mapping of entity names to their descriptions.
             collection_metadata (dict or str): Additional metadata for the collection.
@@ -303,7 +303,7 @@ class MetaData(ServiceClient):
         Constructs a formatted text prompt using collection-level descriptions and
         metadata, suitable for passing to an LLM or enrichment API.
 
-        Args:
+        Parameters:
             database_name (str): The name of the database.
             collection_descriptions (dict): Mapping of collection names to their descriptions.
             database_metadata (dict or str): Additional metadata for the database.
@@ -311,7 +311,7 @@ class MetaData(ServiceClient):
         Returns:
             str: A formatted prompt string for database-level description enrichment.
         """
-        
+
         child_descriptions = [f"{name}: {desc}" for name, desc in collection_descriptions.items() if desc]
         if not child_descriptions:
             child_descriptions = ["No collection descriptions available"]
@@ -327,7 +327,7 @@ class MetaData(ServiceClient):
         Builds a prompt from the provided entity descriptions and metadata, then
         executes an LLM call to generate or refine the collection-level description.
 
-        Args:
+        Parameters:
             collection_name (str): The name of the collection.
             entity_descriptions (dict): Mapping of entity names to their descriptions.
             collection_metadata (dict or str): Additional metadata for the collection.
@@ -345,7 +345,7 @@ class MetaData(ServiceClient):
         Builds a prompt from the provided collection descriptions and metadata, then
         executes an API call to generate or refine the database-level description.
 
-        Args:
+        Parameters:
             database_name (str): The name of the database.
             collection_descriptions (dict): Mapping of collection names to their descriptions.
             database_metadata (dict or str): Additional metadata for the database.
@@ -353,6 +353,6 @@ class MetaData(ServiceClient):
         Returns:
             Any: The enriched database description.
         """
-        
+
         prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
         return self.execute_api_call(prompt, properties=self.properties, additional_data={})

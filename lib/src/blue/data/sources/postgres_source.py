@@ -95,13 +95,13 @@ class PostgresDBSource(DataSource):
         """
         Fetch high-level metadata for a specific PostgreSQL database.
 
-        Args:
+        Parameters:
             database (str):
                 The name of the database for which to fetch metadata.
 
         Returns:
             dict:
-                Currently returns an empty dictionary. 
+                Currently returns an empty dictionary.
         """
         return {}
 
@@ -109,7 +109,7 @@ class PostgresDBSource(DataSource):
         """
         Fetch schema definitions for a specific PostgreSQL database.
 
-        Args:
+        Parameters:
             database (str): Database name.
 
         Returns:
@@ -142,7 +142,7 @@ class PostgresDBSource(DataSource):
         that contain tables, excluding system schemas such as
         `'pg_catalog'` and `'information_schema'`.
 
-        Args:
+        Parameters:
             database (str):
                 The name of the database to inspect.
 
@@ -170,7 +170,7 @@ class PostgresDBSource(DataSource):
         """
         Fetch metadata for a specific schema (collection) in a PostgreSQL database.
 
-        Args:
+        Parameters:
             database (str):
                 Name of the database to connect to.
             collection (str):
@@ -178,7 +178,7 @@ class PostgresDBSource(DataSource):
 
         Returns:
             dict:
-                Currently returns an empty dictionary. 
+                Currently returns an empty dictionary.
         """
         return {}
 
@@ -191,15 +191,14 @@ class PostgresDBSource(DataSource):
         their corresponding labels (values). It excludes system schemas
         such as `pg_catalog` and `information_schema`.
 
-        Args:
-            db_connection: 
+        Parameters:
+            db_connection:
                 A live PostgreSQL database connection object (e.g., from psycopg2).
 
         Returns:
             dict[str, list[str]]:
                 A mapping of enum type names (qualified by schema) to their list of values.
         """
-
 
         query = """
         SELECT
@@ -230,7 +229,6 @@ class PostgresDBSource(DataSource):
 
         return enum_types
 
-
     def fetch_database_collection_entities(self, database, collection, max_distinct=50, max_ratio=0.1, max_length=100):
         """
         Collect entity (table) and property (column) metadata for a given schema in a PostgreSQL database.
@@ -243,7 +241,7 @@ class PostgresDBSource(DataSource):
         The method is designed to populate a `DataSchema` object that models entities and their
         properties, useful for metadata inspection, schema inference, or automated documentation.
 
-        Args:
+        Parameters:
             database (str):
                 The logical name or connection identifier for the target PostgreSQL database.
             collection (str):
@@ -328,16 +326,16 @@ class PostgresDBSource(DataSource):
         self._db_disconnect(db_connection)
         return schema.get_entities()
 
-    ### TODO 
+    ### TODO
     def fetch_database_collection_relations(self, database, collection):
         """
         Retrieve relationships (foreign key constraints) between tables in a given schema.
 
         Currently a placeholder method. Intended to extract relational metadata
-        such as foreign key relationships, joins, and dependencies between tables 
+        such as foreign key relationships, joins, and dependencies between tables
         in the specified database and schema/collection.
 
-        Args:
+        Parameters:
             database (str): The database name to inspect.
             collection (str): The schema name within the database.
 
@@ -346,7 +344,6 @@ class PostgresDBSource(DataSource):
                 Currently returns an empty dictionary.
         """
         return {}
-    
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
@@ -357,7 +354,7 @@ class PostgresDBSource(DataSource):
         SQL query, fetches all results, converts them to a pandas DataFrame,
         and finally serializes the DataFrame into a JSON array.
 
-        Args:
+        Parameters:
             query (str): The SQL query string to execute.
             database (str): Name of the database to connect to.
             collection (str, optional): Not used for PostgreSQL, kept for interface consistency.
@@ -408,7 +405,6 @@ class PostgresDBSource(DataSource):
             database count, uptime, or an error message if collection fails.
         """
 
-
         stats = {}
 
         try:
@@ -442,14 +438,13 @@ class PostgresDBSource(DataSource):
         - Total database size in bytes
         - Total number of user tables (excluding system schemas)
 
-        Args:
+        Parameters:
             database (str): Name of the database to analyze.
 
         Returns:
             dict: Dictionary containing database-level stats such as size (bytes)
             and table count.
         """
-
 
         conn = self._db_connect(database)
         cur = conn.cursor()
@@ -486,7 +481,7 @@ class PostgresDBSource(DataSource):
         Computes basic counts of entities (tables) and relations to provide
         high-level structural metadata for the data registry.
 
-        Args:
+        Parameters:
             database (str): Name of the database the collection belongs to.
             collection_name (str): Name of the collection or schema.
             entities (list): List of entities (tables) in the collection.
@@ -495,12 +490,11 @@ class PostgresDBSource(DataSource):
         Returns:
             dict: Dictionary with counts of entities and relations.
         """
-            
-        
+
         stats = {}
         num_entities = len(entities)
         num_relations = len(relations)
-        
+
         stats["num_entities"] = num_entities
         stats["num_relations"] = num_relations
 
@@ -535,7 +529,7 @@ class PostgresDBSource(DataSource):
         gather metadata about the column, including counts, distinct values,
         nulls, sample values, min/max values (when applicable), and most common values.
 
-        Args:
+        Parameters:
             database (str): The database name to connect to.
             collection (str): The schema name (PostgreSQL schema) of the table.
             table (str): The table name containing the property.
@@ -558,7 +552,7 @@ class PostgresDBSource(DataSource):
             boolean, and enum-like column types.
             - If an error occurs (e.g., invalid table or column), an empty dict is returned.
         """
-        
+
         conn = self._db_connect(database)
         cursor = conn.cursor()
 

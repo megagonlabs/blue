@@ -33,7 +33,7 @@ class AgentPerformanceTracker(PerformanceTracker):
     def __init__(self, agent, properties=None, callback=None):
         """Initialize the AgentPerformanceTracker.
 
-        Args:
+        Parameters:
             agent: The agent to track.
             properties: Additional properties for the tracker. Defaults to None.
             callback: Callback function to be called on data collection. Defaults to None.
@@ -144,6 +144,7 @@ class Worker:
         self, input_stream, input="DEFAULT", name="WORKER", id=None, sid=None, cid=None, prefix=None, suffix=None, agent=None, processor=None, session=None, properties=None, on_stop=None
     ):
         """Initialize the Worker.
+
         Parameters:
             input_stream: The input stream to read data from.
             input: The input parameter name. Defaults to "DEFAULT".
@@ -207,6 +208,7 @@ class Worker:
     def _initialize(self, properties=None):
         """
         Initialize the worker.
+
         Parameters:
             properties: Properties of the worker.
         """
@@ -225,6 +227,7 @@ class Worker:
     def _update_properties(self, properties=None):
         """
         Update the properties of the worker.
+
         Parameters:
             properties: Properties of the worker.
         """
@@ -259,6 +262,7 @@ class Worker:
     def listener(self, message, input="DEFAULT"):
         """
         Listen for messages and process them through processor function, writes results to output, unrolling result lists if needed.
+
         Parameters:
             message: The message to process.
             input: The input parameter.
@@ -308,6 +312,7 @@ class Worker:
     def write_bos(self, output="DEFAULT", id=None, tags=None, scope="worker"):
         """
         Write a Beginning of Stream (BOS) message to stream.
+
         Parameters:
             output: The output parameter.
             id: Optional ID to append to output parameter for output stream.
@@ -321,6 +326,7 @@ class Worker:
     def write_eos(self, output="DEFAULT", id=None, tags=None, scope="worker"):
         """
         Write a End of Stream (EOS) message to stream.
+
         Parameters:
             output: The output parameter.
             id: Optional ID to append to output parameter for output stream.
@@ -334,6 +340,7 @@ class Worker:
     def write_data(self, data, output="DEFAULT", id=None, tags=None, scope="worker"):
         """
         Write data to stream, handling different data types and unrolling lists.
+
         Parameters:
             output: The output parameter.
             id: Optional ID to append to output parameter for output stream.
@@ -367,6 +374,7 @@ class Worker:
 
     def write_progress(self, progress_id=None, label=None, value=0):
         """Write a progress message to stream.
+
         Parameters:
             progress_id: The progress ID.
             label: The progress label.
@@ -379,6 +387,7 @@ class Worker:
     def write_control(self, code, args, output="DEFAULT", id=None, tags=None, scope="worker"):
         """
         Write a control message to stream.
+
         Parameters:
             code: The control code.
             args: The control arguments.
@@ -529,6 +538,7 @@ class Worker:
     def _start_producer(self, output="DEFAULT", tags=None, prefix=None):
         """
         Start a producer for the output stream. Notifies the session of the new stream if in a session.
+
         Parameters:
             output: The output parameter.
             tags: Stream tags.
@@ -573,6 +583,7 @@ class Worker:
     ## session data
     def set_session_data(self, key, value):
         """Set session data for key to value.
+
         Parameters:
             key: The data key.
             value: The data value.
@@ -582,6 +593,7 @@ class Worker:
 
     def append_session_data(self, key, value):
         """Append value to session data for key.
+
         Parameters:
             key: The data key.
             value: The data value to append.
@@ -591,8 +603,10 @@ class Worker:
 
     def get_session_data(self, key):
         """Get session data for key.
+
         Parameters:
             key: The data key.
+
         Returns:
             The data value for the key, or None if not found.
         """
@@ -603,6 +617,7 @@ class Worker:
 
     def get_all_session_data(self):
         """Get all session data.
+
         Returns:
             A dictionary of all session data, or None if not found.
         """
@@ -613,6 +628,7 @@ class Worker:
 
     def get_session_data_len(self, key):
         """Get length of session data for key.
+
         Parameters:
             key: The data key.
         """
@@ -624,6 +640,7 @@ class Worker:
     ## session stream data
     def set_stream_data(self, key, value, stream=None):
         """Set stream data for key to value.
+
         Parameters:
             key: The data key.
             value: The data value.
@@ -634,6 +651,7 @@ class Worker:
 
     def append_stream_data(self, key, value, stream=None):
         """Append value to stream data for key.
+
         Parameters:
             key: The data key.
             value: The data value to append.
@@ -644,9 +662,11 @@ class Worker:
 
     def get_stream_data(self, key, stream=None):
         """Get stream data for key.
+
         Parameters:
             key: The data key.
             stream: The stream ID.
+
         Returns:
             The data value for the key in the specified stream, or None if not found.
         """
@@ -657,6 +677,7 @@ class Worker:
 
     def get_all_stream_data(self, stream=None):
         """Get all stream data.
+
         Parameters:
             stream: The stream ID.
         """
@@ -667,9 +688,11 @@ class Worker:
 
     def get_stream_data_len(self, key, stream=None):
         """Get length of stream data for key. if list.
+
         Parameters:
             key: The data key.
             stream: The stream ID.
+
         Returns:
             The length of the data value for the key in the specified stream, or None if not found.
         """
@@ -681,6 +704,7 @@ class Worker:
     ## agent data
     def set_data(self, key, value):
         """Set agent data for key to value.
+
         Parameters:
             key: The data key.
             value: The data value.
@@ -690,6 +714,7 @@ class Worker:
 
     def append_data(self, key, value):
         """Append value to agent data for key.
+
         Parameters:
             key: The data key.
             value: The data value to append.
@@ -699,8 +724,10 @@ class Worker:
 
     def get_data(self, key):
         """Get agent data for key.
+
         Parameters:
             key: The data key.
+
         Returns:
             The data value for the key, or None if not found.
         """
@@ -710,6 +737,7 @@ class Worker:
 
     def get_all_data(self):
         """Get all agent data.
+
         Returns:
             A dictionary of all agent data, or None if not found.
         """
@@ -719,8 +747,10 @@ class Worker:
 
     def get_data_len(self, key):
         """Get length of agent data for key.
+
         Parameters:
             key: The data key.
+
         Returns:
             The length of the data value for the key, or None if not found.
         """
@@ -765,6 +795,7 @@ class Agent:
         properties=None,
     ):
         """Initialize the Agent.
+
         Parameters:
             name: The agent name. Defaults to "AGENT".
             id: The agent ID. If not provided, a new UUID will be created.
@@ -870,6 +901,7 @@ class Agent:
     def _update_properties(self, properties=None):
         """
         Update the agent's properties.
+
         Parameters:
             properties: Properties of the agent.
         """
@@ -892,6 +924,7 @@ class Agent:
     def _update_inputs(self, properties=None):
         """
         Update the agent's input parameters from its properties.
+
         Parameters:
             properties: Properties of the agent.
         """
@@ -907,6 +940,7 @@ class Agent:
     def _update_outputs(self, properties=None):
         """
         Update the agent's output parmeters from its properties.
+
         Parameters:
             properties: Properties of the agent.
         """
@@ -922,6 +956,7 @@ class Agent:
     def update_input(self, name, description=None, properties=None):
         """
         Add/Update an input parameter of the agent, processing properties for includes/excludes.
+
         Parameters:
             name: The name of the input parameter.
             description: The description of the input parameter.
@@ -946,6 +981,7 @@ class Agent:
     def update_output(self, name, description=None, properties=None):
         """
         Add/Update an output parameter of the agent, processing properties for tags.
+
         Parameters:
             name: The name of the output parameter.
             description: The description of the output parameter.
@@ -966,6 +1002,7 @@ class Agent:
     def add_input(self, name, description=None, includes=None, excludes=None):
         """
         Add an input parameter to the agent.
+
         Parameters:
             name: The name of the input parameter
             description: The description of the input parameter.
@@ -984,6 +1021,7 @@ class Agent:
     def add_output(self, name, description=None, tags=None):
         """
         Add an output parameter to the agent.
+
         Parameters:
             name: The name of the output parameter
             description: The description of the output parameter.
@@ -999,6 +1037,7 @@ class Agent:
     def get_input(self, name):
         """
         Get an input parameter of the agent.
+
         Parameters:
             name: The name of the input parameter
         """
@@ -1009,6 +1048,7 @@ class Agent:
     def get_output(self, name):
         """
         Get an output parameter of the agent.
+
         Parameters:
             name: The name of the output parameter
         """
@@ -1019,8 +1059,10 @@ class Agent:
     def has_input(self, name):
         """
         Check if the agent has an input parameter with specified name.
+
         Parameters:
             name: The name of the input parameter
+
         Returns:
             True if the input parameter exists, False otherwise.
         """
@@ -1029,8 +1071,10 @@ class Agent:
     def has_output(self, name):
         """
         Check if the agent has an output parameter with specified name.
+
         Parameters:
             name: The name of the output parameter
+
         Returns:
             True if the output parameter exists, False otherwise.
         """
@@ -1039,6 +1083,7 @@ class Agent:
     def set_input_description(self, name, description=None):
         """
         Set the description of an input parameter.
+
         Parameters:
             name: The name of the input parameter
             description: The new description for the input parameter
@@ -1051,8 +1096,10 @@ class Agent:
     def get_input_description(self, name):
         """
         Get the description of an input parameter.
+
         Parameters:
             name: The name of the input parameter
+
         Returns:
             The description of the input parameter, or None if not found.
         """
@@ -1063,6 +1110,7 @@ class Agent:
     def set_output_description(self, name, description=None):
         """
         Set the description of an output parameter.
+
         Parameters:
             name: The name of the output parameter
             description: The new description for the output parameter
@@ -1075,8 +1123,10 @@ class Agent:
     def get_output_description(self, name):
         """
         Get the description of an output parameter.
+
         Parameters:
             name: The name of the output parameter
+
         Returns:
             The description of the output parameter, or None if not found.
         """
@@ -1087,6 +1137,7 @@ class Agent:
     def add_input_include(self, name, include=None):
         """
         Add an include pattern to an input parameter.
+
         Parameters:
             name: The name of the input parameter
             include: The include pattern to add
@@ -1100,6 +1151,7 @@ class Agent:
     def remove_input_include(self, name, include=None):
         """
         Remove an include pattern from an input parameter.
+
         Parameters:
             name: The name of the input parameter
             include: The include pattern to remove
@@ -1113,9 +1165,11 @@ class Agent:
     def input_includes(self, name, include):
         """
         Check if an include pattern exists for an input parameter.
+
         Parameters:
             name: The name of the input parameter
             include: The include pattern to check
+
         Returns:
             True if the include pattern exists, False otherwise.
         """
@@ -1126,8 +1180,10 @@ class Agent:
     def get_input_includes(self, name):
         """
         Get the include patterns for an input parameter.
+
         Parameters:
             name: The name of the input parameter
+
         Returns:
             A list of include patterns for the input parameter, or None if not found.
         """
@@ -1137,6 +1193,7 @@ class Agent:
     def add_input_exclude(self, name, exclude=None):
         """
         Add an exclude pattern to an input parameter.
+
         Parameters:
             name: The name of the input parameter
             exclude: The exclude pattern to add
@@ -1150,6 +1207,7 @@ class Agent:
     def remove_input_exclude(self, name, exclude=None):
         """
         Remove an exclude pattern from an input parameter.
+
         Parameters:
             name: The name of the input parameter
             exclude: The exclude pattern to remove
@@ -1163,9 +1221,11 @@ class Agent:
     def input_excludes(self, name, exclude):
         """
         Check if an exclude pattern exists for an input parameter.
+
         Parameters:
             name: The name of the input parameter
             exclude: The exclude pattern to check
+
         Returns:
             True if the exclude pattern exists, False otherwise.
         """
@@ -1176,8 +1236,10 @@ class Agent:
     def get_input_excludes(self, name):
         """
         Get the exclude patterns for an input parameter.
+
         Parameters:
             name: The name of the input parameter
+
         Returns:
             A list of exclude patterns for the input parameter, or None if not found.
         """
@@ -1187,6 +1249,7 @@ class Agent:
     def add_output_tag(self, name, tag=None):
         """
         Add a tag to an output parameter.
+
         Parameters:
             name: The name of the output parameter
             tag: The tag to add
@@ -1200,6 +1263,7 @@ class Agent:
     def remove_output_tag(self, name, tag=None):
         """
         Remove a tag from an output parameter.
+
         Parameters:
             name: The name of the output parameter
             tag: The tag to remove
@@ -1213,9 +1277,11 @@ class Agent:
     def has_output_tag(self, name, tag):
         """
         Check if a tag exists for an output parameter.
+
         Parameters:
             name: The name of the output parameter
             tag: The tag to check
+
         Returns:
             True if the tag exists, False otherwise.
         """
@@ -1226,8 +1292,10 @@ class Agent:
     def get_output_tags(self, name):
         """
         Get the tags for an output parameter.
+
         Parameters:
             name: The name of the output parameter
+
         Returns:
             A list of tags for the output parameter, or None if not found.
         """
@@ -1259,12 +1327,14 @@ class Agent:
     def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None, properties=None):
         """
         Create a worker for the agent to process data from the specified input stream for input parameter
+
         Parameters:
             input_stream: The input stream for the worker
             input: The name of the input parameter
             context: The context for the worker (determines prefix for worker)
             processor: The processor function for the worker
             properties: The properties for the worker
+
         Returns:
             The created worker.
         """
@@ -1355,6 +1425,7 @@ class Agent:
     def join_session(self, session):
         """
         Join a session.
+
         Parameters:
             session: The session to join
         """
@@ -1421,8 +1492,10 @@ class Agent:
     def _match_inputs_to_stream_tags(self, tags):
         """
         Checks if streams tags match any of the agent's input parameters' include/exclude patterns.
+
         Parameters:
             tags: The tags from the stream
+
         Returns:
             A dictionary mapping input parameters to their matched tags.
         """
@@ -1531,6 +1604,7 @@ class Agent:
     def submit_plan(self, plan):
         """
         Submit a plan for execution.
+
         Parameters:
             plan: The AgenticPlan to submit.
         """
@@ -1551,6 +1625,7 @@ class Agent:
     ## data
     def set_data(self, key, value):
         """Set agent data for key to value.
+
         Parameters:
             key: The data key.
             value: The data value.
@@ -1559,8 +1634,10 @@ class Agent:
 
     def get_data(self, key):
         """Get agent data for key.
+
         Parameters:
             key: The data key.
+
         Returns:
             The data value.
         """
@@ -1568,6 +1645,7 @@ class Agent:
 
     def append_data(self, key, value):
         """Append value to agent data for key.
+
         Parameters:
             key: The data key.
             value: The data value.
@@ -1576,6 +1654,7 @@ class Agent:
 
     def get_data_len(self, key):
         """Get length of agent data for key. if list.
+
         Parameters:
             key: The data key.
         """
@@ -1670,6 +1749,7 @@ class AgentFactory:
         properties={},
     ):
         """Initialize the AgentFactory.
+
         Parameters:
             _class: The class of agents to create. Defaults to Agent.
             _name: The base name of the agents to create. Defaults to "Agent".
@@ -1703,6 +1783,7 @@ class AgentFactory:
     def _initialize(self, properties=None):
         """
         Initialize the agent factory.
+
         Parameters:
             properties: Properties of the agent factory.
         """
@@ -1733,6 +1814,7 @@ class AgentFactory:
     def _update_properties(self, properties=None):
         """
         Update the properties of the agent factory.
+
         Parameters:
             properties: Properties of the agent factory.
         """
@@ -1767,8 +1849,10 @@ class AgentFactory:
     ###### factory functions
     def create(self, **kwargs):
         """Create a new agent of the specified class with the given parameters.
+
         Parameters:
             kwargs: Parameters to pass to the agent constructor.
+
         Returns:
             The created agent instance.
         """

@@ -119,7 +119,7 @@ Output:
         Fetch the overall schema of the OpenAI source.
 
         Returns:
-            dict: Empty dictionary 
+            dict: Empty dictionary
         """
         return {}
 
@@ -139,7 +139,7 @@ Output:
         """
         Fetch metadata for a given virtual OpenAI database.
 
-        Args:
+        Parameters:
             database (str): The virtual database name.
 
         Returns:
@@ -151,7 +151,7 @@ Output:
         """
         Fetch the schema of the specified OpenAI database.
 
-        Args:
+        Parameters:
             database (str): The virtual database name.
 
         Returns:
@@ -164,7 +164,7 @@ Output:
         """
         Fetch collections  in the OpenAI database.
 
-        Args:
+        Parameters:
             database (str): The virtual database name.
 
         Returns:
@@ -174,12 +174,11 @@ Output:
         collections.append("public")
         return collections
 
-
     def fetch_database_collection_metadata(self, database, collection):
         """
         Fetch metadata for a specific OpenAI collection.
 
-        Args:
+        Parameters:
             database (str): The virtual database name.
             collection (str): The virtual collection name.
 
@@ -192,7 +191,7 @@ Output:
         """
         Fetch entities (analogous to tables) and their attributes for OpenAI.
 
-        Args:
+        Parameters:
             database (str): The virtual database name.
             collection (str): The virtual collection name.
 
@@ -215,7 +214,7 @@ Output:
         """
         Fetch relationships between entities in an OpenAI collection.
 
-        Args:
+        Parameters:
             database (str): The virtual database name.
             collection (str): The virtual collection name.
 
@@ -224,12 +223,11 @@ Output:
         """
         return {}
 
-
     def get_service_address(self, properties=None):
         """
         Construct and return the WebSocket service address for OpenAI interaction.
 
-        Args:
+        Parameters:
             properties (dict, optional): Optional properties to override connection info.
 
         Returns:
