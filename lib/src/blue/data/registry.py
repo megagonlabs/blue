@@ -26,6 +26,7 @@ from blue.data.sources.sqlite_source import SQLiteDBSource
 from blue.data.sources.openai_source import OpenAISource
 
 ###### Backend, Databases
+import redis
 from redis.commands.json.path import Path
 from redis.commands.search.field import TextField, VectorField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
@@ -38,7 +39,14 @@ from redis.commands.search.query import Query
 class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, platform_id=platform_id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
+        self._init_binary_connection()
+        
+    def _init_binary_connection(self):
+        host = self.properties["db.host"]
+        port = self.properties["db.port"]
 
+        self.connection_no_decode = redis.Redis(host=host, port=port, decode_responses=False)
+        
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -1064,24 +1072,23 @@ class DataRegistry(Registry):
         query_params = {}
         return q, query_params
 
-    def _compute_vector_score(self, result, input_query, params):
-        """Compute vector similarity for a result, [0, 1] range, higher is better"""
-        if not input_query:
+    def _compute_vector_score(self, result, query_vector, doc_vector, schema_vector, params):
+        """Compute vector similarity for a result using precomputed vectors."""
+        if query_vector is None:
             return 0.0
-            
-        doc_text = f"{result.name} {getattr(result, 'description', '')}".rstrip()
-        query_vector = self._compute_embedding_vector(input_query)
-        doc_vector = self._compute_embedding_vector(doc_text)
-        vector_score = compute_vector_score(query_vector, doc_vector, normalize_score=True)
         
+        if doc_vector is None:
+            return 0.0  # fallback: no vector stored
+
+        vector_score = compute_vector_score(query_vector, doc_vector, normalize_score=True)
+
         # For collections, also check schema vector similarity if enabled
         if params['enable_schema'] and result.type == 'collection' and getattr(result, 'schema', None):
-            schema_vector = self._compute_embedding_vector(getattr(result, 'schema', ''))
-            schema_vector_score = compute_vector_score(query_vector, schema_vector, normalize_score=True)
-            vector_score = max(vector_score, schema_vector_score)
+            if schema_vector is not None:
+                schema_vector_score = compute_vector_score(query_vector, schema_vector, normalize_score=True)
+                vector_score = max(vector_score, schema_vector_score)
 
         return vector_score
-
 
     def search_records(self, input_query, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10, bm25_weight=None, vector_weight=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, bm25_normalization=None, enable_schema=None, redis_search_limit=None):
         """search records with BM25 scores, vector similarity, schema support, and thresholds"""
@@ -1101,6 +1108,10 @@ class DataRegistry(Registry):
                     filtered_results.append(result)
             results = filtered_results
 
+        query_vector = None
+        if input_query:
+            query_vector = self._compute_embedding_vector(input_query)
+
         # Compute and attach all scores directly to result objects
         for i, result in enumerate(results):
             # Compute BM25 score [0, inf] range, higher is better
@@ -1112,8 +1123,13 @@ class DataRegistry(Registry):
             
             bm25_score = compute_bm25_score(input_query, doc_text, schema_text) if input_query else 0.0
 
+            doc_key = self._Registry__doc_key(result.name, result.type, result.scope)
+
+            vector_bytes = self.connection_no_decode.execute_command("HGET", doc_key, "vector")
+            schema_vector_bytes = self.connection_no_decode.execute_command("HGET", doc_key, "schema_vector")
+
             # Compute vector score
-            vector_score = self._compute_vector_score(result, input_query, params)
+            vector_score = self._compute_vector_score(result, query_vector, vector_bytes, schema_vector_bytes, params)
 
             result.bm25_score = bm25_score
             result.vector_score = vector_score
@@ -1199,6 +1215,10 @@ class DataRegistry(Registry):
                     filtered_results.append(result)
             results = filtered_results
         
+        query_vector = None
+        if input_query:
+            query_vector = self._compute_embedding_vector(input_query)
+
         # Compute and attach all scores directly to result objects
         for i, result in enumerate(results):
             # Compute BM25 score
@@ -1210,8 +1230,13 @@ class DataRegistry(Registry):
             
             bm25_score = compute_bm25_score(input_query, doc_text, schema_text) if input_query else 0.0
 
+            doc_key = self._Registry__doc_key(result.name, result.type, result.scope)
+
+            vector_bytes = self.connection_no_decode.execute_command("HGET", doc_key, "vector")
+            schema_vector_bytes = self.connection_no_decode.execute_command("HGET", doc_key, "schema_vector")
+
             # Compute vector score
-            vector_score = self._compute_vector_score(result, input_query, params)
+            vector_score = self._compute_vector_score(result, query_vector, vector_bytes, schema_vector_bytes, params)
 
             # Attach scores directly to result object
             result.bm25_score = bm25_score

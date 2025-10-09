@@ -22,7 +22,7 @@ class PooledConnectionFactory:
         self._start()
 
     def _start(self):
-        # connectio details
+        # connection details
         host = self.properties["db.host"]
         port = self.properties["db.port"]
 
@@ -43,14 +43,13 @@ class PooledConnectionFactory:
         if PooledConnectionFactory.__pool is None:
             PooledConnectionFactory.__pool_id = uuid_utils.create_uuid()
             PooledConnectionFactory.__pool = redis.connection.ConnectionPool(host=host, port=port, max_connections=max_connections, decode_responses=decode_responses)
-
+       
     def get_id(self):
         return PooledConnectionFactory.__pool_id
 
     def get_connection(self):
         if self.connection is None:
             self.connection = redis.Redis(connection_pool=PooledConnectionFactory.__pool)
-
         return self.connection
 
     def count_in_use_connections(self):
