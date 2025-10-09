@@ -15,6 +15,17 @@ from blue.constant import Separator
 ###############
 ### Status
 class Status(Constant):
+    """
+    Status of the plan or stream:
+
+    - INACTIVE: Initial state, not yet started.
+    - SUBMITTED: Submitted for execution.
+    - INITED: Initialized and ready to run.
+    - PLANNED: Planned for execution.
+    - RUNNING: Currently executing.
+    - FINISHED: Execution completed.
+    """
+
     def __init__(self, c):
         super().__init__(c)
 
@@ -28,6 +39,15 @@ Status.FINISHED = Status("FINISHED")
 
 
 class NodeType(Constant):
+    """
+    Type of node in the plan:
+
+    - INPUT: Input node.
+    - OUTPUT: Output node.
+    - AGENT_INPUT: Input node for an agent.
+    - AGENT_OUTPUT: Output node for an agent.
+    """
+
     def __init__(self, c):
         super().__init__(c)
 
@@ -39,6 +59,13 @@ NodeType.AGENT_OUTPUT = Constant("AGENT_OUTPUT")
 
 
 class EntityType(Constant):
+    """
+    Type of entity in the plan:
+
+    - AGENT: An agent entity.
+    - STREAM: A data stream entity.
+    """
+
     def __init__(self, c):
         super().__init__(c)
 
@@ -51,8 +78,18 @@ EntityType.STREAM = Constant("STREAM")
 ### Agentic Plan
 #
 class AgenticPlan(dag_utils.Plan):
+    """Agentic Plan class for defining and managing agentic plans comprised of agents, inputs, outputs, and streams."""
 
     def __init__(self, scope=None, id=None, label=None, type="AGENTIC_PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
+        """Initializes an AgenticPlan instance.
+
+        Parameters:
+            scope: The scope of the plan (Session or str).
+            id: Unique identifier for the plan.
+            label: Human-readable label for the plan.
+            type: Type of the plan (default is "AGENTIC_PLAN").
+            properties: Additional properties for the plan.
+        """
         self.leaves = None
         super().__init__(id=id, label=label, type=type, properties=properties, path=path, synchronizer=synchronizer, auto_sync=auto_sync, sync=sync)
 
@@ -63,6 +100,11 @@ class AgenticPlan(dag_utils.Plan):
         self._set_scope(s, sync=sync)
 
     def _init_data(self, sync=None):
+        """Initializes the data for the plan, setting up context and status.
+
+        Parameters:
+            sync: Whether to synchronize the data immediately.
+        """
         super()._init_data(sync=sync)
 
         self.set_data("context", {"scope": None}, sync=sync)
@@ -70,6 +112,11 @@ class AgenticPlan(dag_utils.Plan):
 
     # properties
     def _initialize_properties(self, sync=None):
+        """Initializes the properties for the plan, including database connectivity.
+
+        Parameters:
+            sync: Whether to synchronize the properties immediately.
+        """
         super()._initialize_properties(sync=sync)
 
         # db connectivity
@@ -78,9 +125,17 @@ class AgenticPlan(dag_utils.Plan):
 
     # context, scope
     def get_context(self):
+        """Retrieves the context of the plan.
+        Returns:
+            The context dictionary of the plan.
+        """
         return self.get_data("context")
 
     def get_scope(self):
+        """Retrieves the scope of the plan.
+        Returns:
+            The scope of the plan.
+        """
         context = self.get_context()
         if 'scope' in context:
             return context['scope']
@@ -88,6 +143,11 @@ class AgenticPlan(dag_utils.Plan):
             return None
 
     def _set_scope(self, scope, sync=None):
+        """Sets the scope of the plan.
+        Parameters:
+            scope: The scope of the plan (Session or str).
+            sync: Whether to synchronize the scope immediately.
+        """
         context = self.get_context()
         context['scope'] = scope
 
@@ -95,14 +155,32 @@ class AgenticPlan(dag_utils.Plan):
 
     # status
     def set_status(self, status, sync=None):
+        """Sets the status of the plan.
+        Parameters:
+            status: The status to set for the plan.
+            sync: Whether to synchronize the status immediately.
+        """
         self.set_data("status", str(status), sync=sync)
 
     def get_status(self):
+        """Retrieves the status of the plan.
+        Returns:
+            The status of the plan.
+        """
         return self.get_data('status')
 
     #### plan specific nodes, agents
     # inputs, outputs, agents, w/input and output parameters
     def _get_default_label(self, agent, input=None, output=None):
+        """Generates a default label for an agent input or output node.
+
+        Parameters:
+            agent: The canonical name of the agent.
+            input: The name of the input parameter (if applicable).
+            output: The name of the output parameter (if applicable).
+        Returns:
+            A string representing the default label.
+        """
         label = agent
 
         if input:
@@ -113,6 +191,15 @@ class AgenticPlan(dag_utils.Plan):
         return label
 
     def define_input(self, label=None, value=None, stream=None, properties={}, sync=None):
+        """Defines an input node for the plan.
+
+        Parameters:
+            label: The label for the input node.
+            value: The value for the input node.
+            stream: The stream associated with the input node (if any).
+            properties: Additional properties for the input node.
+            sync: Whether to synchronize the input node immediately.
+        """
         input_node = self.create_node(label=label, type=str(NodeType.INPUT), properties=properties, sync=sync)
 
         # input value/stream
@@ -125,6 +212,15 @@ class AgenticPlan(dag_utils.Plan):
         return input_node
 
     def define_output(self, label=None, value=None, stream=None, properties={}, sync=None):
+        """Defines an output node for the plan.
+
+        Parameters:
+            label: The label for the output node.
+            value: The value for the output node.
+            stream: The stream associated with the output node (if any).
+            properties: Additional properties for the output node.
+            sync: Whether to synchronize the output node immediately.
+        """
         output_node = self.create_node(label=label, type=str(NodeType.OUTPUT), properties=properties, sync=sync)
 
         # output value/stream
@@ -137,6 +233,15 @@ class AgenticPlan(dag_utils.Plan):
         return output_node
 
     def define_agent(self, name=None, label=None, properties={}, sync=None):
+        """Defines an agent entity in the plan.
+
+        Parameters:
+            name: The name of the agent.
+            label: The label for the agent (if different from name).
+            properties: Additional properties for the agent to pass on to execution.
+            sync: Whether to synchronize the agent immediately.
+        """
+
         # checks
         if name is None:
             raise Exception("Name is not specified")
@@ -158,6 +263,15 @@ class AgenticPlan(dag_utils.Plan):
         return agent
 
     def define_agent_input(self, name=None, agent=None, stream=None, properties={}, sync=None):
+        """Defines an agent input node in the plan.
+
+        Parameters:
+            name: The name of the input parameter.
+            agent: The agent associated with the input parameter (name, id, or canonical name).
+            stream: The stream associated with the input node (if any).
+            properties: Additional properties for the input node.
+            sync: Whether to synchronize the input node immediately.
+        """
         # checks
         if name is None:
             raise Exception("Name is not specified")
@@ -190,6 +304,14 @@ class AgenticPlan(dag_utils.Plan):
         return agent_input_node
 
     def define_agent_output(self, name, agent, properties={}, sync=None):
+        """Defines an agent output node in the plan.
+
+        Parameters:
+            name: The name of the output parameter.
+            agent: The agent associated with the output parameter (name, id, or canonical name).
+            properties: Additional properties for the output node.
+            sync: Whether to synchronize the output node immediately.
+        """
         # checks
         if name is None:
             raise Exception("Name is not specified")
@@ -219,12 +341,37 @@ class AgenticPlan(dag_utils.Plan):
 
     ### agent
     def create_agent(self, label=None, properties=None, sync=None):
+        """Creates an agent entity in the plan.
+
+        Args:
+            label: The label for the agent. Defaults to None.
+            properties: Additional properties for the agent. Defaults to None.
+            sync: Whether to synchronize immediately. Defaults to None.
+
+        Returns:
+            The created agent entity.
+        """
         return self.create_entity(label=label, type=str(EntityType.AGENT), properties=properties, sync=sync)
 
     def get_agents(self):
+        """
+        Returns a list of all agent entities in the plan.
+
+        Returns:
+            List of agent entities.
+        """
         return self.get_entities(type=str(EntityType.AGENT))
 
     def get_agent(self, a, cls=None):
+        """ Retrieves an agent entity by its identifier, label, or canonical name.
+
+        Args:
+            a: The identifier, label, or canonical name of the agent.
+            cls: Optional class type for the agent entity. Defaults to None.
+
+        Returns:
+            The agent entity if found, else None.
+        """
         return self.get_entity(a, type=str(EntityType.AGENT))
 
     def get_agent_by_id(self, agent_id, cls=None):

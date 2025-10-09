@@ -12,18 +12,25 @@ from blue.data.registry import DataRegistry
 ### Agent.QueryExecutorAgent
 #
 class QueryExecutorAgent(Agent):
+    """
+    An agent that executes queries against a specified data source and database using the DataRegistry.
+    The agent takes input in the form of JSON containing the source, database, and query to execute.
+    """
+
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "QUERYEXECUTOR"
         super().__init__(**kwargs)
 
     def _start(self):
+        """Start the QueryExecutorAgent by initializing the data registry."""
         super()._start()
 
         # initialize registry
         self._init_registry()
 
     def _init_registry(self):
+        """Initialize the data registry for the QueryExecutorAgent."""
         # create instance of data registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
@@ -31,12 +38,21 @@ class QueryExecutorAgent(Agent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the query executor agent."""
         self.add_input("DEFAULT", description="input query")
 
     def _initialize_outputs(self):
+        """Initialize outputs for the query executor agent, tagged as QUERY, RESULT, and HIDDEN."""
         self.add_output("DEFAULT", description="query results", tags=["QUERY", "RESULT", "HIDDEN"])
 
     def execute_sql_query(self, path, query):
+        """Execute a SQL query against the specified data source and database.
+        Parameters:
+            path: The data source path in the format 'PLATFORM:<platform_id>/<source>/<database>/<collection>'.
+            query: The SQL query to execute.
+        Returns:
+            A dictionary containing the query results or an error message.
+        """
         result = None
         question = None
         error = None
@@ -53,6 +69,12 @@ class QueryExecutorAgent(Agent):
         return {'question': question, 'source': path, 'query': query, 'result': result, 'error': error}
 
     def _apply_filter(self, output):
+        """Apply output filters to the query result based on agent properties.
+        Parameters:
+            output: The output dictionary containing question, source, query, result, and error.
+        Returns:
+            The filtered output based on specified output filters.
+        """
         output_filters = ['all']
 
         if 'output_filters' in self.properties:
@@ -100,7 +122,15 @@ class QueryExecutorAgent(Agent):
             return message
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
-
+        """Process messages for the query executor agent, executing SQL queries based on input JSON data.
+        Parameters:
+            message: The message to process.
+            input: The input stream label.
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+        Returns:
+            None or a response message.
+        """
         ##### Upon USER/Agent input text
         if input == "DEFAULT":
             if message.isEOS():

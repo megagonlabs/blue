@@ -36,6 +36,8 @@ agent_properties = {
 ### OpenAIAgent.SummarizerAgent
 #
 class SummarizerAgent(OpenAIAgent):
+    """An agent that summarizes input text using OpenAI's language models, incorporating results from natural language and SQL queries."""
+
     def __init__(self, **kwargs):
         if "name" not in kwargs:
             kwargs["name"] = "SUMMARIZER"
@@ -54,13 +56,24 @@ class SummarizerAgent(OpenAIAgent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the summarizer agent. No inputs by default."""
         return
 
     def _initialize_outputs(self):
+        """Initialize outputs for the summarizer agent, tagged as SUMMARY."""
         self.add_output("DEFAULT", description="summary text incorporating query results", tags=["SUMMARY"])
 
     def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
-
+        """Issue a natural language question to the NL2SQL agent as part of the summarization process.
+        Parameters:
+            question: The natural language question to ask.
+            progress_id: An optional progress identifier for tracking.
+            name: An optional name for the question.
+            worker: The worker handling the processing.
+            to_param_prefix: The prefix for the output parameter name.
+        Returns:
+            None
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -82,7 +95,15 @@ class SummarizerAgent(OpenAIAgent):
         p.submit(worker)
 
     def issue_sql_query(self, query, progress_id=None, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
+        """Issue a SQL query to the QueryExecutor agent as part of the summarization process.
+        Parameters:
+            query: The SQL query to execute.
+            progress_id: An optional progress identifier for tracking.
+            name: An optional name for the query.
+            worker: The worker handling the processing.
+            to_param_prefix: The prefix for the output parameter name.
 
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -104,7 +125,14 @@ class SummarizerAgent(OpenAIAgent):
         p.submit(worker)
 
     def summarize_doc(self, progress_id=None, properties=None, input="", worker=None):
+        """Summarize the input document using the configured template and query results.
+        Parameters:
+            progress_id: An optional progress identifier for tracking.
+            properties: Additional properties for processing.
+            input: The input text to summarize.
+            worker: The worker handling the processing.
 
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -146,7 +174,15 @@ class SummarizerAgent(OpenAIAgent):
         worker.write_progress(progress_id=progress_id, label='Done...', value=1.0)
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
-
+        """Process messages for the summarizer agent, incorporating results from natural language and SQL queries to generate a summary.
+        Parameters:
+            message: The incoming message to process.
+            input: The input stream name. Defaults to "DEFAULT".
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+        Returns:
+            None or a response message.
+        """
         ##### Upon USER input text
         if input == "DEFAULT":
             if message.isEOS():

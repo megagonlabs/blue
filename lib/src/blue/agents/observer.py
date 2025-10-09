@@ -14,6 +14,11 @@ from blue.utils import json_utils
 
 #######################
 class ObserverAgent(Agent):
+    """
+    An agent that observes all messages in a session and logs them or sends them to a specified output.
+    Used primarily internally for Web UI.
+    """
+
     def __init__(self, **kwargs):
         if "name" not in kwargs:
             kwargs["name"] = "OBSERVER"
@@ -27,9 +32,11 @@ class ObserverAgent(Agent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the observer agent, by default observe all streams."""
         self.add_input("DEFAULT", description="all messages", includes=[".*"])
 
     def _initialize_outputs(self):
+        """Initialize outputs for the observer agent. No outputs by default."""
         pass
 
     def response_handler(self, stream, message={}):
@@ -49,6 +56,15 @@ class ObserverAgent(Agent):
             self.logger.error("{}: {}".format(stream, exception))
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        """Process messages for the observer agent, logging or sending them to a specified output.
+        Parameters:
+            message: The message to process.
+            input: The input stream label.
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+        Returns:
+            None or a response message.
+        """
         mode = None
         if 'output' in properties:
             mode = properties['output'].get('mode', 'batch')

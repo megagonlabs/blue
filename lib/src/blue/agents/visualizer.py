@@ -26,6 +26,11 @@ def build_vis_form(vis):
 ### Agent.VisualizerAgent
 #
 class VisualizerAgent(Agent):
+    """An agent that generates visualizations based on natural language questions and SQL queries.
+    The agent can issue questions to an NL2SQL agent and queries to a QueryExecutor agent,
+    and then uses the results to create visualizations using a specified template.
+    """
+
     def __init__(self, **kwargs):
         if "name" not in kwargs:
             kwargs["name"] = "VISUALIZER"
@@ -36,13 +41,25 @@ class VisualizerAgent(Agent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the visualizer agent. By default, no inputs are defined."""
         return
 
     def _initialize_outputs(self):
+        """Initialize outputs for the visualizer agent, tagged as VIS."""
         self.add_output("DEFAULT", description="visualization", tags=["VIS"])
 
     def write_to_new_stream(self, worker, content, output, id=None, tags=None, scope="worker"):
-
+        """Write content to a new stream with a unique ID.
+        Parameters:
+            worker: The worker handling the processing.
+            content: The content to write to the new stream.
+            output: The output stream name.
+            id: An optional unique identifier for the stream. If None, a new UUID is generated.
+            tags: Optional tags to associate with the stream.
+            scope: The scope of the stream, default is "worker".
+        Returns:
+            The name of the output stream where the content was written.
+        """
         # create a unique id
         if id is None:
             id = uuid_utils.create_uuid()
@@ -54,7 +71,15 @@ class VisualizerAgent(Agent):
         return output_stream
 
     def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
+        """Issue a natural language question to the NL2SQL agent as part of the visualization process.
+        Parameters:
+            question: The natural language question to ask.
+            progress_id: An optional progress identifier for tracking.
+            name: An optional name for the question.
+            worker: The worker handling the processing.
+            to_param_prefix: The prefix for the output parameter name.
 
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -76,7 +101,14 @@ class VisualizerAgent(Agent):
         p.submit(worker)
 
     def issue_sql_query(self, query, progress_id=None, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
-
+        """Issue a SQL query to the QueryExecutor agent as part of the visualization process.
+        Parameters:
+            query: The SQL query to execute.
+            progress_id: An optional progress identifier for tracking.
+            name: An optional name for the query.
+            worker: The worker handling the processing.
+            to_param_prefix: The prefix for the output parameter name.
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -98,6 +130,14 @@ class VisualizerAgent(Agent):
         p.submit(worker)
 
     def generate_template(self, query_results, progress_id=None, name=None, worker=None, to_param_prefix="VIS_RESULTS_"):
+        """Generate a visualization template based on the query results.
+        Parameters:
+            query_results: The results from the query to use for generating the template.
+            progress_id: An optional progress identifier for tracking.
+            name: An optional name for the visualization.
+            worker: The worker handling the processing.
+            to_param_prefix: The prefix for the output parameter name.
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -119,7 +159,13 @@ class VisualizerAgent(Agent):
         p.submit(worker)
 
     def render_vis(self, progress_id=None, template=None, properties=None, worker=None):
-
+        """Render the visualization using the provided template and query results.
+        Parameters:
+            progress_id: An optional progress identifier for tracking.
+            template: An optional template for the visualization. If None, the agent's default template is used.
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -154,7 +200,15 @@ class VisualizerAgent(Agent):
         worker.write_progress(progress_id=progress_id, label='Done...', value=1.0)
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
-
+        """Process messages for the visualizer agent, incorporating results from natural language and SQL queries to generate a summary.
+        Parameters:
+            message: The incoming message to process.
+            input: The input stream name. Defaults to "DEFAULT".
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+        Returns:
+            None or a response message.
+        """
         ##### Upon USER input text
         if input == "DEFAULT":
             if message.isEOS():

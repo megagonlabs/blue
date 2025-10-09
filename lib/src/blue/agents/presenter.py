@@ -12,6 +12,13 @@ from blue.stream import Message, ControlCode
 ### Agent.PresenterAgent
 #
 class PresenterAgent(Agent):
+    """
+    An agent that presents a form to the user when triggered by specific keywords in the input stream.
+    The form schema and UI schema are defined in the agent's properties.
+    The agent listens for specific triggers in the input stream and displays the form when triggered.
+    The form data is collected and sent to a specified output stream when the user submits the form.
+    """
+
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "PRESENTER"
@@ -19,12 +26,21 @@ class PresenterAgent(Agent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the presenter agent. By default, no specific inputs are defined."""
         return
 
     def _initialize_outputs(self):
+        """Initialize outputs for the presenter agent, tagged as JSON."""
         self.add_output("DEFAULT", description="Form data in structured format (JSON)", tags=["JSON"])
 
     def triggered(self, text, properties):
+        """Check if the input text contains any of the trigger keywords defined in properties.
+        Parameters:
+            text: The input text to check for triggers.
+            properties: The properties dict containing trigger keywords.
+        Returns:
+            True if any trigger keyword is found in the text, False otherwise.
+        """
         # if instructed, consider it triggered
         if 'instructable' in properties:
             if properties['instructable']:
@@ -37,6 +53,15 @@ class PresenterAgent(Agent):
         return False
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        """Process messages for the presenter agent, displaying a form when triggered and collecting form data upon submission.
+        Parameters:
+            message: The incoming message to process.
+            input: The input stream name. Defaults to "DEFAULT".
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+        Returns:
+            None or a response message.
+        """
         stream = message.getStream()
 
         if input == "EVENT":
