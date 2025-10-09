@@ -10,8 +10,13 @@ import logging
 
 
 def string_to_python_type(type_str: str) -> Any:
-    """
-    Convert string type representation to actual Python type for Pydantic.
+    """Convert string type representation to actual Python type for Pydantic.
+
+    Parameters:
+        type_str: String representation of a Python type (e.g., "List[str]", "Dict[str, int]").
+
+    Returns:
+        Actual Python type object that can be used with Pydantic validation.
     """
     if not type_str:
         return Any
@@ -113,8 +118,13 @@ def string_to_python_type(type_str: str) -> Any:
 
 
 def create_pydantic_model(parameters: Dict[str, Any]) -> Type[BaseModel]:
-    """
-    Create a Pydantic model dynamically from parameter definitions using Pydantic v2.
+    """Create a Pydantic model dynamically from parameter definitions using Pydantic v2.
+
+    Parameters:
+        parameters: Dictionary mapping parameter names to their definitions containing 'type' and 'required' keys.
+
+    Returns:
+        Dynamically created Pydantic model class for parameter validation.
     """
     fields = {}
     for param_name, param_def in parameters.items():
@@ -135,8 +145,14 @@ def create_pydantic_model(parameters: Dict[str, Any]) -> Type[BaseModel]:
 
 
 def validate_parameter_type(value: Any, expected_type: str) -> bool:
-    """
-    Validate that a parameter value matches the expected type using Pydantic v2.
+    """Validate that a parameter value matches the expected type using Pydantic v2.
+
+    Parameters:
+        value: The value to validate against the expected type.
+        expected_type: String representation of the expected Python type.
+
+    Returns:
+        True if the value matches the expected type, False otherwise.
     """
     if expected_type is None:
         return True

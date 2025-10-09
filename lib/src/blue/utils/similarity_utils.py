@@ -7,7 +7,16 @@ from typing import Union
 
 
 def compute_bm25_score(query, document, additional_context=None):
-    """Compute BM25 score manually for a query and document, optionally including additional context."""
+    """Compute BM25 score manually for a query and document, optionally including additional context.
+
+    Parameters:
+        query: Query string to search for.
+        document: Document string to search in.
+        additional_context: Optional additional context string to consider. Defaults to None.
+
+    Returns:
+        BM25 similarity score between query and document (or best match with additional context).
+    """
     if not query:
         return 0.0
 
@@ -20,7 +29,18 @@ def compute_bm25_score(query, document, additional_context=None):
 
 
 def _compute_bm25_score_single(query, document, k1=1.2, b=0.75, avg_doc_length=100):
-    """Compute BM25 score for a single document."""
+    """Compute BM25 score for a single document.
+
+    Parameters:
+        query: Query string to search for.
+        document: Document string to search in.
+        k1: BM25 parameter controlling term frequency saturation. Defaults to 1.2.
+        b: BM25 parameter controlling length normalization. Defaults to 0.75.
+        avg_doc_length: Average document length for normalization. Defaults to 100.
+
+    Returns:
+        BM25 similarity score between query and document.
+    """
     if not document:
         return 0.0
 
@@ -47,16 +67,15 @@ def _compute_bm25_score_single(query, document, k1=1.2, b=0.75, avg_doc_length=1
 
 
 def normalize_bm25_scores(scores, method='minmax', max_score=20.0):
-    """
-    Normalize BM25 scores using different methods.
+    """Normalize BM25 scores using different methods.
 
     Parameters:
-        scores (list): List of BM25 scores to normalize
-        method (str): Normalization method ('linear', 'log', 'minmax')
-        max_score (float): Maximum score for linear normalization
+        scores: List of BM25 scores to normalize.
+        method: Normalization method ('linear', 'log', 'minmax'). Defaults to 'minmax'.
+        max_score: Maximum score for linear normalization. Defaults to 20.0.
 
     Returns:
-        (list): List of normalized scores in the same order as input scores
+        List of normalized scores in the same order as input scores.
     """
     if not scores:
         return []
@@ -102,8 +121,14 @@ def normalize_bm25_scores(scores, method='minmax', max_score=20.0):
 def compute_vector_score(query_vector: Union[bytes, np.ndarray], doc_vector: Union[bytes, np.ndarray], normalize_score: bool = True) -> float:
     """Compute semantic similarity between two embedding vectors using cosine similarity.
 
+    Parameters:
+        query_vector: Query embedding vector as bytes or numpy array.
+        doc_vector: Document embedding vector as bytes or numpy array.
+        normalize_score: Whether to normalize score to [0,1] range. Defaults to True.
+
     Returns:
-        similarity score in [0,1] if normalize_score=True, otherwise [-1,1]"""
+        Similarity score in [0,1] if normalize_score=True, otherwise [-1,1].
+    """
     if not query_vector or not doc_vector:
         return 0.0
 
