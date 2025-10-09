@@ -70,147 +70,569 @@ class DataRegistry(Registry):
 
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
+        """
+        Register a new data source in the registry.
+
+        Args:
+            source (str): Unique name or ID of the source.
+            created_by (str): Identifier of the user or process creating the source.
+            description (str, optional): Optional textual description. Defaults to "".
+            properties (dict, optional): Additional metadata or attributes. Defaults to {}.
+            rebuild (bool, optional): If True, rebuilds related structures after registration. Defaults to False.
+        """
         super().register_record(source, 'source', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
 
     def update_source(self, source, description=None, icon=None, properties=None, rebuild=False):
+        """
+        Update an existing data source record.
+
+        Args:
+            source (str): Source identifier.
+            description (str, optional): Updated description. Defaults to None.
+            icon (str, optional): Optional icon path or identifier. Defaults to None.
+            properties (dict, optional): Updated source properties. Defaults to None.
+            rebuild (bool, optional): If True, rebuilds related data structures. Defaults to False.
+        """
         super().update_record(source, 'source', '/', description=description, icon=icon, properties=properties, rebuild=rebuild)
 
     def deregister_source(self, source, rebuild=False):
+        """
+        Remove a data source from the registry.
+
+        Args:
+            source (str): Identifier of the source to deregister.
+            rebuild (bool, optional): If True, rebuilds related registry structures. Defaults to False.
+        """
         record = self.get_source(source)
         super().deregister(record, rebuild=rebuild)
 
     def get_sources(self):
+        """
+        Retrieve all registered data sources.
+
+        Returns:
+            list: A list of registered source records.
+        """
         return super().list_records(type="source", scope="/")
 
     def get_source(self, source):
+        """
+        Retrieve a specific data source record by name.
+
+        Args:
+            source (str): Source identifier.
+
+        Returns:
+            dict: Source record details if found.
+        """
         return super().get_record(source, 'source', '/')
 
     # description
     def get_source_description(self, source):
+        """
+        Retrieve the description of a specific data source.
+
+        Args:
+            source (str): Source identifier.
+
+        Returns:
+            str: The description of the source.
+        """
         return super().get_record_description(source, 'source', '/')
 
     def set_source_description(self, source, description, rebuild=False):
+        """
+        Update the description for a given data source.
+
+        Args:
+            source (str): Source identifier.
+            description (str): New description text.
+            rebuild (bool, optional): Whether to rebuild registry indexes. Defaults to False.
+        """
         super().set_record_description(source, 'source', '/', description, rebuild=rebuild)
 
     # properties
     def get_source_properties(self, source):
+        """
+        Retrieve all properties associated with a data source.
+
+        Args:
+            source (str): Source identifier.
+
+        Returns:
+            dict: Dictionary of key-value properties for the source.
+        """
         return super().get_record_properties(source, 'source', '/')
 
     def get_source_property(self, source, key):
+        """
+        Retrieve a single property value for a given source.
+
+        Args:
+            source (str): Source identifier.
+            key (str): Property key.
+
+        Returns:
+            Any: The value associated with the given key.
+        """
         return super().get_record_property(source, 'source', '/', key)
 
     def set_source_property(self, source, key, value, rebuild=False):
+        """
+        Set or update a property for a given source.
+
+        Args:
+            source (str): Source identifier.
+            key (str): Property key.
+            value (Any): Property value.
+            rebuild (bool, optional): If True, rebuilds related structures. Defaults to False.
+        """
         super().set_record_property(source, 'source', '/', key, value, rebuild=rebuild)
 
     def delete_source_property(self, source, key, rebuild=False):
+        """
+        Delete a property from a specific source.
+
+        Args:
+            source (str): Source identifier.
+            key (str): Property key to remove.
+            rebuild (bool, optional): If True, rebuilds related registry structures. Defaults to False.
+        """
         super().delete_record_property(source, 'source', '/', key, rebuild=rebuild)
 
     ######### source/database
     def register_source_database(self, source, database, description="", properties={}, rebuild=False):
+        """
+        Register a new database under a specific source in the data registry.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database to register.
+            description (str, optional): A description of the database. Defaults to "".
+            properties (dict, optional): Additional properties for the database record. Defaults to {}.
+            rebuild (bool, optional): If True, rebuilds the index or structure after registration. Defaults to False.
+        """
         super().register_record(database, 'database', f'/source/{source}', description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database(self, source, database, description=None, properties=None, rebuild=False):
+        """
+        Update an existing database record under a given source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database to update.
+            description (str, optional): Updated description for the database. Defaults to None.
+            properties (dict, optional): Updated properties for the database. Defaults to None.
+            rebuild (bool, optional): If True, rebuilds the index or structure after the update. Defaults to False.
+        """
         super().update_record(database, 'database', f'/source/{source}', description=description, properties=properties, rebuild=rebuild)
 
     def deregister_source_database(self, source, database, rebuild=False):
+        """
+        Deregister (remove) a database record from a specific source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database to remove.
+            rebuild (bool, optional): If True, rebuilds the index or structure after deregistration. Defaults to False.
+        """
         record = self.get_source_database(source, database)
         super().deregister(record, rebuild=rebuild)
 
     def get_source_databases(self, source):
+        """
+        Retrieve all databases registered under a specific source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+
+        Returns:
+            list: A list of database records registered under the source.
+        """
         return super().filter_record_contents(source, 'source', '/', filter_type='database')
 
     def get_source_database(self, source, database):
+        """
+        Retrieve a specific database record under a given source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database to fetch.
+
+        Returns:
+            dict: The database record details if found, otherwise None.
+        """
         return super().filter_record_contents(source, 'source', '/', filter_type='database', filter_name=database, single=True)
 
     # description
     def get_source_database_description(self, source, database):
+        """
+        Get the description text of a specific database under a given source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database.
+
+        Returns:
+            str: The description of the database.
+        """
         return super().get_record_description(database, 'database', f'/source/{source}')
 
     def set_source_database_description(self, source, database, description, rebuild=False):
+        """
+        Set or update the description of a specific database under a given source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database.
+            description (str): The new description text for the database.
+            rebuild (bool, optional): If True, rebuilds the index or structure after update. Defaults to False.
+        """
         super().set_record_description(database, 'database', f'/source/{source}', description, rebuild=rebuild)
 
     # properties
     def get_source_database_properties(self, source, database):
+        """
+        Get all properties associated with a specific database under a given source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database.
+
+        Returns:
+            dict: A dictionary of property key-value pairs.
+        """
         return super().get_record_properties(database, 'database', f'/source/{source}')
 
     def get_source_database_property(self, source, database, key):
+        """
+        Retrieve a single property value for a specific database under a given source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database.
+            key (str): The property key to look up.
+
+        Returns:
+            Any: The value of the specified property key.
+        """
         return super().get_record_property(database, 'database', f'/source/{source}', key)
 
     def set_source_database_property(self, source, database, key, value, rebuild=False):
+        """
+        Set or update a property for a specific database under a given source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the database.
+            key (str): The property key.
+            value (Any): The value to assign to the property.
+            rebuild (bool, optional): If True, rebuilds the index or structure after the update. Defaults to False.
+        """
         super().set_record_property(database, 'database', f'/source/{source}', key, value, rebuild=rebuild)
 
     ######### source/database/collection
     def register_source_database_collection(self, source, database, collection, description="", properties={}, rebuild=False):
+        """
+        Register a new collection under a specific database and source in the data registry.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection to register.
+            description (str, optional): A description of the collection. Defaults to "".
+            properties (dict, optional): Additional properties for the collection record. Defaults to {}.
+            rebuild (bool, optional): If True, rebuilds the index or structure after registration. Defaults to False.
+        """
         super().register_record(collection, 'collection', f'/source/{source}/database/{database}', description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection(self, source, database, collection, description=None, properties=None, rebuild=False):
+        """
+        Update an existing collection record under a given database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection to update.
+            description (str, optional): Updated description for the collection. Defaults to None.
+            properties (dict, optional): Updated properties for the collection. Defaults to None.
+            rebuild (bool, optional): If True, rebuilds the index or structure after update. Defaults to False.
+
+        Returns:
+            tuple: A tuple (original_record, merged_record) representing the record before and after the update.
+        """
         original_record, merged_record = super().update_record(
             collection, 'collection', f'/source/{source}/database/{database}', description=description, properties=properties, rebuild=rebuild
         )
         return original_record, merged_record
 
     def deregister_source_database_collection(self, source, database, collection, rebuild=False):
+        """
+        Deregister (remove) a collection record from a specific database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection to remove.
+            rebuild (bool, optional): If True, rebuilds the index or structure after deregistration. Defaults to False.
+        """
         record = self.get_source_database_collection(source, database, collection)
         super().deregister(record, rebuild=rebuild)
 
     def get_source_database_collections(self, source, database):
+        """
+        Retrieve all collections registered under a specific database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+
+        Returns:
+            list: A list of collection records registered under the database.
+        """
         return super().filter_record_contents(database, 'database', f'/source/{source}', filter_type='collection')
 
     def get_source_database_collection(self, source, database, collection):
+        """
+        Retrieve a specific collection record under a given database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection to fetch.
+
+        Returns:
+            dict: The collection record details if found, otherwise None.
+        """
         return super().filter_record_contents(database, 'database', f'/source/{source}', filter_type='collection', filter_name=collection, single=True)
 
     # description
     def get_source_database_collection_description(self, source, database, collection):
+        """
+        Get the description text of a specific collection under a given database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection.
+
+        Returns:
+            str: The description of the collection.
+        """
         return super().get_record_description(collection, 'collection', f'/source/{source}/database/{database}')
 
     def set_source_database_collection_description(self, source, database, collection, description, rebuild=False):
+        """
+        Set or update the description of a specific collection under a given database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection.
+            description (str): The new description text for the collection.
+            rebuild (bool, optional): If True, rebuilds the index or structure after update. Defaults to False.
+        """
         super().set_record_description(collection, 'collection', f'/source/{source}/database/{database}', description, rebuild=rebuild)
 
     # properties
     def get_source_database_collection_properties(self, source, database, collection):
+        """
+        Get all properties associated with a specific collection under a given database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection.
+
+        Returns:
+            dict: A dictionary of property key-value pairs.
+        """
         return super().get_record_properties(collection, 'collection', f'/source/{source}/database/{database}')
 
     def get_source_database_collection_property(self, source, database, collection, key):
+        """
+        Retrieve a single property value for a specific collection under a given database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection.
+            key (str): The property key to look up.
+
+        Returns:
+            Any: The value of the specified property key.
+        """
         return super().get_record_property(collection, 'collection', f'/source/{source}/database/{database}', key)
 
     def set_source_database_collection_property(self, source, database, collection, key, value, rebuild=False):
+        """
+        Set or update a property for a specific collection under a given database and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the collection.
+            key (str): The property key.
+            value (Any): The value to assign to the property.
+            rebuild (bool, optional): If True, rebuilds the index or structure after the update. Defaults to False.
+        """
         super().set_record_property(collection, 'collection', f'/source/{source}/database/{database}', key, value, rebuild=rebuild)
 
     ######### source/database/collection/entity
     def register_source_database_collection_entity(self, source, database, collection, entity, description="", properties={}, rebuild=False):
+        """
+        Register a new entity under a specific collection, database, and source in the data registry.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity to register.
+            description (str, optional): A description of the entity. Defaults to "".
+            properties (dict, optional): Additional properties for the entity record. Defaults to {}.
+            rebuild (bool, optional): If True, rebuilds the index or structure after registration. Defaults to False.
+        """
         super().register_record(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection_entity(self, source, database, collection, entity, description=None, properties=None, rebuild=False):
+        """
+        Update an existing entity record under a specific collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity to update.
+            description (str, optional): Updated description for the entity. Defaults to None.
+            properties (dict, optional): Updated properties for the entity. Defaults to None.
+            rebuild (bool, optional): If True, rebuilds the index or structure after update. Defaults to False.
+
+        Returns:
+            tuple: A tuple (original_record, merged_record) representing the record before and after the update.
+        """
         original_record, merged_record = super().update_record(
             entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild
         )
         return original_record, merged_record
 
     def deregister_source_database_collection_entity(self, source, database, collection, entity, rebuild=False):
+        """
+        Deregister (remove) an entity record from a specific collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity to remove.
+            rebuild (bool, optional): If True, rebuilds the index or structure after deregistration. Defaults to False.
+        """
         record = self.get_source_database_collection_entity(source, database, collection, entity)
         super().deregister(record, rebuild=rebuild)
 
     def get_source_database_collection_entities(self, source, database, collection):
+        """
+        Retrieve all entities registered under a specific collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+
+        Returns:
+            list: A list of entity records registered under the specified collection.
+        """
         return super().filter_record_contents(collection, 'collection', f'/source/{source}/database/{database}', filter_type='entity')
 
     def get_source_database_collection_entity(self, source, database, collection, entity):
+        """
+        Retrieve a specific entity record under a given collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity to fetch.
+
+        Returns:
+            dict: The entity record details if found, otherwise None.
+        """
         return super().filter_record_contents(collection, 'collection', f'/source/{source}/database/{database}', filter_type='entity', filter_name=entity, single=True)
 
     # description
     def get_source_database_collection_entity_description(self, source, database, collection, entity):
+        """
+        Get the description text of a specific entity under a given collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity.
+
+        Returns:
+            str: The description of the entity.
+        """
         return super().get_record_description(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}')
 
     def set_source_database_collection_entity_description(self, source, database, collection, entity, description, rebuild=False):
+        """
+        Set or update the description of a specific entity under a given collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity.
+            description (str): The new description text for the entity.
+            rebuild (bool, optional): If True, rebuilds the index or structure after update. Defaults to False.
+        """
         super().set_record_description(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', description, rebuild=rebuild)
 
     # properties
     def get_source_database_collection_entity_properties(self, source, database, collection, entity):
+        """
+        Get all properties associated with a specific entity under a given collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity.
+
+        Returns:
+            dict: A dictionary of property key-value pairs.
+        """
         return super().get_record_properties(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}')
 
     def get_source_database_collection_entity_property(self, source, database, collection, entity, key):
+        """
+        Retrieve a single property value for a specific entity under a given collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity.
+            key (str): The property key to look up.
+
+        Returns:
+            Any: The value of the specified property key.
+        """
         return super().get_record_property(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', key)
 
     def set_source_database_collection_entity_property(self, source, database, collection, entity, key, value, rebuild=False):
+        """
+        Set or update a property for a specific entity under a given collection, database, and source.
+
+        Args:
+            source (str): The name or ID of the parent source.
+            database (str): The name or ID of the parent database.
+            collection (str): The name or ID of the parent collection.
+            entity (str): The name or ID of the entity.
+            key (str): The property key.
+            value (Any): The value to assign to the property.
+            rebuild (bool, optional): If True, rebuilds the index or structure after the update. Defaults to False.
+        """
         super().set_record_property(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', key, value, rebuild=rebuild)
 
     
@@ -218,6 +640,19 @@ class DataRegistry(Registry):
     def register_source_database_collection_entity_attribute(
         self, source, database, collection, entity, attribute,
         description="", properties=None, rebuild=False):
+        """
+        Register a new attribute under a specific entity within a collection, database, and source.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+            attribute (str): Name of the attribute to register.
+            description (str, optional): Description of the attribute.
+            properties (dict, optional): Properties for the attribute.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after registration.
+        """
         if properties is None:
             properties = {}
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
@@ -230,6 +665,22 @@ class DataRegistry(Registry):
     def update_source_database_collection_entity_attribute(
         self, source, database, collection, entity, attribute,
         description=None, properties=None, rebuild=False):
+        """
+        Update an existing attribute under a specific entity.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+            attribute (str): Name of the attribute to update.
+            description (str, optional): New description for the attribute.
+            properties (dict, optional): Updated properties for the attribute.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after update.
+
+        Returns:
+            tuple: (original_record, merged_record) containing the state before and after update.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
         return super().update_record(
             attribute, 'attribute', scope,
@@ -238,6 +689,17 @@ class DataRegistry(Registry):
 
     def deregister_source_database_collection_entity_attribute(
         self, source, database, collection, entity, attribute, rebuild=False):
+        """
+        Remove an attribute from a specific entity.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+            attribute (str): Name of the attribute to deregister.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after deregistration.
+        """
         record = self.get_source_database_collection_entity_attribute(
             source, database, collection, entity, attribute
         )
@@ -245,6 +707,18 @@ class DataRegistry(Registry):
 
     def get_source_database_collection_entity_attributes(
         self, source, database, collection, entity):
+        """
+        Retrieve all attributes under a specific entity.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+
+        Returns:
+            list: List of attributes under the entity.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}'
         return super().filter_record_contents(
             entity, 'entity', scope, filter_type='attribute'
@@ -252,6 +726,19 @@ class DataRegistry(Registry):
 
     def get_source_database_collection_entity_attribute(
         self, source, database, collection, entity, attribute):
+        """
+        Retrieve a specific attribute under an entity.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+            attribute (str): Name of the attribute to retrieve.
+
+        Returns:
+            dict: Attribute record if found, else None.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}'
         return super().filter_record_contents(
             entity, 'entity', scope,
@@ -260,91 +747,355 @@ class DataRegistry(Registry):
 
     
     def set_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key, value, rebuild=False):
+        """
+        Set or update a specific property of an attribute.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+            attribute (str): Name of the attribute.
+            key (str): Property key to set.
+            value (Any): Property value to set.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after update.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
         super().set_record_property(attribute, 'attribute', scope, key, value, rebuild=rebuild)
 
 
     def get_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key):
+        """
+        Retrieve a specific property of an attribute.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+            attribute (str): Name of the attribute.
+            key (str): Property key to retrieve.
+
+        Returns:
+            Any: Value of the requested property.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
         return super().get_record_property(attribute, 'attribute', scope, key)
 
     
     # description
     def get_source_database_collection_entity_attribute_description(self, source, database, collection, entity, attribute):
+        """
+        Get the description of a specific attribute.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+            attribute (str): Name of the attribute.
+
+        Returns:
+            str: Description of the attribute.
+        """
         return super().get_record_description(attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}')
 
     def set_source_database_collection_entity_attribute_description(self, source, database, collection, entity, attribute, description, rebuild=False):
+        """
+        Set or update the description of a specific attribute.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            entity (str): Name of the entity under the collection.
+            attribute (str): Name of the attribute.
+            description (str): Description to set.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after update.
+        """
         super().set_record_description(attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}', description, rebuild=rebuild)
 
     
     ######### source/database/collection/relation
     def register_source_database_collection_relation(self, source, database, collection, relation, description="", properties={}, rebuild=False):
+        """
+        Register a new relation under a specific collection in a database and source.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation to register.
+            description (str, optional): Description of the relation.
+            properties (dict, optional): Properties for the relation.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after registration.
+        """
         super().register_record(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection_relation(self, source, database, collection, relation, description=None, properties=None, rebuild=False):
+        """
+        Update an existing relation under a specific collection.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation to update.
+            description (str, optional): New description for the relation.
+            properties (dict, optional): Updated properties for the relation.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after update.
+
+        Returns:
+            tuple: (original_record, merged_record) containing the state before and after update.
+        """
         original_record, merged_record = super().update_record(
             relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', description=description, properties=properties, rebuild=rebuild
         )
         return original_record, merged_record
 
     def deregister_source_database_collection_relation(self, source, database, collection, relation, rebuild=False):
+        """
+        Remove a relation from a specific collection.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation to deregister.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after deregistration.
+        """
         record = self.get_source_database_collection_relation(source, database, collection, relation)
         super().deregister(record, rebuild=rebuild)
 
     def get_source_database_collection_relations(self, source, database, collection):
+        """
+        Retrieve all relations under a specific collection.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+
+        Returns:
+            list: List of relations under the collection.
+        """
         return super().filter_record_contents(collection, 'collection', f'/source/{source}/database/{database}', filter_type='relation')
 
     def get_source_database_collection_relation(self, source, database, collection, relation):
+        """
+        Retrieve a specific relation under a collection.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation to retrieve.
+
+        Returns:
+            dict: Relation record if found, else None.
+        """
         return super().filter_record_contents(collection, 'collection', f'/source/{source}/database/{database}', filter_type='relation', filter_name=relation, single=True)
 
     # description
     def get_source_database_collection_relation_description(self, source, database, collection, relation):
+        """
+        Get the description of a specific relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation.
+
+        Returns:
+            str: Description of the relation.
+        """
         return super().get_record_description(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}')
 
     def set_source_database_collection_relation_description(self, source, database, collection, relation, description, rebuild=False):
+        """
+        Set or update the description of a specific relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation.
+            description (str): Description to set.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after update.
+        """
         super().set_record_description(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', description, rebuild=rebuild)
 
     # properties
     def get_source_database_collection_relation_properties(self, source, database, collection, relation):
+        """
+        Retrieve all properties of a specific relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation.
+
+        Returns:
+            dict: Properties of the relation.
+        """
         return super().get_record_properties(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}')
 
     def get_source_database_collection_relation_property(self, source, database, collection, relation, key):
+        """
+        Retrieve a specific property of a relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation.
+            key (str): Property key to retrieve.
+
+        Returns:
+            Any: Value of the requested property.
+        """
         return super().get_record_property(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', key)
 
     def set_source_database_collection_relation_property(self, source, database, collection, relation, key, value, rebuild=False):
+        """
+        Set or update a specific property of a relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database under the source.
+            collection (str): Name of the collection under the database.
+            relation (str): Name of the relation.
+            key (str): Property key to set.
+            value (Any): Property value to set.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after update.
+        """
         super().set_record_property(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', key, value, rebuild=rebuild)
     
     
     ######### source/database/collection/relation/attribute 
     def register_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, description="", properties={}, rebuild=False):
+        """
+        Register a new attribute under a specific relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+            relation (str): Name of the relation.
+            attribute (str): Name of the attribute to register.
+            description (str, optional): Description of the attribute.
+            properties (dict, optional): Properties for the attribute.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after registration.
+        """
         super().register_record(attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}', description=description, properties=properties, rebuild=rebuild)
 
     
     def update_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, description=None, properties=None, rebuild=False):
+        """
+        Update an existing attribute under a specific relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+            relation (str): Name of the relation.
+            attribute (str): Name of the attribute to update.
+            description (str, optional): New description for the attribute.
+            properties (dict, optional): Updated properties for the attribute.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after update.
+
+        Returns:
+            tuple: (original_record, merged_record) containing the state before and after update.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         return super().update_record(attribute, 'attribute', scope, description=description, properties=properties, rebuild=rebuild)
 
 
     def deregister_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, rebuild=False):
+        """
+        Remove an attribute from a specific relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+            relation (str): Name of the relation.
+            attribute (str): Name of the attribute to deregister.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after deregistration.
+        """
         record = self.get_source_database_collection_relation_attribute(source, database, collection, relation, attribute)
         super().deregister(record, rebuild=rebuild)
     
     def get_source_database_collection_relation_attributes(
         self, source, database, collection, relation):
+        """
+        Retrieve all attributes under a specific relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+            relation (str): Name of the relation.
+
+        Returns:
+            list: List of attributes under the relation.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         return super().filter_record_contents(relation, 'relation', scope, filter_type='attribute')
 
     def get_source_database_collection_relation_attribute(
         self, source, database, collection, relation, attribute):
+        """
+        Retrieve a specific attribute under a relation.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+            relation (str): Name of the relation.
+            attribute (str): Name of the attribute.
+
+        Returns:
+            dict: Attribute record if found, else None.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         return super().filter_record_contents(relation, 'relation', scope, filter_type='attribute', filter_name=attribute, single=True)
 
     def set_source_database_collection_relation_attribute_property(self, source, database, collection, relation, attribute, key, value, rebuild=False):
+        """
+        Set or update a specific property of a relation attribute.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+            relation (str): Name of the relation.
+            attribute (str): Name of the attribute.
+            key (str): Property key to set.
+            value (Any): Property value to set.
+            rebuild (bool, optional): Whether to rebuild dependent data structures after update.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         super().set_record_property(attribute, 'attribute', scope, key, value, rebuild=rebuild)
 
 
     def get_source_database_collection_relation_attribute_property(self, source, database, collection, relation, attribute, key):
+        """
+        Retrieve a specific property of a relation attribute.
+
+        Args:
+            source (str): Name of the source.
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+            relation (str): Name of the relation.
+            attribute (str): Name of the attribute.
+            key (str): Property key to retrieve.
+
+        Returns:
+            Any: Value of the requested property.
+        """
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         return super().get_record_property(attribute, 'attribute', scope, key)
     
@@ -352,12 +1103,42 @@ class DataRegistry(Registry):
     ######### sync
     # source connection (part of properties)
     def get_source_connection(self, source):
+        """
+        Retrieve the connection information for a specific source.
+
+        Args:
+            source (str): Name of the source.
+
+        Returns:
+            Any: The connection information stored in the source's properties.
+        """
         return self.get_source_property(source, 'connection')
 
     def set_source_connection(self, source, connection, rebuild=False):
+        """
+        Set or update the connection information for a specific source.
+
+        Args:
+            source (str): Name of the source.
+            connection (Any): Connection information to set (e.g., connection string or config dict).
+            rebuild (bool, optional): Whether to rebuild dependent data structures after updating the connection.
+        """
         self.set_source_property(source, 'connection', connection, rebuild=rebuild)
 
     def connect_source(self, source):
+        """
+        Establish a connection to the specified data source based on its configuration.
+
+        Determines the source protocol (e.g., MongoDB, Postgres, MySQL, etc.) from its
+        stored properties and initializes the corresponding source connector class.
+
+        Args:
+            source (str): Identifier of the data source to connect to.
+
+        Returns:
+            BaseSource | None: An instance of the appropriate source connector if a
+            matching protocol is found, otherwise None.
+        """
         source_connection = None
 
         properties = self.get_source_properties(source)
@@ -393,7 +1174,20 @@ class DataRegistry(Registry):
 
     ######### create operations
     def create_source_database(self, source, database, properties={}, overwrite=False, rebuild=True, recursive=False):
-        """Create a new database in the specified source."""
+        """
+        Create a new database in the specified source.
+
+        Args:
+            source (str): Source name or identifier.
+            database (str): Database name.
+            properties (dict, optional): Properties to set on the database. Defaults to {}.
+            overwrite (bool, optional): Overwrite existing database if it exists. Defaults to False.
+            rebuild (bool, optional): Rebuild registry index after creation. Defaults to True.
+            recursive (bool, optional): Recurse into sub-objects when syncing. Defaults to False.
+
+        Returns:
+            None
+        """
         source_connection = self.connect_source(source)
         if source_connection:
             # check if database already exists in registry
@@ -412,7 +1206,21 @@ class DataRegistry(Registry):
         return None
 
     def create_source_database_collection(self, source, database, collection, properties={}, overwrite=False, rebuild=True, recursive=False):
-        """Create a new collection in the specified database."""
+        """
+        Create a new collection in the specified database.
+
+        Args:
+            source (str): Source name or identifier.
+            database (str): Database name.
+            collection (str): Collection name.
+            properties (dict, optional): Properties to set on the collection. Defaults to {}.
+            overwrite (bool, optional): Overwrite existing collection if it exists. Defaults to False.
+            rebuild (bool, optional): Rebuild registry index after creation. Defaults to True.
+            recursive (bool, optional): Recurse into sub-objects when syncing. Defaults to False.
+
+        Returns:
+            None
+        """
         source_connection = self.connect_source(source)
         if source_connection:
             # check if collection already exists in registry
@@ -431,7 +1239,23 @@ class DataRegistry(Registry):
         return None
 
     def create_source_database_collection_entity(self, source, database, collection, entity, properties={}, creation_properties={}, overwrite=False, rebuild=True, recursive=False):
-        """Create a new entity (table) in the specified collection."""
+        """
+        Create a new entity (table) in the specified collection.
+
+        Args:
+            source (str): Source name or identifier.
+            database (str): Database name.
+            collection (str): Collection name.
+            entity (str): Entity (table) name.
+            properties (dict, optional): Properties to set on the entity. Defaults to {}.
+            creation_properties (dict, optional): Properties for initial creation. Defaults to {}.
+            overwrite (bool, optional): Overwrite existing entity if it exists. Defaults to False.
+            rebuild (bool, optional): Rebuild registry index after creation. Defaults to True.
+            recursive (bool, optional): Recurse into sub-objects when syncing. Defaults to False.
+
+        Returns:
+            None
+        """
         source_connection = self.connect_source(source)
         if source_connection:
             # check if entity already exists in registry
@@ -451,7 +1275,22 @@ class DataRegistry(Registry):
         return None
 
     def create_source_database_collection_relation(self, source, database, collection, relation, properties={}, overwrite=False, rebuild=True, recursive=False):
-        """Create a new relation in the specified collection."""
+        """
+        Create a new relation in the specified collection.
+
+        Args:
+            source (str): Source name or identifier.
+            database (str): Database name.
+            collection (str): Collection name.
+            relation (str): Relation name.
+            properties (dict, optional): Properties to set on the relation. Defaults to {}.
+            overwrite (bool, optional): Overwrite existing relation if it exists. Defaults to False.
+            rebuild (bool, optional): Rebuild registry index after creation. Defaults to True.
+            recursive (bool, optional): Recurse into sub-objects when syncing. Defaults to False.
+
+        Returns:
+            None
+        """
         source_connection = self.connect_source(source)
         if source_connection:
             # check if relation already exists in registry
@@ -471,6 +1310,17 @@ class DataRegistry(Registry):
 
     
     def collect_source_stats(self, source, recursive=False, rebuild=False):
+        """
+        Collect statistics for a data source and optionally its databases.
+
+        Args:
+            source (str): Source name or identifier.
+            recursive (bool, optional): Collect stats recursively for all databases. Defaults to False.
+            rebuild (bool, optional): Rebuild registry index after collecting stats. Defaults to False.
+
+        Returns:
+            None
+        """
         source_connection = self.connect_source(source)
         if source_connection:
             source_stats = source_connection.fetch_source_stats()
@@ -483,6 +1333,19 @@ class DataRegistry(Registry):
 
     
     def collect_source_database_stats(self, source, database, source_connection=None, recursive=False, rebuild=False):
+        """
+        Collect statistics for a database and optionally its collections.
+
+        Args:
+            source (str): Source name or identifier.
+            database (str): Database name.
+            source_connection (object, optional): Pre-existing connection to source. Defaults to None.
+            recursive (bool, optional): Collect stats recursively for all collections. Defaults to False.
+            rebuild (bool, optional): Rebuild registry index after collecting stats. Defaults to False.
+
+        Returns:
+            None
+        """
         if source_connection is None:
             source_connection = self.connect_source(source)
         if source_connection:
@@ -498,7 +1361,21 @@ class DataRegistry(Registry):
                 
     
     def collect_source_database_collection_stats(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, sample_limit=10):
-        
+        """
+        Collect statistics for a collection, its entities, relations, and attributes.
+
+        Args:
+            source (str): Source name or identifier.
+            database (str): Database name.
+            collection (str): Collection name.
+            source_connection (object, optional): Pre-existing connection to source. Defaults to None.
+            recursive (bool, optional): Collect stats recursively for entities and relations. Defaults to False.
+            rebuild (bool, optional): Rebuild registry index after collecting stats. Defaults to False.
+            sample_limit (int, optional): Maximum number of samples for attribute stats. Defaults to 10.
+
+        Returns:
+            None
+        """
         entities = self.get_source_database_collection_entities(source, database, collection)
         relations = self.get_source_database_collection_relations(source, database, collection)
 
@@ -540,6 +1417,16 @@ class DataRegistry(Registry):
     
     ### currerntly, data.py doesn't call sync_all 
     def sync_all(self, recursive=False, rebuild=False):
+        """
+        Synchronize all sources with the registry.
+
+        Args:
+            recursive (bool, optional): If True, recursively sync databases and collections. Defaults to False.
+            rebuild (bool, optional): If True, rebuild the registry index after syncing. Defaults to False.
+
+        Returns:
+            None
+        """
         sources = self.get_sources()
         for source in sources:
             source_name = source.get('name')
@@ -547,6 +1434,20 @@ class DataRegistry(Registry):
                 self.sync_source(source_name, recursive=recursive, rebuild=rebuild)
 
     def sync_source(self, source, recursive=False, rebuild=False):
+        """
+        Synchronize a single source with the registry.
+
+        This updates the source metadata, adds new databases, removes missing databases,
+        merges existing ones, and optionally recurses into database syncing.
+
+        Args:
+            source (str): Source name or identifier.
+            recursive (bool, optional): If True, recursively sync databases and collections. Defaults to False.
+            rebuild (bool, optional): If True, rebuild the registry index after syncing. Defaults to False.
+
+        Returns:
+            None
+        """
         source_connection = self.connect_source(source)
         if source_connection:
             # fetch source metadata
@@ -613,6 +1514,22 @@ class DataRegistry(Registry):
                     self.sync_source_database(source, db, source_connection=source_connection, recursive=False, rebuild=rebuild)
 
     def sync_source_database(self, source, database, source_connection=None, recursive=False, rebuild=False):
+        """
+        Synchronize a specific database with the registry.
+
+        Updates database metadata, adds/removes/merges collections,
+        and optionally recurses into collection syncing.
+
+        Args:
+            source (str): Source name or identifier.
+            database (str): Database name.
+            source_connection (object, optional): Pre-existing connection to the source. Defaults to None.
+            recursive (bool, optional): If True, recursively sync collections. Defaults to False.
+            rebuild (bool, optional): If True, rebuild the registry index after syncing. Defaults to False.
+
+        Returns:
+            None
+        """
         if source_connection is None:
             source_connection = self.connect_source(source)
 
@@ -683,6 +1600,24 @@ class DataRegistry(Registry):
                     
             
     def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False):
+        """
+        Synchronize a specific collection within a database.
+
+        Updates collection metadata, entities, relations, and their attributes.
+        Adds new items, removes missing ones, and merges existing items.
+        Sets the final schema after all updates.
+
+        Args:
+            source (str): Source name or identifier.
+            database (str): Database name.
+            collection (str): Collection name.
+            source_connection (object, optional): Pre-existing connection to the source. Defaults to None.
+            recursive (bool, optional): Currently not used; included for API consistency. Defaults to False.
+            rebuild (bool, optional): If True, rebuild the registry index after syncing. Defaults to False.
+
+        Returns:
+            None
+        """
         if source_connection is None:
             source_connection = self.connect_source(source)
 
@@ -857,6 +1792,12 @@ class DataRegistry(Registry):
 
     ###### registry functions
     def _build_index_schema(self):
+        """
+        Build the schema for the search index, including text fields and vector fields.
+
+        Returns:
+        list: List of index field definitions (TextField, VectorField).
+        """
         schema = list(super()._build_index_schema()) 
         schema.extend([
             TextField("values"),
@@ -874,6 +1815,14 @@ class DataRegistry(Registry):
         return schema
 
     def _set_index_record(self, record, recursive=False, pipe=None):
+        """
+        Add or update a record in the search index, optionally recursively for nested contents.
+
+        Args:
+            record (dict): Record containing 'name', 'type', 'scope', 'description', and optionally 'contents' and 'properties'.
+            recursive (bool, optional): If True, recursively index nested records. Defaults to False.
+            pipe (Redis pipeline, optional): Redis pipeline to batch commands. If None, a new pipeline is created.
+        """
         if self.embeddings_model is None:
             self._init_search_index()
 
@@ -910,6 +1859,18 @@ class DataRegistry(Registry):
                     self._set_index_record(r, recursive=recursive, pipe=pipe)
 
     def _create_index_doc(self, name, type, scope, description, schema=None, values=None, pipe=None):
+        """
+        Create a single index document in the search index.
+
+        Args:
+            name (str): Name of the entity/attribute/collection/relation.
+            type (str): Type of record (e.g., "collection", "attribute").
+            scope (str): Scope of the record (e.g., full path or database/collection).
+            description (str): Description text for the record.
+            schema (str, optional): Schema string representation for collections. Defaults to None.
+            values (list, optional): List of attribute values to include in the embedding. Defaults to None.
+            pipe (Redis pipeline, optional): Redis pipeline to batch commands. If None, a new pipeline is created.
+        """
         if self.embeddings_model is None:
             self._init_search_index()
 
@@ -950,6 +1911,15 @@ class DataRegistry(Registry):
             res = pipe.execute()
 
     def _delete_index_doc(self, name, type, scope, pipe=None):
+        """
+        Delete a document from the search index.
+
+        Args:
+            name (str): Name of the entity/attribute/collection/relation.
+            type (str): Type of record.
+            scope (str): Scope of the record.
+            pipe (Redis pipeline, optional): Redis pipeline to batch commands. If None, a new pipeline is created.
+        """
         if self.embeddings_model is None:
             self._init_search_index()
 
@@ -1091,7 +2061,68 @@ class DataRegistry(Registry):
         return vector_score
 
     def search_records(self, input_query, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10, bm25_weight=None, vector_weight=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, bm25_normalization=None, enable_schema=None, redis_search_limit=None):
-        """search records with BM25 scores, vector similarity, schema support, and thresholds"""
+        """
+        Search records using BM25 relevance, vector similarity, and optional schema-based scoring.
+
+        This method retrieves records from the search index and ranks them using a combination of BM25
+        and vector similarity scores. It supports schema inclusion, score normalization, thresholds, 
+        and pagination.
+
+        Parameters
+        ----------
+        input_query : str
+            The search query text to match against records.
+        type : str, optional
+            The type of record to search (e.g., 'database', 'collection'). Defaults to None (all types).
+        scope : str, optional
+            The scope of the search. Special handling for "/" to restrict results to top-level records. Defaults to None.
+        approximate : bool, optional
+            Flag indicating whether to perform approximate search (not currently used). Defaults to False.
+        hybrid : bool, optional
+            Flag indicating whether to use hybrid BM25 + vector search (not currently used). Defaults to False.
+        page : int, optional
+            Zero-based page number for paginated results. Defaults to 0.
+        page_size : int, optional
+            Number of results per page. Defaults to 5.
+        page_limit : int, optional
+            Maximum number of pages to retrieve. Defaults to 10.
+        bm25_weight : float, optional
+            Weight factor for BM25 score when combining with vector score. Defaults to None.
+        vector_weight : float, optional
+            Weight factor for vector similarity score when combining with BM25. Defaults to None.
+        bm25_threshold : float, optional
+            Minimum normalized BM25 score to include a result. Defaults to None.
+        vector_threshold : float, optional
+            Minimum vector similarity score to include a result. Defaults to None.
+        combined_threshold : float, optional
+            Minimum combined score (BM25 + vector) to include a result. Defaults to None.
+        bm25_normalization : str or float, optional
+            Method or factor to normalize BM25 scores to [0, 1]. Defaults to None.
+        enable_schema : bool, optional
+            Whether to include schema text in BM25 scoring for collection records. Defaults to None.
+        redis_search_limit : int, optional
+            Maximum number of records to retrieve from Redis search before filtering/pagination. Defaults to None.
+
+        Returns
+        -------
+        List[dict]
+            A paginated list of search results, each represented as a dictionary containing:
+            - `id`, `name`, `type`, `scope`, `description`, `schema` (if present)
+            - `bm25_score` (raw BM25 score)
+            - `vector_score` (raw vector similarity score)
+            - `normalized_bm25_score` (BM25 normalized to [0, 1])
+            - `combined_score` (weighted combination of BM25 and vector scores)
+            - `score` (inverted score for ranking: lower is better)
+
+        Notes
+        -----
+        - Computes BM25 score using document text and optionally schema text.
+        - Computes vector similarity between the query embedding and document embeddings.
+        - Applies thresholds to BM25, vector, and combined scores to filter results.
+        - Inverts the combined score so that lower scores are better for consumer applications.
+        - Supports pagination via `page` and `page_size` parameters.
+        - Special handling for `scope='/'` restricts results to top-level records only.
+        """
         params = self._prepare_search_parameters(input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit)
         
         q, query_params = self._build_search_query(params)
@@ -1184,7 +2215,63 @@ class DataRegistry(Registry):
         return page_results
 
     def search_records_hierarchical(self, input_query, type=None, scope=None, page=0, page_size=5, page_limit=10, bm25_weight=None, vector_weight=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, enable_schema=None, bm25_normalization=None, redis_search_limit=None):
-        """Hierarchical search that considers parent-child relationships for databases and collections"""
+        """
+        Perform a hierarchical search over records, considering parent-child relationships for databases and collections.
+
+        This method supports both standard and hierarchical searches. For `type` values other than 
+        'database' or 'collection', it delegates to `search_records`. For hierarchical searches, it computes 
+        BM25 and vector similarity scores, optionally including schema information, and aggregates results 
+        across parent-child hierarchies.
+
+        Parameters
+        ----------
+        input_query : str
+            The search query text to match against records.
+        type : str, optional
+            The type of record to search ('database', 'collection', etc.). Defaults to None.
+        scope : str, optional
+            The scope of the search. Special handling for "/" to filter top-level records. Defaults to None.
+        page : int, optional
+            The zero-based page number to return. Defaults to 0.
+        page_size : int, optional
+            Number of results per page. Defaults to 5.
+        page_limit : int, optional
+            Maximum number of pages to retrieve. Defaults to 10.
+        bm25_weight : float, optional
+            Weighting factor for BM25 score when combining with vector score. Defaults to None.
+        vector_weight : float, optional
+            Weighting factor for vector similarity score when combining with BM25. Defaults to None.
+        bm25_threshold : float, optional
+            Minimum BM25 score threshold for including results. Defaults to None.
+        vector_threshold : float, optional
+            Minimum vector similarity score threshold for including results. Defaults to None.
+        combined_threshold : float, optional
+            Minimum combined score threshold for including results. Defaults to None.
+        enable_schema : bool, optional
+            Whether to include schema text in scoring for collection records. Defaults to None.
+        bm25_normalization : str or float, optional
+            Method or factor to normalize BM25 scores to [0, 1]. Defaults to None.
+        redis_search_limit : int, optional
+            Maximum number of records to retrieve from Redis search before filtering/pagination. Defaults to None.
+
+        Returns
+        -------
+        List[dict]
+            A paginated list of search results grouped hierarchically by parent-child relationships.
+            Each result dictionary contains:
+            - `id`, `name`, `type`, `scope`, `description`, `schema`
+            - `bm25_score` (raw BM25 score)
+            - `vector_score` (raw vector similarity score)
+            - `normalized_bm25_score` (BM25 score normalized to [0, 1])
+            - `score` (combined hierarchical score used for sorting)
+
+        Notes
+        -----
+        - If `type` is not 'database' or 'collection', a standard non-hierarchical search is performed.
+        - Vector embeddings are computed for the query and stored document vectors for similarity scoring.
+        - Hierarchical aggregation merges scores for parent and child records before sorting and pagination.
+        - Special handling exists for `scope='/'` to restrict results to top-level records only.
+        """
         
         # Check if this should be a regular search instead of hierarchical
         if type not in ['database', 'collection']:
