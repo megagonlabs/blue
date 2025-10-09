@@ -44,6 +44,7 @@ class DocumenterAgent(Agent):
 
     def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
         """Issue a natural language query to the NL2SQL agent and route the results back to this agent.
+
         Parameters:
            question: The natural language question to be processed.
            progress_id: Optional progress identifier for tracking the query progress. Defaults to None.
@@ -73,6 +74,7 @@ class DocumenterAgent(Agent):
 
     def issue_sql_query(self, query, progress_id=None, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
         """Issue a SQL query to the QUERYEXECUTOR agent and route the results back to this agent.
+
         Parameters:
            query: The SQL query to be executed.
            progress_id: Optional progress identifier for tracking the query progress. Defaults to None.
@@ -102,6 +104,7 @@ class DocumenterAgent(Agent):
 
     def hilite_doc(self, doc, progress_id=None, properties=None, worker=None):
         """Optionally highlight the document using the HILITER agent if 'hilite' property is specified.
+
         Parameters:
             doc: The document content to be highlighted.
             progress_id: Optional progress identifier for tracking the highlighting progress. Defaults to None.
@@ -147,6 +150,7 @@ class DocumenterAgent(Agent):
 
     def process_doc(self, progress_id=None, properties=None, input="", worker=None):
         """Process the document by substituting the template with gathered results and rendering it.
+
         Parameters:
             progress_id: Optional progress identifier for tracking the processing progress. Defaults to None.
             properties: Additional properties for processing. Defaults to None.
@@ -174,6 +178,7 @@ class DocumenterAgent(Agent):
 
     def substitute_doc(self, worker, results, properties, input):
         """Substitute the document template with gathered results and contextual information.
+
         Parameters:
             worker: The worker handling the processing.
             results: Dictionary containing results from queries and questions.
@@ -196,6 +201,7 @@ class DocumenterAgent(Agent):
 
     def render_doc(self, doc, progress_id=None, properties=None, worker=None):
         """Render the document by creating a form and sending it to the output stream.
+
         Parameters:
             doc: The document content to be rendered.
             progress_id: Optional progress identifier for tracking the rendering progress. Defaults to None.
@@ -221,11 +227,13 @@ class DocumenterAgent(Agent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process messages for the documenter agent, handling user input and query results to generate and render documents.
+
         Parameters:
             message: The message to process.
             input: The input stream label.
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
             None or a response message.
         """

@@ -43,11 +43,13 @@ class RequestorAgent(Agent, ServiceClient):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process messages for the requestor agent, sending input data to an external service via WebSocket and writing the response to the output stream.
+
         Parameters:
             message: The incoming message to process.
             input: The input stream name. Defaults to "DEFAULT".
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
             None or a response message.
         """

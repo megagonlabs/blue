@@ -126,6 +126,7 @@ class AgenticPlan(dag_utils.Plan):
     # context, scope
     def get_context(self):
         """Retrieves the context of the plan.
+
         Returns:
             The context dictionary of the plan.
         """
@@ -133,6 +134,7 @@ class AgenticPlan(dag_utils.Plan):
 
     def get_scope(self):
         """Retrieves the scope of the plan.
+
         Returns:
             The scope of the plan.
         """
@@ -144,6 +146,7 @@ class AgenticPlan(dag_utils.Plan):
 
     def _set_scope(self, scope, sync=None):
         """Sets the scope of the plan.
+
         Parameters:
             scope: The scope of the plan (Session or str).
             sync: Whether to synchronize the scope immediately.
@@ -156,6 +159,7 @@ class AgenticPlan(dag_utils.Plan):
     # status
     def set_status(self, status, sync=None):
         """Sets the status of the plan.
+
         Parameters:
             status: The status to set for the plan.
             sync: Whether to synchronize the status immediately.
@@ -178,6 +182,7 @@ class AgenticPlan(dag_utils.Plan):
             agent: The canonical name of the agent.
             input: The name of the input parameter (if applicable).
             output: The name of the output parameter (if applicable).
+
         Returns:
             A string representing the default label.
         """
@@ -343,7 +348,7 @@ class AgenticPlan(dag_utils.Plan):
     def create_agent(self, label=None, properties=None, sync=None):
         """Creates an agent entity in the plan.
 
-        Args:
+        Parameters:
             label: The label for the agent. Defaults to None.
             properties: Additional properties for the agent. Defaults to None.
             sync: Whether to synchronize immediately. Defaults to None.
@@ -363,9 +368,9 @@ class AgenticPlan(dag_utils.Plan):
         return self.get_entities(type=str(EntityType.AGENT))
 
     def get_agent(self, a, cls=None):
-        """ Retrieves an agent entity by its identifier, label, or canonical name.
+        """Retrieves an agent entity by its identifier, label, or canonical name.
 
-        Args:
+        Parameters:
             a: The identifier, label, or canonical name of the agent.
             cls: Optional class type for the agent entity. Defaults to None.
 

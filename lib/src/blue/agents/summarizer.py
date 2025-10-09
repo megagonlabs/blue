@@ -65,12 +65,14 @@ class SummarizerAgent(OpenAIAgent):
 
     def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
         """Issue a natural language question to the NL2SQL agent as part of the summarization process.
+
         Parameters:
             question: The natural language question to ask.
             progress_id: An optional progress identifier for tracking.
             name: An optional name for the question.
             worker: The worker handling the processing.
             to_param_prefix: The prefix for the output parameter name.
+
         Returns:
             None
         """
@@ -96,13 +98,13 @@ class SummarizerAgent(OpenAIAgent):
 
     def issue_sql_query(self, query, progress_id=None, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
         """Issue a SQL query to the QueryExecutor agent as part of the summarization process.
+
         Parameters:
             query: The SQL query to execute.
             progress_id: An optional progress identifier for tracking.
             name: An optional name for the query.
             worker: The worker handling the processing.
             to_param_prefix: The prefix for the output parameter name.
-
         """
         if worker == None:
             worker = self.create_worker(None)
@@ -126,12 +128,12 @@ class SummarizerAgent(OpenAIAgent):
 
     def summarize_doc(self, progress_id=None, properties=None, input="", worker=None):
         """Summarize the input document using the configured template and query results.
+
         Parameters:
             progress_id: An optional progress identifier for tracking.
             properties: Additional properties for processing.
             input: The input text to summarize.
             worker: The worker handling the processing.
-
         """
         if worker == None:
             worker = self.create_worker(None)
@@ -175,11 +177,13 @@ class SummarizerAgent(OpenAIAgent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process messages for the summarizer agent, incorporating results from natural language and SQL queries to generate a summary.
+
         Parameters:
             message: The incoming message to process.
             input: The input stream name. Defaults to "DEFAULT".
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
             None or a response message.
         """

@@ -82,6 +82,7 @@ class CoordinatorAgent(Agent):
 
     def initialize_plan(self, plan, worker=None):
         """Initialize and start executing a plan.
+
         Parameters:
             plan (AgenticPlan): The plan to be executed.
             worker: The worker handling the execution of the plan.
@@ -130,8 +131,10 @@ class CoordinatorAgent(Agent):
     def get_plan_progress(self, plan):
         """
         Get the progress of a plan as a float between 0 and 1.
+
         Parameters:
             plan (AgenticPlan): The plan to get the progress of.
+
         Returns:
             float: The progress of the plan as a float between 0 and 1.
         """
@@ -142,7 +145,7 @@ class CoordinatorAgent(Agent):
     def session_listener(self, message):
         """Listen to session messages and handle stream announcements.
 
-        Args:
+        Parameters:
             message: The session message to process.
 
         """
@@ -170,11 +173,13 @@ class CoordinatorAgent(Agent):
         """Transform data from input stream to output stream based on the plan.
 
         Currently a placeholder that returns the input stream as the output stream.
+
         Parameters:
             input_stream: The input stream to transform data from.
             budget: The budget for the transformation.
             f: The from node (can be input or agent output).
             t: The to node (can be output or agent input).
+
         Returns:
             The output stream after transformation.
         """
@@ -247,11 +252,13 @@ class CoordinatorAgent(Agent):
 
     def plan_synchronizer(self, plan, path, key, value):
         """Synchronize plan changes by updating the plan in the coordinator agent's data store.
+
         Parameters:
             plan (AgenticPlan): The plan being synchronized.
             path (str): The JSON path of the change.
             key (str): The key of the change.
-            value: The value of the change."""
+            value: The value of the change.
+        """
         # remove $. from path + key
         canonical_key = path + "." + key
         self.set_data(canonical_key[2:], value)
@@ -260,13 +267,16 @@ class CoordinatorAgent(Agent):
     # PLANNED, TRIGGERED, STARTED, FINISHED
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process messages for the coordinator agent, handling plan execution and stream management.
+
         Parameters:
             message: The message to process.
             input: The input stream label.
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
-            None or a response message."""
+            None or a response message.
+        """
         if input == "DEFAULT":
             # new plan
             stream = message.getStream()

@@ -35,9 +35,11 @@ class PresenterAgent(Agent):
 
     def triggered(self, text, properties):
         """Check if the input text contains any of the trigger keywords defined in properties.
+
         Parameters:
             text: The input text to check for triggers.
             properties: The properties dict containing trigger keywords.
+
         Returns:
             True if any trigger keyword is found in the text, False otherwise.
         """
@@ -54,11 +56,13 @@ class PresenterAgent(Agent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process messages for the presenter agent, displaying a form when triggered and collecting form data upon submission.
+
         Parameters:
             message: The incoming message to process.
             input: The input stream name. Defaults to "DEFAULT".
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
             None or a response message.
         """

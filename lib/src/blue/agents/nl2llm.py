@@ -128,8 +128,10 @@ class NL2LLMAgent(Agent):
 
     def _search_sources(self, scope=None):
         """Search the data registry for sources that match the question.
+
         Parameters:
             scope: The scope to search data registry within. If None, searches all scopes.
+
         Returns:
             A list of source names that match the search criteria."""
         sources = []
@@ -163,8 +165,10 @@ class NL2LLMAgent(Agent):
     def get_properties(self, properties=None):
         """Get properties for the NL2LLM agent.
         Copied from RequestorAgent.get_properties().
+
         Parameters:
             properties: Optional properties dictionary to override agent properties. Defaults to None.
+
         Returns:
             A dictionary of merged properties.
         """
@@ -183,11 +187,13 @@ class NL2LLMAgent(Agent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process incoming messages and execute LLM queries.
+
         Parameters:
             message: The message to process.
             input: The input stream label.
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
             None or a response message.
         """
@@ -240,9 +246,11 @@ class NL2LLMAgent(Agent):
 
     def process_query(self, question, properties=None):
         """Process a natural language query using the selected LLM source.
+
         Parameters:
             question: The natural language question to process.
             properties: Additional properties for processing.
+
         Returns:
             A dictionary containing the question, source, result, and any error encountered."""
         properties = self.get_properties(properties=properties)
@@ -290,9 +298,11 @@ class NL2LLMAgent(Agent):
 
     def _apply_filter(self, output, properties=None):
         """Apply output filters to the result.
+
         Parameters:
             output: The output dictionary containing question, source, result, and error.
             properties: Additional properties for processing.
+
         Returns:
             A filtered output based on the specified output filters.
         """

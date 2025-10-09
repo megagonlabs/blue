@@ -175,6 +175,7 @@ Output:
 
     def _set_schemas(self, schemas, source=None, database=None, collection=None, entity=None, relation=None, attribute=None):
         """Set schemas for the NL2SQL agent by querying the data registry.
+
         Parameters:
             schemas: The schemas dictionary to populate.
             source: The data source name.
@@ -310,6 +311,7 @@ Output:
 
     def _parse_data_scope(self, scope):
         """Parse a data scope string into its components.
+
         Parameters:
             scope: The data scope string to parse.
 
@@ -345,13 +347,14 @@ Output:
     def _derive_thresholds(self, global_threshold, mode="hybrid", delta=0.10, factor=1.25, max_limit=1.0):
         """
         Derive local thresholds from the global threshold.
+
         Parameters:
             global_threshold: The global similarity threshold.
             mode: The mode of adjustment ("add", "mul", "hybrid").
             delta: The additive adjustment value (used in "add" and "hybrid" modes).
             factor: The multiplicative adjustment factor (used in "mul" and "hybrid" modes).
             max_limit: The maximum limit for the local threshold.
-        Returns:
+
         Returns:
             A tuple containing the global and local thresholds.
         - similarity is distance-based: lower is better.
@@ -372,11 +375,13 @@ Output:
 
     def _search_schemas(self, question, scope=None, discovery_depth_collection="some", discovery_depth_entity_relation="some"):
         """Search the data registry to suggest schemas based on the question and scope.
+
         Parameters:
             question: The natural language question to base the search on.
             scope: The scope to limit the search (e.g., specific source or database).
             discovery_depth_collection: The depth of discovery for collections ("all", "some", "none").
             discovery_depth_entity_relation: The depth of discovery for entities and relations ("all", "some", "none").
+
         Returns:
             A dictionary of suggested schemas.
         """
@@ -542,8 +547,10 @@ Output:
 
     def _format_schema(self, schema):
         """Format the schema into a list of tables with their columns and types.
+
         Parameters:
             schema: The schema dictionary to format.
+
         Returns:
             A list of formatted tables with their columns and types.
         """
@@ -581,9 +588,11 @@ Output:
 
     def extract_input_params(self, input_data, properties=None):
         """Extract input parameters from input data and properties for the API call.
+
         Parameters:
             input_data: The input data containing the natural language question.
             properties: Optional properties to override the agent's properties.
+
         Returns:
             A dictionary of input parameters for the API call."""
         question = input_data
@@ -630,8 +639,10 @@ Output:
 
     def _apply_filter(self, output):
         """Apply output filters to the output data.
+
         Parameters:
             output: The output data dictionary containing question, source, query, result, error, and count.
+
         Returns:
             The filtered output based on the specified output filters.
         """
@@ -689,9 +700,11 @@ Output:
 
     def process_output(self, output_data, properties=None):
         """Process the output data from the API call and optionally execute the SQL query.
+
         Parameters:
             output_data: The output data from the API call, expected to be a JSON string or dictionary.
             properties: Optional properties to override the agent's properties.
+
         Returns:
             The processed output, which may include the executed query results.
         """
@@ -825,6 +838,7 @@ Output:
 
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
         """Set schemas for the NL2Cypher agent by querying the data registry.
+
         Parameters:
             schemas: The schemas dictionary to populate.
             source: The data source name.
@@ -914,6 +928,7 @@ Output:
 
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
         """Set schemas for the NL2MongoQL agent by querying the data registry.
+
         Parameters:
             schemas: The schemas dictionary to populate.
             source: The data source name.

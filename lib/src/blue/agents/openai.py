@@ -78,8 +78,10 @@ class OpenAIAgent(RequestorAgent):
 
     def _validate_tool_schema(self, tool_schema):
         """Validate the structure of a tool schema. Returns True if valid, False otherwise.
+
         Parameters:
             tool_schema: The tool schema to validate.
+
         Returns:
             True if the schema is valid, False otherwise."""
         # checks
@@ -95,9 +97,11 @@ class OpenAIAgent(RequestorAgent):
 
     def convert_tool_schema_to_openai_format(self, tool_schema, server_name):
         """Convert a tool schema to OpenAI's function calling format.
+
         Parameters:
             tool_schema: The tool schema to convert.
             server_name: The name of the server hosting the tool.
+
         Returns:
             The tool schema in OpenAI format, or None if the schema is invalid.
         """
@@ -132,9 +136,11 @@ class OpenAIAgent(RequestorAgent):
 
     def get_tool_schemas(self, user_input, properties):
         """Retrieve tool schemas based on user input and properties.
+
         Parameters:
             user_input: The user input to base tool selection on.
             properties: The properties dict containing tool selection criteria.
+
         Returns:
             A list of tool schemas in OpenAI format.
         """
@@ -211,9 +217,11 @@ class OpenAIAgent(RequestorAgent):
 
     def _get_canonical(self, server_name, tool_name):
         """Get the canonical name for a tool given its server and tool names.
+
         Parameters:
             server_name: The name of the server hosting the tool.
             tool_name: The name of the tool.
+
         Returns:
             The canonical name for the tool.
         """
@@ -221,8 +229,10 @@ class OpenAIAgent(RequestorAgent):
 
     def _extract_canonical(self, canonical_name):
         """Extract server and tool names from a canonical tool name.
+
         Parameters:
             canonical_name: The canonical name to extract from.
+
         Returns:
             A tuple containing the server name and tool name (or None if not present).
         """
@@ -236,6 +246,7 @@ class OpenAIAgent(RequestorAgent):
 
     def write_tool_explanation(self, tool, arguments, result, eos=False):
         """Write an explanation of a tool call to the explanation output.
+
         Parameters:
             tool: The name of the tool called.
             arguments: The arguments passed to the tool.
@@ -281,10 +292,12 @@ class OpenAIAgent(RequestorAgent):
 
     def execute_api_call(self, input, properties=None, additional_data=None):
         """Execute an API call to OpenAI, optionally using tools if specified in properties.
+
         Parameters:
             input: The input data for the API call.
             properties: Additional properties for the API call.
             additional_data: Any additional data to include in the API call.
+
         Returns:
             The output from the API call.
         """

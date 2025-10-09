@@ -46,11 +46,13 @@ class RecorderAgent(Agent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process messages for the recorder agent, executing configured queries on JSON input data and storing results in session variables.
+
         Parameters:
             message: The incoming message to process.
             input: The input stream name. Defaults to "DEFAULT".
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
             None or a list of variable names that were set in the session.
         """

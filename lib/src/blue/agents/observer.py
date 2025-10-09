@@ -57,11 +57,13 @@ class ObserverAgent(Agent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process messages for the observer agent, logging or sending them to a specified output.
+
         Parameters:
             message: The message to process.
             input: The input stream label.
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
             None or a response message.
         """

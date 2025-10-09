@@ -47,9 +47,11 @@ class QueryExecutorAgent(Agent):
 
     def execute_sql_query(self, path, query):
         """Execute a SQL query against the specified data source and database.
+
         Parameters:
             path: The data source path in the format 'PLATFORM:<platform_id>/<source>/<database>/<collection>'.
             query: The SQL query to execute.
+
         Returns:
             A dictionary containing the query results or an error message.
         """
@@ -70,8 +72,10 @@ class QueryExecutorAgent(Agent):
 
     def _apply_filter(self, output):
         """Apply output filters to the query result based on agent properties.
+
         Parameters:
             output: The output dictionary containing question, source, query, result, and error.
+
         Returns:
             The filtered output based on specified output filters.
         """
@@ -123,11 +127,13 @@ class QueryExecutorAgent(Agent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process messages for the query executor agent, executing SQL queries based on input JSON data.
+
         Parameters:
             message: The message to process.
             input: The input stream label.
             properties: Additional properties for processing.
             worker: The worker handling the processing.
+
         Returns:
             None or a response message.
         """

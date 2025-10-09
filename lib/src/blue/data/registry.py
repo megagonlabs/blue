@@ -11,11 +11,7 @@ from blue.utils import json_utils
 from blue.registry import Registry
 
 from blue.data.schema import DataSchema
-from blue.utils.similarity_utils import (
-    compute_bm25_score,
-    normalize_bm25_scores,
-    compute_vector_score
-)
+from blue.utils.similarity_utils import compute_bm25_score, normalize_bm25_scores, compute_vector_score
 
 ###### Supported Data Sources
 from blue.data.sources.mongodb_source import MongoDBSource
@@ -40,13 +36,13 @@ class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, platform_id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, platform_id=platform_id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
         self._init_binary_connection()
-        
+
     def _init_binary_connection(self):
         host = self.properties["db.host"]
         port = self.properties["db.port"]
 
         self.connection_no_decode = redis.Redis(host=host, port=port, decode_responses=False)
-        
+
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -67,13 +63,12 @@ class DataRegistry(Registry):
         self.properties['search_hierarchical_database_types'] = ['database', 'collection', 'entity']
         self.properties['search_hierarchical_collection_types'] = ['collection', 'entity']
 
-
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
         """
         Register a new data source in the registry.
 
-        Args:
+        Parameters:
             source (str): Unique name or ID of the source.
             created_by (str): Identifier of the user or process creating the source.
             description (str, optional): Optional textual description. Defaults to "".
@@ -86,7 +81,7 @@ class DataRegistry(Registry):
         """
         Update an existing data source record.
 
-        Args:
+        Parameters:
             source (str): Source identifier.
             description (str, optional): Updated description. Defaults to None.
             icon (str, optional): Optional icon path or identifier. Defaults to None.
@@ -99,7 +94,7 @@ class DataRegistry(Registry):
         """
         Remove a data source from the registry.
 
-        Args:
+        Parameters:
             source (str): Identifier of the source to deregister.
             rebuild (bool, optional): If True, rebuilds related registry structures. Defaults to False.
         """
@@ -119,7 +114,7 @@ class DataRegistry(Registry):
         """
         Retrieve a specific data source record by name.
 
-        Args:
+        Parameters:
             source (str): Source identifier.
 
         Returns:
@@ -132,7 +127,7 @@ class DataRegistry(Registry):
         """
         Retrieve the description of a specific data source.
 
-        Args:
+        Parameters:
             source (str): Source identifier.
 
         Returns:
@@ -144,7 +139,7 @@ class DataRegistry(Registry):
         """
         Update the description for a given data source.
 
-        Args:
+        Parameters:
             source (str): Source identifier.
             description (str): New description text.
             rebuild (bool, optional): Whether to rebuild registry indexes. Defaults to False.
@@ -156,7 +151,7 @@ class DataRegistry(Registry):
         """
         Retrieve all properties associated with a data source.
 
-        Args:
+        Parameters:
             source (str): Source identifier.
 
         Returns:
@@ -168,7 +163,7 @@ class DataRegistry(Registry):
         """
         Retrieve a single property value for a given source.
 
-        Args:
+        Parameters:
             source (str): Source identifier.
             key (str): Property key.
 
@@ -181,7 +176,7 @@ class DataRegistry(Registry):
         """
         Set or update a property for a given source.
 
-        Args:
+        Parameters:
             source (str): Source identifier.
             key (str): Property key.
             value (Any): Property value.
@@ -193,7 +188,7 @@ class DataRegistry(Registry):
         """
         Delete a property from a specific source.
 
-        Args:
+        Parameters:
             source (str): Source identifier.
             key (str): Property key to remove.
             rebuild (bool, optional): If True, rebuilds related registry structures. Defaults to False.
@@ -205,7 +200,7 @@ class DataRegistry(Registry):
         """
         Register a new database under a specific source in the data registry.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database to register.
             description (str, optional): A description of the database. Defaults to "".
@@ -218,7 +213,7 @@ class DataRegistry(Registry):
         """
         Update an existing database record under a given source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database to update.
             description (str, optional): Updated description for the database. Defaults to None.
@@ -231,7 +226,7 @@ class DataRegistry(Registry):
         """
         Deregister (remove) a database record from a specific source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database to remove.
             rebuild (bool, optional): If True, rebuilds the index or structure after deregistration. Defaults to False.
@@ -243,7 +238,7 @@ class DataRegistry(Registry):
         """
         Retrieve all databases registered under a specific source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
 
         Returns:
@@ -255,7 +250,7 @@ class DataRegistry(Registry):
         """
         Retrieve a specific database record under a given source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database to fetch.
 
@@ -269,7 +264,7 @@ class DataRegistry(Registry):
         """
         Get the description text of a specific database under a given source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database.
 
@@ -282,7 +277,7 @@ class DataRegistry(Registry):
         """
         Set or update the description of a specific database under a given source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database.
             description (str): The new description text for the database.
@@ -295,7 +290,7 @@ class DataRegistry(Registry):
         """
         Get all properties associated with a specific database under a given source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database.
 
@@ -308,7 +303,7 @@ class DataRegistry(Registry):
         """
         Retrieve a single property value for a specific database under a given source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database.
             key (str): The property key to look up.
@@ -322,7 +317,7 @@ class DataRegistry(Registry):
         """
         Set or update a property for a specific database under a given source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the database.
             key (str): The property key.
@@ -336,7 +331,7 @@ class DataRegistry(Registry):
         """
         Register a new collection under a specific database and source in the data registry.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection to register.
@@ -350,7 +345,7 @@ class DataRegistry(Registry):
         """
         Update an existing collection record under a given database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection to update.
@@ -370,7 +365,7 @@ class DataRegistry(Registry):
         """
         Deregister (remove) a collection record from a specific database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection to remove.
@@ -383,7 +378,7 @@ class DataRegistry(Registry):
         """
         Retrieve all collections registered under a specific database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
 
@@ -396,7 +391,7 @@ class DataRegistry(Registry):
         """
         Retrieve a specific collection record under a given database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection to fetch.
@@ -411,7 +406,7 @@ class DataRegistry(Registry):
         """
         Get the description text of a specific collection under a given database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection.
@@ -425,7 +420,7 @@ class DataRegistry(Registry):
         """
         Set or update the description of a specific collection under a given database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection.
@@ -439,7 +434,7 @@ class DataRegistry(Registry):
         """
         Get all properties associated with a specific collection under a given database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection.
@@ -453,7 +448,7 @@ class DataRegistry(Registry):
         """
         Retrieve a single property value for a specific collection under a given database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection.
@@ -468,7 +463,7 @@ class DataRegistry(Registry):
         """
         Set or update a property for a specific collection under a given database and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the collection.
@@ -483,7 +478,7 @@ class DataRegistry(Registry):
         """
         Register a new entity under a specific collection, database, and source in the data registry.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -498,7 +493,7 @@ class DataRegistry(Registry):
         """
         Update an existing entity record under a specific collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -519,7 +514,7 @@ class DataRegistry(Registry):
         """
         Deregister (remove) an entity record from a specific collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -533,7 +528,7 @@ class DataRegistry(Registry):
         """
         Retrieve all entities registered under a specific collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -547,7 +542,7 @@ class DataRegistry(Registry):
         """
         Retrieve a specific entity record under a given collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -563,7 +558,7 @@ class DataRegistry(Registry):
         """
         Get the description text of a specific entity under a given collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -578,7 +573,7 @@ class DataRegistry(Registry):
         """
         Set or update the description of a specific entity under a given collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -593,7 +588,7 @@ class DataRegistry(Registry):
         """
         Get all properties associated with a specific entity under a given collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -608,7 +603,7 @@ class DataRegistry(Registry):
         """
         Retrieve a single property value for a specific entity under a given collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -624,7 +619,7 @@ class DataRegistry(Registry):
         """
         Set or update a property for a specific entity under a given collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): The name or ID of the parent source.
             database (str): The name or ID of the parent database.
             collection (str): The name or ID of the parent collection.
@@ -635,15 +630,12 @@ class DataRegistry(Registry):
         """
         super().set_record_property(entity, 'entity', f'/source/{source}/database/{database}/collection/{collection}', key, value, rebuild=rebuild)
 
-    
-    ######### source/database/collection/entity/attribute 
-    def register_source_database_collection_entity_attribute(
-        self, source, database, collection, entity, attribute,
-        description="", properties=None, rebuild=False):
+    ######### source/database/collection/entity/attribute
+    def register_source_database_collection_entity_attribute(self, source, database, collection, entity, attribute, description="", properties=None, rebuild=False):
         """
         Register a new attribute under a specific entity within a collection, database, and source.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -656,19 +648,14 @@ class DataRegistry(Registry):
         if properties is None:
             properties = {}
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
-        
-        super().register_record(
-            attribute, 'attribute', scope,
-            description=description, properties=properties, rebuild=rebuild
-        )
 
-    def update_source_database_collection_entity_attribute(
-        self, source, database, collection, entity, attribute,
-        description=None, properties=None, rebuild=False):
+        super().register_record(attribute, 'attribute', scope, description=description, properties=properties, rebuild=rebuild)
+
+    def update_source_database_collection_entity_attribute(self, source, database, collection, entity, attribute, description=None, properties=None, rebuild=False):
         """
         Update an existing attribute under a specific entity.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -682,17 +669,13 @@ class DataRegistry(Registry):
             tuple: (original_record, merged_record) containing the state before and after update.
         """
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
-        return super().update_record(
-            attribute, 'attribute', scope,
-            description=description, properties=properties, rebuild=rebuild
-        )
+        return super().update_record(attribute, 'attribute', scope, description=description, properties=properties, rebuild=rebuild)
 
-    def deregister_source_database_collection_entity_attribute(
-        self, source, database, collection, entity, attribute, rebuild=False):
+    def deregister_source_database_collection_entity_attribute(self, source, database, collection, entity, attribute, rebuild=False):
         """
         Remove an attribute from a specific entity.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -700,17 +683,14 @@ class DataRegistry(Registry):
             attribute (str): Name of the attribute to deregister.
             rebuild (bool, optional): Whether to rebuild dependent data structures after deregistration.
         """
-        record = self.get_source_database_collection_entity_attribute(
-            source, database, collection, entity, attribute
-        )
+        record = self.get_source_database_collection_entity_attribute(source, database, collection, entity, attribute)
         super().deregister(record, rebuild=rebuild)
 
-    def get_source_database_collection_entity_attributes(
-        self, source, database, collection, entity):
+    def get_source_database_collection_entity_attributes(self, source, database, collection, entity):
         """
         Retrieve all attributes under a specific entity.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -720,16 +700,13 @@ class DataRegistry(Registry):
             list: List of attributes under the entity.
         """
         scope = f'/source/{source}/database/{database}/collection/{collection}'
-        return super().filter_record_contents(
-            entity, 'entity', scope, filter_type='attribute'
-        )
+        return super().filter_record_contents(entity, 'entity', scope, filter_type='attribute')
 
-    def get_source_database_collection_entity_attribute(
-        self, source, database, collection, entity, attribute):
+    def get_source_database_collection_entity_attribute(self, source, database, collection, entity, attribute):
         """
         Retrieve a specific attribute under an entity.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -740,17 +717,13 @@ class DataRegistry(Registry):
             dict: Attribute record if found, else None.
         """
         scope = f'/source/{source}/database/{database}/collection/{collection}'
-        return super().filter_record_contents(
-            entity, 'entity', scope,
-            filter_type='attribute', filter_name=attribute, single=True
-        )
+        return super().filter_record_contents(entity, 'entity', scope, filter_type='attribute', filter_name=attribute, single=True)
 
-    
     def set_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key, value, rebuild=False):
         """
         Set or update a specific property of an attribute.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -763,12 +736,11 @@ class DataRegistry(Registry):
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
         super().set_record_property(attribute, 'attribute', scope, key, value, rebuild=rebuild)
 
-
     def get_source_database_collection_entity_attribute_property(self, source, database, collection, entity, attribute, key):
         """
         Retrieve a specific property of an attribute.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -782,13 +754,12 @@ class DataRegistry(Registry):
         scope = f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}'
         return super().get_record_property(attribute, 'attribute', scope, key)
 
-    
     # description
     def get_source_database_collection_entity_attribute_description(self, source, database, collection, entity, attribute):
         """
         Get the description of a specific attribute.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -804,7 +775,7 @@ class DataRegistry(Registry):
         """
         Set or update the description of a specific attribute.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -815,13 +786,12 @@ class DataRegistry(Registry):
         """
         super().set_record_description(attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/entity/{entity}', description, rebuild=rebuild)
 
-    
     ######### source/database/collection/relation
     def register_source_database_collection_relation(self, source, database, collection, relation, description="", properties={}, rebuild=False):
         """
         Register a new relation under a specific collection in a database and source.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -836,7 +806,7 @@ class DataRegistry(Registry):
         """
         Update an existing relation under a specific collection.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -857,7 +827,7 @@ class DataRegistry(Registry):
         """
         Remove a relation from a specific collection.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -871,7 +841,7 @@ class DataRegistry(Registry):
         """
         Retrieve all relations under a specific collection.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -885,7 +855,7 @@ class DataRegistry(Registry):
         """
         Retrieve a specific relation under a collection.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -901,7 +871,7 @@ class DataRegistry(Registry):
         """
         Get the description of a specific relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -916,7 +886,7 @@ class DataRegistry(Registry):
         """
         Set or update the description of a specific relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -931,7 +901,7 @@ class DataRegistry(Registry):
         """
         Retrieve all properties of a specific relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -946,7 +916,7 @@ class DataRegistry(Registry):
         """
         Retrieve a specific property of a relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -962,7 +932,7 @@ class DataRegistry(Registry):
         """
         Set or update a specific property of a relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database under the source.
             collection (str): Name of the collection under the database.
@@ -972,14 +942,13 @@ class DataRegistry(Registry):
             rebuild (bool, optional): Whether to rebuild dependent data structures after update.
         """
         super().set_record_property(relation, 'relation', f'/source/{source}/database/{database}/collection/{collection}', key, value, rebuild=rebuild)
-    
-    
-    ######### source/database/collection/relation/attribute 
+
+    ######### source/database/collection/relation/attribute
     def register_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, description="", properties={}, rebuild=False):
         """
         Register a new attribute under a specific relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database.
             collection (str): Name of the collection.
@@ -989,14 +958,15 @@ class DataRegistry(Registry):
             properties (dict, optional): Properties for the attribute.
             rebuild (bool, optional): Whether to rebuild dependent data structures after registration.
         """
-        super().register_record(attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}', description=description, properties=properties, rebuild=rebuild)
+        super().register_record(
+            attribute, 'attribute', f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}', description=description, properties=properties, rebuild=rebuild
+        )
 
-    
     def update_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, description=None, properties=None, rebuild=False):
         """
         Update an existing attribute under a specific relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database.
             collection (str): Name of the collection.
@@ -1012,12 +982,11 @@ class DataRegistry(Registry):
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         return super().update_record(attribute, 'attribute', scope, description=description, properties=properties, rebuild=rebuild)
 
-
     def deregister_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute, rebuild=False):
         """
         Remove an attribute from a specific relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database.
             collection (str): Name of the collection.
@@ -1027,13 +996,12 @@ class DataRegistry(Registry):
         """
         record = self.get_source_database_collection_relation_attribute(source, database, collection, relation, attribute)
         super().deregister(record, rebuild=rebuild)
-    
-    def get_source_database_collection_relation_attributes(
-        self, source, database, collection, relation):
+
+    def get_source_database_collection_relation_attributes(self, source, database, collection, relation):
         """
         Retrieve all attributes under a specific relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database.
             collection (str): Name of the collection.
@@ -1045,12 +1013,11 @@ class DataRegistry(Registry):
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         return super().filter_record_contents(relation, 'relation', scope, filter_type='attribute')
 
-    def get_source_database_collection_relation_attribute(
-        self, source, database, collection, relation, attribute):
+    def get_source_database_collection_relation_attribute(self, source, database, collection, relation, attribute):
         """
         Retrieve a specific attribute under a relation.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database.
             collection (str): Name of the collection.
@@ -1067,7 +1034,7 @@ class DataRegistry(Registry):
         """
         Set or update a specific property of a relation attribute.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database.
             collection (str): Name of the collection.
@@ -1080,12 +1047,11 @@ class DataRegistry(Registry):
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         super().set_record_property(attribute, 'attribute', scope, key, value, rebuild=rebuild)
 
-
     def get_source_database_collection_relation_attribute_property(self, source, database, collection, relation, attribute, key):
         """
         Retrieve a specific property of a relation attribute.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             database (str): Name of the database.
             collection (str): Name of the collection.
@@ -1098,15 +1064,14 @@ class DataRegistry(Registry):
         """
         scope = f'/source/{source}/database/{database}/collection/{collection}/relation/{relation}'
         return super().get_record_property(attribute, 'attribute', scope, key)
-    
-    
+
     ######### sync
     # source connection (part of properties)
     def get_source_connection(self, source):
         """
         Retrieve the connection information for a specific source.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
 
         Returns:
@@ -1118,7 +1083,7 @@ class DataRegistry(Registry):
         """
         Set or update the connection information for a specific source.
 
-        Args:
+        Parameters:
             source (str): Name of the source.
             connection (Any): Connection information to set (e.g., connection string or config dict).
             rebuild (bool, optional): Whether to rebuild dependent data structures after updating the connection.
@@ -1132,7 +1097,7 @@ class DataRegistry(Registry):
         Determines the source protocol (e.g., MongoDB, Postgres, MySQL, etc.) from its
         stored properties and initializes the corresponding source connector class.
 
-        Args:
+        Parameters:
             source (str): Identifier of the data source to connect to.
 
         Returns:
@@ -1177,7 +1142,7 @@ class DataRegistry(Registry):
         """
         Create a new database in the specified source.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             database (str): Database name.
             properties (dict, optional): Properties to set on the database. Defaults to {}.
@@ -1209,7 +1174,7 @@ class DataRegistry(Registry):
         """
         Create a new collection in the specified database.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             database (str): Database name.
             collection (str): Collection name.
@@ -1242,7 +1207,7 @@ class DataRegistry(Registry):
         """
         Create a new entity (table) in the specified collection.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             database (str): Database name.
             collection (str): Collection name.
@@ -1278,7 +1243,7 @@ class DataRegistry(Registry):
         """
         Create a new relation in the specified collection.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             database (str): Database name.
             collection (str): Collection name.
@@ -1308,12 +1273,11 @@ class DataRegistry(Registry):
                     self.set_source_database_collection_relation_property(source, database, collection, relation, key, value, rebuild=rebuild)
         return None
 
-    
     def collect_source_stats(self, source, recursive=False, rebuild=False):
         """
         Collect statistics for a data source and optionally its databases.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             recursive (bool, optional): Collect stats recursively for all databases. Defaults to False.
             rebuild (bool, optional): Rebuild registry index after collecting stats. Defaults to False.
@@ -1331,12 +1295,11 @@ class DataRegistry(Registry):
                 for database in databases:
                     self.collect_source_database_stats(source, database, source_connection, recursive=recursive, rebuild=rebuild)
 
-    
     def collect_source_database_stats(self, source, database, source_connection=None, recursive=False, rebuild=False):
         """
         Collect statistics for a database and optionally its collections.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             database (str): Database name.
             source_connection (object, optional): Pre-existing connection to source. Defaults to None.
@@ -1357,14 +1320,12 @@ class DataRegistry(Registry):
                 collections = self.get_source_database_collections(source, database)
                 for collection in collections:
                     self.collect_source_database_collection_stats(source, database, collection, source_connection, recursive=recursive, rebuild=rebuild)
-    
-                
-    
+
     def collect_source_database_collection_stats(self, source, database, collection, source_connection=None, recursive=False, rebuild=False, sample_limit=10):
         """
         Collect statistics for a collection, its entities, relations, and attributes.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             database (str): Database name.
             collection (str): Collection name.
@@ -1379,48 +1340,44 @@ class DataRegistry(Registry):
         entities = self.get_source_database_collection_entities(source, database, collection)
         relations = self.get_source_database_collection_relations(source, database, collection)
 
-        if entities is None: 
+        if entities is None:
             entities = []
-        
-        if relations is None: 
+
+        if relations is None:
             relations = []
-        
 
         if source_connection is None:
             source_connection = self.connect_source(source)
         if source_connection:
-            
+
             collection_stats = source_connection.fetch_collection_stats(database, collection, entities, relations)
-            
+
             if collection_stats:
                 self.set_source_database_collection_property(source, database, collection, "stats", collection_stats, rebuild=rebuild)
 
             if entities:
                 for entity_dict in entities:
                     entity = entity_dict.get("name")
-                
+
                     ent_stats = source_connection.fetch_entity_stats(database, collection, entity)
-                    
+
                     self.set_source_database_collection_entity_property(source, database, collection, entity, "stats", ent_stats, rebuild=rebuild)
 
                     contents = entity_dict.get("contents", {})
-                    attributes = contents.get("attribute", {})  
-                
-                    for attr_name, attr_info in attributes.items():    
-                        attr_stats = source_connection.fetch_property_stats(
-                            database, collection, entity, attr_name, sample_limit=sample_limit)
-                        
+                    attributes = contents.get("attribute", {})
+
+                    for attr_name, attr_info in attributes.items():
+                        attr_stats = source_connection.fetch_property_stats(database, collection, entity, attr_name, sample_limit=sample_limit)
+
                         # Store stats under this attribute
-                        self.set_source_database_collection_entity_attribute_property(
-                            source, database, collection, entity, attr_name,  "stats", attr_stats, rebuild=rebuild)
-                
-    
-    ### currerntly, data.py doesn't call sync_all 
+                        self.set_source_database_collection_entity_attribute_property(source, database, collection, entity, attr_name, "stats", attr_stats, rebuild=rebuild)
+
+    ### currerntly, data.py doesn't call sync_all
     def sync_all(self, recursive=False, rebuild=False):
         """
         Synchronize all sources with the registry.
 
-        Args:
+        Parameters:
             recursive (bool, optional): If True, recursively sync databases and collections. Defaults to False.
             rebuild (bool, optional): If True, rebuild the registry index after syncing. Defaults to False.
 
@@ -1440,7 +1397,7 @@ class DataRegistry(Registry):
         This updates the source metadata, adds new databases, removes missing databases,
         merges existing ones, and optionally recurses into database syncing.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             recursive (bool, optional): If True, recursively sync databases and collections. Defaults to False.
             rebuild (bool, optional): If True, rebuild the registry index after syncing. Defaults to False.
@@ -1461,14 +1418,13 @@ class DataRegistry(Registry):
                 description = metadata['description']
 
             current_description = self.get_source_description(source)
-            
+
             if description.strip() and metadata:
                 if not current_description or current_description.strip() == "":
                     self.update_source(source, description=description, properties=properties, rebuild=rebuild)
                 else:
-                    self.update_source(source, description = current_description, properties=properties, rebuild=rebuild)
-                
-            
+                    self.update_source(source, description=current_description, properties=properties, rebuild=rebuild)
+
             # fetch databases
             fetched_dbs = source_connection.fetch_databases()
             fetched_dbs_set = set(fetched_dbs)
@@ -1520,7 +1476,7 @@ class DataRegistry(Registry):
         Updates database metadata, adds/removes/merges collections,
         and optionally recurses into collection syncing.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             database (str): Database name.
             source_connection (object, optional): Pre-existing connection to the source. Defaults to None.
@@ -1543,17 +1499,16 @@ class DataRegistry(Registry):
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
-            
+
             current_description = self.get_source_database_description(source, database)
-            
+
             if description.strip() and metadata:
                 if not current_description or current_description.strip() == "":
                     self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
 
-                else:                   
+                else:
                     self.update_source_database(source, database, description=current_description, properties=properties, rebuild=rebuild)
-        
-    
+
             # fetch collections
             fetched_collections = source_connection.fetch_database_collections(database)
             fetched_collections_set = set(fetched_collections)
@@ -1588,17 +1543,16 @@ class DataRegistry(Registry):
             if recursive:
                 for collection in fetched_collections_set:
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=recursive, rebuild=rebuild)
-                    
+
             else:
                 for collection in adds:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
-                    
+
                 for collection in merges:
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
-                    
-            
+
     def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False):
         """
         Synchronize a specific collection within a database.
@@ -1607,7 +1561,7 @@ class DataRegistry(Registry):
         Adds new items, removes missing ones, and merges existing items.
         Sets the final schema after all updates.
 
-        Args:
+        Parameters:
             source (str): Source name or identifier.
             database (str): Database name.
             collection (str): Collection name.
@@ -1637,15 +1591,12 @@ class DataRegistry(Registry):
             if description.strip() and metadata:
                 if not current_description or current_description.strip() == "":
                     self.update_source_database_collection(source, database, collection, description=description, properties=properties, rebuild=rebuild)
-                else:                          
+                else:
                     self.update_source_database_collection(source, database, collection, description=current_description, properties=properties, rebuild=rebuild)
-                
-                
+
             entities = source_connection.fetch_database_collection_entities(database, collection)
             relations = source_connection.fetch_database_collection_relations(database, collection)
 
-            
-            
             fetched_entities_set = set(entities.keys())
             fetched_relations_set = set(relations.keys())
 
@@ -1680,12 +1631,11 @@ class DataRegistry(Registry):
             for entity in merges:
                 self.update_source_database_collection_entity(source, database, collection, entity, description="", properties={}, rebuild=rebuild)
 
-            
             # ---------------- entity attributes ---------------- #
             for entity in fetched_entities_set:
                 entity_obj = entities[entity]
                 entity_properties = entity_obj.get("properties", {})
-                
+
                 fetched_attrs = entity_obj.get("contents", {}).get("attributes", {})
                 registry_attrs = self.get_source_database_collection_entity_attributes(source, database, collection, entity) or {}
 
@@ -1702,7 +1652,7 @@ class DataRegistry(Registry):
                     self.deregister_source_database_collection_entity_attribute(source, database, collection, entity, attr)
                 for attr in attr_merges:
                     self.update_source_database_collection_entity_attribute(source, database, collection, entity, attr, description="", properties=fetched_attrs[attr], rebuild=rebuild)
-          
+
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
@@ -1735,12 +1685,11 @@ class DataRegistry(Registry):
             for relation in merges:
                 self.update_source_database_collection_relation(source, database, collection, relation, description="", properties=relations[relation], rebuild=rebuild)
 
-
             # ---------------- relation attributes ---------------- #
             for relation in fetched_relations_set:
                 relation_obj = relations[relation]
                 relation_properties = relation_obj.get("properties", {})
-                
+
                 fetched_attrs = relation_obj.get("contents", {}).get("attributes", {})
                 registry_attrs = self.get_source_database_collection_relation_attributes(source, database, collection, relation) or {}
 
@@ -1766,7 +1715,6 @@ class DataRegistry(Registry):
             except Exception as e:
                 self.logger.warning(f"Failed to set collection schema for {collection}: {e}")
 
-
     ###############
     ##  data sources search
     def get_data_source_schema(self, source, database, collection, format="dict"):
@@ -1782,7 +1730,7 @@ class DataRegistry(Registry):
             return json.dumps(schema, indent=2)
         elif format == "yaml":
             return yaml.dump(schema)
-        
+
         # build DataSchema class and return string representation
         schema = DataSchema()
         schema.entities = entities
@@ -1798,27 +1746,29 @@ class DataRegistry(Registry):
         Returns:
         list: List of index field definitions (TextField, VectorField).
         """
-        schema = list(super()._build_index_schema()) 
-        schema.extend([
-            TextField("values"),
-            TextField("schema"),
-            VectorField(
-                "schema_vector",
-                "FLAT",
-                {
-                    "TYPE": "FLOAT32",
-                    "DIM": self.vector_dimensions,
-                    "DISTANCE_METRIC": "COSINE",
-                },
-            ),
-        ])
+        schema = list(super()._build_index_schema())
+        schema.extend(
+            [
+                TextField("values"),
+                TextField("schema"),
+                VectorField(
+                    "schema_vector",
+                    "FLAT",
+                    {
+                        "TYPE": "FLOAT32",
+                        "DIM": self.vector_dimensions,
+                        "DISTANCE_METRIC": "COSINE",
+                    },
+                ),
+            ]
+        )
         return schema
 
     def _set_index_record(self, record, recursive=False, pipe=None):
         """
         Add or update a record in the search index, optionally recursively for nested contents.
 
-        Args:
+        Parameters:
             record (dict): Record containing 'name', 'type', 'scope', 'description', and optionally 'contents' and 'properties'.
             recursive (bool, optional): If True, recursively index nested records. Defaults to False.
             pipe (Redis pipeline, optional): Redis pipeline to batch commands. If None, a new pipeline is created.
@@ -1833,7 +1783,7 @@ class DataRegistry(Registry):
         type = record['type']
         scope = record['scope']
         description = record['description']
-        
+
         schema = None
         # In current implementation, schema is only available for collection type
         if type == 'collection' and 'properties' in record:
@@ -1846,8 +1796,8 @@ class DataRegistry(Registry):
             if isinstance(values, list) and values:
                 self._create_index_doc(name, type, scope, description, schema=schema, values=values, pipe=pipe)
             else:
-                 self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
-        else:       
+                self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
+        else:
             self._create_index_doc(name, type, scope, description, schema=schema, pipe=pipe)
 
         if recursive:
@@ -1862,7 +1812,7 @@ class DataRegistry(Registry):
         """
         Create a single index document in the search index.
 
-        Args:
+        Parameters:
             name (str): Name of the entity/attribute/collection/relation.
             type (str): Type of record (e.g., "collection", "attribute").
             scope (str): Scope of the record (e.g., full path or database/collection).
@@ -1878,14 +1828,13 @@ class DataRegistry(Registry):
         text = name
         if description:
             text += ' ' + description
-        
+
         values_str = None
 
         if values:
             text += " " + " ".join(map(str, values))
             values_str = json.dumps(values, ensure_ascii=False)
-        
-        
+
         vector = self._compute_embedding_vector(text)
 
         doc = {'name': name, 'type': type, 'scope': scope, 'description': description, 'vector': vector}
@@ -1914,7 +1863,7 @@ class DataRegistry(Registry):
         """
         Delete a document from the search index.
 
-        Args:
+        Parameters:
             name (str): Name of the entity/attribute/collection/relation.
             type (str): Type of record.
             scope (str): Scope of the record.
@@ -1927,11 +1876,11 @@ class DataRegistry(Registry):
 
         # Define fields to delete
         base_fields = ["name", "type", "scope", "description", "values", "vector"]
-        
+
         # In current implementation, schema is only available for collection type
         if type == 'collection':
             base_fields.extend(["schema", "schema_vector"])
-            
+
         if pipe:
             if base_fields:
                 pipe.hdel(doc_key, *base_fields)
@@ -1941,17 +1890,33 @@ class DataRegistry(Registry):
                 pipe.hdel(doc_key, *base_fields)
             res = pipe.execute()
 
-    def _prepare_search_parameters(self, input_query, type=None, scope=None, bm25_weight=None, vector_weight=None, bm25_normalization=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, enable_schema=None, hierarchical_enabled=None, hierarchical_database_types=None, hierarchical_collection_types=None, redis_search_limit=None):
+    def _prepare_search_parameters(
+        self,
+        input_query,
+        type=None,
+        scope=None,
+        bm25_weight=None,
+        vector_weight=None,
+        bm25_normalization=None,
+        bm25_threshold=None,
+        vector_threshold=None,
+        combined_threshold=None,
+        enable_schema=None,
+        hierarchical_enabled=None,
+        hierarchical_database_types=None,
+        hierarchical_collection_types=None,
+        redis_search_limit=None,
+    ):
         """Prepare and validate search parameters"""
         if input_query:
             input_query = input_query.strip()
-        
+
         # Use properties if not provided
         bm25_weight = bm25_weight if bm25_weight is not None else self.properties.get('search_bm25_weight', 0.3)
         vector_weight = vector_weight if vector_weight is not None else self.properties.get('search_vector_weight', 0.7)
         bm25_normalization = bm25_normalization if bm25_normalization is not None else self.properties.get('search_bm25_normalization', 'minmax')
         enable_schema = enable_schema if enable_schema is not None else self.properties.get('search_enable_schema', True)
-        
+
         # thresholds
         bm25_threshold = bm25_threshold if bm25_threshold is not None else self.properties.get('search_bm25_threshold', 0.0)
         vector_threshold = vector_threshold if vector_threshold is not None else self.properties.get('search_vector_threshold', 0.5)
@@ -1959,12 +1924,16 @@ class DataRegistry(Registry):
 
         # hierarchical search
         hierarchical_enabled = hierarchical_enabled if hierarchical_enabled is not None else self.properties.get('search_hierarchical_enabled', True)
-        hierarchical_database_types = hierarchical_database_types if hierarchical_database_types is not None else self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
-        hierarchical_collection_types = hierarchical_collection_types if hierarchical_collection_types is not None else self.properties.get('search_hierarchical_collection_types', ['collection', 'entity'])
-        
+        hierarchical_database_types = (
+            hierarchical_database_types if hierarchical_database_types is not None else self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
+        )
+        hierarchical_collection_types = (
+            hierarchical_collection_types if hierarchical_collection_types is not None else self.properties.get('search_hierarchical_collection_types', ['collection', 'entity'])
+        )
+
         # Redis search limit
         redis_search_limit = redis_search_limit if redis_search_limit is not None else self.properties.get('search_redis_limit', 1000)
-        
+
         # Validate weights
         if bm25_weight < 0 or vector_weight < 0:
             raise ValueError("Weights must be non-negative")
@@ -1973,7 +1942,7 @@ class DataRegistry(Registry):
             # Normalize weights to sum to 1.0
             bm25_weight /= total_weight
             vector_weight /= total_weight
-        
+
         # validate thresholds
         if bm25_threshold < 0 or bm25_threshold > 1:
             raise ValueError("BM25 threshold must be between 0 and 1 (normalized)")
@@ -1981,11 +1950,11 @@ class DataRegistry(Registry):
             raise ValueError("Vector threshold must be between 0 and 1 (normalized)")
         if combined_threshold < 0 or combined_threshold > 1:
             raise ValueError("Combined threshold must be between 0 and 1")
-        
+
         # validate Redis search limit
         if redis_search_limit < 1:
             raise ValueError("Redis search limit must be at least 1")
-        
+
         if self.embeddings_model is None:
             self._init_search_index()
 
@@ -2001,7 +1970,7 @@ class DataRegistry(Registry):
             'bm25_normalization': bm25_normalization,
             'enable_schema': enable_schema,
             'redis_search_limit': redis_search_limit,
-            'index_name': self._get_index_name()
+            'index_name': self._get_index_name(),
         }
 
     def _build_search_query(self, params, search_types=None):
@@ -2022,8 +1991,7 @@ class DataRegistry(Registry):
             else:
                 # Exact match -> keep quotes
                 qs = f'(@scope:"{scope}") ' + qs
-        
-        
+
         if search_types:
             # For hierarchical search with multiple types
             # Use Redis Search OR syntax without extra parentheses
@@ -2038,7 +2006,7 @@ class DataRegistry(Registry):
             q = qs
         else:
             q = "*"
-        
+
         query_params = {}
         return q, query_params
 
@@ -2046,7 +2014,7 @@ class DataRegistry(Registry):
         """Compute vector similarity for a result using precomputed vectors."""
         if query_vector is None:
             return 0.0
-        
+
         if doc_vector is None:
             return 0.0  # fallback: no vector stored
 
@@ -2060,12 +2028,30 @@ class DataRegistry(Registry):
 
         return vector_score
 
-    def search_records(self, input_query, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10, bm25_weight=None, vector_weight=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, bm25_normalization=None, enable_schema=None, redis_search_limit=None):
+    def search_records(
+        self,
+        input_query,
+        type=None,
+        scope=None,
+        approximate=False,
+        hybrid=False,
+        page=0,
+        page_size=5,
+        page_limit=10,
+        bm25_weight=None,
+        vector_weight=None,
+        bm25_threshold=None,
+        vector_threshold=None,
+        combined_threshold=None,
+        bm25_normalization=None,
+        enable_schema=None,
+        redis_search_limit=None,
+    ):
         """
         Search records using BM25 relevance, vector similarity, and optional schema-based scoring.
 
         This method retrieves records from the search index and ranks them using a combination of BM25
-        and vector similarity scores. It supports schema inclusion, score normalization, thresholds, 
+        and vector similarity scores. It supports schema inclusion, score normalization, thresholds,
         and pagination.
 
         Parameters
@@ -2123,11 +2109,13 @@ class DataRegistry(Registry):
         - Supports pagination via `page` and `page_size` parameters.
         - Special handling for `scope='/'` restricts results to top-level records only.
         """
-        params = self._prepare_search_parameters(input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit)
-        
+        params = self._prepare_search_parameters(
+            input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit
+        )
+
         q, query_params = self._build_search_query(params)
         query = Query(q).return_fields("id", "name", "type", "scope", "description", "schema").paging(0, params['redis_search_limit'])
-        
+
         results = self.connection.ft(params['index_name']).search(query, query_params).docs
         print(f"  Found {len(results)} entities in index")
 
@@ -2151,7 +2139,7 @@ class DataRegistry(Registry):
             schema_text = None
             if params['enable_schema'] and result.type == 'collection' and getattr(result, 'schema', None):
                 schema_text = getattr(result, 'schema', '')
-            
+
             bm25_score = compute_bm25_score(input_query, doc_text, schema_text) if input_query else 0.0
 
             doc_key = self._Registry__doc_key(result.name, result.type, result.scope)
@@ -2173,24 +2161,22 @@ class DataRegistry(Registry):
 
         # Apply thresholds and compute final scores
         final_results = []
-        
+
         for result in results:
             normalized_bm25 = result.normalized_bm25_score
-            combined_score = (params['bm25_weight'] * normalized_bm25 + 
-                            params['vector_weight'] * result.vector_score)
+            combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * result.vector_score
 
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
-            
+
             # Apply thresholds on inverted score for consumer consistency
             if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
                 continue
 
-            
             # Attach final scores to result object
             result.normalized_bm25 = normalized_bm25
             result.combined_score = combined_score
-            
+
             # Convert to dictionary format
             output_dict = {
                 "name": result.name,
@@ -2198,7 +2184,7 @@ class DataRegistry(Registry):
                 "type": result.type,
                 "scope": result.scope,
                 "id": result.id,
-                "score": inverted_score, ## this is for consumers,
+                "score": inverted_score,  ## this is for consumers,
                 "bm25_score": result.bm25_score,
                 "vector_score": result.vector_score,
                 "normalized_bm25_score": normalized_bm25,
@@ -2209,18 +2195,34 @@ class DataRegistry(Registry):
 
         # Sort by inverted score, lower is better
         final_results.sort(key=lambda x: x['score'])
-        
+
         # Pagination
         page_results = final_results[page * page_size : (page + 1) * page_size]
         return page_results
 
-    def search_records_hierarchical(self, input_query, type=None, scope=None, page=0, page_size=5, page_limit=10, bm25_weight=None, vector_weight=None, bm25_threshold=None, vector_threshold=None, combined_threshold=None, enable_schema=None, bm25_normalization=None, redis_search_limit=None):
+    def search_records_hierarchical(
+        self,
+        input_query,
+        type=None,
+        scope=None,
+        page=0,
+        page_size=5,
+        page_limit=10,
+        bm25_weight=None,
+        vector_weight=None,
+        bm25_threshold=None,
+        vector_threshold=None,
+        combined_threshold=None,
+        enable_schema=None,
+        bm25_normalization=None,
+        redis_search_limit=None,
+    ):
         """
         Perform a hierarchical search over records, considering parent-child relationships for databases and collections.
 
-        This method supports both standard and hierarchical searches. For `type` values other than 
-        'database' or 'collection', it delegates to `search_records`. For hierarchical searches, it computes 
-        BM25 and vector similarity scores, optionally including schema information, and aggregates results 
+        This method supports both standard and hierarchical searches. For `type` values other than
+        'database' or 'collection', it delegates to `search_records`. For hierarchical searches, it computes
+        BM25 and vector similarity scores, optionally including schema information, and aggregates results
         across parent-child hierarchies.
 
         Parameters
@@ -2272,13 +2274,30 @@ class DataRegistry(Registry):
         - Hierarchical aggregation merges scores for parent and child records before sorting and pagination.
         - Special handling exists for `scope='/'` to restrict results to top-level records only.
         """
-        
+
         # Check if this should be a regular search instead of hierarchical
         if type not in ['database', 'collection']:
-            return self.search_records(input_query=input_query, type=type, scope=scope, page=page, page_size=page_size, page_limit=page_limit, bm25_weight=bm25_weight, vector_weight=vector_weight, bm25_threshold=bm25_threshold, vector_threshold=vector_threshold, combined_threshold=combined_threshold, bm25_normalization=bm25_normalization, enable_schema=enable_schema, redis_search_limit=redis_search_limit)
-        
-        params = self._prepare_search_parameters(input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit)
-        
+            return self.search_records(
+                input_query=input_query,
+                type=type,
+                scope=scope,
+                page=page,
+                page_size=page_size,
+                page_limit=page_limit,
+                bm25_weight=bm25_weight,
+                vector_weight=vector_weight,
+                bm25_threshold=bm25_threshold,
+                vector_threshold=vector_threshold,
+                combined_threshold=combined_threshold,
+                bm25_normalization=bm25_normalization,
+                enable_schema=enable_schema,
+                redis_search_limit=redis_search_limit,
+            )
+
+        params = self._prepare_search_parameters(
+            input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit
+        )
+
         # Determine search types for hierarchical search
         if type == 'database':
             search_types = self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
@@ -2290,10 +2309,10 @@ class DataRegistry(Registry):
         q, query_params = self._build_search_query(params, search_types)
         query = Query(q).return_fields("id", "name", "type", "scope", "description", "schema").paging(0, params['redis_search_limit'])
         results = self.connection.ft(params['index_name']).search(query, query_params).docs
-        
+
         if not results:
             return []
-        
+
         # Special handling for scope = '/'
         if scope == "/":
             filtered_results = []
@@ -2301,7 +2320,7 @@ class DataRegistry(Registry):
                 if result.scope == "/":
                     filtered_results.append(result)
             results = filtered_results
-        
+
         query_vector = None
         if input_query:
             query_vector = self._compute_embedding_vector(input_query)
@@ -2314,7 +2333,7 @@ class DataRegistry(Registry):
             schema_text = None
             if params['enable_schema'] and result.type == 'collection' and getattr(result, 'schema', None):
                 schema_text = getattr(result, 'schema', '')
-            
+
             bm25_score = compute_bm25_score(input_query, doc_text, schema_text) if input_query else 0.0
 
             doc_key = self._Registry__doc_key(result.name, result.type, result.scope)
@@ -2337,10 +2356,10 @@ class DataRegistry(Registry):
 
         # Group results by parent and collect scores
         hierarchical_results = self._build_hierarchical_results(results, type, params)
-        
+
         # Sort by score, lower is better
         hierarchical_results.sort(key=lambda x: x['score'])
-        
+
         # Pagination
         page_results = hierarchical_results[page * page_size : (page + 1) * page_size]
         return page_results
@@ -2349,67 +2368,65 @@ class DataRegistry(Registry):
         """Build hierarchical results"""
         if not results:
             return []
-            
+
         # Build hierarchy graph with node IDs
         hierarchy = self._build_hierarchy_by_node_id(results)
-        
+
         # Get target candidate nodes that match type
         target_nodes = self._get_target_candidate_nodes(hierarchy, target_type)
-        
+
         # For each target candidate node, update score by itself and all children
         hierarchical_results = []
-        
+
         for node_id in target_nodes:
             best_score, best_record = self._update_node_score_with_children(node_id, hierarchy, params)
             if best_record is not None:
-                
-                hierarchical_results.append({
-                    "name": hierarchy[node_id]['record'].name,
-                    "type": hierarchy[node_id]['record'].type,
-                    "scope": hierarchy[node_id]['record'].scope,
-                    "id": hierarchy[node_id]['record'].id,
-                    "description": hierarchy[node_id]['record'].description,
-                    "score": best_score,  
-                    "bm25_score": best_record.bm25_score,
-                    "vector_score": best_record.vector_score,
-                    "normalized_bm25_score": best_record.normalized_bm25_score,
-                    "best_record_id": best_record.id,
-                    "best_record_name": best_record.name,
-                    "best_record_type": best_record.type,
-                    "best_record_scope": best_record.scope
-                })
+
+                hierarchical_results.append(
+                    {
+                        "name": hierarchy[node_id]['record'].name,
+                        "type": hierarchy[node_id]['record'].type,
+                        "scope": hierarchy[node_id]['record'].scope,
+                        "id": hierarchy[node_id]['record'].id,
+                        "description": hierarchy[node_id]['record'].description,
+                        "score": best_score,
+                        "bm25_score": best_record.bm25_score,
+                        "vector_score": best_record.vector_score,
+                        "normalized_bm25_score": best_record.normalized_bm25_score,
+                        "best_record_id": best_record.id,
+                        "best_record_name": best_record.name,
+                        "best_record_type": best_record.type,
+                        "best_record_scope": best_record.scope,
+                    }
+                )
         return hierarchical_results
-    
+
     def _build_hierarchy_by_node_id(self, results):
         """Build hierarchy graph from results using node IDs"""
         if not results:
             return {}
-            
+
         hierarchy = {}
         edges = []
-        
+
         # Create nodes for all results
         for result in results:
             if not hasattr(result, 'id') or not hasattr(result, 'scope') or not hasattr(result, 'type') or not hasattr(result, 'name'):
                 continue  # Skip invalid results
-                
+
             node_id = result.id
-            hierarchy[node_id] = {
-                'record': result,
-                'children': [],
-                'parent': None
-            }
-        
+            hierarchy[node_id] = {'record': result, 'children': [], 'parent': None}
+
         # Build scope to ID mapping
         scope2id = {}
         for result in results:
             if not hasattr(result, 'id') or not hasattr(result, 'scope') or not hasattr(result, 'type') or not hasattr(result, 'name'):
                 continue
-                
+
             scope = result.scope
             child_scope = f"{scope}/{result.type}/{result.name}"
             scope2id[child_scope] = result.id
-        
+
         # Build edges
         for result in results:
             if not hasattr(result, 'id') or not hasattr(result, 'scope') or not hasattr(result, 'type') or not hasattr(result, 'name'):
@@ -2420,7 +2437,7 @@ class DataRegistry(Registry):
                 # Only add edge if both parent and child exist in hierarchy
                 if parent_id in hierarchy and child_id in hierarchy:
                     edges.append((parent_id, child_id))
-        
+
         # Build hierarchy from edges
         for edge in edges:
             parent_id, child_id = edge
@@ -2429,7 +2446,7 @@ class DataRegistry(Registry):
                 hierarchy[child_id]['parent'] = parent_id
 
         return hierarchy
-    
+
     def _get_target_candidate_nodes(self, hierarchy, target_type):
         """Get target candidate nodes that match the specified type."""
         target_nodes = set()
@@ -2437,75 +2454,71 @@ class DataRegistry(Registry):
             if node_data['record'].type == target_type:
                 target_nodes.add(node_id)
         return list(target_nodes)
-    
+
     def _update_node_score_with_children(self, node_id, hierarchy, params):
         """Update node score by itself and all children (nested) scores"""
         if node_id not in hierarchy:
             return float('inf'), None  # invalid / worst score
-            
+
         node_data = hierarchy[node_id]
         record = node_data['record']
-        
+
         # Get all children (nested) including the node itself
         all_related_nodes = {node_id} | self._get_all_children_recursive(node_id, hierarchy)
-        
+
         # Find the best score among all related nodes
         best_score, best_record = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
 
         return best_score, best_record
-    
+
     def _get_all_children_recursive(self, node_id, hierarchy, visited=None):
         """Get all children (nested) of a node recursively using set for efficiency"""
         if visited is None:
             visited = set()
-        
+
         # Prevent infinite recursion in case of cycles
         if node_id in visited:
             return set()
-        
+
         visited.add(node_id)
         children = set()
-        
+
         if node_id not in hierarchy:
             return children
-            
+
         node_data = hierarchy[node_id]
-        
+
         for child_id in node_data['children']:
             children.add(child_id)
             # Recursively get all descendants
             descendants = self._get_all_children_recursive(child_id, hierarchy, visited)
             children.update(descendants)
-        
+
         return children
-    
+
     def _find_best_score_among_nodes(self, node_ids, hierarchy, params):
         """Find the best score among a set of nodes"""
         best_score = 1.0
         best_record = None
-        
+
         for node_id in node_ids:
             if node_id not in hierarchy:
                 continue
-                
+
             record = hierarchy[node_id]['record']
             normalized_bm25 = record.normalized_bm25_score
-            combined_score = (params['bm25_weight'] * normalized_bm25 + 
-                            params['vector_weight'] * record.vector_score)
-            
-            
+            combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * record.vector_score
+
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
 
             # Apply thresholds same as search_records
-            if (normalized_bm25 < params['bm25_threshold'] or
-                record.vector_score < params['vector_threshold'] or
-                inverted_score > (1.0 - params['combined_threshold'])):
+            if normalized_bm25 < params['bm25_threshold'] or record.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
                 continue
 
             # Keep the best (lowest inverted_score) node
             if best_record is None or inverted_score < best_score:
                 best_score = inverted_score
                 best_record = record
-            
+
         return best_score, best_record
