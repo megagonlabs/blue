@@ -122,7 +122,19 @@ def create_database_operator_explainer(output: Any, input_data: List[List[Dict[s
 #
 class CreateDatabaseOperator(Operator):
     """
-    Create database operator that creates databases in data sources
+    Create database operator that creates databases in data sources.
+
+    Attributes
+    ----------
+    | Name         | Type | Required | Default | Description |
+    |---------------|------|-----------|----------|--------------|
+    | `source`      | str  | True       | ""       | Name of the data source where the database will be created. |
+    | `database`    | str  | True       | ""       | Name of the database to be created. |
+    | `description` | str  | False        | ""       | Description of the database to be created. |
+    | `properties`  | str  | False        | {}       | Properties of the database to be created. |
+    | `created_by`  | str  | False        | ""       | Creator of the database. |
+    | `overwrite`   | bool | False        | False    | Whether to overwrite the existing database. |
+
     """
 
     PROPERTIES = {}

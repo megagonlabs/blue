@@ -15,7 +15,7 @@ from blue.data.pipeline import DataPipeline, Status
 
 
 def multipart_query_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    """ 
+    """
     Orchestrate the execution of multi-part query, starting with data discovery, leading to execution.
 
     Note: MultipartQueryOperator only does plan refinement. This function simply returns empty output.
@@ -277,6 +277,14 @@ def multipart_query_operator_explainer(output: Any, input_data: List[List[Dict[s
 class MultipartQueryOperator(Operator):
     """
     Multipart query operator orchestrates the execution of multi-part query, starting with data discovery, and exectution.
+
+    Attributes
+    -------------
+    | Name      | Type  | Required | Default | Description                                         |
+    |-----------|-------|----------|---------|-----------------------------------------------------|
+    | `serialize` | bool  | False    | True    | Whether to serialize each part of the query        |
+
+
     """
 
     PROPERTIES = {}

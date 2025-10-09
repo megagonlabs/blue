@@ -75,6 +75,13 @@ class IntersectOperator(Operator):
     """
     Intersect operator finds records that exist in all input data sources.
     Supports key-based matching and sequential matching strategies.
+
+    Attributes:
+    ----------
+    | Name         | Type | Required | Default     | Description                                                                                                      |
+    |--------------|------|----------|-------------|------------------------------------------------------------------------------------------------------------------|
+    | `match_option` | str  | False    | "key_match" | Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names) |
+
     """
 
     PROPERTIES = {}

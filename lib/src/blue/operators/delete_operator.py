@@ -100,6 +100,12 @@ class DeleteOperator(Operator):
     """
     Delete operator removes records from the first data source at specified positions.
     Supports negative indexing like Python lists (-1 = last, -2 = second to last, etc.).
+
+    Attributes
+    ----------
+    | Name       | Type               | Required | Default | Description                                                                                  |
+    |------------|------------------|----------|---------|----------------------------------------------------------------------------------------------|
+    | `delete_idx` | Union[int, list[int]] | False    | []      | Position(s) to delete records. Supports negative indexing (-1 = last, -2 = second to last, etc.) |
     """
 
     PROPERTIES = {}

@@ -154,6 +154,27 @@ def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]
 
 
 class NL2SQLOperator(Operator, ServiceClient):
+    """
+    NL2SQL operator translates natural language questions into SQL queries using LLM models.
+    It can also execute the generated SQL query against the specified database and return the results.
+
+    Attributes:
+    ----------
+    | Name                  | Type         | Required | Default   | Description                                                                 |
+    |-----------------------|--------------|----------|-----------|-----------------------------------------------------------------------------|
+    | `source`              | str          | True     | ""        | Data source name                                                            |
+    | `question`            | str          | True     |           | Natural language question to translate to SQL                               |
+    | `protocol`            | str          | True     | "postgres"| Database protocol (postgres, mysql, sqlite)                                 |
+    | `database`            | str          | True     | ""        | Database name                                                               |
+    | `collection`          | str          | True     | ""        | Collection/schema name                                                      |
+    | `case_insensitive`    | bool         | False    | True      | Case insensitive string matching                                            |
+    | `additional_requirements`| str         | False    | ""        | Additional requirements for SQL generation                                  |
+    | `context`             | str          | False    | ""        | Optional context for domain knowledge                                       |
+    | `schema`              | str          | False    | ""        | JSON string of database schema (optional - will be fetched automatically if not provided) |
+    | `attr_names`          | list[str]    | False    | []        | Optional list of target field names for the output objects                 |
+
+    """
+
     PROMPT = """
 Your task is to translate a natural language question into a SQL query based on the provided database schema.
 

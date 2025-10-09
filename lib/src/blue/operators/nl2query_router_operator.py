@@ -172,6 +172,16 @@ def nl2query_router_operator_explainer(output: Any, input_data: List[List[Dict[s
 class NL2QueryRouterOperator(Operator):
     """
     NL2Query router operator refines to the right nl2q operator based on source.
+
+    Attributes:
+    ----------
+    | Name           | Type        | Required | Default | Description                                                |
+    |----------------|------------|---------|---------|------------------------------------------------------------|
+    | `search_query`    | str        | True    | -       | Natural language query to process                          |
+    | `columns`         | list[dict] | False   | []      | List of attribute specifications (dicts with name and optional type) |
+    | `execute_query`   | bool       | False   | True    | Whether to execute query or just translate NL to query    |
+    | `protocol`        | str        | False   | ""      | Protocol of the source                                     |
+
     """
 
     PROPERTIES = {}

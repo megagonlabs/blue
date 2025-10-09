@@ -145,6 +145,17 @@ def insert_table_operator_explainer(output: Any, input_data: List[List[Dict[str,
 class InsertTableOperator(Operator):
     """
     Insert table operator that inserts data rows into database tables
+
+    Attributes:
+    ----------
+    | Name       | Type | Required | Default          | Description                                                                 |
+    |------------|------|----------|-----------------|-----------------------------------------------------------------------------|
+    | `source`     | str  | True     | default_source  | Name of the data source where the table is located                          |
+    | `database`   | str  | True     | default         | Name of the database where the table is located                             |
+    | `collection` | str  | False    | public          | Name of the collection where the table is located. For SQLite sources, defaults to 'public' if not specified |
+    | `table`      | str  | True     | ""              | Name of the table to insert data into                                       |
+    | `batch_size` | int  | False    | 100             | Number of rows to insert in each batch (default: 100)                       |
+
     """
 
     PROPERTIES = {}

@@ -128,6 +128,20 @@ def _filter_records_with_conditions(
 
 
 class SemanticFilterOperator(Operator, ServiceClient):
+    """
+    Semantic filter operator filters records based on natural language conditions using LLM models.
+    It evaluates each record against the provided conditions and returns those that satisfy all conditions.
+
+    Attributes:
+    ----------
+    | Name               | Type            | Required | Default | Description                                                                 |
+    |-------------------|----------------|----------|---------|-----------------------------------------------------------------------------|
+    | `filter_conditions`  | dict[str, str]  | True     | -       | Dictionary mapping field names to natural language filter conditions       |
+    | `context`            | str             | False    | ""      | Optional context to provide domain knowledge or additional instructions    |
+    | `demonstrations`     | str             | False    | ""      | Optional demonstrations to help in-context learning                        |
+    | `return_idx`         | boolean         | False    | False   | If true, return indices of records that satisfy all conditions, else return filtered records |
+
+    """
 
     FILTER_PROMPT = """## Task
 You are given a data record and natural language filter conditions. Your job is to determine if the record should be included in the filtered results.

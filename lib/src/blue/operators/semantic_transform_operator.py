@@ -729,6 +729,19 @@ def _execute_distinct_required_values_with_merged_fields(
 
 
 class SemanticTransformOperator(Operator, ServiceClient):
+    """
+    Operator that transforms data into target fields and values using LLM-based transformations.
+
+    Attributes:
+    ----------
+    | Name     | Type | Required | Default | Description |
+    |----------|------|----------|---------|-------------|
+    | `input_meta` | dict | False | {} | Optional metadata about input fields |
+    | `output_desc` | dict | True | N/A | Required description of target fields to create |
+    | `strategy` | str | False | "auto" | Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization) |
+
+
+    """
 
     PLAN_RESOLUTION_PROMPT = """## Task
 You are a data transformation planner. Analyze the input schema and output requirements to create a transformation plan.

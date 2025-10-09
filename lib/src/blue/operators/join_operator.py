@@ -106,6 +106,15 @@ def join_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]],
 class JoinOperator(Operator):
     """
     Join operator performs N-way join on JSON array datas.
+
+    Attributes:
+    ----------
+    | Name        | Type           | Required | Default | Description                                      |
+    |------------|----------------|----------|---------|--------------------------------------------------|
+    | `join_on`    | list[list[str]] | True     | -       | List of join key lists for each data source     |
+    | `join_type`  | str             | False    | "inner" | Type of join: 'inner', 'left', 'right', 'outer'|
+    | `join_suffix`| list[str]       | False    | []      | Suffixes for non-key fields                      |
+    | `keep_keys`  | str             | False    | "left"  | 'left' to keep left keys only, 'both' to keep both |
     """
 
     PROPERTIES = {}

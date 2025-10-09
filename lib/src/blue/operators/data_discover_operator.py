@@ -320,7 +320,30 @@ def data_discover_operator_explainer(output: Any, input_data: List[List[Dict[str
 #
 class DataDiscoverOperator(Operator):
     """
-    Data discover operator that searches for data sources
+     Data discover operator that searches for data sources
+
+    Attributes
+    ----------
+    | Name                   | Type   | Required | Default | Description |
+    |-------------------------|--------|-----------|----------|--------------|
+    | `search_query`          | str    | True    | ""       | Text to search for in source names and descriptions. |
+    | `approximate`           | bool   | True    | True     | Whether to use approximate (vector) search. |
+    | `hybrid`                | bool   | False   | False    | Whether to use hybrid search (text + vector). |
+    | `limit`                 | int    | False   | -1       | Max number of results to return (-1 means unlimited). |
+    | `page`                  | int    | False   | 0        | Page number for pagination. |
+    | `page_size`             | int    | False   | 10       | Number of results per page (default: 10, max: 100). |
+    | `include_metadata`      | bool   | False   | False    | Whether to include metadata in results (description and properties always included). |
+    | `threshold`             | float  | False   | 0.5      | Similarity threshold for filtering results (0.0–1.0, lower = more similar, only applies to approximate/hybrid search). |
+    | `progressive_pagination`| bool   | False   | False    | Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded). |
+    | `concept_type`          | str    | False   | "source" | Record type to search for (e.g., 'source', 'database', 'collection', 'entity', 'attribute', 'relation'). |
+    | `use_hierarchical_search` | bool | False   | True     | Whether to use hierarchical search or regular search. |
+    | `scope`                 | str    | False     | None     | Search scope to limit results. |
+    | `source`                | str    | False     | None     | Source name to limit search scope. |
+    | `database`              | str    | False     | None     | Database name to limit search scope (requires source). |
+    | `collection`            | str    | False     | None     | Collection name to limit search scope (requires source and database). |
+    | `auto_construct_scope`  | bool   | False     | True     | Whether to auto-construct scope from individual attributes or use scope as-is. |
+    | `filter_names`          | list   | False     | []       | Filter out results with matching names in the filter list. |
+
     """
 
     PROPERTIES = {}

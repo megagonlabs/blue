@@ -69,6 +69,22 @@ def query_breakdown_operator_explainer(output: Any, input_data: List[List[Dict[s
 
 
 class QueryBreakdownOperator(Operator, ServiceClient):
+    """Query Breakdown Operator
+
+    This operator processes a natural language query and breaks it down into subqueries using common table expressions (CTEs).
+    It leverages LLM models to generate SQL statements, descriptions, columns, dependencies, and generality scores for each subquery.
+
+    Attributes:
+    ----------
+    | Name             | Type | Required | Default | Description                                      |
+    |-----------------|------|----------|---------|--------------------------------------------------|
+    | `query`           | str  | True     | —       | Natural language query to process               |
+    | `context`         | str  | False    | ""      | Optional context to provide domain knowledge    |
+    | `schema`          | str  | False    | []      | Optional schema to match                        |
+    | `num_alternatives` | int  | False    | 1       | Optional number of alternatives to generate     |
+
+    """
+
     PROMPT = """
 Your task is to process a natural language query, and break it down to its subqueries.  
 Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE):

@@ -152,6 +152,17 @@ class SelectOperator(Operator):
     """
     Select operator filters records based on a single condition (record-wise filtering).
     Supports basic comparison operators with type-aware comparison logic.
+
+    Attributes:
+    ----------
+    | Name               | Type  | Required | Default | Description                                           |
+    |-------------------|-------|---------|--------|-------------------------------------------------------|
+    | `operand_key`        | str   | True    | -      | The key to check in each record                       |
+    | `operand`            | str   | True    | -      | Comparison operator: =, !=, >, >=, <, <=             |
+    | `operand_val`        | Any   | True    | -      | Value to compare with                                  |
+    | `approximate_match`  | bool  | False   | False  | Use epsilon tolerance for numeric comparison          |
+    | `eps`                | float | False   | 1e-9   | Epsilon tolerance for approximate numeric comparison  |
+
     """
 
     PROPERTIES = {}

@@ -142,6 +142,17 @@ def _apply_projection(data_group: List[Dict[str, Any]], resolved_mapping: Dict[s
 
 
 class SemanticProjectOperator(Operator, ServiceClient):
+    """
+    Semantic Project Operator projects records to select and rename columns using LLM-based mapping resolution.
+    Uses natural language instructions to determine which columns to keep and how to rename them.
+
+    Attributes:
+    ----------
+    | Name                   | Type | Required | Default | Description                                                                 |
+    |------------------------|------|----------|---------|-----------------------------------------------------------------------------|
+    | `projection_instructions` | str  | True     | None    | Natural language description of which columns to keep and how to rename them |
+
+    """
 
     MAPPING_PROMPT = """## Task
 You are given a database schema with data types and natural language projection instructions. Your job is to generate a JSON mapping that specifies which columns to keep and how to rename them.

@@ -210,6 +210,22 @@ def create_table_operator_explainer(output: Any, input_data: List[List[Dict[str,
 class CreateTableOperator(Operator):
     """
     Create table operator that creates tables (entities) in database collections
+
+    Attributes
+    ----------
+    | Name         | Type  | Required | Default          | Description                                                                 |
+    |---------------|-------|-----------|------------------|-----------------------------------------------------------------------------|
+    | `source`        | str   | True       | "default_source" | Name of the data source where the table will be created.                   |
+    | `database`      | str   | True       | "default"        | Name of the database where the table will be created.                      |
+    | `collection`    | str   | False      | "public"         | Name of the collection where the table will be created. For SQLite sources, defaults to 'public' if not specified. |
+    | `table`         | str   | True       | ""               | Name of the table to be created.                                           |
+    | `description`   | str   | False      | ""               | Description of the table to be created.                                    |
+    | `properties`    | str   | False      | {}               | Properties of the table to be created.                                     |
+    | `columns`       | list  | True       | []               | Properties of the table to be created.                                     |
+    | `misc`          | dict  | False      | {}               | Miscellaneous keys such as primary and foreign keys.                       |
+    | `created_by`    | str   | False      | ""               | Creator of the table.                                                      |
+    | `overwrite`     | bool  | False      | False            | Whether to overwrite the existing table.                                   |
+
     """
 
     PROPERTIES = {}

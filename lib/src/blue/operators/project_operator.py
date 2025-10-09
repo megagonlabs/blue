@@ -113,6 +113,13 @@ class ProjectOperator(Operator):
     """
     Project operator keeps only specified keys and optionally renames them (key-wise projection).
     Supports key selection and renaming with conflict detection.
+
+    Attributes:
+    ----------
+    | Name        | Type         | Required | Default | Description                                |
+    |------------|-------------|---------|--------|--------------------------------------------|
+    | `kept_keys`  | list[str]   | True    | —      | List of keys to keep in each record       |
+    | `key_mapping`| dict[str, str]| False   | {}     | Dictionary mapping old key names to new key names |
     """
 
     PROPERTIES = {}

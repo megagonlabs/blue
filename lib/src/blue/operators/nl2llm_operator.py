@@ -88,6 +88,19 @@ def nl2llm_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]
 
 
 class NL2LLMOperator(Operator, ServiceClient):
+    """
+    NL2LLM operator processes natural language query using LLM models and returns structured data.
+
+    Attributes:
+    ----------
+    | Name    | Type       | Required | Default | Description                                               |
+    |---------|------------|----------|---------|-----------------------------------------------------------|
+    | `query`   | str        | Yes      | -       | Natural language query to process                         |
+    | `context` | str        | No       | ""      | Optional context to provide domain knowledge             |
+    | `attrs`   | list[dict] | No       | []      | List of attribute specifications (dicts with name and optional type) |
+
+    """
+
     PROMPT = """
 You are an intelligent system that converts a natural language query into a structured JSON output.
 

@@ -77,6 +77,13 @@ class UnionOperator(Operator):
     """
     Union operator performs n-way union on multiple data sources with exact duplicate removal.
     Supports key-based matching and sequential matching strategies.
+
+    Attributes:
+    ----------
+    | Name         | Type | Required | Default    | Description                                                                                   |
+    |--------------|------|----------|------------|-----------------------------------------------------------------------------------------------|
+    | `match_option` | str  | False    | "key_match" | Matching strategy for duplicate detection: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names) |
+
     """
 
     PROPERTIES = {}
