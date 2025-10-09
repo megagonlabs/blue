@@ -63,13 +63,33 @@ class NEO4JSource(DataSource):
 
     ######### source
     def fetch_metadata(self):
+        """
+        Fetch high-level metadata for the Neo4j source.
+
+        Returns:
+            dict: Metadata about the source. 
+            Default implementation returns empty dict.
+        """
         return {}
 
     def fetch_schema(self):
+        """
+        Fetch the global schema definition from the Neo4j source.
+
+        Returns:
+            dict: Schema information including nodes and relationships.
+            Default implementation returns empty dict.
+        """
         return {}
 
     ######### database
     def fetch_databases(self):
+        """
+        Retrieve the list of available databases from the source.
+
+        Returns:
+            list[str]: Names of all databases.
+        """
         dbs = []
         result = self.connection.run_query("SHOW DATABASES;")
 
@@ -78,20 +98,72 @@ class NEO4JSource(DataSource):
         return dbs
 
     def fetch_database_metadata(self, database):
+        """
+        Fetch metadata for a specific database.
+
+        Args:
+            database (str): Name of the database.
+
+        Returns:
+            dict: Metadata for the database (default empty).
+        """
         return {}
 
     def fetch_database_schema(self, database):
+        """
+        Fetch the schema for a specific Neo4j database, including node labels
+        and relationship types.
+
+        Args:
+            database (str): Name of the database.
+
+        Returns:
+            dict: Schema information including nodes and relationships.
+            Default implementation returns empty dict.
+        """
         return {}
 
     ######### database/collection
     def fetch_database_collections(self, database):
+        """
+        Retrieve the collections (databases or logical groupings) for a Neo4j database.
+
+        In Neo4j, each database is treated as a single collection.
+
+        Args:
+            database (str): Name of the database.
+
+        Returns:
+            list[str]: List containing the database name as the collection.
+        """
         collections = [database]
         return collections
 
     def fetch_database_collection_metadata(self, database, collection):
+        """
+        Fetch metadata for a specific collection (database) in Neo4j.
+
+        Args:
+            database (str): Name of the database.
+            collection (str): Name of the collection (usually same as database).
+
+        Returns:
+            dict: Metadata for the collection. Default implementation returns empty dict.
+        """
         return {}
 
     def extract_schema(self, nodes_result, relationships_result, rel_properties_result):
+        """
+        Build a DataSchema object from query results describing nodes, relationships, and relationship properties.
+
+        Args:
+            nodes_result (list[dict]): List of node definitions with labels and properties.
+            relationships_result (list[dict]): List of relationship definitions.
+            rel_properties_result (list[dict]): List of relationship property definitions.
+
+        Returns:
+            DataSchema: A schema object representing entities and relations.
+        """
         schema = DataSchema()
 
         for node in nodes_result:
@@ -109,10 +181,38 @@ class NEO4JSource(DataSource):
         return schema
 
     def fetch_database_collection_entities(self, database, collection):
+        """
+        Fetch all entities (nodes) in a specific Neo4j database collection.
+
+        This method retrieves the database schema and extracts the entities
+        (node labels) present in the specified collection.
+
+        Args:
+            database (str): Name of the database.
+            collection (str): Name of the collection (usually same as database).
+
+        Returns:
+            list[dict]: A list of entity definitions, each representing a node
+            with its properties in the Neo4j database.
+        """
         schema = self._fetch_and_extract_schema(database, collection)
         return schema.get_entities()
 
     def fetch_database_collection_relations(self, database, collection):
+        """
+        Fetch all relationships (edges) in a specific Neo4j database collection.
+
+        This method retrieves the database schema and extracts the relationships
+        between entities present in the specified collection.
+
+        Args:
+            database (str): Name of the database.
+            collection (str): Name of the collection (usually same as database).
+
+        Returns:
+            list[dict]: A list of relationship definitions, each representing
+            a relationship type along with its source and target nodes.
+        """
         schema = self._fetch_and_extract_schema(database, collection)
         return schema.get_relations()
 
@@ -134,5 +234,21 @@ class NEO4JSource(DataSource):
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None):
+        """
+        Execute a Cypher query against the Neo4j database.
+
+        This method sends the provided Cypher query to the connected Neo4j
+        instance and returns the results. It does not limit execution to a 
+        single transaction or single record.
+
+        Args:
+            query (str): The Cypher query string to execute.
+            database (str, optional): Name of the database to target. Defaults to None.
+            collection (str, optional): Name of the collection/schema. Defaults to None.
+
+        Returns:
+            list[dict]: A list of dictionaries representing query results,
+            where each dictionary corresponds to a record returned by the query.
+        """
         result = self.connection.run_query(query, single=False, single_transaction=False)
         return result

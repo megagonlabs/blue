@@ -41,28 +41,86 @@ class MongoDBSource(DataSource):
 
     ######### source
     def fetch_metadata(self):
+        """
+        Fetch metadata for the MongoDB source.
+
+        Returns:
+            dict: General metadata about the MongoDB source.
+                Currently returns an empty dictionary.
+        """
         return {}
 
     def fetch_schema(self):
+        """
+        Fetch schema for the MongoDB source.
+
+        Returns:
+            dict: Schema information for the entire MongoDB source.
+                Currently returns an empty dictionary.
+        """
         return {}
 
     ######### database
     def fetch_databases(self):
+        """
+        List all databases in the MongoDB source.
+
+        Returns:
+            list[str]: Names of all available databases.
+        """
         dbs = self.connection.list_database_names()
         return dbs
 
     def fetch_database_metadata(self, database):
+        """
+        Fetch metadata for a specific database.
+
+        Args:
+            database (str): Database name.
+
+        Returns:
+            dict: Database-level metadata (default empty).
+        """
         return {}
 
     def fetch_database_schema(self, database):
+        """
+        Fetch schema information for a specific database.
+
+        Args:
+            database (str): Database name.
+
+        Returns:
+            dict: Schema definition for all collections in the database.
+                Currently returns an empty dictionary.
+        """
         return {}
 
     ######### database/collection
     def fetch_database_collections(self, database):
+        """
+        List all collections within a database.
+
+        Args:
+            database (str): Database name.
+
+        Returns:
+            list[str]: Names of collections.
+        """
         collections = self.connection[database].list_collection_names()
         return collections
 
     def fetch_database_collection_metadata(self, database, collection):
+        """
+        Fetch metadata for a specific collection within a database.
+
+        Args:
+            database (str): Name of the database.
+            collection (str): Name of the collection.
+
+        Returns:
+            dict: Metadata for the collection (default empty).
+        """
         return {}
 
     def _get_collection_schema(self, database, collection):
@@ -83,15 +141,46 @@ class MongoDBSource(DataSource):
 
 
     def fetch_database_collection_entities(self, database, collection):
+        """
+        Fetch entities (document structures) for a collection.
+
+        Args:
+            database (str): Database name.
+            collection (str): Collection name.
+
+        Returns:
+            list[str]: Entity names in the collection schema.
+        """
         schema = self._get_collection_schema(database, collection)
         return schema.get_entities()
 
 
     def fetch_database_collection_relations(self, database, collection):
+        """
+        Fetch relations (document nesting relationships) for a collection.
+
+        Args:
+            database (str): Database name.
+            collection (str): Collection name.
+
+        Returns:
+            list[str]: Relations between entities.
+        """
         schema = self._get_collection_schema(database, collection)
         return schema.get_relations()
 
     def extract_schema(self, sample, schema=None, source=None):
+        """
+        Recursively infer schema structure from a sample MongoDB document.
+
+        Args:
+            sample (dict): Sample document for inference.
+            schema (DataSchema, optional): Existing schema object to update.
+            source (str, optional): Current entity source node.
+
+        Returns:
+            DataSchema: Inferred or updated schema object.
+        """
         if schema is None:
             schema = DataSchema()
 
@@ -119,6 +208,21 @@ class MongoDBSource(DataSource):
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
+        """
+        Execute a MongoDB query on a specific collection.
+
+        Args:
+            query (str): JSON-formatted MongoDB query string.
+            database (str, optional): Target database name.
+            collection (str, optional): Target collection name.
+            optional_properties (dict, optional): Extra query parameters.
+
+        Returns:
+            list[dict]: List of documents matching the query, with `_id` as string.
+        
+        Raises:
+            Exception: If `database` or `collection` is not provided.
+        """
         if database is None:
             raise Exception("No database provided")
 
