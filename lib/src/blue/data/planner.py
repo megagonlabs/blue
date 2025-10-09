@@ -36,7 +36,9 @@ class DataPlanner:
     It uses an operator registry to discover and refine operators for the tasks, and builds a data pipeline accordingly.
     This is currently a simple rule-based planner, but can be extended to use LLMs for more complex planning.
     Currently supports QUESTION_ANSWER task type.
-    Note: This is an experimental feature and may change in future releases.
+
+    !!! note
+        This is an experimental feature and may change in future releases.
     """
 
     def __init__(self, name="DATA_PLANNER", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
@@ -49,7 +51,8 @@ class DataPlanner:
             cid (str): Canonical identifier. If not provided, constructed from sid, prefix, and  suffix.
             prefix (str): Optional prefix for cid.
             suffix (str): Optional suffix for cid.
-            properties (dict): Properties for the planner."""
+            properties (dict): Properties for the planner.
+        """
         self.name = name
         if id:
             self.id = id
