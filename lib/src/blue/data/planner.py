@@ -14,6 +14,11 @@ from blue.utils import json_utils
 
 
 class TaskType(Constant):
+    """Task types for DataPlanner:
+    - QUESTION_ANSWER: for question answering tasks
+    - DATA_TRANSFORM: for data transformation tasks (Not implemented yet)
+    """
+
     def __init__(self, c):
         super().__init__(c)
 
@@ -26,8 +31,23 @@ TaskType.DATA_TRANSFORM = NodeType("DATA_TRANSFORM")
 ### DataPlanner
 #
 class DataPlanner:
-    def __init__(self, name="DATA_PLANNER", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+    """Data planner to create and execute data processing pipelines based on tasks and data.
+    It uses an operator registry to discover and refine operators for the tasks, and builds a data pipeline accordingly.
+    This is currently a simple rule-based planner, but can be extended to use LLMs for more complex planning.
+    Currently supports QUESTION_ANSWER task type.
+    Note: This is an experimental feature and may change in future releases.
+    """
 
+    def __init__(self, name="DATA_PLANNER", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+        """Initialize DataPlanner with optional name, id, sid, cid, prefix, suffix, and properties.
+        Args:
+            name (str): Name of the planner.
+            id (str): Unique identifier for the planner. If not provided, a random UUID is generated.
+            sid (str): Short identifier. If not provided, constructed from name and id.
+            cid (str): Canonical identifier. If not provided, constructed from sid, prefix, and  suffix.
+            prefix (str): Optional prefix for cid.
+            suffix (str): Optional suffix for cid.
+            properties (dict): Properties for the planner."""
         self.name = name
         if id:
             self.id = id
@@ -57,10 +77,19 @@ class DataPlanner:
 
     ###### initialization
     def _initialize(self, properties=None):
+        """
+        Initialize the planner with default and provided properties.
+
+        Args:
+            properties: Properties for the planner. Defaults to None.
+        """
         self._initialize_properties()
         self._update_properties(properties=properties)
 
     def _initialize_properties(self):
+        """
+        Initialize default properties for the planner.
+        """
         self.properties = {}
 
         # db connectivity
@@ -71,6 +100,11 @@ class DataPlanner:
         self.properties['plan_discover_operator'] = '/server/blue_ray/operator/plan_discover'
 
     def _update_properties(self, properties=None):
+        """
+        Update the planner properties with provided properties.
+        Args:
+            properties: Properties to update. Defaults to None.
+        """
         if properties is None:
             return
 
@@ -79,7 +113,14 @@ class DataPlanner:
             self.properties[p] = properties[p]
 
     def plan(self, plan_data, plan_task, plan_attributes):
-
+        """Create a data processing plan based on the task, data, and attributes.
+        In current implementation, only supports QUESTION_ANSWER task type, and simply relies on a predefined plan_discover operator.
+        This can be extended to use LLMs for more complex planning in future.
+        Args:
+            plan_data (str): The data to be processed.
+            plan_task (TaskType): The type of task to be performed.
+            plan_attributes (dict): Additional attributes for the plan.
+        """
         p = None
 
         if plan_task == TaskType.QUESTION_ANSWER:
@@ -164,6 +205,12 @@ class DataPlanner:
         logging.debug("[ " + " | ".join(queue_contents) + " ]")
 
     def propogate_failure_recursively(self, p, n, provenance="$"):
+        """Propogate failure status recursively to next nodes and parent nodes if applicable.
+        Args:
+            p (DataPipeline): The data pipeline.
+            n (Node): The current node where failure occurred.
+            provenance (str): Provenance string for tracking. Defaults to "$"."
+        """
         # set status as failed
         p.set_node_status(n, str(Status.FAILED), provenance=provenance)
 
@@ -202,6 +249,13 @@ class DataPlanner:
                 self.propogate_failure_recursively(p, operator_node, provenance=provenance)
 
     def get_inherited_properties(self, p, operator_node):
+        """Get inherited properties for an operator node from its parent pipeline and parent operator if applicable.
+        Args:
+            p (DataPipeline): The data pipeline.
+            operator_node (Node): The operator node to get inherited properties for.
+        Returns:
+            dict: Inherited properties.
+        """
         inherited_properties = {}
 
         operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
@@ -233,6 +287,13 @@ class DataPlanner:
         return inherited_properties
 
     def get_inherited_attributes(self, p, operator_node):
+        """Get inherited attributes for an operator node from its parent pipeline and parent operator if applicable.
+        Args:
+            p (DataPipeline): The data pipeline.
+            operator_node (Node): The operator node to get inherited attributes for.
+        Returns:
+            dict: Inherited attributes.
+        """
         inherited_attributes = {}
 
         operator_entity = p.get_node_entity(operator_node, str(EntityType.OPERATOR))
@@ -263,6 +324,13 @@ class DataPlanner:
         return inherited_attributes
 
     def map_pipeline_to_operator_attributes(self, parent_pipeline_attributes, operator_entity):
+        """Map parent pipeline attributes to operator attributes.
+        This is a placeholder function and currently does not perform any mapping.
+        Args:
+            parent_pipeline_attributes (dict): Attributes of the parent pipeline.
+            operator_entity (Entity): The operator entity to map attributes for.
+        Returns:
+            dict: Mapped operator attributes."""
         operator_name = operator_entity.get_data("name")
         parsed = self.registry.parse_path(operator_name)
         operator_name = parsed['operator']
@@ -280,6 +348,15 @@ class DataPlanner:
         return mappped_parent_pipeline_attributes
 
     def map_operator_to_opearator_attributes(self, parent_operator_attributes, operator_entity, parent_operator_entity):
+        """Map parent operator attributes to operator attributes.
+        This is a simple rule-based mapper based on operator names.
+        Args:
+            parent_operator_attributes (dict): Attributes of the parent operator.
+            operator_entity (Entity): The operator entity to map attributes for.
+            parent_operator_entity (Entity): The parent operator entity.
+        Returns:
+            dict: Mapped operator attributes.
+        """
         operator_name = operator_entity.get_data("name")
         parsed = self.registry.parse_path(operator_name)
         operator_name = parsed['operator']
@@ -316,6 +393,11 @@ class DataPlanner:
         return mappped_parent_operator_attributes
 
     def execute(self, p):
+        """
+        Execute the data pipeline recursively starting from the plan input node.
+        Args:
+            p (DataPipeline): The data pipeline to execute.
+        """
         plan_input_node = p.get_plan_input()
         provenance = p.get_data("provenance") + "." + p.get_id()
 
@@ -332,6 +414,18 @@ class DataPlanner:
 
     # helper functions for execution and refinement
     def aggregate_inputs(self, p, n, provenance=None):
+        """
+        Aggregate inputs from previous nodes for the current node to prepare for execution.
+        Args:
+            p (DataPipeline): The data pipeline.
+            n (Node): The current node to aggregate inputs for.
+            provenance (str): Provenance string for tracking. Defaults to None.
+        Returns:
+            tuple: A tuple containing:
+                - input_data (list): Aggregated input data from previous nodes.
+                - ready (bool): Whether the current node is ready for execution.
+                - failed (bool): Whether any previous node has failed.
+        """
         ## state
         ready = True
         failed = False
@@ -358,9 +452,25 @@ class DataPlanner:
         return input_data, ready, failed
 
     def get_node_pipeline_entity(self, p, n):
+        """
+        Get the pipeline entity for a given node if it is part of a pipeline.
+        Args:
+            p (DataPipeline): The data pipeline.
+            n (Node): The node to get the pipeline entity for.
+        Returns:
+            Entity: The pipeline entity if the node is part of a pipeline, otherwise None.
+        """
         return p.get_node_entity(n, str(EntityType.DATA_PIPELINE))
 
     def get_node_parent_operator_entity(self, p, n):
+        """
+        Get the parent operator entity for a given node if it is part of a pipeline.
+        Args:
+            p (DataPipeline): The data pipeline.
+            n (Node): The node to get the parent operator entity for.
+        Returns:
+            Entity: The parent operator entity if the node is part of a pipeline, otherwise None.
+        """
         pipeline_entity = self.get_node_pipeline_entity(p, n)
         if pipeline_entity:
             parent_operator_entity_id = pipeline_entity.get_data("parent")
@@ -369,6 +479,14 @@ class DataPlanner:
         return None
 
     def get_node_parent_operator_node(self, p, n):
+        """
+        Get the parent operator node for a given node if it is part of a pipeline.
+        Args:
+            p (DataPipeline): The data pipeline.
+            n (Node): The node to get the parent operator node for.
+        Returns:
+            Node: The parent operator node if the node is part of a pipeline, otherwise None.
+        """
         parent_operator_entity = self.get_node_parent_operator_entity(p, n)
         if parent_operator_entity:
             operator_nodes = p.get_nodes_by_entity(parent_operator_entity)
@@ -378,7 +496,15 @@ class DataPlanner:
         return None
 
     def execute_recursively(self, p, node, provenance="$"):
+        """
+        Execute a node and its children recursively, updating statuses and handling failures as needed.
+        Provenance is used to track the execution path and passed on recursively.
 
+        Args:
+            p (DataPipeline): The data pipeline.
+            node (Node): The node to execute.
+            provenance (str): The provenance string.
+        """
         node_id = node.get_id()
 
         # get node type
@@ -553,21 +679,28 @@ class DataPlanner:
             self.execute_recursively(p, next_node, provenance=provenance)
 
     def optimize(self, p, budget):
+        """
+        Optimize the data pipeline based on the given budget.
+        This is a placeholder function and currently does not perform any optimization.
+        """
         # no optimization
         return p
 
     ######
     def _start_connection(self):
+        """ Start the database connection. """
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
     def _start(self):
+        """ Start the planner by establishing database connection and initializing the operator registry. """
         self._start_connection()
 
         # initialize registry
         self._init_registry()
 
     def _init_registry(self):
+        """ Initialize the operator registry for the planner. """
         # create instance of agent registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
