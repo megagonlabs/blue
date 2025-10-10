@@ -847,7 +847,7 @@
       "display_name": "Summarizer Agent - Example",
       "template": "${input} role requires these skills: {% for se_skill in se_skills %} {{se_skill.skill_required}}, {% endfor %}. \n Note: Soft skills are highlighted.",
       "questions": {
-        "se_skills": "what skills are required for ${input} jobs?"
+        "se_skills": "what unique set of skills are required for ${input} jobs?"
       }
     },
     "icon": null
