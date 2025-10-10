@@ -9,6 +9,16 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 
 
 def union_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Perform N-way union on multiple data sources with exact duplicate removal.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to union, requires at least 1 data source.
+        attributes: Dictionary containing union parameters including match_option.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        List containing all unique records from all data sources.
+    """
     # Extract attributes
     match_option = attributes.get('match_option', 'key_match')
 
@@ -26,7 +36,16 @@ def union_operator_function(input_data: List[List[Dict[str, Any]]], attributes: 
 
 
 def union_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate union operator attributes."""
+    """Validate union operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -41,6 +60,16 @@ def union_operator_validator(input_data: List[List[Dict[str, Any]]], attributes:
 
 
 def union_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate explanation for union operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 
@@ -48,6 +77,13 @@ class UnionOperator(Operator):
     """
     Union operator performs n-way union on multiple data sources with exact duplicate removal.
     Supports key-based matching and sequential matching strategies.
+
+    Attributes:
+    ----------
+    | Name         | Type | Required | Default    | Description                                                                                   |
+    |--------------|------|----------|------------|-----------------------------------------------------------------------------------------------|
+    | `match_option` | str  | False    | "key_match" | Matching strategy for duplicate detection: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names) |
+
     """
 
     PROPERTIES = {}

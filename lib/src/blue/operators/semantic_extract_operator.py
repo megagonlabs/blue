@@ -11,7 +11,16 @@ from blue.properties import PROPERTIES
 
 
 def semantic_extract_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    """Extract entities from natural language text fields using LLM models"""
+    """Extract entities from natural language text fields using LLM models.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records with text fields to extract entities from.
+        attributes: Dictionary containing extraction parameters including entities, context, demonstrations, and extract_with_single_prompt.
+        properties: Optional properties dictionary containing service configuration. Defaults to None.
+
+    Returns:
+        List containing extracted entities for each record in the input data.
+    """
     entities = attributes.get('entities', [])
     context = attributes.get('context', '')
     demonstrations = attributes.get('demonstrations', '')
@@ -41,7 +50,16 @@ def semantic_extract_operator_function(input_data: List[List[Dict[str, Any]]], a
 
 
 def semantic_extract_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate semantic extract operator attributes."""
+    """Validate semantic extract operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -71,7 +89,16 @@ def semantic_extract_operator_validator(input_data: List[List[Dict[str, Any]]], 
 
 
 def semantic_extract_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain semantic extract operator output."""
+    """Generate explanation for semantic extract operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 
@@ -182,6 +209,19 @@ def _extract_entities_individual_prompts(
 
 
 class SemanticExtractOperator(Operator, ServiceClient):
+    """
+    Semantic extract operator extracts entities from natural language text fields using LLM models.
+    
+    Attributes:
+    ----------
+    | Name                     | Type          | Required | Default | Description                                                                                                                   |
+    |--------------------------|---------------|----------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+    | `entities`                 | list[dict]    | True     | N/A     | List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional) |
+    | `context`                  | str           | False    | ""      | Additional context information that provides domain knowledge or additional instructions for the extraction                  |
+    | `demonstrations`           | str           | False    | ""      | Additional demonstrations to help in-context learning                                                                       |
+    | `extract_with_single_prompt` | bool         | False    | True    | If true, extract all entities in a single prompt, else extract each entity with individual prompt                             |
+    """
+
     SINGLE_EXTRACT_PROMPT = """## Task
 You are given one data record in JSON format. Your job is to extract specific entities from this record and return them in strict JSON format.
 

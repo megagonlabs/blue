@@ -16,6 +16,9 @@ from blue.data.registry import DataRegistry
 ### Agent.NL2LLMAgent
 #
 class NL2LLMAgent(Agent):
+    """An agent that processes natural language queries using LLM models.
+    It can be configured to use a specific LLM source or discover available LLM sources in the data registry.
+    The agent sends the query to the selected LLM source and returns the response as structured data."""
 
     PROPERTIES = {
         # agent related properties
@@ -43,12 +46,15 @@ class NL2LLMAgent(Agent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the NL2LLM agent."""
         self.add_input("DEFAULT", description="natural language query")
 
     def _initialize_outputs(self):
+        """Initialize outputs for the NL2LLM agent, tags the output as QUERY and NL."""
         self.add_output("DEFAULT", description="query results", tags=["QUERY", "NL"])
 
     def _start(self):
+        """Start the NL2LLM agent."""
         self.logger.info("NL2LLMAgent _start() called")
         super()._start()
 
@@ -121,7 +127,13 @@ class NL2LLMAgent(Agent):
                 self.logger.info(f"Using default source: {self.selected_source}")
 
     def _search_sources(self, scope=None):
-        """Search the data registry for sources that match the question."""
+        """Search the data registry for sources that match the question.
+
+        Parameters:
+            scope: The scope to search data registry within. If None, searches all scopes.
+
+        Returns:
+            A list of source names that match the search criteria."""
         sources = []
 
         if scope:
@@ -151,7 +163,15 @@ class NL2LLMAgent(Agent):
         return sources
 
     def get_properties(self, properties=None):
-        """Copied from RequestorAgent.get_properties()"""
+        """Get properties for the NL2LLM agent.
+        Copied from RequestorAgent.get_properties().
+
+        Parameters:
+            properties: Optional properties dictionary to override agent properties. Defaults to None.
+
+        Returns:
+            A dictionary of merged properties.
+        """
         merged_properties = {}
 
         # copy agent properties
@@ -166,7 +186,17 @@ class NL2LLMAgent(Agent):
         return merged_properties
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
-        """Process incoming messages and execute LLM queries."""
+        """Process incoming messages and execute LLM queries.
+
+        Parameters:
+            message: The message to process.
+            input: The input stream label.
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+
+        Returns:
+            None or a response message.
+        """
 
         if message.isEOS():
             # get all data received from stream
@@ -215,7 +245,14 @@ class NL2LLMAgent(Agent):
         return None
 
     def process_query(self, question, properties=None):
-        """Process a natural language query using the selected LLM source."""
+        """Process a natural language query using the selected LLM source.
+
+        Parameters:
+            question: The natural language question to process.
+            properties: Additional properties for processing.
+
+        Returns:
+            A dictionary containing the question, source, result, and any error encountered."""
         properties = self.get_properties(properties=properties)
 
         # Validate question - return None for empty/null questions
@@ -260,7 +297,15 @@ class NL2LLMAgent(Agent):
             return filtered_result
 
     def _apply_filter(self, output, properties=None):
-        """Apply output filters to the result."""
+        """Apply output filters to the result.
+
+        Parameters:
+            output: The output dictionary containing question, source, result, and error.
+            properties: Additional properties for processing.
+
+        Returns:
+            A filtered output based on the specified output filters.
+        """
         output_filters = ['all']
 
         if 'nl2llm_output_filters' in self.properties:

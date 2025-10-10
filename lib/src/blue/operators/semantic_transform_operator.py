@@ -12,7 +12,16 @@ from blue.properties import PROPERTIES
 
 
 def semantic_transform_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    """Transform data into target fields and values using LLM-based transformations"""
+    """Transform data into target fields and values using LLM-based transformations.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to transform.
+        attributes: Dictionary containing transformation parameters including input_meta, output_desc, and strategy.
+        properties: Optional properties dictionary containing service configuration. Defaults to None.
+
+    Returns:
+        List containing transformed records with target fields and values.
+    """
     input_meta = attributes.get('input_meta', {})
     output_desc = attributes.get('output_desc', {})
 
@@ -66,7 +75,16 @@ def semantic_transform_operator_function(input_data: List[List[Dict[str, Any]]],
 
 
 def semantic_transform_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate semantic transform operator attributes."""
+    """Validate semantic transform operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -87,7 +105,16 @@ def semantic_transform_operator_validator(input_data: List[List[Dict[str, Any]]]
 
 
 def semantic_transform_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain semantic transform operator output. Currently only returns attributes and output"""
+    """Generate explanation for semantic transform operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 
@@ -702,6 +729,19 @@ def _execute_distinct_required_values_with_merged_fields(
 
 
 class SemanticTransformOperator(Operator, ServiceClient):
+    """
+    Operator that transforms data into target fields and values using LLM-based transformations.
+
+    Attributes:
+    ----------
+    | Name     | Type | Required | Default | Description |
+    |----------|------|----------|---------|-------------|
+    | `input_meta` | dict | False | {} | Optional metadata about input fields |
+    | `output_desc` | dict | True | N/A | Required description of target fields to create |
+    | `strategy` | str | False | "auto" | Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization) |
+
+
+    """
 
     PLAN_RESOLUTION_PROMPT = """## Task
 You are a data transformation planner. Analyze the input schema and output requirements to create a transformation plan.

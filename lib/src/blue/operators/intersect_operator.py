@@ -9,6 +9,16 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 
 
 def intersect_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Find records that exist in all input data sources.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to intersect, requires at least 2 data sources.
+        attributes: Dictionary containing intersection parameters including match_option.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        List containing records that exist in all data sources.
+    """
     # Extract attributes
     match_option = attributes.get('match_option', 'key_match')
 
@@ -24,7 +34,16 @@ def intersect_operator_function(input_data: List[List[Dict[str, Any]]], attribut
 
 
 def intersect_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate intersect operator attributes."""
+    """Validate intersect operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -39,6 +58,16 @@ def intersect_operator_validator(input_data: List[List[Dict[str, Any]]], attribu
 
 
 def intersect_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate explanation for intersect operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 
@@ -46,6 +75,13 @@ class IntersectOperator(Operator):
     """
     Intersect operator finds records that exist in all input data sources.
     Supports key-based matching and sequential matching strategies.
+
+    Attributes:
+    ----------
+    | Name         | Type | Required | Default     | Description                                                                                                      |
+    |--------------|------|----------|-------------|------------------------------------------------------------------------------------------------------------------|
+    | `match_option` | str  | False    | "key_match" | Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names) |
+
     """
 
     PROPERTIES = {}
@@ -53,7 +89,12 @@ class IntersectOperator(Operator):
     name = "intersect"
     description = "Given multiple input data sources, return only records that exist in all data sources"
     default_attributes = {
-        "match_option": {"type": "str", "description": "Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)", "required": False, "default": "key_match"},
+        "match_option": {
+            "type": "str",
+            "description": "Matching strategy for record comparison: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names)",
+            "required": False,
+            "default": "key_match",
+        },
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):

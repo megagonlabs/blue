@@ -23,11 +23,20 @@ from blue.tools.client import ToolClient
 ### MCPToolClient
 #
 class MCPToolClient(ToolClient):
+    """An MCPToolClient connects to an MCP ToolServer and interfaces with its tools"""
+
     def __init__(self, name, properties={}):
+        """Initialize an MCPToolClient instance.
+
+        Parameters:
+            name: Name of the tool client
+            properties: Properties of the tool client
+        """
         super().__init__(name, properties=properties)
 
     ###### connection
     def _initialize_connection_properties(self):
+        """Initialize default connection properties for MCP tool client."""
         super()._initialize_connection_properties()
 
         # set host, port, protocol
@@ -37,9 +46,14 @@ class MCPToolClient(ToolClient):
 
     ###### connection
     def _connect(self, **connection):
+        """Connect to MCP tool server."""
         self._init_connection(**connection)
 
     def _init_connection(self, **connection):
+        """Initialize connection to MCP tool server.
+        Parameters:
+            connection: Connection parameters including host, port, protocol, subprotocol
+        """
         c = copy.deepcopy(connection)
         if 'protocol' in c:
             del c['protocol']
@@ -56,6 +70,7 @@ class MCPToolClient(ToolClient):
         self.server_url = subprotocol + "://" + host + (":" + str(port) if port else "") + "/mcp"
 
     async def _create_session(self):
+        """Create an MCP client session asynchronously."""
         # Initialize session and client objects
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
@@ -73,23 +88,43 @@ class MCPToolClient(ToolClient):
         await self.session.initialize()
 
     async def _release_session(self):
+        """Release the MCP client session asynchronously."""
         if self._session_context:
             await self._session_context.__aexit__(None, None, None)
         if self._streams_context:  # pylint: disable=W0125
             await self._streams_context.__aexit__(None, None, None)  # pylint: disable=E1101
 
     def _disconnect(self):
+        """Disconnect from MCP tool server."""
         asyncio.run(self._release_session())
 
     ######### server
     def fetch_metadata(self):
+        """Fetch metadata for the MCP tool server.
+
+        Returns:
+            An empty dictionary since no metadata is necessary for MCP tool server.
+        """
         return {}
 
     ######### tool
     def fetch_tools(self):
+        """Get a list of available tools on MCP tool server.
+
+        Returns:
+            List of tool names
+        """
         return self.list_tools(detailed=False)
 
     def fetch_tool_metadata(self, tool):
+        """Fetch metadata for a specific tool on MCP tool server.
+
+        Parameters:
+            tool: Name of the tool
+
+        Returns:
+            Metadata dictionary for the tool
+        """
         result = self.list_tools(filter_tools=tool, detailed=True)
         if len(result) == 1:
             return result[0]
@@ -97,9 +132,27 @@ class MCPToolClient(ToolClient):
             return {}
 
     def list_tools(self, filter_tools=None, detailed=True):
+        """List available tools on MCP tool server.
+
+        Parameters:
+            filter_tools: Tool name or list of tool names to filter. Defaults to None.
+            detailed: Whether to return detailed tool information. Defaults to True.
+
+        Returns:
+            List of tools optionally with detailed tool information
+        """
         return asyncio.run(self._list_tools(filter_tools=filter_tools, detailed=detailed))
 
     async def _list_tools(self, filter_tools=None, detailed=True):
+        """List available tools on MCP tool server asynchronously.
+
+        Parameters:
+            filter_tools: Tool name or list of tool names to filter. Defaults to None.
+            detailed: Whether to return detailed tool information. Defaults to True.
+
+        Returns:
+            List of tools optionally with detailed tool information
+        """
         await self._create_session()
 
         tools = []
@@ -154,9 +207,32 @@ class MCPToolClient(ToolClient):
 
     ######### execute tool
     def execute_tool(self, tool, args, kwargs):
+        """Execute a specific tool on MCP tool server.
+
+        Parameters:
+            tool: Name of the tool
+            args: Arguments for the tool function
+            kwargs: Keyword arguments for the tool function
+
+        Returns:
+            Result of the tool execution
+        """
         return asyncio.run(self._execute_tool(tool, args, kwargs))
 
     async def _execute_tool(self, tool, args, kwargs):
+        """Execute a specific tool on MCP tool server asynchronously.
+
+        Parameters:
+            tool: Name of the tool
+            args: Arguments for the tool function
+            kwargs: Keyword arguments for the tool function
+
+        Raises:
+            Exception: If no tool is provided
+
+        Returns:
+            Result of the tool execution
+        """
         if tool is None:
             raise Exception("No tool provided")
 

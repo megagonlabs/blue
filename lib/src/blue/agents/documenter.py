@@ -23,6 +23,8 @@ def build_doc_form(doc):
 ### Agent.DocumenterAgent
 #
 class DocumenterAgent(Agent):
+    """An agent that generates and renders documents based on templates, by running natural language and SQL queries, specified as propertiesconstructed by substituting input, and other contextual information defined as variables."""
+
     def __init__(self, **kwargs):
         if "name" not in kwargs:
             kwargs["name"] = "DOCUMENTER"
@@ -33,13 +35,23 @@ class DocumenterAgent(Agent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the documenter agent. No inputs by default."""
         return
 
     def _initialize_outputs(self):
+        """Initialize outputs for the documenter agent, tagged as DOC"""
         self.add_output("DEFAULT", description="document", tags=["DOC"])
 
     def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
+        """Issue a natural language query to the NL2SQL agent and route the results back to this agent.
 
+        Parameters:
+           question: The natural language question to be processed.
+           progress_id: Optional progress identifier for tracking the query progress. Defaults to None.
+           name: Optional name for the question, used for routing results. Defaults to None.
+           worker: The worker handling the processing. If None, a new worker is created. Defaults to None.
+           to_param_prefix: Prefix for the output parameter name where results will be sent. Defaults to "QUESTION_RESULTS_".
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -61,7 +73,15 @@ class DocumenterAgent(Agent):
         p.submit(worker)
 
     def issue_sql_query(self, query, progress_id=None, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
+        """Issue a SQL query to the QUERYEXECUTOR agent and route the results back to this agent.
 
+        Parameters:
+           query: The SQL query to be executed.
+           progress_id: Optional progress identifier for tracking the query progress. Defaults to None.
+           name: Optional name for the query, used for routing results. Defaults to None.
+           worker: The worker handling the processing. If None, a new worker is created. Defaults to None.
+           to_param_prefix: Prefix for the output parameter name where results will be sent. Defaults to "QUERY_RESULTS_".
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -83,6 +103,14 @@ class DocumenterAgent(Agent):
         p.submit(worker)
 
     def hilite_doc(self, doc, progress_id=None, properties=None, worker=None):
+        """Optionally highlight the document using the HILITER agent if 'hilite' property is specified.
+
+        Parameters:
+            doc: The document content to be highlighted.
+            progress_id: Optional progress identifier for tracking the highlighting progress. Defaults to None.
+            properties: Additional properties for processing. Defaults to None.
+            worker: The worker handling the processing. If None, a new worker is created. Defaults to None.
+        """
         if 'hilite' in properties:
             hilite = properties['hilite']
 
@@ -121,7 +149,14 @@ class DocumenterAgent(Agent):
             p.submit(worker)
 
     def process_doc(self, progress_id=None, properties=None, input="", worker=None):
+        """Process the document by substituting the template with gathered results and rendering it.
 
+        Parameters:
+            progress_id: Optional progress identifier for tracking the processing progress. Defaults to None.
+            properties: Additional properties for processing. Defaults to None.
+            input: The input text to be included in the document. Defaults to an empty string.
+            worker: The worker handling the processing. If None, a new worker is created. Defaults to None.
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -142,6 +177,16 @@ class DocumenterAgent(Agent):
             self.render_doc(doc, properties=properties, worker=worker, progress_id=progress_id)
 
     def substitute_doc(self, worker, results, properties, input):
+        """Substitute the document template with gathered results and contextual information.
+
+        Parameters:
+            worker: The worker handling the processing.
+            results: Dictionary containing results from queries and questions.
+            properties: Additional properties for processing.
+            input: The input text to be included in the document.
+        Returns:
+            The processed document with all substitutions made.
+        """
         session_data = worker.get_all_session_data()
         if session_data is None:
             session_data = {}
@@ -155,6 +200,14 @@ class DocumenterAgent(Agent):
         return processed_template
 
     def render_doc(self, doc, progress_id=None, properties=None, worker=None):
+        """Render the document by creating a form and sending it to the output stream.
+
+        Parameters:
+            doc: The document content to be rendered.
+            progress_id: Optional progress identifier for tracking the rendering progress. Defaults to None.
+            properties: Additional properties for processing. Defaults to None.
+            worker: The worker handling the processing. If None, a new worker is created. Defaults to None.
+        """
         if worker == None:
             worker = self.create_worker(None)
 
@@ -173,7 +226,17 @@ class DocumenterAgent(Agent):
         worker.write_progress(progress_id=progress_id, label='Done...', value=1.0)
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        """Process messages for the documenter agent, handling user input and query results to generate and render documents.
 
+        Parameters:
+            message: The message to process.
+            input: The input stream label.
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+
+        Returns:
+            None or a response message.
+        """
         ##### Upon USER input text
         if input == "DEFAULT":
             if message.isEOS():

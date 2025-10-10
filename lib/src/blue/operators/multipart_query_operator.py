@@ -15,11 +15,35 @@ from blue.data.pipeline import DataPipeline, Status
 
 
 def multipart_query_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """
+    Orchestrate the execution of multi-part query, starting with data discovery, leading to execution.
+
+    !!! note
+        MultipartQueryOperator only does plan refinement. This function simply returns empty output.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), each array represents a part of the multipart query plan.
+        attributes: Dictionary containing operator attributes including serialize.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        Empty list.
+    """
     # TODO:
     return [[]]
 
 
 def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    """Refine the multipart query plan by constructing a data pipeline for each subquery comprising data discovery, query routing, data insertion.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), each array represents a part of the multipart query plan.
+        attributes: Dictionary containing operator attributes including serialize
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        List of data pipelines (as dictionaries) representing the refined multipart query plans.
+    """
     # Extract attributes
     serialize = attributes.get('serialize', True)
 
@@ -233,12 +257,21 @@ def multipart_query_operator_refiner(input_data: List[List[Dict[str, Any]]], att
 
 
 def multipart_query_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain multipart query operator output."""
+    """Explain multipart query operator output.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     multipart_query_explanation = {
         'output': output,
         'input_data': input_data,
         'attributes': attributes,
-        'explanation': f"multipart query orchestarted the execution of...",
+        'explanation': f"multipart query orchestrated the execution of...",
     }
     return multipart_query_explanation
 
@@ -248,7 +281,15 @@ def multipart_query_operator_explainer(output: Any, input_data: List[List[Dict[s
 #
 class MultipartQueryOperator(Operator):
     """
-    multipart query operator orchestrates the execution of multi-part query, starting with data discovery, and exectution.
+    Multipart query operator orchestrates the execution of multi-part query, starting with data discovery, and exectution.
+
+    Attributes
+    -------------
+    | Name      | Type  | Required | Default | Description                                         |
+    |-----------|-------|----------|---------|-----------------------------------------------------|
+    | `serialize` | bool  | False    | True    | Whether to serialize each part of the query        |
+
+
     """
 
     PROPERTIES = {}

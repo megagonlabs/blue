@@ -13,6 +13,16 @@ from blue.data.registry import DataRegistry
 
 
 def create_database_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Create databases in data sources using the data registry.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), passes through unchanged.
+        attributes: Dictionary containing database creation parameters including source, database, description, and other database properties.
+        properties: Optional properties dictionary containing data registry information. Defaults to None.
+
+    Returns:
+        List containing the input data passed through unchanged.
+    """
     # Extract attributes
     overwrite = attributes.get('overwrite', False)
     source = attributes.get('source', '')
@@ -53,7 +63,16 @@ def create_database_operator_function(input_data: List[List[Dict[str, Any]]], at
 
 
 def create_database_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate create database operator attributes."""
+    """Validate create database operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -73,7 +92,16 @@ def create_database_operator_validator(input_data: List[List[Dict[str, Any]]], a
 
 
 def create_database_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain create database operator output."""
+    """Generate explanation for create database operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the database creation operation.
+    """
     source = attributes.get('source', '')
     overwrite = attributes.get('overwrite', False)
     try:
@@ -94,7 +122,19 @@ def create_database_operator_explainer(output: Any, input_data: List[List[Dict[s
 #
 class CreateDatabaseOperator(Operator):
     """
-    Create database operator that creates databases in data sources
+    Create database operator that creates databases in data sources.
+
+    Attributes
+    ----------
+    | Name         | Type | Required | Default | Description |
+    |---------------|------|-----------|----------|--------------|
+    | `source`      | str  | True       | ""       | Name of the data source where the database will be created. |
+    | `database`    | str  | True       | ""       | Name of the database to be created. |
+    | `description` | str  | False        | ""       | Description of the database to be created. |
+    | `properties`  | str  | False        | {}       | Properties of the database to be created. |
+    | `created_by`  | str  | False        | ""       | Creator of the database. |
+    | `overwrite`   | bool | False        | False    | Whether to overwrite the existing database. |
+
     """
 
     PROPERTIES = {}

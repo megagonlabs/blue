@@ -13,8 +13,19 @@ from blue.utils import json_utils, uuid_utils, log_utils
 ### Entity
 #
 class Entity:
-    def __init__(self, name=None, id=None, sid=None, cid=None, prefix=None, suffix=None):
+    """Base class for entities with unique identifiers for common entities in blue."""
 
+    def __init__(self, name=None, id=None, sid=None, cid=None, prefix=None, suffix=None):
+        """Initialize the Entity.
+
+        Parameters:
+            name: Name of the entity.
+            id: Unique identifier for the entity.
+            sid: Short identifier (combination of name and id).
+            cid: Canonical identifier (may include prefix and suffix).
+            prefix: Optional prefix for the cid.
+            suffix: Optional suffix for the cid.
+        """
         if cid:
             self.cid = cid
             # extract name, id, prefix

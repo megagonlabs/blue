@@ -185,7 +185,7 @@ class Platform:
         """Get session object for given session sid
 
         Parameters:
-            session_sid(str): Session sid
+            session_sid (str): Session sid
 
         Returns:
             (Session): Session object for given session sid.
@@ -203,7 +203,7 @@ class Platform:
         Update platform metadata for user, if created_by is provided, to store owned sessions by user.
 
         Parameters:
-            created_by(str): User id
+            created_by (str): User id
 
         Returns:
             (Session): Session object created.
@@ -219,7 +219,7 @@ class Platform:
         Deletes session stream, data, and metadata from db.
 
         Parameters:
-            session_sid(str): Session sid
+            session_sid (str): Session sid
         """
         session_cid = self.cid + ":" + session_sid
 
@@ -244,9 +244,9 @@ class Platform:
         Writes a JOIN_SESSION control message to platform stream.
 
         Parameters:
-            session_sid(str): Session sid
-            registry(str): Name of the agent registry
-            agent(str): Name of the agent
+            session_sid (str): Session sid
+            registry (str): Name of the agent registry
+            agent (str): Name of the agent
             properties(dict): dictionary of key-value pairs that identify properties of the agent
 
         """
@@ -327,7 +327,7 @@ class Platform:
         """Get platform metadata, for key, or all metadata
 
         Parameters:
-            key(str): key of the metadata
+            key (str): key of the metadata
 
         Returns:
             (Any): metadata value for key, or all platform metadata if no key is given.

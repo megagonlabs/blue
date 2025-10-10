@@ -13,6 +13,13 @@ from blue.session import Session
 ### Agent.BlockingAgent
 #
 class BlockingAgent(Agent):
+    """
+    An agent that waits for multiple inputs before processing to be present and then processes them together.
+    It can be configured to wait for a list of input streams before proceeding with its processing logic.
+
+    This is an experimental implementation and may be subject to changes in future releases.
+    """
+
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "BLOCKING_AGENT"
@@ -21,7 +28,7 @@ class BlockingAgent(Agent):
         self.lock = threading.Lock()
         self.agent_name = kwargs['name']
 
-        # get wait_for list 
+        # get wait_for list
         val = self.properties.get("wait_for_inputs", ["DEFAULT"])
         if not isinstance(val, list):
             val = [val]  # wrap single values into a list
@@ -30,26 +37,36 @@ class BlockingAgent(Agent):
         # set shared memory to flag input
         self.inputs_received = {item: False for item in self.wait_for_inputs}
 
-        # if true, extra input not specified in the wait_for list will be included in the 
-        # processing logic. Note the extrac input could have incomplete streams. 
+        # if true, extra input not specified in the wait_for list will be included in the
+        # processing logic. Note the extrac input could have incomplete streams.
         self.include_extra_input = bool(self.properties.get("include_extra_input", True))
-
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the blocking agent."""
         self.add_input("DEFAULT", description="input text")
 
     def _initialize_outputs(self):
+        """Initialize outputs for the blocking agent."""
         self.add_output("DEFAULT", description="echoing or combining input")
-    
+
     def process_logic(self, input_dict, worker):
         # echoing all input, rewrite with specific logic in inherited classes.
         result = f"Agent {self.agent_name} got" + str(input_dict)
         return result
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        """Process messages for the blocking agent, waiting for all specified inputs before proceeding calling process_logic() when all inputs are gathered.
 
-        
+        Parameters:
+            message: The message to process.
+            input: The input stream label.
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+
+        Returns:
+            None or a response message.
+        """
         if message.isEOS():
 
             try:
@@ -57,7 +74,7 @@ class BlockingAgent(Agent):
                     from_agent = input.strip("FROM_")
                     if from_agent in self.inputs_received:
                         self.inputs_received[from_agent] = True
-                    ready_to_process =  all(self.inputs_received.values()) 
+                    ready_to_process = all(self.inputs_received.values())
 
                     logging.info(f"Agent {self.agent_name} got INPUT {input}, ready to process:{ready_to_process}, inputs:{str(self.inputs_received)} ")
 
@@ -79,7 +96,6 @@ class BlockingAgent(Agent):
                     Message.EOS,
                 ]
 
-
         elif message.isBOS():
             # init stream to empty array
             if worker:
@@ -92,5 +108,3 @@ class BlockingAgent(Agent):
                 worker.append_data(f'{input}', data)
 
         return None
-
-

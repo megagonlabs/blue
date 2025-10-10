@@ -9,6 +9,16 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 
 
 def insert_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Insert records into the first data source at specified positions.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), uses first data source as base and optionally second data source for records to insert.
+        attributes: Dictionary containing insert parameters including insert_records and insert_idx.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        List containing the first data source with records inserted at specified positions.
+    """
     insert_idx = attributes.get('insert_idx', -1)
     if not input_data or not input_data[0]:
         return []
@@ -43,7 +53,16 @@ def insert_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
 
 def insert_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate insert operator attributes."""
+    """Validate insert operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -66,6 +85,16 @@ def insert_operator_validator(input_data: List[List[Dict[str, Any]]], attributes
 
 
 def insert_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate explanation for insert operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 
@@ -73,6 +102,14 @@ class InsertOperator(Operator):
     """
     Insert operator inserts records into the first data source at specified positions.
     Records come from attributes or second data group.
+
+    Attributes
+    ----------
+    | Name           | Type                 | Required | Default | Description                                                                                           |
+    |----------------|--------------------|----------|---------|-------------------------------------------------------------------------------------------------------|
+    | `insert_records` | list[dict]          | False    | []      | List of records to insert into the first data source (optional if second data group provided)       |
+    | `insert_idx`     | Union[int, list[int]] | False    | -1      | Position(s) to insert records (-1 for append, 0+ for specific position). If list, each element corresponds to position for each record.                         |
+
     """
 
     PROPERTIES = {}

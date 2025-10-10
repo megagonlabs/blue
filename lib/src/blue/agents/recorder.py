@@ -12,12 +12,17 @@ from blue.utils import json_utils
 ### Agent.RecorderAgent
 #
 class RecorderAgent(Agent):
+    """An agent that records specific data from input streams based on configured queries, scanning JSON data.
+    The recorded data is stored in session variables for later use by other agents or processes.
+    """
+
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "RECORDER"
         super().__init__(**kwargs)
 
     def _initialize_properties(self):
+        """Initialize default properties for the recorder agent, setting it as an aggregator with specific recording configurations."""
         super()._initialize_properties()
 
         # recorder is an aggregator agent
@@ -31,13 +36,26 @@ class RecorderAgent(Agent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the recorder agent, listening to streams tagged as JSON."""
         self.add_input("DEFAULT", description="JSON input stream to process and query records", includes=["JSON"])
 
     def _initialize_outputs(self):
+        """Initialize outputs for the recorder agent. No outputs by default."""
         # no output
         return
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        """Process messages for the recorder agent, executing configured queries on JSON input data and storing results in session variables.
+
+        Parameters:
+            message: The incoming message to process.
+            input: The input stream name. Defaults to "DEFAULT".
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+
+        Returns:
+            None or a list of variable names that were set in the session.
+        """
         if message.isEOS():
             return None
         elif message.isBOS():

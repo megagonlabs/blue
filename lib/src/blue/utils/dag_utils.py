@@ -31,7 +31,7 @@ class Base:
         Each Base object is characterized by a unique identifier (id), an optional label, a type, and a set of properties.
         The class also supports synchronization features to keep the object's state consistent with an external source
 
-        Args:
+        Parameters:
             id: ID of the object. If None, a unique ID will be generated. Defaults to None.
             label: Label of the object. Defaults to None.
             type: Type of the object. Defaults to None.
@@ -75,7 +75,7 @@ class Base:
     def set_data(self, key, value, sync=None):
         """Set a data key-value pair.
 
-        Args:
+        Parameters:
             key: Key to set.
             value: Value to set.
             sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None.
@@ -88,7 +88,7 @@ class Base:
     def get_data(self, key=None):
         """Get data by key.
 
-        Args:
+        Parameters:
             key: Key to get. If None, return all data. Defaults to None.
 
         Returns:
@@ -104,7 +104,7 @@ class Base:
     def append_data(self, key, value, unique=False, sync=None):
         """Append a value to a list at the specified key, assumes key is a list.
 
-        Args:
+        Parameters:
             key: Key of the list to append to.
             value: Value to append.
             unique: If True, only append if the value is not already in the list. Defaults to False.
@@ -170,7 +170,7 @@ class Base:
     def set_property(self, key, value, sync=None):
         """Set a property key-value pair.
 
-        Args:
+        Parameters:
             key: Key of the property.
             value: Value of the property.
             sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
@@ -183,7 +183,7 @@ class Base:
     def get_property(self, key):
         """Get a property by key.
 
-        Args:
+        Parameters:
             key: Key of the property.
 
         Returns:
@@ -222,7 +222,7 @@ class Base:
     def from_dict(cls, d, path=None, synchronizer=None, auto_sync=False, sync=None):
         """Create an instance of the class from a dictionary.
 
-        Args:
+        Parameters:
             d: Dictionary to create the instance from.
             path: Path for synchronization context. Defaults to None.
             synchronizer: Function to handle synchronization. Defaults to None.
@@ -252,7 +252,7 @@ class Base:
     def synchronize(self, key=None, value=None, single=True, sync=None):
         """Synchronize the object or a specific key-value pair using the provided synchronizer function.
 
-        Args:
+        Parameters:
             key: Key to synchronize. If None, synchronize the entire object. Defaults to None.
             value: Value to synchronize. If None, the current value of the key will be retrieved. Defaults to None.
             single: If True, expect a single value; if False, expect a list from JSON query. Defaults to True.
@@ -288,7 +288,7 @@ class Base:
     def synchronizer(self, path, key, value):
         """Default synchronizer function that prints the synchronization action.
 
-        Args:
+        Parameters:
             path: Path for synchronization context.
             key: Key to synchronize.
             value: Value to synchronize.
@@ -300,7 +300,7 @@ class Node(Base):
     def __init__(self, id=None, label=None, type=None, properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
         """Initializer a Node in a DAG
 
-        Args:
+        Parameters:
             id: ID of the node. Defaults to None.
             label: Label of the node. Defaults to None.
             type: Type of the node. Defaults to None.
@@ -331,7 +331,7 @@ class Node(Base):
     def connect_to(self, t, sync=None):
         """Connect this node to another node.
 
-        Args:
+        Parameters:
             t: Target node to connect to.
             sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
         """
@@ -362,7 +362,7 @@ class Entity(Base):
     def __init__(self, id=None, label=None, type="Entity", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
         """Entity in an EntityDAG. Entities can be linked to nodes in the DAG.
 
-        Args:
+        Parameters:
             id: ID of the entity. Defaults to None.
             label: Label of the entity. Defaults to None.
             type: Type of the entity. Defaults to "Entity".
@@ -382,7 +382,7 @@ class DAG(Base):
     def __init__(self, id=None, label=None, type="DAG", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
         """A Directed Acyclic Graph (DAG) structure to manage nodes and their connections.
 
-        Args:
+        Parameters:
             id: ID of the DAG. Defaults to None.
             label: Label of the DAG. Defaults to None.
             type: Type of the DAG. Defaults to "DAG".
@@ -409,7 +409,7 @@ class DAG(Base):
     def create_node(self, id=None, label=None, type=None, properties=None, sync=None):
         """Create a new node in the DAG.
 
-        Args:
+        Parameters:
             id: ID of the node. Defaults to None.
             label: Label of the node. Defaults to None.
             type: Type of the node. Defaults to None.
@@ -441,7 +441,7 @@ class DAG(Base):
     def connect_nodes(self, f, t, sync=None):
         """Connect two nodes in the DAG.
 
-        Args:
+        Parameters:
             f: From node
             t: To node
             sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
@@ -477,7 +477,7 @@ class DAG(Base):
     def get_node(self, n, cls=None):
         """Get a node by ID or label.
 
-        Args:
+        Parameters:
             n: Node ID or label
             cls: Class type to return. Defaults to None.
 
@@ -497,7 +497,7 @@ class DAG(Base):
     def get_node_by_id(self, node_id, cls=None):
         """Get a node by its ID.
 
-        Args:
+        Parameters:
             node_id: Node ID
             cls: Class type to return. Defaults to None.
 
@@ -516,7 +516,7 @@ class DAG(Base):
     def get_node_by_label(self, node_label, cls=None):
         """Get a node by its label.
 
-        Args:
+        Parameters:
             node_label: Node label
             cls: Class type to return. Defaults to None.
 
@@ -533,7 +533,7 @@ class DAG(Base):
     def get_prev_nodes(self, n):
         """Get previous nodes connected to the given node.
 
-        Args:
+        Parameters:
             n: Node ID or label
 
         Returns:
@@ -553,7 +553,7 @@ class DAG(Base):
     def get_next_nodes(self, n):
         """Get next nodes connected to the given node.
 
-        Args:
+        Parameters:
             n: Node ID or label
 
         Returns:
@@ -573,7 +573,7 @@ class DAG(Base):
     def filter_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
         """Filter nodes based on criteria, such as node type, having previous nodes, or having next nodes.
 
-        Args:
+        Parameters:
             filter_node_type: List of node types to filter by. Defaults to None.
             filter_hasPrev: Whether to filter nodes that have previous nodes. Defaults to None.
             filter_hasNext: Whether to filter nodes that have next nodes. Defaults to None.
@@ -608,7 +608,7 @@ class DAG(Base):
     def count_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
         """Count nodes based on criteria, such as node type, having previous nodes, or having next nodes.
 
-        Args:
+        Parameters:
             filter_node_type: List of node types to filter by. Defaults to None.
             filter_hasPrev: Whether to filter nodes that have previous nodes. Defaults to None.
             filter_hasNext: Whether to filter nodes that have next nodes. Defaults to None.
@@ -622,7 +622,7 @@ class DAG(Base):
     def is_node_leaf(self, n):
         """Check if a node is a leaf node (has previous nodes but no next nodes).
 
-        Args:
+        Parameters:
             n: Node ID or label
 
         Returns:
@@ -640,7 +640,7 @@ class DAG(Base):
     def map(self, f, t, sync=None):
         """Map a label to a node ID.
 
-        Args:
+        Parameters:
             f: Label to map from.
             t: Node ID to map to.
             sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
@@ -653,7 +653,7 @@ class DAG(Base):
     def is_mapped(self, i):
         """Check if a label is mapped to a node ID.
 
-        Args:
+        Parameters:
             i: Label to check.
 
         Returns:
@@ -683,7 +683,7 @@ class EntityDAG(DAG):
     def __init__(self, id=None, label=None, type="DAG", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
         """Entity DAG to manage entities
 
-        Args:
+        Parameters:
             id: ID of the DAG. Defaults to None.
             label: Label of the DAG. Defaults to None.
             type: Type of the DAG. Defaults to "DAG".
@@ -703,7 +703,7 @@ class EntityDAG(DAG):
     def verify_entity(self, label=None, type=None, properties=None):
         """Verify if an entity can be created, checks if label is unique.
 
-        Args:
+        Parameters:
             label: Label of the entity. Defaults to None.
             type: Type of the entity. Defaults to None.
             properties: Properties of the entity as a dictionary. Defaults to None.
@@ -720,7 +720,7 @@ class EntityDAG(DAG):
     def create_entity(self, id=None, label=None, type=None, properties=None, sync=None):
         """Create a new entity in the EntityDAG.
 
-        Args:
+        Parameters:
             id: ID of the entity. Defaults to None.
             label: Label of the entity. Defaults to None.
             type: Type of the entity. Defaults to None.
@@ -770,7 +770,7 @@ class EntityDAG(DAG):
     def has_entity_type(self, type):
         """Check if an entity type exists, in the DAG.
 
-        Args:
+        Parameters:
             type: Entity type to check.
 
         Returns:
@@ -782,7 +782,7 @@ class EntityDAG(DAG):
     def add_entity_type(self, type, sync=None):
         """Add a new entity type to the DAG.
 
-        Args:
+        Parameters:
             type: Entity type to add.
             sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
         """
@@ -796,7 +796,7 @@ class EntityDAG(DAG):
     def get_entities(self, type=None):
         """Get entities in the DAG, optionally filtered by type.
 
-        Args:
+        Parameters:
             type: Entity type to filter by. Defaults to None.
 
         Returns:
@@ -810,7 +810,7 @@ class EntityDAG(DAG):
     def get_entity(self, e, type=None, cls=None):
         """Get an entity by ID or label.
 
-        Args:
+        Parameters:
             e: Entity ID or label
             type: Type of the entity. Defaults to None.
             cls: Class type to return. Defaults to None.
@@ -832,7 +832,7 @@ class EntityDAG(DAG):
     def get_entity_by_id(self, entity_id, type=None, cls=None):
         """Get an entity by its ID.
 
-        Args:
+        Parameters:
             entity_id: ID of the entity.
             type: Type of the entity. Defaults to None.
             cls: Class type to return. Defaults to None.
@@ -861,7 +861,7 @@ class EntityDAG(DAG):
     def get_entity_by_label(self, entity_label, type=None, cls=None):
         """Get an entity by its label.
 
-        Args:
+        Parameters:
             entity_label: Label of the entity.
             type: Type of the entity. Defaults to None.
             cls: Class type to return. Defaults to None.
@@ -879,7 +879,7 @@ class EntityDAG(DAG):
     def get_nodes_by_entity(self, e, type=None, cls=None, node_type=None):
         """Get nodes associated with a specific entity, optionally filtered by node type.
 
-        Args:
+        Parameters:
             e: Entity ID or label
             type: Type of the entity. Defaults to None.
             cls: Class type to return. Defaults to None.
@@ -910,7 +910,7 @@ class EntityDAG(DAG):
     def set_node_entity(self, n, e, field=None, sync=None):
         """Set an entity for a specific node.
 
-        Args:
+        Parameters:
             n: Node ID or label
             e: Entity ID or label
             field: Field to set the entity in the node. Defaults to None, which uses the entity type or "Entity".
@@ -944,7 +944,7 @@ class EntityDAG(DAG):
     def get_node_entity(self, n, type=None, cls=None, field=None):
         """Get the entity associated with a specific node.
 
-        Args:
+        Parameters:
             n: Node ID or label
             type: Type of the entity. Defaults to None.
             cls: Class type to return. Defaults to None.
@@ -984,7 +984,7 @@ class Plan(EntityDAG):
     def __init__(self, id=None, label=None, type="PLAN", properties=None, path=None, synchronizer=None, auto_sync=False, sync=None):
         """Instance of a Plan, which is an EntityDAG with additional merge functionality.
 
-        Args:
+        Parameters:
             id: ID of the plan. Defaults to None.
             label: Label of the plan. Defaults to None.
             type: Type of the plan. Defaults to "PLAN".
@@ -998,7 +998,7 @@ class Plan(EntityDAG):
 
     def merge(self, merge_plan, sync=None):
         """Merge another plan into this plan.
-        Args:
+        Parameters:
             merge_plan: Plan to merge into this plan.
             sync: Synchronization flag. If True, force synchronization regardless of auto_sync setting. Defaults to None
         """

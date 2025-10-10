@@ -21,6 +21,16 @@ from blue.properties import PROPERTIES
 
 
 def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Translate natural language questions into SQL queries using LLM models.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), not used for query processing.
+        attributes: Dictionary containing query parameters including question, source, protocol, database, collection, and other SQL generation settings.
+        properties: Optional properties dictionary containing service configuration and data registry information. Defaults to None.
+
+    Returns:
+        List containing SQL query results or the generated SQL query if execution is disabled.
+    """
     question = attributes.get('question', '')
     source = attributes.get('source', '')
     protocol = attributes.get('protocol', 'postgres')
@@ -112,12 +122,30 @@ def nl2sql_operator_function(input_data: List[List[Dict[str, Any]]], attributes:
 
 
 def nl2sql_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate nl2sql operator attributes."""
+    """Validate nl2sql operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     return default_operator_validator(input_data, attributes, properties)
 
 
 def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain nl2sql operator output. Currently only returns attributes and output"""
+    """Generate explanation for nl2sql operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the SQL generation and execution operation.
+    """
     nl2sql_explanation = {
         'output': output,
         "attributes": attributes,
@@ -126,6 +154,27 @@ def nl2sql_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]
 
 
 class NL2SQLOperator(Operator, ServiceClient):
+    """
+    NL2SQL operator translates natural language questions into SQL queries using LLM models.
+    It can also execute the generated SQL query against the specified database and return the results.
+
+    Attributes:
+    ----------
+    | Name                  | Type         | Required | Default   | Description                                                                 |
+    |-----------------------|--------------|----------|-----------|-----------------------------------------------------------------------------|
+    | `source`              | str          | True     | ""        | Data source name                                                            |
+    | `question`            | str          | True     |           | Natural language question to translate to SQL                               |
+    | `protocol`            | str          | True     | "postgres"| Database protocol (postgres, mysql, sqlite)                                 |
+    | `database`            | str          | True     | ""        | Database name                                                               |
+    | `collection`          | str          | True     | ""        | Collection/schema name                                                      |
+    | `case_insensitive`    | bool         | False    | True      | Case insensitive string matching                                            |
+    | `additional_requirements`| str         | False    | ""        | Additional requirements for SQL generation                                  |
+    | `context`             | str          | False    | ""        | Optional context for domain knowledge                                       |
+    | `schema`              | str          | False    | ""        | JSON string of database schema (optional - will be fetched automatically if not provided) |
+    | `attr_names`          | list[str]    | False    | []        | Optional list of target field names for the output objects                 |
+
+    """
+
     PROMPT = """
 Your task is to translate a natural language question into a SQL query based on the provided database schema.
 

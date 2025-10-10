@@ -15,12 +15,15 @@ from blue.stream import Message, ControlCode
 ### RequestorAgent.OpenAIAgent
 #
 class OpenAIAgent(RequestorAgent):
+    """Agent to interact with OpenAI's API, supporting tool usage and function calling."""
+
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "OPENAI"
         super().__init__(**kwargs)
 
     def _initialize_properties(self):
+        """Initialize default properties for the OpenAI agent."""
         super()._initialize_properties()
 
         self.properties['service_url'] = "ws://localhost:8001"
@@ -49,12 +52,15 @@ class OpenAIAgent(RequestorAgent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the OpenAI agent."""
         self.add_input("DEFAULT", description="Text input that will be sent to OPENAI")
 
     def _initialize_outputs(self):
+        """Initialize outputs for the OpenAI agent, tagging output as AI."""
         self.add_output("DEFAULT", description="Generated text output from OPENAI", tags=["AI"])
 
     def _start(self):
+        """Start the OpenAI agent, initializing the tool registry."""
         super()._start()
 
         # initialize registry
@@ -64,12 +70,20 @@ class OpenAIAgent(RequestorAgent):
         self.explanations = {}
 
     def _init_registry(self):
+        """Initialize the tool registry for the OpenAI agent."""
         # create instance of tool registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = ToolRegistry(id=self.properties['tool_registry.name'], prefix=prefix, properties=self.properties)
 
     def _validate_tool_schema(self, tool_schema):
+        """Validate the structure of a tool schema. Returns True if valid, False otherwise.
+
+        Parameters:
+            tool_schema: The tool schema to validate.
+
+        Returns:
+            True if the schema is valid, False otherwise."""
         # checks
         if 'name' not in tool_schema:
             return False
@@ -82,6 +96,15 @@ class OpenAIAgent(RequestorAgent):
         return True
 
     def convert_tool_schema_to_openai_format(self, tool_schema, server_name):
+        """Convert a tool schema to OpenAI's function calling format.
+
+        Parameters:
+            tool_schema: The tool schema to convert.
+            server_name: The name of the server hosting the tool.
+
+        Returns:
+            The tool schema in OpenAI format, or None if the schema is invalid.
+        """
         if not self._validate_tool_schema(tool_schema):
             return None
 
@@ -112,6 +135,15 @@ class OpenAIAgent(RequestorAgent):
         return openai_schema
 
     def get_tool_schemas(self, user_input, properties):
+        """Retrieve tool schemas based on user input and properties.
+
+        Parameters:
+            user_input: The user input to base tool selection on.
+            properties: The properties dict containing tool selection criteria.
+
+        Returns:
+            A list of tool schemas in OpenAI format.
+        """
         # intialize
         selected_servers = []
         selected_tools = []
@@ -184,9 +216,26 @@ class OpenAIAgent(RequestorAgent):
         return tool_schemas
 
     def _get_canonical(self, server_name, tool_name):
+        """Get the canonical name for a tool given its server and tool names.
+
+        Parameters:
+            server_name: The name of the server hosting the tool.
+            tool_name: The name of the tool.
+
+        Returns:
+            The canonical name for the tool.
+        """
         return server_name + Separator.TOOL + tool_name
 
     def _extract_canonical(self, canonical_name):
+        """Extract server and tool names from a canonical tool name.
+
+        Parameters:
+            canonical_name: The canonical name to extract from.
+
+        Returns:
+            A tuple containing the server name and tool name (or None if not present).
+        """
         cs = canonical_name.split(Separator.TOOL)
         if len(cs) >= 2:
             server_name = cs[0]
@@ -196,6 +245,14 @@ class OpenAIAgent(RequestorAgent):
             return cs[0], None
 
     def write_tool_explanation(self, tool, arguments, result, eos=False):
+        """Write an explanation of a tool call to the explanation output.
+
+        Parameters:
+            tool: The name of the tool called.
+            arguments: The arguments passed to the tool.
+            result: The result returned by the tool.
+            eos: Whether to send an end-of-stream signal after the explanation. Defaults to False.
+        """
         if self.explanation_worker is None:
             self.explanation_worker = self.create_worker(None)
 
@@ -234,7 +291,16 @@ class OpenAIAgent(RequestorAgent):
             self.explanation_worker.write_control(ControlCode.CREATE_FORM, form, output="EXPLANATION", id=form_id)
 
     def execute_api_call(self, input, properties=None, additional_data=None):
+        """Execute an API call to OpenAI, optionally using tools if specified in properties.
 
+        Parameters:
+            input: The input data for the API call.
+            properties: Additional properties for the API call.
+            additional_data: Any additional data to include in the API call.
+
+        Returns:
+            The output from the API call.
+        """
         if 'use_tools' in properties and properties['use_tools']:
 
             # create a new id for each tool calling

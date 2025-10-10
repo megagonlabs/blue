@@ -20,12 +20,26 @@ from blue.utils import uuid_utils, json_utils
 ### Agent.CoordinatorAgent
 #
 class CoordinatorAgent(Agent):
+    """Agent that coordinates the execution of plans involving multiple agents.
+
+    This agent listens for incoming plans, initializes and manages their execution by coordinating
+    the involved agents, and tracks the progress of each plan, tracking streams announced in the session streams and
+    invoking EXECUTE_AGENT commands as needed.
+
+    Plans are represented using the AgenticPlan class, which defines the structure and flow of tasks to be executed by various agents.
+    """
+
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "COORDINATOR"
         super().__init__(**kwargs)
 
     def _initialize(self, properties=None):
+        """Initialize the agent with properties.
+
+        Parameters:
+            properties (dict): Properties to initialize the agent with.
+        """
         super()._initialize(properties=properties)
 
         # coordinator is not instructable
@@ -33,12 +47,15 @@ class CoordinatorAgent(Agent):
 
     ####### inputs / outputs
     def _initialize_inputs(self):
+        """Initialize input parameters for the agent. DEFAULT input includes listeners for tag PLAN."""
         self.add_input("DEFAULT", description="Plan to coordinate", includes=["PLAN"])
 
     def _initialize_outputs(self):
+        """Initialize outputs for the agent. DEFAULT output is tagged as INSTRUCTION and HIDDEN."""
         self.add_output("DEFAULT", description="Instructions to follow", tags=["INSTRUCTION", "HIDDEN"])
 
     def _start(self):
+        """Start the coordinator agent, initializing the platform and agent registry."""
         super()._start()
 
         # initialize platform
@@ -50,11 +67,13 @@ class CoordinatorAgent(Agent):
         self.plans = {}
 
     def _init_platform(self):
+        """Initialize the platform for the coordinator agent."""
         # create instance of platform
         platform_id = self.properties["platform.name"]
         self.platform = Platform(id=platform_id, properties=self.properties)
 
     def _init_registry(self):
+        """Initialize the agent registry for the coordinator agent."""
         # create instance of agent registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
@@ -62,6 +81,12 @@ class CoordinatorAgent(Agent):
         self.registry = AgentRegistry(id=self.properties['agent_registry.name'], prefix=prefix, properties=self.properties)
 
     def initialize_plan(self, plan, worker=None):
+        """Initialize and start executing a plan.
+
+        Parameters:
+            plan (AgenticPlan): The plan to be executed.
+            worker: The worker handling the execution of the plan.
+        """
 
         # get plan id
         plan_id = plan.get_id()
@@ -104,11 +129,26 @@ class CoordinatorAgent(Agent):
                 self.create_worker(stream_label, input=plan_id)
 
     def get_plan_progress(self, plan):
+        """
+        Get the progress of a plan as a float between 0 and 1.
+
+        Parameters:
+            plan (AgenticPlan): The plan to get the progress of.
+
+        Returns:
+            float: The progress of the plan as a float between 0 and 1.
+        """
         num_connections = plan.count_nodes(filter_hasPrev=True)
         num_finished_streams = plan.count_streams(filter_status=[Status.FINISHED])
         return num_finished_streams / num_connections
 
     def session_listener(self, message):
+        """Listen to session messages and handle stream announcements.
+
+        Parameters:
+            message: The session message to process.
+
+        """
         ### check if stream is in stream watch list
         if message.getCode() == ControlCode.ADD_STREAM:
             stream = message.getArg("stream")
@@ -130,6 +170,19 @@ class CoordinatorAgent(Agent):
         return super().session_listener(message)
 
     def transform_data(self, input_stream, budget, f, t):
+        """Transform data from input stream to output stream based on the plan.
+
+        Currently a placeholder that returns the input stream as the output stream.
+
+        Parameters:
+            input_stream: The input stream to transform data from.
+            budget: The budget for the transformation.
+            f: The from node (can be input or agent output).
+            t: The to node (can be output or agent input).
+
+        Returns:
+            The output stream after transformation.
+        """
         from_input = None
         from_agent = None
         from_agent_param = None
@@ -198,6 +251,14 @@ class CoordinatorAgent(Agent):
         return output_stream
 
     def plan_synchronizer(self, plan, path, key, value):
+        """Synchronize plan changes by updating the plan in the coordinator agent's data store.
+
+        Parameters:
+            plan (AgenticPlan): The plan being synchronized.
+            path (str): The JSON path of the change.
+            key (str): The key of the change.
+            value: The value of the change.
+        """
         # remove $. from path + key
         canonical_key = path + "." + key
         self.set_data(canonical_key[2:], value)
@@ -205,7 +266,17 @@ class CoordinatorAgent(Agent):
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        """Process messages for the coordinator agent, handling plan execution and stream management.
 
+        Parameters:
+            message: The message to process.
+            input: The input stream label.
+            properties: Additional properties for processing.
+            worker: The worker handling the processing.
+
+        Returns:
+            None or a response message.
+        """
         if input == "DEFAULT":
             # new plan
             stream = message.getStream()

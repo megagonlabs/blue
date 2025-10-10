@@ -20,17 +20,44 @@ from blue.utils import log_utils
 
 
 def default_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    """Default function for operator. It should be overridden by each operator."""
+    """Default function for operator. It should be overridden by each operator.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to process.
+        attributes: Dictionary containing operator-specific parameters.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        Empty list as default implementation.
+    """
     return []
 
 
 def default_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
-    """Default refiner for operator. It should be overridden by each operator."""
+    """Default refiner for operator. It should be overridden by each operator.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to process.
+        attributes: Dictionary containing operator-specific parameters.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        Empty list as default implementation.
+    """
     return []
 
 
 def default_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Default validator for operator attributes."""
+    """Default validator for operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         return default_attributes_validator(attributes, properties)
     except Exception as e:
@@ -39,7 +66,15 @@ def default_operator_validator(input_data: List[List[Dict[str, Any]]], attribute
 
 
 def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate actual attributes (attributes) using the attribute definitions in properties."""
+    """Validate actual attributes (attributes) using the attribute definitions in properties.
+
+    Parameters:
+        attributes: Dictionary containing actual attribute values to validate.
+        properties: Optional properties dictionary containing attribute definitions. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     # Need to get the attributes definition and validation error handling from properties
     logging.debug("Validating attributes...")
     if properties is None:
@@ -83,7 +118,16 @@ def default_attributes_validator(attributes: Dict[str, Any], properties: Dict[st
 
 
 def default_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Default explainer for operator output."""
+    """Default explainer for operator output.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation with statistics.
+    """
     total_input_records = sum(len(data) for data in input_data)
     output_count = len(output) if isinstance(output, list) else 1
 
@@ -101,26 +145,39 @@ def default_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]
 
 
 class Operator(Tool):
-    """
+    """Base class for all operators in the Blue framework.
+
     Data in operator scope refers to JSON array of records (list of dictionaries) in Blue.
     Operator is a specialized Tool to perform data operations in Blue.
     Input data for operators: always expects multiple Data as [data_1, data_2, ...] (list of lists of dictionaries)
     Output data for operators: same as input data, always returns a list of JSON array of records. If there is only one data returned, it will return a list with one element (data).
+
+    Parameters:
+        name: Name of the operator.
+        function: The operator function to execute. Defaults to default_operator_function.
+        description: Description of the operator. Defaults to None.
+        properties: Properties dictionary for the operator. Defaults to None.
+        validator: Validation function for operator attributes. Defaults to default_operator_validator.
+        explainer: Explanation function for operator output. Defaults to default_operator_explainer.
+        refiner: Refinement function for operator planning. Defaults to default_operator_refiner.
     """
 
     PROPERTIES = {}
 
     def __init__(
-        self,
-        name: str,
-        function: Callable = None,
-        description: str = None,
-        properties: Dict[str, Any] = None,
-        validator: Callable = None,
-        explainer: Callable = None,
-        refiner: Callable = None,
+        self, name: str, function: Callable = None, description: str = None, properties: Dict[str, Any] = None, validator: Callable = None, explainer: Callable = None, refiner: Callable = None
     ):
+        """Initialize the Operator.
 
+        Parameters:
+            name: Name of the operator.
+            function: The operator function to execute. Defaults to default_operator_function.
+            description: Description of the operator. Defaults to None.
+            properties: Properties dictionary for the operator. Defaults to None.
+            validator: Validation function for operator attributes. Defaults to default_operator_validator.
+            explainer: Explanation function for operator output. Defaults to default_operator_explainer.
+            refiner (callable): Refinement function for operator planning. Defaults to default_operator_refiner.
+        """
         if function is None:
             function = default_operator_function
         if validator is None:
@@ -178,9 +235,19 @@ class Operator(Tool):
                 attribute['type'] = tool_utils.convert_type_string_to_mcp(attribute['type'])
 
     def get_attributes(self):
+        """Get all operator attributes.
+
+        Returns:
+            (dict): Dictionary containing all operator attributes and their definitions.
+        """
         return self.properties["attributes"]
 
     def update_attributes(self, attributes=None):
+        """Update operator attributes with new definitions.
+
+        Parameters:
+            (dict, None): attributes: Dictionary of attribute definitions to update. Defaults to None.
+        """
         if attributes is None:
             return
 
@@ -192,12 +259,28 @@ class Operator(Tool):
         self._extract_signature()
 
     def get_attribute(self, attribute):
+        """Get a specific operator attribute definition.
+
+        Parameters:
+            attribute: Name of the attribute to retrieve.
+
+        Returns:
+            (dict, None): Dictionary containing the attribute definition, or None if not found.
+        """
         attributes = self.get_attributes()
         if attribute in attributes:
             return attributes[attribute]
         return None
 
     def get_attribute_type(self, attribute):
+        """Get the type of a specific operator attribute.
+
+        Parameters:
+            attribute: Name of the attribute.
+
+        Returns:
+            (str, None): String containing the attribute type, or None if not found.
+        """
         attribute = self.get_attribute(attribute)
         if attribute:
             if 'type' in attribute:
@@ -205,6 +288,14 @@ class Operator(Tool):
         return None
 
     def get_attribute_description(self, attribute):
+        """Get the description of a specific operator attribute.
+
+        Parameters:
+            attribute: Name of the attribute.
+
+        Returns:
+            (str, None): String containing the attribute description, or None if not found.
+        """
         attribute = self.get_attribute(attribute)
         if attribute:
             if 'description' in attribute:
@@ -212,6 +303,12 @@ class Operator(Tool):
         return None
 
     def set_attribute_description(self, attribute, description):
+        """Set the description of a specific operator attribute.
+
+        Parameters:
+            attribute: Name of the attribute.
+            description (str): New description for the attribute.
+        """
         attribute = self.get_attribute(attribute)
         if attribute:
             attribute['description'] = description
@@ -220,6 +317,12 @@ class Operator(Tool):
         return None
 
     def set_attribute_required(self, attribute, required):
+        """Set whether a specific operator attribute is required.
+
+        Parameters:
+            attribute: Name of the attribute.
+            required (bool): Boolean indicating if the attribute is required.
+        """
         attribute = self.get_attribute(attribute)
         if attribute:
             attribute['required'] = required
@@ -228,6 +331,12 @@ class Operator(Tool):
         return None
 
     def set_attribute_hidden(self, attribute, hidden):
+        """Set whether a specific operator attribute is hidden.
+
+        Parameters:
+            attribute: Name of the attribute.
+            hidden: Boolean indicating if the attribute is hidden.
+        """
         attribute = self.get_attribute(attribute)
         if attribute:
             attribute['hidden'] = hidden
@@ -236,6 +345,14 @@ class Operator(Tool):
         return None
 
     def is_attribute_required(self, attribute):
+        """Check if a specific operator attribute is required.
+
+        Parameters:
+            attribute: Name of the attribute.
+
+        Returns:
+            Boolean indicating if the attribute is required, or None if not found.
+        """
         attribute = self.get_attribute(attribute)
         if attribute:
             if 'required' in attribute:
@@ -243,6 +360,14 @@ class Operator(Tool):
         return None
 
     def is_attribute_hidden(self, attribute):
+        """Check if a specific operator attribute is hidden.
+
+        Parameters:
+            attribute: Name of the attribute.
+
+        Returns:
+            Boolean indicating if the attribute is hidden, or None if not found.
+        """
         attribute = self.get_attribute(attribute)
         if attribute:
             if 'hidden' in attribute:
@@ -250,9 +375,19 @@ class Operator(Tool):
         return None
 
     def get_hyperparameters(self):
+        """Get all operator hyperparameters.
+
+        Returns:
+            Dictionary containing all operator hyperparameters.
+        """
         return self.properties["hyperparameters"]
 
     def update_hyperparameters(self, hyperparameters=None):
+        """Update operator hyperparameters with new values.
+
+        Parameters:
+            hyperparameters: Dictionary of hyperparameter values to update. Defaults to None.
+        """
         if hyperparameters is None:
             return
         # override
@@ -262,14 +397,28 @@ class Operator(Tool):
     ######### Seperation functions to let LLM or other caller know if it's an operator or a function
     @classmethod
     def is_operator(cls, function_or_operator) -> bool:
-        """Check if a tool/operator is actually an operator."""
+        """Check if a tool/operator is actually an operator.
+
+        Parameters:
+            function_or_operator: The object to check.
+
+        Returns:
+            True if the object is an operator, False otherwise.
+        """
         if hasattr(function_or_operator, 'properties'):
             return function_or_operator.properties.get("tool_type") == "operator"
         return False
 
     @classmethod
     def get_tool_type(cls, function_or_operator) -> str:
-        """Get the type of a function/operator."""
+        """Get the type of a function/operator.
+
+        Parameters:
+            function_or_operator: The object to check.
+
+        Returns:
+            String indicating the type: "operator" or "function".
+        """
         if cls.is_operator(function_or_operator):
             return "operator"
         return "function"
@@ -279,7 +428,7 @@ class Operator(Tool):
     #     """
     #     Main entry point for operator execution.
     #     This method orchestrates the complete execution flow and returns a structured result.
-    #     Args:
+    #     Parameters:
     #         input_data: List of data sources, each containing JSON array of records
     #         attributes: Operator-specific attribute values (actual values, not definitions)
     #     Returns:
@@ -355,7 +504,7 @@ class Operator(Tool):
     #     Execute the actual operator-specific logic.
     #     This method contains the core logic for each operator type.
     #     Operators should override this method with their specific implementation.
-    #     Args:
+    #     Parameters:
     #         input_data: List of datas, each containing JSON array of records
     #         attributes: Operator-specific attribute values
     #     Returns:
@@ -371,14 +520,32 @@ class Operator(Tool):
 
 
 def declarative_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    """Default function for declarative operator, simply passes execution to sub plans"""
+    """Default function for declarative operator, simply passes execution to sub plans.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to process.
+        attributes: Dictionary containing operator-specific parameters.
+        properties: Optional properties dictionary containing plan definitions. Defaults to None.
+
+    Returns:
+        List containing empty results as default implementation.
+    """
     # TODO:
     # pass execution to plans
     return [[]]
 
 
 def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
-    """Default refiner for declarative operator, returning plans declaratively specified as operator properties"""
+    """Default refiner for declarative operator, returning plans declaratively specified as operator properties.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) containing records to process.
+        attributes: Dictionary containing operator-specific parameters.
+        properties: Optional properties dictionary containing plan definitions. Defaults to None.
+
+    Returns:
+        List containing pipeline definitions based on declarative plans.
+    """
     plans = properties['plans']
 
     if plans is None:
@@ -476,12 +643,30 @@ def declarative_operator_refiner(input_data: List[List[Dict[str, Any]]], attribu
 
 
 def declarative_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate operator discover operator attributes."""
+    """Validate declarative operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     return default_operator_validator(input_data, attributes=attributes, properties=properties)
 
 
 def declarative_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain declarative operator output."""
+    """Generate explanation for declarative operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the declarative operation.
+    """
     declarative_operator_explanation = {
         'output': output,
         'input_data': input_data,
@@ -492,9 +677,11 @@ def declarative_operator_explainer(output: Any, input_data: List[List[Dict[str, 
 
 
 class DeclarativeOperator(Operator):
-    """
-    DeclarativeOperator is a specialized Operator that declaratively specifies the execution of the operator as a set of plans.
+    """DeclarativeOperator is a specialized Operator that declaratively specifies the execution of the operator as a set of plans.
     Declarative plans are specified as part of the operator attributes `plans` which are added to the main plan as part of the planning / refine phase.
+
+    Parameters:
+        properties: Properties dictionary containing plan definitions and other operator properties. Defaults to None.
     """
 
     PROPERTIES = {"plans": []}

@@ -88,7 +88,7 @@ class CustomLogger:
     def __init__(self, config=None):
         """Initialize the CustomLogger.
 
-        Args:
+        Parameters:
             config: Configuration dictionary for the logger. If None, default configuration is used.
 
         """
@@ -117,7 +117,7 @@ class CustomLogger:
     def set_config_option(self, key, value):
         """Set a configuration option for the logger.
 
-        Args:
+        Parameters:
             key: Key of the configuration option.
             value: Value of the configuration option.
         """
@@ -127,7 +127,7 @@ class CustomLogger:
     def del_config_option(self, key):
         """Delete a configuration option for the logger.
 
-        Args:
+        Parameters:
             key: Key of the configuration option to delete.
         """
         del self.config['options'][key]
@@ -136,7 +136,7 @@ class CustomLogger:
     def set_config_output(self, key, value):
         """Set a configuration output option for the logger.
 
-        Args:
+        Parameters:
             key: Key of the configuration output option.
             value: Value of the configuration output option.
         """
@@ -150,7 +150,7 @@ class CustomLogger:
     def set_config_data(self, key, format, index=None):
         """Set a configuration data option for the logger.
 
-        Args:
+        Parameters:
             key: Key of the configuration data option.
             format: Format string for the configuration data option.
             index: Optional index to insert the configuration data option at. If None, append to the end.
@@ -183,7 +183,7 @@ class CustomLogger:
     def del_config_data(self, key):
         """Delete a configuration data option for the logger.
 
-        Args:
+        Parameters:
             key: Key of the configuration data option to delete.
         """
         # identify index
@@ -199,7 +199,7 @@ class CustomLogger:
     def setLevel(self, log_level):
         """Set the logging level for the logger.
 
-        Args:
+        Parameters:
             log_level: Logging level to set (e.g., logging.DEBUG, logging.INFO).
         """
         self.logger.setLevel(log_level)
@@ -207,7 +207,7 @@ class CustomLogger:
     def debug(self, message, *args, **kwargs):
         """Log a message with DEBUG level.
 
-        Args:
+        Parameters:
             message: Message to log.
         """
         self.log(logging.DEBUG, message, *args, **kwargs)
@@ -215,7 +215,7 @@ class CustomLogger:
     def info(self, message, *args, **kwargs):
         """Log a message with INFO level.
 
-        Args:
+        Parameters:
             message: Message to log.
         """
         self.log(logging.INFO, message, *args, **kwargs)
@@ -223,7 +223,7 @@ class CustomLogger:
     def warn(self, message, *args, **kwargs):
         """Log a message with WARN level.
 
-        Args:
+        Parameters:
             message: Message to log.
         """
         self.log(logging.WARN, message, *args, **kwargs)
@@ -231,7 +231,7 @@ class CustomLogger:
     def error(self, message, *args, **kwargs):
         """Log a message with ERROR level.
 
-        Args:
+        Parameters:
             message: Message to log.
         """
         self.log(logging.ERROR, message, *args, **kwargs)
@@ -239,7 +239,7 @@ class CustomLogger:
     def fatal(self, message, *args, **kwargs):
         """Log a message with FATAL level.
 
-        Args:
+        Parameters:
             message: Message to log.
         """
         self.log(logging.FATAL, message, *args, **kwargs)
@@ -247,7 +247,7 @@ class CustomLogger:
     def critical(self, message, *args, **kwargs):
         """Log a message with CRITICAL level.
 
-        Args:
+        Parameters:
             message: Message to log.
         """
         self.log(logging.CRITICAL, message, *args, **kwargs)
@@ -256,7 +256,7 @@ class CustomLogger:
     def log(self, level, message, *args, **kwargs):
         """Log a message with the specified level.
 
-        Args:
+        Parameters:
             level: Logging level (e.g., logging.DEBUG, logging.INFO).
             message: M
         """

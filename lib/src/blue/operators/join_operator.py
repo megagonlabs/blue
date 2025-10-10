@@ -9,6 +9,16 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 
 
 def join_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
+    """Perform N-way join on multiple JSON array data sources.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to join, requires at least 2 data sources.
+        attributes: Dictionary containing join parameters including join_on, join_type, join_suffix, and keep_keys.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        List containing the joined records from all data sources.
+    """
     join_on = attributes.get('join_on', [])
     join_type = attributes.get('join_type', 'inner')
     join_suffix = attributes.get('join_suffix', [])
@@ -34,6 +44,16 @@ def join_operator_function(input_data: List[List[Dict[str, Any]]], attributes: D
 
 
 def join_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
+    """Validate join operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise.
+    """
     try:
         if not default_operator_validator(input_data, attributes, properties):
             return False
@@ -70,12 +90,31 @@ def join_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: 
 
 
 def join_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate explanation for join operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 
 class JoinOperator(Operator):
     """
     Join operator performs N-way join on JSON array datas.
+
+    Attributes:
+    ----------
+    | Name        | Type           | Required | Default | Description                                      |
+    |------------|----------------|----------|---------|--------------------------------------------------|
+    | `join_on`    | list[list[str]] | True     | -       | List of join key lists for each data source     |
+    | `join_type`  | str             | False    | "inner" | Type of join: 'inner', 'left', 'right', 'outer'|
+    | `join_suffix`| list[str]       | False    | []      | Suffixes for non-key fields                      |
+    | `keep_keys`  | str             | False    | "left"  | 'left' to keep left keys only, 'both' to keep both |
     """
 
     PROPERTIES = {}

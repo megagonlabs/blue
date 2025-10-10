@@ -7,12 +7,31 @@ theme:
     custom_dir: overrides
     features:
         - navigation.instant
-        - content.action.edit
-        - content.action.view
+        - search.highlight
+        - search.suggest
     icon:
         admonition:
             example: fontawesome/solid/laptop-code
         repo: fontawesome/brands/github
+    palette:
+        - media: "(prefers-color-scheme)"
+          toggle:
+              icon: fontawesome/solid/laptop
+              name: Switch to light mode
+        - media: "(prefers-color-scheme: light)"
+          scheme: default
+          primary: custom
+          accent: custom
+          toggle:
+              icon: fontawesome/solid/sun
+              name: Switch to dark mode
+        - media: "(prefers-color-scheme: dark)"
+          scheme: slate
+          primary: custom
+          accent: custom
+          toggle:
+              icon: fontawesome/solid/moon
+              name: Switch to system preference
 watch:
     - ../lib/src/blue
 plugins:
@@ -31,6 +50,8 @@ markdown_extensions:
     - pymdownx.details
     - pymdownx.superfences
     - pymdownx.magiclink
+extra_css:
+    - stylesheets/extra.css
 extra:
     version:
         provider: mike

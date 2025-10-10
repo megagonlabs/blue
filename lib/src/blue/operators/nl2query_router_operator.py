@@ -15,12 +15,34 @@ from blue.data.pipeline import DataPipeline, Status
 
 
 def nl2query_router_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    # TODO:
+    """Route the execution of query to the right nl2q operator based on source.
+
+    NL2QueryRouterOperator only does plan refinement. This function simply returns empty output.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), uses first data source as base.
+        attributes: Dictionary containing operator attributes including search_query, columns, execute_query, protocol.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        Empty list.
+    """
     return [[]]
 
 
 def nl2query_router_operator_refiner(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    """Refine the nl2query router plan by constructing a data pipeline for each source or collection.
 
+    Depending on the protocol of the source/collection, it routes to either nl2llm or nl2sql operator, and may do additional data discovery.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), each array represents a source or collection to route the query to.
+        attributes: Dictionary containing operator attributes including search_query, columns, execute_query, protocol.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        List of data pipelines (as dictionaries) representing the refined nl2query router plans.
+    """
     pipelines = []
 
     if len(input_data) == 0:
@@ -154,7 +176,17 @@ def nl2query_router_operator_explainer(output: Any, input_data: List[List[Dict[s
 #
 class NL2QueryRouterOperator(Operator):
     """
-    nl2query router operator refines to the right nl2q operator based on source.
+    NL2Query router operator refines to the right nl2q operator based on source.
+
+    Attributes:
+    ----------
+    | Name           | Type        | Required | Default | Description                                                |
+    |----------------|------------|---------|---------|------------------------------------------------------------|
+    | `search_query`    | str        | True    | -       | Natural language query to process                          |
+    | `columns`         | list[dict] | False   | []      | List of attribute specifications (dicts with name and optional type) |
+    | `execute_query`   | bool       | False   | True    | Whether to execute query or just translate NL to query    |
+    | `protocol`        | str        | False   | ""      | Protocol of the source                                     |
+
     """
 
     PROPERTIES = {}

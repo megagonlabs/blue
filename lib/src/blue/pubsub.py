@@ -24,8 +24,24 @@ from blue.utils import uuid_utils, log_utils
 ### Consumer
 #
 class Consumer:
-    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, owner=None, listener=None, properties=None, on_stop=None):
+    """Consumer class to read messages from a Redis stream using consumer groups."""
 
+    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, owner=None, listener=None, properties=None, on_stop=None):
+        """Initialize the Consumer.
+
+        Parameters:
+            stream: Stream identifier to consume from.
+            name: Name of the consumer. Defaults to "STREAM".
+            id (str): Unique identifier for the consumer. If None, a UUID will be generated.
+            sid (str): Short identifier for the consumer. If None, it will be generated from name and id.
+            cid (str): Canonical identifier for the consumer. If None, it will be generated from sid, prefix, and suffix.
+            prefix (str): Optional prefix for the cid.
+            suffix (str): Optional suffix for the cid.
+            owner: Owner of the consumer for metadata
+            listener: Callback function to process each message.
+            properties: Properties for the consumer. Defaults to None.
+            on_stop (callable): Callback function to be called when the consumer stops.
+        """
         self.stream_cid = stream
         self.name = name
         if id:
@@ -78,18 +94,29 @@ class Consumer:
 
     ###### initialization
     def _initialize(self, properties=None):
+        """Initialize the consumer with properties.
+
+        Parameters:
+            properties: Properties to configure the consumer.
+        """
         self._initialize_properties()
         self._update_properties(properties=properties)
 
         self._initialize_logger()
 
     def _initialize_properties(self):
+        """Initialize default properties for the consumer."""
         self.properties = {}
         self.properties['num_threads'] = 1
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
 
     def _update_properties(self, properties=None):
+        """Update consumer properties with provided values.
+
+        Parameters:
+            properties: Dictionary of properties to update.
+        """
         if properties is None:
             return
 
@@ -98,6 +125,7 @@ class Consumer:
             self.properties[p] = properties[p]
 
     def _initialize_logger(self):
+        """Initialize the logger for the consumer. Sets consumer and stream in log data."""
         self.logger = log_utils.CustomLogger()
         # customize log
         self.logger.set_config_data(
@@ -109,10 +137,12 @@ class Consumer:
 
     ####### open connection, create group, start threads
     def _extract_epoch(self, id):
+        """Extract epoch time from Redis stream ID."""
         e = id.split("-")[0]
         return int(int(e) / 1000)
 
     def _idle_tracker_callback(self, data, tracker=None, properties=None):
+        """Callback function for idle tracking. Expires the consumer if idle beyond `consumer.expiration` based on `last_active`"""
         if properties is None:
             properties = self.properties
 
@@ -131,21 +161,25 @@ class Consumer:
                     self._stop()
 
     def _init_tracker(self):
+        """Initialize the idle tracker for the consumer."""
         self._tracker = IdleTracker(self, properties=self.properties, callback=lambda *args, **kwargs,: self._idle_tracker_callback(*args, **kwargs))
         self._tracker.start()
 
     def _start_tracker(self):
+        """Start the idle tracker for the consumer."""
         # start tracker
         self._tracker.start()
 
     def _stop_tracker(self):
+        """Stop the idle tracker for the consumer."""
         self._tracker.stop()
 
     def _terminate_tracker(self):
+        """Terminate the idle tracker for the consumer."""
         self._tracker.terminate()
 
     def start(self):
-
+        """Start the consumer: open connection, create group, and start threads."""
         # self.logger.info("Starting consumer {c} for stream {s}".format(c=self.sid,s=self.stream_cid))
         self.stop_signal = False
 
@@ -161,11 +195,13 @@ class Consumer:
         # self.logger.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream_cid))
 
     def stop(self):
+        """Stop the consumer and terminate the idle tracker."""
         self._terminate_tracker()
 
         self.stop_signal = True
 
     def _stop(self):
+        """Internal method to stop the consumer and call the on_stop callback."""
         self._terminate_tracker()
 
         self.stop_signal = True
@@ -174,16 +210,17 @@ class Consumer:
             self.on_stop(self.sid)
 
     def wait(self):
+        """Wait for all consumer threads to finish."""
         for t in self.threads:
             t.join()
 
     def _start_connection(self):
-
+        """Start the connection to the Redis server."""
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
     def _start_group(self):
-        # create group if it doesn't exists, print group info
+        """Create the consumer group if it doesn't exist."""
         s = self.stream_cid
         g = self.cid
         r = self.connection
@@ -207,9 +244,11 @@ class Consumer:
             self.logger.info(f"{s} -> group name: {i['name']} with {i['consumers']} consumers and {i['last-delivered-id']}" + f" as last read id")
 
     def get_stream(self):
+        """Get the stream ID for the consumer."""
         return self.stream_cid
 
     def get_group(self):
+        """Get the consumer group ID."""
         return self.cid
 
     # async def response_handler(self, message: Message):
@@ -235,6 +274,7 @@ class Consumer:
 
     # async def _consume_stream(self, c):
     def _consume_stream(self, c):
+        """Consume messages from the Redis stream using consumer group. Construct a `Message` object for each message and pass it to the listener callback."""
         s = self.stream_cid
         g = self.cid
         r = self.connection
@@ -320,6 +360,7 @@ class Consumer:
         # self.logger.info("[Thread {c}]: finished".format(c=c))
 
     def _start_threads(self):
+        """Start consumer threads to read from the stream."""
         # start threads
         num_threads = self.properties['num_threads']
 
@@ -331,6 +372,7 @@ class Consumer:
             self.threads.append(t)
 
     def _delete_stream(self):
+        """Delete all messages from the stream."""
         s = self.stream_cid
         r = self.connection
 
@@ -343,6 +385,8 @@ class Consumer:
 ### Producer
 #
 class Producer:
+    """Producer class to write messages to a Redis stream."""
+
     def __init__(
         self,
         name="STREAM",
@@ -354,7 +398,18 @@ class Producer:
         owner=None,
         properties=None,
     ):
+        """Initialize the Producer.
 
+        Parameters:
+            name: Name of the producer. Defaults to "STREAM".
+            id: Unique identifier for the producer. If None, a UUID will be generated.
+            sid: Short identifier for the producer. If None, it will be generated from name and id.
+            cid: Canonical identifier for the producer. If None, it will be generated from sid, prefix, and suffix.
+            prefix: Optional prefix for the cid.
+            suffix: Optional suffix for the cid.
+            owner: Owner of the producer for metadata
+            properties: Properties for the producer. Defaults to None.
+        """
         self.name = name
         if id:
             self.id = id
@@ -388,12 +443,18 @@ class Producer:
 
     ###### INITIALIZATION
     def _initialize(self, properties=None):
+        """Initialize the producer with properties.
+
+        Parameters:
+            properties: Properties to configure the producer.
+        """
         self._initialize_properties()
         self._update_properties(properties=properties)
 
         self._initialize_logger()
 
     def _initialize_properties(self):
+        """Initialize default properties for the producer."""
         self.properties = {}
 
         # db connectivity
@@ -401,6 +462,11 @@ class Producer:
         self.properties["db.port"] = 6379
 
     def _update_properties(self, properties=None):
+        """Update producer properties with provided values.
+
+        Parameters:
+            properties: Dictionary of properties to update.
+        """
         if properties is None:
             return
 
@@ -409,6 +475,7 @@ class Producer:
             self.properties[p] = properties[p]
 
     def _initialize_logger(self):
+        """Initialize the logger for the producer. Sets producer and stream in log data."""
         self.logger = log_utils.CustomLogger()
         # customize log
         self.logger.set_config_data(
@@ -419,6 +486,7 @@ class Producer:
 
     ####### open connection, create group, start threads
     def start(self):
+        """Start the producer: open connection and initialize the stream."""
         # self.logger.info("Starting producer {p}".format(p=self.sid))
         self._start_connection()
 
@@ -426,10 +494,12 @@ class Producer:
         # self.logger.info("Started producer {p}".format(p=self.sid))
 
     def _start_connection(self):
+        """Start the connection to the Redis server."""
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
     def _start_stream(self):
+        """Initialize the stream by adding a BOS (beginning of stream) message if the stream is empty."""
         # start stream by adding BOS
         s = self.cid
         r = self.connection
@@ -449,16 +519,24 @@ class Producer:
         r = self.connection
 
     def get_stream(self):
+        """Get the stream ID for the producer."""
         return self.cid
 
     # stream
     def write_bos(self):
+        """Write a beginning of stream (BOS) message to the stream."""
         self.write(Message.BOS)
 
     def write_eos(self):
+        """Write an end of stream (EOS) message to the stream."""
         self.write(Message.EOS)
 
     def write_data(self, data):
+        """Write a data message to the stream.
+
+        Parameters:
+            data: Data to be written to the stream. Can be int, float, str, or dict.
+        """
         # default to string
         content_type = ContentType.STR
         if type(data) == int:
@@ -472,12 +550,28 @@ class Producer:
         self.write(Message(MessageType.DATA, data, content_type))
 
     def write_control(self, code, args):
+        """Write a control message to the stream.
+
+        Parameters:
+            code: Control code for the message.
+            args: Arguments for the control message.
+        """
         self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON))
 
     def write(self, message):
+        """Write a message to the stream.
+
+        Parameters:
+            message: Message object to be written to the stream.
+        """
         self._write_message_to_stream(json.loads(message.toJSON()))
 
     def _write_message_to_stream(self, json_message):
+        """Internal method to write a JSON message to the Redis stream.
+
+        Parameters:
+            json_message: JSON representation of the message to be written.
+        """
         # self.logger.info("json_message: " + json_message)
         id = self.connection.xadd(self.cid, json_message)
         # self.logger.info("Streamed into {s} message {m}".format(s=self.cid, m=str(json_message)))
@@ -488,6 +582,10 @@ class Producer:
             self.stream.set_metadata('producers.' + self.owner, metadata)
 
     def read_all(self):
+        """Read all messages from the stream.
+        Returns:
+            (list[Message]): List of Message objects read from the stream.
+        """
         sl = self.connection.xlen(self.cid)
         m = self.connection.xread(streams={self.cid: "0"}, count=sl, block=200)
         messages = []

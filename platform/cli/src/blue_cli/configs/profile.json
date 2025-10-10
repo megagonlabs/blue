@@ -25,7 +25,7 @@
     },
     "BLUE_BUILD_PLATFORM": {
         "default": null,
-        "prompt": "List of build platforms for docker (e.g. lunix/amd64,linux/arm64)",
+        "prompt": "List of build platforms for docker (e.g. linux/amd64,linux/arm64)",
         "required": true,
         "cast": "str"
     },

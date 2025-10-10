@@ -18,13 +18,23 @@ from blue.utils import json_utils
 ### RayToolClient
 #
 class RayToolClient(ToolClient):
+    """A RayToolClient connects to a Ray ToolServer and interfaces with its tools"""
+
     def __init__(self, name, tools={}, properties={}):
+        """Initialize a RayToolClient instance.
+
+        Parameters:
+            name: Name of the tool client
+            tools: A dictionary of tool name to Tool object
+            properties: Properties of the tool client
+        """
         super().__init__(name, properties=properties)
 
         self.tools = tools
 
     ###### connection
     def _initialize_connection_properties(self):
+        """Initialize default connection properties for Ray tool client."""
         super()._initialize_connection_properties()
 
         # set host, port, protocol
@@ -34,6 +44,7 @@ class RayToolClient(ToolClient):
 
     ###### connection
     def _connect(self, **connection):
+        """Connect to Ray tool server."""
         c = copy.deepcopy(connection)
         if 'protocol' in c:
             del c['protocol']
@@ -51,19 +62,38 @@ class RayToolClient(ToolClient):
         return {}
 
     def _disconnect(self):
+        """Disconnect from Ray tool server."""
         if ray.is_initialized():
             ray.shutdown()
         return None
 
     ######### server
     def fetch_metadata(self):
+        """Fetch metadata for the Ray tool server.
+
+        Returns:
+            An empty dictionary since no metadata is necessary for Ray tool server.
+        """
         return {}
 
     ######### tool
     def fetch_tools(self):
+        """Get a list of available tools on Ray tool server.
+
+        Returns:
+            List of tool names
+        """
         return list(self.tools.keys())
 
     def fetch_tool_metadata(self, tool):
+        """Fetch metadata for a specific tool on Ray tool server.
+
+        Parameters:
+            tool: Name of the tool
+
+        Returns:
+            Metadata dictionary for the tool
+        """
         metadata = {}
 
         if tool in self.tools:
@@ -76,6 +106,19 @@ class RayToolClient(ToolClient):
 
     ######### execute tool
     def execute_tool(self, tool, args, kwargs):
+        """Execute a specific tool on Ray tool server.
+
+        Parameters:
+            tool: Name of the tool
+            args: Arguments for the tool function
+            kwargs: Keyword arguments for the tool function
+
+        Raises:
+            Exception: If no tool matches the given name
+
+        Returns:
+            Result of the tool execution
+        """
         if tool is None:
             raise Exception("No tool matching...")
 

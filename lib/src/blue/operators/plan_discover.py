@@ -92,7 +92,22 @@ def plan_discover_operator_explainer(output: Any, input_data: List[List[Dict[str
 #
 class PlanDiscoverOperator(Operator):
     """
-    plan discover operator that searches for top-level operators as plan starters, given a task and data
+    Plan discover operator that searches for top-level operators as plan starters, given a task and data
+
+    Attributes:
+    ----------
+    | Name                    | Type  | Required | Default | Description                                                                                       |
+    |-------------------------|-------|----------|---------|---------------------------------------------------------------------------------------------------|
+    | `task`                  | str   | True     | ""      | Task to discover plans/operators                                                                 |
+    | `data`                  | str   | True     | ""      | Data to operate the task on                                                                      |
+    | `approximate`           | bool  | True     | True    | Whether to use approximate (vector) search                                                      |
+    | `hybrid`                | bool  | False    | False   | Whether to use hybrid search (text + vector)                                                   |
+    | `limit`                 | int   | False    | -1      | Max number of results to return (-1 for unlimited)                                             |
+    | `page`                  | int   | False    | 0       | Page number for pagination                                                                      |
+    | `page_size`             | int   | False    | 10      | Number of results per page (default: 10, max: 100)                                             |
+    | `include_metadata`      | bool  | False    | False   | Whether to include metadata in results (description and properties always included)            |
+    | `threshold`             | float | False    | 0.5     | Similarity threshold for filtering results (0.0-1.0, lower = more similar; applies to approximate/hybrid search) |
+    | `progressive_pagination`| bool  | False    | False   | Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded) |
     """
 
     PROPERTIES = {}

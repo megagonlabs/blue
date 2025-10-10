@@ -14,7 +14,17 @@ from blue.properties import PROPERTIES
 
 
 def query_breakdown_operator_function(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> List[List[Dict[str, Any]]]:
-    """Process natural language query using LLM models and subsqueries along with metadata"""
+    """
+    Process natural language query using LLM models, identifies subsqueries along with metadata such as sql, columns, dependencies, and generality of the subquery.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]), passes through unchanged.
+        attributes: Dictionary containing query breakdown parameters including query, context, num_alternatives, and schema.
+        properties: Optional properties dictionary containing service client information. Defaults to None.
+
+    Returns:
+        List containing the output of the query breakdown execution.
+    """
     # Extract attributes
     query = attributes.get('query', '')
     context = attributes.get('context', '')
@@ -33,12 +43,30 @@ def query_breakdown_operator_function(input_data: List[List[Dict[str, Any]]], at
 
 
 def query_breakdown_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-    """Validate query breakdown operator attributes."""
+    """
+    Validate query breakdown operator attributes.
+
+    Parameters:
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
+
+    Returns:
+        True if attributes are valid, False otherwise."""
     return default_operator_validator(input_data, attributes, properties)
 
 
 def query_breakdown_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Explain query breakdown operator output. Currently only returns attributes and output"""
+    """
+    Explain query breakdown operator output. Currently only returns attributes and output.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation."""
     query_breakdown_explanation = {
         'output': output,
         "attributes": attributes,
@@ -47,6 +75,22 @@ def query_breakdown_operator_explainer(output: Any, input_data: List[List[Dict[s
 
 
 class QueryBreakdownOperator(Operator, ServiceClient):
+    """Query Breakdown Operator
+
+    This operator processes a natural language query and breaks it down into subqueries using common table expressions (CTEs).
+    It leverages LLM models to generate SQL statements, descriptions, columns, dependencies, and generality scores for each subquery.
+
+    Attributes:
+    ----------
+    | Name             | Type | Required | Default | Description                                      |
+    |-----------------|------|----------|---------|--------------------------------------------------|
+    | `query`           | str  | True     | —       | Natural language query to process               |
+    | `context`         | str  | False    | ""      | Optional context to provide domain knowledge    |
+    | `schema`          | str  | False    | []      | Optional schema to match                        |
+    | `num_alternatives` | int  | False    | 1       | Optional number of alternatives to generate     |
+
+    """
+
     PROMPT = """
 Your task is to process a natural language query, and break it down to its subqueries.  
 Your strategy is to translate the natural language query into SQL, defining each subquery as common table expressions (CTE):
