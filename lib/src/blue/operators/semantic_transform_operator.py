@@ -736,9 +736,9 @@ class SemanticTransformOperator(Operator, ServiceClient):
     ----------
     | Name     | Type | Required | Default | Description |
     |----------|------|----------|---------|-------------|
-    | `input_meta` | dict | False | {} | Optional metadata about input fields |
-    | `output_desc` | dict | True | N/A | Required description of target fields to create |
-    | `strategy` | str | False | "auto" | Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization) |
+    | `input_meta` | dict |  | {} | Optional metadata about input fields |
+    | `output_desc` | dict | :fontawesome-solid-circle-check: {.green-check} | N/A | Required description of target fields to create |
+    | `strategy` | str |  | "auto" | Execution strategy: 'auto' (automatic cost-based selection), 'per_record' (one LLM call per record), 'distinct_required_values' (deduplicate by distinct values), 'distinct_required_values_with_merged_fields' (merged distinct optimization) |
 
 
     """

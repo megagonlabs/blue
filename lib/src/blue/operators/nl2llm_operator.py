@@ -95,9 +95,9 @@ class NL2LLMOperator(Operator, ServiceClient):
     ----------
     | Name    | Type       | Required | Default | Description                                               |
     |---------|------------|----------|---------|-----------------------------------------------------------|
-    | `query`   | str        | Yes      | -       | Natural language query to process                         |
-    | `context` | str        | No       | ""      | Optional context to provide domain knowledge             |
-    | `attrs`   | list[dict] | No       | []      | List of attribute specifications (dicts with name and optional type) |
+    | `query`   | str        | :fontawesome-solid-circle-check: {.green-check}      | -       | Natural language query to process                         |
+    | `context` | str        |        | ""      | Optional context to provide domain knowledge             |
+    | `attrs`   | list[dict] |        | []      | List of attribute specifications (dicts with name and optional type) |
 
     """
 

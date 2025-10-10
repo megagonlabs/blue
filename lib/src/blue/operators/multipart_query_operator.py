@@ -283,11 +283,11 @@ class MultipartQueryOperator(Operator):
     """
     Multipart query operator orchestrates the execution of multi-part query, starting with data discovery, and exectution.
 
-    Attributes
+    Attributes:
     -------------
     | Name      | Type  | Required | Default | Description                                         |
     |-----------|-------|----------|---------|-----------------------------------------------------|
-    | `serialize` | bool  | False    | True    | Whether to serialize each part of the query        |
+    | `serialize` | bool  |     | True    | Whether to serialize each part of the query        |
 
 
     """
