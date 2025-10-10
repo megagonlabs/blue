@@ -84,7 +84,7 @@ def resolve_agent_image(image, version=None):
     if len(s) > 1:
         image = s[0]
         suffix = s[1]
-    return image + ":" + suffix
+    return image + ":v" + suffix
 
 
 def container_acl_enforce(request: Request, agent: dict, read=False, write=False, throw=True):
