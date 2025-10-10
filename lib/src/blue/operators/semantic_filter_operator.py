@@ -136,10 +136,10 @@ class SemanticFilterOperator(Operator, ServiceClient):
     ----------
     | Name               | Type            | Required | Default | Description                                                                 |
     |-------------------|----------------|----------|---------|-----------------------------------------------------------------------------|
-    | `filter_conditions`  | dict[str, str]  | True     | -       | Dictionary mapping field names to natural language filter conditions       |
-    | `context`            | str             | False    | ""      | Optional context to provide domain knowledge or additional instructions    |
-    | `demonstrations`     | str             | False    | ""      | Optional demonstrations to help in-context learning                        |
-    | `return_idx`         | boolean         | False    | False   | If true, return indices of records that satisfy all conditions, else return filtered records |
+    | `filter_conditions`  | dict[str, str]  | :fontawesome-solid-circle-check: {.green-check}     | -       | Dictionary mapping field names to natural language filter conditions       |
+    | `context`            | str             |     | ""      | Optional context to provide domain knowledge or additional instructions    |
+    | `demonstrations`     | str             |     | ""      | Optional demonstrations to help in-context learning                        |
+    | `return_idx`         | boolean         |     | False   | If true, return indices of records that satisfy all conditions, else return filtered records |
 
     """
 

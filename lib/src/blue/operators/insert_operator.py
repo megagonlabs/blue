@@ -103,12 +103,12 @@ class InsertOperator(Operator):
     Insert operator inserts records into the first data source at specified positions.
     Records come from attributes or second data group.
 
-    Attributes
+    Attributes:
     ----------
     | Name           | Type                 | Required | Default | Description                                                                                           |
     |----------------|--------------------|----------|---------|-------------------------------------------------------------------------------------------------------|
-    | `insert_records` | list[dict]          | False    | []      | List of records to insert into the first data source (optional if second data group provided)       |
-    | `insert_idx`     | Union[int, list[int]] | False    | -1      | Position(s) to insert records (-1 for append, 0+ for specific position). If list, each element corresponds to position for each record.                         |
+    | `insert_records` | list[dict]          |     | []      | List of records to insert into the first data source (optional if second data group provided)       |
+    | `insert_idx`     | Union[int, list[int]] |     | -1      | Position(s) to insert records (-1 for append, 0+ for specific position). If list, each element corresponds to position for each record.                         |
 
     """
 

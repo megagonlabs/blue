@@ -84,10 +84,10 @@ class QueryBreakdownOperator(Operator, ServiceClient):
     ----------
     | Name             | Type | Required | Default | Description                                      |
     |-----------------|------|----------|---------|--------------------------------------------------|
-    | `query`           | str  | True     | —       | Natural language query to process               |
-    | `context`         | str  | False    | ""      | Optional context to provide domain knowledge    |
-    | `schema`          | str  | False    | []      | Optional schema to match                        |
-    | `num_alternatives` | int  | False    | 1       | Optional number of alternatives to generate     |
+    | `query`           | str  | :fontawesome-solid-circle-check: {.green-check}     | -       | Natural language query to process               |
+    | `context`         | str  |     | ""      | Optional context to provide domain knowledge    |
+    | `schema`          | str  |     | []      | Optional schema to match                        |
+    | `num_alternatives` | int  |     | 1       | Optional number of alternatives to generate     |
 
     """
 

@@ -211,15 +211,15 @@ def _extract_entities_individual_prompts(
 class SemanticExtractOperator(Operator, ServiceClient):
     """
     Semantic extract operator extracts entities from natural language text fields using LLM models.
-    
+
     Attributes:
     ----------
     | Name                     | Type          | Required | Default | Description                                                                                                                   |
     |--------------------------|---------------|----------|---------|-------------------------------------------------------------------------------------------------------------------------------|
-    | `entities`                 | list[dict]    | True     | N/A     | List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional) |
-    | `context`                  | str           | False    | ""      | Additional context information that provides domain knowledge or additional instructions for the extraction                  |
-    | `demonstrations`           | str           | False    | ""      | Additional demonstrations to help in-context learning                                                                       |
-    | `extract_with_single_prompt` | bool         | False    | True    | If true, extract all entities in a single prompt, else extract each entity with individual prompt                             |
+    | `entities`                 | list[dict]    | :fontawesome-solid-circle-check: {.green-check}     | N/A     | List of entities to extract. Each dict has 'name', 'description' (optional), 'extract_on_fields' (optional list of field names - if not provided, extracts from all fields), and 'type' (optional) |
+    | `context`                  | str           |     | ""      | Additional context information that provides domain knowledge or additional instructions for the extraction                  |
+    | `demonstrations`           | str           |     | ""      | Additional demonstrations to help in-context learning                                                                       |
+    | `extract_with_single_prompt` | bool         |     | True    | If true, extract all entities in a single prompt, else extract each entity with individual prompt                             |
     """
 
     SINGLE_EXTRACT_PROMPT = """## Task

@@ -2,3 +2,10 @@
     --md-primary-fg-color: #108ee2;
     --md-accent-fg-color: #108ee2;
 }
+.green-check {
+    color: #238551;
+}
+.twemoji {
+    height: 14.5px;
+    width: 14.5px;
+}

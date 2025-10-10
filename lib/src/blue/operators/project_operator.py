@@ -118,8 +118,8 @@ class ProjectOperator(Operator):
     ----------
     | Name        | Type         | Required | Default | Description                                |
     |------------|-------------|---------|--------|--------------------------------------------|
-    | `kept_keys`  | list[str]   | True    | —      | List of keys to keep in each record       |
-    | `key_mapping`| dict[str, str]| False   | {}     | Dictionary mapping old key names to new key names |
+    | `kept_keys`  | list[str]   | :fontawesome-solid-circle-check: {.green-check}    | -      | List of keys to keep in each record       |
+    | `key_mapping`| dict[str, str]|    | {}     | Dictionary mapping old key names to new key names |
     """
 
     PROPERTIES = {}

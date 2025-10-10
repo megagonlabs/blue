@@ -157,11 +157,11 @@ class SelectOperator(Operator):
     ----------
     | Name               | Type  | Required | Default | Description                                           |
     |-------------------|-------|---------|--------|-------------------------------------------------------|
-    | `operand_key`        | str   | True    | -      | The key to check in each record                       |
-    | `operand`            | str   | True    | -      | Comparison operator: =, !=, >, >=, <, <=             |
-    | `operand_val`        | Any   | True    | -      | Value to compare with                                  |
-    | `approximate_match`  | bool  | False   | False  | Use epsilon tolerance for numeric comparison          |
-    | `eps`                | float | False   | 1e-9   | Epsilon tolerance for approximate numeric comparison  |
+    | `operand_key`        | str   | :fontawesome-solid-circle-check: {.green-check}    | -      | The key to check in each record                       |
+    | `operand`            | str   | :fontawesome-solid-circle-check: {.green-check}    | -      | Comparison operator: =, !=, >, >=, <, <=             |
+    | `operand_val`        | Any   | :fontawesome-solid-circle-check: {.green-check}    | -      | Value to compare with                                  |
+    | `approximate_match`  | bool  |    | False  | Use epsilon tolerance for numeric comparison          |
+    | `eps`                | float |    | 1e-9   | Epsilon tolerance for approximate numeric comparison  |
 
     """
 

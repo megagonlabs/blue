@@ -150,11 +150,11 @@ class InsertTableOperator(Operator):
     ----------
     | Name       | Type | Required | Default          | Description                                                                 |
     |------------|------|----------|-----------------|-----------------------------------------------------------------------------|
-    | `source`     | str  | True     | default_source  | Name of the data source where the table is located                          |
-    | `database`   | str  | True     | default         | Name of the database where the table is located                             |
-    | `collection` | str  | False    | public          | Name of the collection where the table is located. For SQLite sources, defaults to 'public' if not specified |
-    | `table`      | str  | True     | ""              | Name of the table to insert data into                                       |
-    | `batch_size` | int  | False    | 100             | Number of rows to insert in each batch (default: 100)                       |
+    | `source`     | str  | :fontawesome-solid-circle-check: {.green-check}     | default_source  | Name of the data source where the table is located                          |
+    | `database`   | str  | :fontawesome-solid-circle-check: {.green-check}     | default         | Name of the database where the table is located                             |
+    | `collection` | str  |     | public          | Name of the collection where the table is located. For SQLite sources, defaults to 'public' if not specified |
+    | `table`      | str  | :fontawesome-solid-circle-check: {.green-check}     | ""              | Name of the table to insert data into                                       |
+    | `batch_size` | int  |     | 100             | Number of rows to insert in each batch (default: 100)                       |
 
     """
 

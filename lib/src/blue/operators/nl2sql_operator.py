@@ -162,16 +162,16 @@ class NL2SQLOperator(Operator, ServiceClient):
     ----------
     | Name                  | Type         | Required | Default   | Description                                                                 |
     |-----------------------|--------------|----------|-----------|-----------------------------------------------------------------------------|
-    | `source`              | str          | True     | ""        | Data source name                                                            |
-    | `question`            | str          | True     |           | Natural language question to translate to SQL                               |
-    | `protocol`            | str          | True     | "postgres"| Database protocol (postgres, mysql, sqlite)                                 |
-    | `database`            | str          | True     | ""        | Database name                                                               |
-    | `collection`          | str          | True     | ""        | Collection/schema name                                                      |
-    | `case_insensitive`    | bool         | False    | True      | Case insensitive string matching                                            |
-    | `additional_requirements`| str         | False    | ""        | Additional requirements for SQL generation                                  |
-    | `context`             | str          | False    | ""        | Optional context for domain knowledge                                       |
-    | `schema`              | str          | False    | ""        | JSON string of database schema (optional - will be fetched automatically if not provided) |
-    | `attr_names`          | list[str]    | False    | []        | Optional list of target field names for the output objects                 |
+    | `source`              | str          | :fontawesome-solid-circle-check: {.green-check}     | ""        | Data source name                                                            |
+    | `question`            | str          | :fontawesome-solid-circle-check: {.green-check}     |           | Natural language question to translate to SQL                               |
+    | `protocol`            | str          | :fontawesome-solid-circle-check: {.green-check}     | "postgres"| Database protocol (postgres, mysql, sqlite)                                 |
+    | `database`            | str          | :fontawesome-solid-circle-check: {.green-check}     | ""        | Database name                                                               |
+    | `collection`          | str          | :fontawesome-solid-circle-check: {.green-check}     | ""        | Collection/schema name                                                      |
+    | `case_insensitive`    | bool         |     | True      | Case insensitive string matching                                            |
+    | `additional_requirements`| str         |     | ""        | Additional requirements for SQL generation                                  |
+    | `context`             | str          |     | ""        | Optional context for domain knowledge                                       |
+    | `schema`              | str          |     | ""        | JSON string of database schema (optional - will be fetched automatically if not provided) |
+    | `attr_names`          | list[str]    |     | []        | Optional list of target field names for the output objects                 |
 
     """
 
