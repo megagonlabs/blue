@@ -283,7 +283,7 @@ class MultipartQueryOperator(Operator):
     """
     Multipart query operator orchestrates the execution of multi-part query, starting with data discovery, and exectution.
 
-    Attributes
+    Attributes:
     -------------
     | Name      | Type  | Required | Default | Description                                         |
     |-----------|-------|----------|---------|-----------------------------------------------------|

@@ -322,7 +322,7 @@ class DataDiscoverOperator(Operator):
     """
      Data discover operator that searches for data sources
 
-    Attributes
+    Attributes:
     ----------
     | Name                   | Type   | Required | Default | Description |
     |-------------------------|--------|-----------|----------|--------------|

@@ -103,7 +103,7 @@ class InsertOperator(Operator):
     Insert operator inserts records into the first data source at specified positions.
     Records come from attributes or second data group.
 
-    Attributes
+    Attributes:
     ----------
     | Name           | Type                 | Required | Default | Description                                                                                           |
     |----------------|--------------------|----------|---------|-------------------------------------------------------------------------------------------------------|

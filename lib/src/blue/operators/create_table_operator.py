@@ -211,7 +211,7 @@ class CreateTableOperator(Operator):
     """
     Create table operator that creates tables (entities) in database collections
 
-    Attributes
+    Attributes:
     ----------
     | Name         | Type  | Required | Default          | Description                                                                 |
     |---------------|-------|-----------|------------------|-----------------------------------------------------------------------------|

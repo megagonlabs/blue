@@ -124,7 +124,7 @@ class CreateDatabaseOperator(Operator):
     """
     Create database operator that creates databases in data sources.
 
-    Attributes
+    Attributes:
     ----------
     | Name         | Type | Required | Default | Description |
     |---------------|------|-----------|----------|--------------|
