@@ -204,7 +204,7 @@
         "cast": "str"
     },
     "FIREBASE_CLIENT_ID": {
-        "default": "blue-9d597",
+        "default": "blue-public",
 	    "prompt": "FireBase Client ID",
         "required": false,
         "cast": "str"
