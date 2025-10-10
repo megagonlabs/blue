@@ -1113,7 +1113,7 @@
       "tracker.autostart": false,
       "hilite": "soft skills",
       "questions": {
-        "se_skills": "what skills are required for ${input} jobs?"
+        "se_skills": "what unique set of skills are required for ${input} jobs?"
       },
       "tracker.outputs": [
         "log.INFO"
