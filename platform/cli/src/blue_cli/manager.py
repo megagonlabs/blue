@@ -401,7 +401,7 @@ class PlatformManager:
 
         if platform_attributes is None:
             platform_attributes = {}
-    
+
         for platform_attribute in self._platform_attributes_config:
             platform_attribute_config = self._platform_attributes_config[platform_attribute]
             prompt = platform_attribute_config['prompt']
@@ -409,7 +409,7 @@ class PlatformManager:
 
             ### dynamic overrides
             # set default version dynamically, if not set
-            if  platform_attribute == "BLUE_DEPLOY_VERSION" and default == "":
+            if platform_attribute == "BLUE_DEPLOY_VERSION" and default == "":
                 default = version('blue-platform')
 
             cast = platform_attribute_config['cast']
@@ -679,7 +679,9 @@ class PlatformManager:
         client.volumes.create(name=f"blue_{BLUE_DEPLOY_PLATFORM}_data", driver='local', driver_opts={'type': 'none', 'o': 'bind', 'device': f"{BLUE_DATA_DIR}/{BLUE_DEPLOY_PLATFORM}"})
 
         # create example data volume
-        client.volumes.create(name=f"blue_{BLUE_DEPLOY_PLATFORM}_example_data", driver='local', driver_opts={'type': 'none', 'o': 'bind', 'device': f"{BLUE_DATA_DIR}/example/{BLUE_DEPLOY_PLATFORM}"})
+        client.volumes.create(
+            name=f"blue_{BLUE_DEPLOY_PLATFORM}_example_data", driver='local', driver_opts={'type': 'none', 'o': 'bind', 'device': f"{BLUE_DATA_DIR}/example/{BLUE_DEPLOY_PLATFORM}"}
+        )
 
     def _remove_docker_volume(self, client, config):
         BLUE_DATA_DIR = config["BLUE_DATA_DIR"]
@@ -838,7 +840,6 @@ class PlatformManager:
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_BUILD_IMG_SUFFIX = config["BLUE_BUILD_IMG_SUFFIX"]
-        
 
         # check deployment mode
         BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
@@ -851,12 +852,12 @@ class PlatformManager:
 
         ### create network
         print("Creating network: " + "blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge")
-        try: 
+        try:
             client.networks.create(name="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge", driver="bridge", attachable=True, internal=False, scope="local")
         except Exception:
             print("Already running... Exiting start")
             return
-        
+
         ### run redis, api, and frontend
         BLUE_PRIVATE_DB_SERVER_PORT = config["BLUE_PRIVATE_DB_SERVER_PORT"]
         # redis
@@ -901,7 +902,7 @@ class PlatformManager:
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
-            hostname="blue_platform_ray",
+            hostname="blue_server_ray",
             ports={str(BLUE_PRIVATE_RAY_SERVER_PORT): 6380},
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "ray"},
@@ -1488,6 +1489,7 @@ class ServiceName(click.Group):
                 args.insert(0, "")
         super(ServiceName, self).parse_args(ctx, args)
 
+
 class DataRegistryManager:
     """
     Data Registry Manager for handling sources in Redis.
@@ -1501,7 +1503,6 @@ class DataRegistryManager:
         # Dynamic Redis key
         self.DATA_REGISTRY_KEY = f"{self.platform_prefix}:{self.platform}:DATA_REGISTRY:{self.registry}:DATA"
 
-
     def __connect_redis(self, host, port, db):
         try:
             client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
@@ -1514,22 +1515,20 @@ class DataRegistryManager:
     def __ensure_registry_exists(self):
         """Ensure the root JSON structure exists in RedisJSON."""
         if not self.redis_client.json().get(self.DATA_REGISTRY_KEY):
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY, "$", {"contents": {"source": {}}}
-            )
+            self.redis_client.json().set(self.DATA_REGISTRY_KEY, "$", {"contents": {"source": {}}})
 
     def create_source(self, source_name, source_data):
         """Create a new source in the registry. Fails if the source already exists."""
         self.__ensure_registry_exists()
-        
+
         # Check if the source already exists
         existing = self.get_source(source_name)
         if existing:
             raise RuntimeError(f"Source '{source_name}' already exists.")
 
         source_data["type"] = "source"
-        source_data["scope"] =  f"/"
-       
+        source_data["scope"] = f"/"
+
         # Ensure the source has a contents dict for child objects
         if "contents" not in source_data:
             source_data["contents"] = {}
@@ -1538,7 +1537,6 @@ class DataRegistryManager:
         self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, source_data)
         logger.info(f"Source '{source_name}' created successfully.")
         return True
-
 
     def create_database(self, source_name, database_name, database_data):
         """Create a new database under a source in the registry."""
@@ -1556,39 +1554,29 @@ class DataRegistryManager:
         # Ensure the source has a contents dict
         if "contents" not in source:
             source["contents"] = {}
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY,
-                f"$.contents.source.{source_name}",
-                source
-            )
+            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}", source)
 
         # Ensure the "database" dict exists under contents
         if "database" not in source["contents"] or not isinstance(source["contents"]["database"], dict):
             source["contents"]["database"] = {}
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY,
-                f"$.contents.source.{source_name}.contents.database",
-                {}
-            )
-        
+            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database", {})
+
         # Check if database already exists
         existing = self.get_database(source_name, database_name)
         if existing:
             raise RuntimeError(f"Database '{database_name}' already exists in source '{source_name}'.")
 
         database_data["type"] = "database"
-        database_data["scope"] =  f"/source/{source_name}"
-       
+        database_data["scope"] = f"/source/{source_name}"
+
         # Ensure the source has a contents dict for child objects
         if "contents" not in database_data:
             database_data["contents"] = {}
 
-    
         path = f"$.contents.source.{source_name}.contents.database.{database_name}"
         self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, database_data)
         logger.info(f"Database '{database_name}' created successfully in source '{source_name}'.")
         return True
-
 
     def create_collection(self, source_name, database_name, collection_name, collection_data):
         """Create a new collection under a database in the registry."""
@@ -1606,20 +1594,12 @@ class DataRegistryManager:
         # Ensure the database has a contents dict
         if "contents" not in database:
             database["contents"] = {}
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY,
-                f"$.contents.source.{source_name}.contents.database.{database_name}",
-                database
-            )
+            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}", database)
 
         # Ensure the "collection" dict exists under contents
         if "collection" not in database["contents"] or not isinstance(database["contents"]["collection"], dict):
             database["contents"]["collection"] = {}
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY,
-                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection",
-                {}
-            )
+            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection", {})
 
         # Check if collection already exists
         existing = self.get_collection(source_name, database_name, collection_name)
@@ -1627,8 +1607,8 @@ class DataRegistryManager:
             raise RuntimeError(f"Collection '{collection_name}' already exists in database '{database_name}'.")
 
         collection_data["type"] = "collection"
-        collection_data["scope"] =  f"/source/{source_name}/database/{database_name}"
-       
+        collection_data["scope"] = f"/source/{source_name}/database/{database_name}"
+
         # Ensure collection has a contents dict for child objects
         if "contents" not in collection_data:
             collection_data["contents"] = {}
@@ -1640,8 +1620,6 @@ class DataRegistryManager:
         logger.info(f"Collection '{collection_name}' created successfully in database '{database_name}' of source '{source_name}'.")
         return True
 
-
-
     def create_entity(self, source_name, database_name, collection_name, entity_name, entity_data):
         """Create a new entity under a collection in the registry."""
         self.__ensure_registry_exists()
@@ -1649,9 +1627,7 @@ class DataRegistryManager:
         # Ensure collection exists
         collection = self.get_collection(source_name, database_name, collection_name)
         if not collection:
-            raise RuntimeError(
-                f"Collection '{collection_name}' does not exist in database '{database_name}' of source '{source_name}'."
-            )
+            raise RuntimeError(f"Collection '{collection_name}' does not exist in database '{database_name}' of source '{source_name}'.")
 
         # RedisJSON sometimes returns a list; pick the first element if needed
         if isinstance(collection, list):
@@ -1660,32 +1636,21 @@ class DataRegistryManager:
         # Ensure the collection has a contents dict
         if "contents" not in collection:
             collection["contents"] = {}
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY,
-                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}",
-                collection
-            )
+            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}", collection)
 
         # Ensure the "entity" dict exists under contents
         if "entity" not in collection["contents"] or not isinstance(collection["contents"]["entity"], dict):
             collection["contents"]["entity"] = {}
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY,
-                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity",
-                {}
-            )
+            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity", {})
 
         # Check if entity already exists
         existing = self.get_entity(source_name, database_name, collection_name, entity_name)
         if existing:
-            raise RuntimeError(
-                f"Entity '{entity_name}' already exists in collection '{collection_name}' of database '{database_name}' in source '{source_name}'."
-            )
+            raise RuntimeError(f"Entity '{entity_name}' already exists in collection '{collection_name}' of database '{database_name}' in source '{source_name}'.")
 
         entity_data["type"] = "entity"
-        entity_data["scope"] =  f"/source/{source_name}/database/{database_name}/collection/{collection_name}"
-       
-        
+        entity_data["scope"] = f"/source/{source_name}/database/{database_name}/collection/{collection_name}"
+
         # Ensure entity has a contents dict for child attributes
         if "contents" not in entity_data:
             entity_data["contents"] = {}
@@ -1694,12 +1659,9 @@ class DataRegistryManager:
         path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}"
         self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, entity_data)
 
-        logger.info(
-            f"Entity '{entity_name}' created successfully in collection '{collection_name}' of database '{database_name}' in source '{source_name}'."
-        )
+        logger.info(f"Entity '{entity_name}' created successfully in collection '{collection_name}' of database '{database_name}' in source '{source_name}'.")
         return True
-        
-   
+
     def create_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name, attribute_data):
         """Create a new attribute under an entity."""
         self.__ensure_registry_exists()
@@ -1707,9 +1669,7 @@ class DataRegistryManager:
         # Ensure entity exists
         entity = self.get_entity(source_name, database_name, collection_name, entity_name)
         if not entity:
-            raise RuntimeError(
-                f"Entity '{entity_name}' does not exist in collection '{collection_name}'."
-            )
+            raise RuntimeError(f"Entity '{entity_name}' does not exist in collection '{collection_name}'.")
 
         # RedisJSON sometimes returns a list; pick the first element if needed
         if isinstance(entity, list):
@@ -1719,9 +1679,7 @@ class DataRegistryManager:
         if "contents" not in entity:
             entity["contents"] = {}
             self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY,
-                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents",
-                {}
+                self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents", {}
             )
 
         # Ensure the "attribute" dict exists under contents
@@ -1730,43 +1688,36 @@ class DataRegistryManager:
             self.redis_client.json().set(
                 self.DATA_REGISTRY_KEY,
                 f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents.attribute",
-                {}
+                {},
             )
 
         # Check if attribute already exists
         existing = self.get_attribute(source_name, database_name, collection_name, entity_name, attribute_name)
         if existing:
-            raise RuntimeError(
-                f"Attribute '{attribute_name}' already exists in entity '{entity_name}'."
-            )
+            raise RuntimeError(f"Attribute '{attribute_name}' already exists in entity '{entity_name}'.")
 
         attribute_data["type"] = "attribute"
-        attribute_data["scope"] =  f"/source/{source_name}/database/{database_name}/collection/{collection_name}/entity/{entity_name}"
-       
+        attribute_data["scope"] = f"/source/{source_name}/database/{database_name}/collection/{collection_name}/entity/{entity_name}"
+
         # Ensure attribute has a contents dict for child objects
         if "contents" not in attribute_data:
             attribute_data["contents"] = {}
 
         # Write attribute into the "attribute" dict
         path = (
-            f"$.contents.source.{source_name}.contents.database.{database_name}"
-            f".contents.collection.{collection_name}.contents.entity.{entity_name}"
-            f".contents.attribute.{attribute_name}"
+            f"$.contents.source.{source_name}.contents.database.{database_name}" f".contents.collection.{collection_name}.contents.entity.{entity_name}" f".contents.attribute.{attribute_name}"
         )
         self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, attribute_data)
 
         logger.info(
-            f"Attribute '{attribute_name}' created successfully in entity '{entity_name}' "
-            f"of collection '{collection_name}' in database '{database_name}' in source '{source_name}'."
+            f"Attribute '{attribute_name}' created successfully in entity '{entity_name}' " f"of collection '{collection_name}' in database '{database_name}' in source '{source_name}'."
         )
         return True
-
-
 
     def get_source(self, source_name):
         """Fetch a single source by name."""
         logger.info(f"Source '{source_name}' need to be fetched.")
-       
+
         self.__ensure_registry_exists()
         path = f"$.contents.source.{source_name}"
         return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
@@ -1778,7 +1729,6 @@ class DataRegistryManager:
         path = f"$.contents.source.{source_name}.contents.database.{database_name}"
         return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
 
-
     def get_collection(self, source_name, database_name, collection_name):
         """Fetch a single collection by name under a database."""
         logger.info(f"Collection '{collection_name}' in database '{database_name}' of source '{source_name}' needs to be fetched.")
@@ -1786,14 +1736,12 @@ class DataRegistryManager:
         path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}"
         return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
 
-
     def get_entity(self, source_name, database_name, collection_name, entity_name):
         """Fetch a single entity by name under a collection."""
         logger.info(f"Entity '{entity_name}' in collection '{collection_name}' of database '{database_name}' in source '{source_name}' needs to be fetched.")
         self.__ensure_registry_exists()
         path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}"
         return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
-
 
     def get_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name):
         """Fetch a single attribute by name under an entity."""
@@ -1831,14 +1779,9 @@ class DataRegistryManager:
             return False
 
         del dbs[database_name]
-        self.redis_client.json().set(
-            self.DATA_REGISTRY_KEY,
-            f"$.contents.source.{source_name}.contents.database",
-            dbs
-        )
+        self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database", dbs)
         logger.info(f"Database '{database_name}' deleted successfully from source '{source_name}'.")
         return True
-
 
     def delete_collection(self, source_name, database_name, collection_name):
         """Delete a collection under a database."""
@@ -1857,14 +1800,9 @@ class DataRegistryManager:
             return False
 
         del colls[collection_name]
-        self.redis_client.json().set(
-            self.DATA_REGISTRY_KEY,
-            f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection",
-            colls
-        )
+        self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection", colls)
         logger.info(f"Collection '{collection_name}' deleted successfully from database '{database_name}'.")
         return True
-
 
     def delete_entity(self, source_name, database_name, collection_name, entity_name):
         """Delete an entity under a collection."""
@@ -1883,14 +1821,9 @@ class DataRegistryManager:
             return False
 
         del ents[entity_name]
-        self.redis_client.json().set(
-            self.DATA_REGISTRY_KEY,
-            f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity",
-            ents
-        )
+        self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity", ents)
         logger.info(f"Entity '{entity_name}' deleted successfully from collection '{collection_name}'.")
         return True
-
 
     def delete_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name):
         """Delete an attribute under an entity."""
@@ -1912,7 +1845,7 @@ class DataRegistryManager:
         self.redis_client.json().set(
             self.DATA_REGISTRY_KEY,
             f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents.attribute",
-            attrs
+            attrs,
         )
         logger.info(f"Attribute '{attribute_name}' deleted successfully from entity '{entity_name}'.")
         return True
@@ -1929,10 +1862,5 @@ class DataRegistryManager:
     def search_sources(self, keyword):
         """Search sources by keyword in their JSON."""
         sources = self.get_all_sources()
-        matches = {
-            name: data
-            for name, data in sources.items()
-            if keyword.lower() in json.dumps(data).lower()
-        }
+        matches = {name: data for name, data in sources.items() if keyword.lower() in json.dumps(data).lower()}
         return matches
-
