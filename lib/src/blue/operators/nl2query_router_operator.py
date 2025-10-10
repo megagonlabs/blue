@@ -182,10 +182,10 @@ class NL2QueryRouterOperator(Operator):
     ----------
     | Name           | Type        | Required | Default | Description                                                |
     |----------------|------------|---------|---------|------------------------------------------------------------|
-    | `search_query`    | str        | True    | -       | Natural language query to process                          |
-    | `columns`         | list[dict] | False   | []      | List of attribute specifications (dicts with name and optional type) |
-    | `execute_query`   | bool       | False   | True    | Whether to execute query or just translate NL to query    |
-    | `protocol`        | str        | False   | ""      | Protocol of the source                                     |
+    | `search_query`    | str        | :fontawesome-solid-circle-check: {.green-check}    | -       | Natural language query to process                          |
+    | `columns`         | list[dict] |    | []      | List of attribute specifications (dicts with name and optional type) |
+    | `execute_query`   | bool       |    | True    | Whether to execute query or just translate NL to query    |
+    | `protocol`        | str        |    | ""      | Protocol of the source                                     |
 
     """
 

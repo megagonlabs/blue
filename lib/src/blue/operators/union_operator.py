@@ -82,7 +82,7 @@ class UnionOperator(Operator):
     ----------
     | Name         | Type | Required | Default    | Description                                                                                   |
     |--------------|------|----------|------------|-----------------------------------------------------------------------------------------------|
-    | `match_option` | str  | False    | "key_match" | Matching strategy for duplicate detection: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names) |
+    | `match_option` | str  |     | "key_match" | Matching strategy for duplicate detection: 'key_match' (exact field names and values) or 'seq_match' (position-based comparison regardless of field names) |
 
     """
 

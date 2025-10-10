@@ -215,16 +215,16 @@ class CreateTableOperator(Operator):
     ----------
     | Name         | Type  | Required | Default          | Description                                                                 |
     |---------------|-------|-----------|------------------|-----------------------------------------------------------------------------|
-    | `source`        | str   | True       | "default_source" | Name of the data source where the table will be created.                   |
-    | `database`      | str   | True       | "default"        | Name of the database where the table will be created.                      |
-    | `collection`    | str   | False      | "public"         | Name of the collection where the table will be created. For SQLite sources, defaults to 'public' if not specified. |
-    | `table`         | str   | True       | ""               | Name of the table to be created.                                           |
-    | `description`   | str   | False      | ""               | Description of the table to be created.                                    |
-    | `properties`    | str   | False      | {}               | Properties of the table to be created.                                     |
-    | `columns`       | list  | True       | []               | Properties of the table to be created.                                     |
-    | `misc`          | dict  | False      | {}               | Miscellaneous keys such as primary and foreign keys.                       |
-    | `created_by`    | str   | False      | ""               | Creator of the table.                                                      |
-    | `overwrite`     | bool  | False      | False            | Whether to overwrite the existing table.                                   |
+    | `source`        | str   | :fontawesome-solid-circle-check: {.green-check}       | "default_source" | Name of the data source where the table will be created.                   |
+    | `database`      | str   | :fontawesome-solid-circle-check: {.green-check}       | "default"        | Name of the database where the table will be created.                      |
+    | `collection`    | str   |       | "public"         | Name of the collection where the table will be created. For SQLite sources, defaults to 'public' if not specified. |
+    | `table`         | str   | :fontawesome-solid-circle-check: {.green-check}       | ""               | Name of the table to be created.                                           |
+    | `description`   | str   |       | ""               | Description of the table to be created.                                    |
+    | `properties`    | str   |       | {}               | Properties of the table to be created.                                     |
+    | `columns`       | list  | :fontawesome-solid-circle-check: {.green-check}       | []               | Properties of the table to be created.                                     |
+    | `misc`          | dict  |       | {}               | Miscellaneous keys such as primary and foreign keys.                       |
+    | `created_by`    | str   |       | ""               | Creator of the table.                                                      |
+    | `overwrite`     | bool  |       | False            | Whether to overwrite the existing table.                                   |
 
     """
 

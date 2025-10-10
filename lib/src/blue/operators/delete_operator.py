@@ -105,7 +105,7 @@ class DeleteOperator(Operator):
     ----------
     | Name       | Type               | Required | Default | Description                                                                                  |
     |------------|------------------|----------|---------|----------------------------------------------------------------------------------------------|
-    | `delete_idx` | Union[int, list[int]] | False    | []      | Position(s) to delete records. Supports negative indexing (-1 = last, -2 = second to last, etc.) |
+    | `delete_idx` | Union[int, list[int]] |     | []      | Position(s) to delete records. Supports negative indexing (-1 = last, -2 = second to last, etc.) |
     """
 
     PROPERTIES = {}

@@ -287,7 +287,7 @@ class MultipartQueryOperator(Operator):
     -------------
     | Name      | Type  | Required | Default | Description                                         |
     |-----------|-------|----------|---------|-----------------------------------------------------|
-    | `serialize` | bool  | False    | True    | Whether to serialize each part of the query        |
+    | `serialize` | bool  |     | True    | Whether to serialize each part of the query        |
 
 
     """

@@ -128,12 +128,12 @@ class CreateDatabaseOperator(Operator):
     ----------
     | Name         | Type | Required | Default | Description |
     |---------------|------|-----------|----------|--------------|
-    | `source`      | str  | True       | ""       | Name of the data source where the database will be created. |
-    | `database`    | str  | True       | ""       | Name of the database to be created. |
-    | `description` | str  | False        | ""       | Description of the database to be created. |
-    | `properties`  | str  | False        | {}       | Properties of the database to be created. |
-    | `created_by`  | str  | False        | ""       | Creator of the database. |
-    | `overwrite`   | bool | False        | False    | Whether to overwrite the existing database. |
+    | `source`      | str  | :fontawesome-solid-circle-check: {.green-check}       | ""       | Name of the data source where the database will be created. |
+    | `database`    | str  | :fontawesome-solid-circle-check: {.green-check}       | ""       | Name of the database to be created. |
+    | `description` | str  |         | ""       | Description of the database to be created. |
+    | `properties`  | str  |         | {}       | Properties of the database to be created. |
+    | `created_by`  | str  |         | ""       | Creator of the database. |
+    | `overwrite`   | bool |         | False    | Whether to overwrite the existing database. |
 
     """
 

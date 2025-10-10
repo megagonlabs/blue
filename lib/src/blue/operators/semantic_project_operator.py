@@ -150,7 +150,7 @@ class SemanticProjectOperator(Operator, ServiceClient):
     ----------
     | Name                   | Type | Required | Default | Description                                                                 |
     |------------------------|------|----------|---------|-----------------------------------------------------------------------------|
-    | `projection_instructions` | str  | True     | None    | Natural language description of which columns to keep and how to rename them |
+    | `projection_instructions` | str  | :fontawesome-solid-circle-check: {.green-check}     | None    | Natural language description of which columns to keep and how to rename them |
 
     """
 

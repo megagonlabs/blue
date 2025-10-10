@@ -172,15 +172,15 @@ class OperatorDiscoverOperator(Operator):
     ----------
     | Name                   | Type  | Required | Default | Description                                                                                          |
     |------------------------|-------|----------|---------|------------------------------------------------------------------------------------------------------|
-    | `search_query`           | str   | True     | ""      | Text to search for in operator names and descriptions                                               |
-    | `approximate`            | bool  | True     | True    | Whether to use approximate (vector) search                                                          |
-    | `hybrid`                 | bool  | False    | False   | Whether to use hybrid search (text + vector)                                                        |
-    | `limit`                  | int   | False    | -1      | Max number of results to return (-1 = unlimited)                                                    |
-    | `page`                   | int   | False    | 0       | Page number for pagination                                                                          |
-    | `page_size`              | int   | False    | 10      | Number of results per page (default: 10, max: 100)                                                 |
-    | `include_metadata`       | bool  | False    | False   | Whether to include metadata in results (description and properties always included)                |
-    | `threshold`              | float | False    | 0.5     | Similarity threshold for filtering results (0.0-1.0, lower = more similar; applies to approximate/hybrid search) |
-    | `progressive_pagination` | bool  | False    | False   | Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded) |
+    | `search_query`           | str   | :fontawesome-solid-circle-check: {.green-check}     | ""      | Text to search for in operator names and descriptions                                               |
+    | `approximate`            | bool  | :fontawesome-solid-circle-check: {.green-check}     | True    | Whether to use approximate (vector) search                                                          |
+    | `hybrid`                 | bool  |     | False   | Whether to use hybrid search (text + vector)                                                        |
+    | `limit`                  | int   |     | -1      | Max number of results to return (-1 = unlimited)                                                    |
+    | `page`                   | int   |     | 0       | Page number for pagination                                                                          |
+    | `page_size`              | int   |     | 10      | Number of results per page (default: 10, max: 100)                                                 |
+    | `include_metadata`       | bool  |     | False   | Whether to include metadata in results (description and properties always included)                |
+    | `threshold`              | float |     | 0.5     | Similarity threshold for filtering results (0.0-1.0, lower = more similar; applies to approximate/hybrid search) |
+    | `progressive_pagination` | bool  |     | False   | Whether to use progressive pagination for approximate/hybrid search (searches all pages until threshold exceeded) |
 
 
     """

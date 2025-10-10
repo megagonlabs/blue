@@ -111,10 +111,10 @@ class JoinOperator(Operator):
     ----------
     | Name        | Type           | Required | Default | Description                                      |
     |------------|----------------|----------|---------|--------------------------------------------------|
-    | `join_on`    | list[list[str]] | True     | -       | List of join key lists for each data source     |
-    | `join_type`  | str             | False    | "inner" | Type of join: 'inner', 'left', 'right', 'outer'|
-    | `join_suffix`| list[str]       | False    | []      | Suffixes for non-key fields                      |
-    | `keep_keys`  | str             | False    | "left"  | 'left' to keep left keys only, 'both' to keep both |
+    | `join_on`    | list[list[str]] | :fontawesome-solid-circle-check: {.green-check}     | -       | List of join key lists for each data source     |
+    | `join_type`  | str             |     | "inner" | Type of join: 'inner', 'left', 'right', 'outer'|
+    | `join_suffix`| list[str]       |     | []      | Suffixes for non-key fields                      |
+    | `keep_keys`  | str             |     | "left"  | 'left' to keep left keys only, 'both' to keep both |
     """
 
     PROPERTIES = {}
