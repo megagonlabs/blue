@@ -34,7 +34,6 @@ x-blue-common: &blue-common # build: .
         BLUE_SERVICE_OPENAI_URL: "${BLUE_SERVICE_OPENAI_URL}"
         BLUE_RBAC_CONFIG_FOLDER: "${BLUE_RBAC_CONFIG_FOLDER}"
         BLUE_EMAIL_DOMAIN_WHITE_LIST: "${BLUE_EMAIL_DOMAIN_WHITE_LIST}"
-        BLUE_FIREBASE_SERVICE_CRED: "${BLUE_FIREBASE_SERVICE_CRED}"
         BLUE_FIREBASE_CLIENT_ID: "${BLUE_FIREBASE_CLIENT_ID}"
     depends_on: &blue-common-depends-on
         redis:
