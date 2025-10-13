@@ -60,8 +60,8 @@ Below is the list of environment varibles and brief descriptions:
 ##### deployment access control
 - `BLUE_RBAC_CONFIG_FOLDER` - folder path to the role-based access control configurations (e.g. /blue_data/config/rbac)
 - `BLUE_EMAIL_DOMAIN_WHITE_LIST` - allow domain list for web app authentication (e.g. `megagon.ai`)
-- `FIREBASE_SERVICE_CRED` - firebase service credentials
-- `FIREBASE_CLIENT_ID` - firebase client id 
+- `BLUE_FIREBASE_SERVICE_CRED` - firebase service credentials
+- `BLUE_FIREBASE_CLIENT_ID` - firebase client id 
 
 ##### shared services
 - `BLUE_SERVICE_OPENAI_URL` - openai websocket service url (e.g. ws://blue_service_openai:8001)

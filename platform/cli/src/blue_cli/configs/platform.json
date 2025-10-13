@@ -197,13 +197,13 @@
         "required": false,
         "cast": "str"
     },
-    "FIREBASE_SERVICE_CRED": {
+    "BLUE_FIREBASE_SERVICE_CRED": {
         "default": "",
 	    "prompt": "FireBase Service Credentialls",
         "required": false,
         "cast": "str"
     },
-    "FIREBASE_CLIENT_ID": {
+    "BLUE_FIREBASE_CLIENT_ID": {
         "default": "blue-public",
 	    "prompt": "FireBase Client ID",
         "required": false,
