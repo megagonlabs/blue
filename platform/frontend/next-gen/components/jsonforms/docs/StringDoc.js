@@ -18,6 +18,7 @@ import classNames from "classnames";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
     type: "Control",
+    label: "",
     options: { multi: false },
     props: {
         inline: false,
