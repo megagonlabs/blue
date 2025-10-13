@@ -77,4 +77,4 @@ const EnumRenderer = ({
     );
 };
 export default withJsonFormsControlProps(EnumRenderer);
-export const EnumTester = rankWith(3, isEnumControl);
+export const EnumTester = rankWith(4, isEnumControl);
