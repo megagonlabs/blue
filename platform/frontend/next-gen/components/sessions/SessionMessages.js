@@ -34,7 +34,7 @@ import {
     faTableColumns,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
@@ -61,6 +61,7 @@ const Row = ({ index, data, style }) => {
         sessionId,
         addInspectionContainer,
         setShowWorkspace,
+        variableSizeListRef,
     } = data;
     const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
@@ -104,23 +105,25 @@ const Row = ({ index, data, style }) => {
         }))
     );
     const filterTags = _.get(messageFilterTags, sessionId, []);
-    const filteredMessages = messages.filter((message) => {
-        const stream = _.get(message, "stream", null);
-        if (
-            _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
-            _.endsWith(stream, "PROGRESS:STREAM")
-        ) {
-            return false;
-        }
-        let include = false;
-        for (let i = 0; i < _.size(filterTags); i++) {
-            if (_.get(message, ["metadata", "tags", filterTags[i]])) {
-                include = true;
-                break;
+    const filteredMessages = useMemo(() => {
+        return messages.filter((message) => {
+            const stream = _.get(message, "stream", null);
+            if (
+                _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
+                _.endsWith(stream, "PROGRESS:STREAM")
+            ) {
+                return false;
             }
-        }
-        return _.isEmpty(filterTags) || include;
-    });
+            let include = false;
+            for (let i = 0; i < _.size(filterTags); i++) {
+                if (_.get(message, ["metadata", "tags", filterTags[i]])) {
+                    include = true;
+                    break;
+                }
+            }
+            return _.isEmpty(filterTags) || include;
+        });
+    }, [messages, filterTags]);
     const rowRef = useRef({});
     const user = useAuthStore((state) => state.user);
     const own = useMemo(() => {
@@ -149,7 +152,7 @@ const Row = ({ index, data, style }) => {
             isOverflow.current =
                 scrollHeight > clientHeight || scrollWidth > clientWidth;
             let height =
-                50 +
+                53 +
                 (isOverflow.current
                     ? MESSAGE_OVERFLOW_THRESHOLD
                     : rowRef.current.clientHeight);
@@ -163,27 +166,31 @@ const Row = ({ index, data, style }) => {
     const { ref: resizeRef } = useResizeDetector({ onResize: handleResize });
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
-    const showActions = useRef(false);
+    const [showActions, setShowActions] = useState(false);
     useEffect(() => {
         if (autoExpandMessage) {
             expandMessage(sessionId, stream);
         }
     }, [autoExpandMessage]);
+    const expanded = _.get(expandedMessages, [sessionId, stream], false);
+    useEffect(() => {
+        handleResize();
+    }, [expanded]);
     return (
         <div
             key={index}
             onMouseLeave={() => {
-                showActions.current = false;
+                setShowActions(false);
             }}
             onMouseEnter={() => {
-                showActions.current = true;
+                setShowActions(true);
             }}
             style={{
                 ...style,
                 display: "flex",
                 alignItems: "flex-start",
                 padding: "10px 20px",
-                backgroundColor: showActions.current
+                backgroundColor: showActions
                     ? darkMode
                         ? Colors.DARK_GRAY1
                         : Colors.LIGHT_GRAY4
@@ -204,7 +211,7 @@ const Row = ({ index, data, style }) => {
                         position: "absolute",
                         right: detailedMessage ? 70 : 20,
                         top: detailedMessage ? 40 : 10,
-                        display: showActions.current ? null : "none",
+                        display: showActions ? null : "none",
                     }}
                 >
                     <ButtonGroup size={Size.LARGE}>
@@ -262,36 +269,34 @@ const Row = ({ index, data, style }) => {
                         }}
                     >
                         <div
-                            ref={mergeRefs(rowRef, resizeRef)}
+                            ref={mergeRefs(rowRef)}
                             className="message-bubble-callout-content"
                             style={{
-                                maxHeight: _.get(
-                                    expandedMessages,
-                                    [sessionId, stream],
-                                    false
-                                )
+                                maxHeight: expanded
                                     ? null
                                     : MESSAGE_OVERFLOW_THRESHOLD,
                             }}
                         >
-                            <MessageContent
-                                contentType={contentType}
-                                streamData={streamData}
-                                hasError={hasError}
-                            />
-                            {!complete && (
-                                <div style={{ marginTop: 10 }}>
-                                    <Tag
-                                        minimal
-                                        icon={
-                                            <FAIcon
-                                                icon={faEllipsisH}
-                                                className="fa-fade"
-                                            />
-                                        }
-                                    />
-                                </div>
-                            )}
+                            <div ref={resizeRef}>
+                                <MessageContent
+                                    contentType={contentType}
+                                    streamData={streamData}
+                                    hasError={hasError}
+                                />
+                                {!complete && (
+                                    <div style={{ marginTop: 10 }}>
+                                        <Tag
+                                            minimal
+                                            icon={
+                                                <FAIcon
+                                                    icon={faEllipsisH}
+                                                    className="fa-fade"
+                                                />
+                                            }
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         {isOverflow.current && (
                             <Tag
@@ -345,23 +350,25 @@ export default function SessionMessages({
         }))
     );
     const filterTags = _.get(messageFilterTags, sessionId, []);
-    const filteredMessages = messages.filter((message) => {
-        const stream = _.get(message, "stream", null);
-        if (
-            _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
-            _.endsWith(stream, "PROGRESS:STREAM")
-        ) {
-            return false;
-        }
-        let include = false;
-        for (let i = 0; i < _.size(filterTags); i++) {
-            if (_.get(message, ["metadata", "tags", filterTags[i]])) {
-                include = true;
-                break;
+    const filteredMessages = useMemo(() => {
+        return messages.filter((message) => {
+            const stream = _.get(message, "stream", null);
+            if (
+                _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
+                _.endsWith(stream, "PROGRESS:STREAM")
+            ) {
+                return false;
             }
-        }
-        return _.isEmpty(filterTags) || include;
-    });
+            let include = false;
+            for (let i = 0; i < _.size(filterTags); i++) {
+                if (_.get(message, ["metadata", "tags", filterTags[i]])) {
+                    include = true;
+                    break;
+                }
+            }
+            return _.isEmpty(filterTags) || include;
+        });
+    }, [messages, filterTags]);
     function getRowHeight(index) {
         let height = 71;
         return rowHeights.current[index] || height;
@@ -585,6 +592,7 @@ export default function SessionMessages({
                             sessionId,
                             addInspectionContainer,
                             setShowWorkspace,
+                            variableSizeListRef,
                         }}
                         itemSize={getRowHeight}
                         itemCount={_.size(filteredMessages)}
