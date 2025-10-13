@@ -20,6 +20,9 @@
         "nl2mongoql": {
             "image": "blue-agent-nl2mongoql"
         },
+        "nl2llm": {
+            "image": "blue-agent-nl2llm"
+        },
         "visualizer": {
             "image": "blue-agent-visualizer"
         },
