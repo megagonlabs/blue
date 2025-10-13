@@ -15,6 +15,7 @@ import { faInputNumeric } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
     type: "Control",
+    label: "",
     props: {
         inline: false,
         helperText: null,
