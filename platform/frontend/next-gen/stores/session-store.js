@@ -219,11 +219,20 @@ export const useSessionStore = create((set, get) => ({
         _.set(newSessions, [sessionId, "workspace"], contents);
         set({ sessions: newSessions });
     },
-    setFormData: (formId, data) => {
+    setFormData: (formId, data, newTimestamp) => {
         const { forms } = get();
-        let newForms = _.cloneDeep(forms);
-        _.set(newForms, [formId, "content", "data"], data);
-        set({ forms: newForms });
+        const currentForm = _.get(forms, formId);
+        const currentTimestamp = _.get(
+            currentForm,
+            ["content", "timestamp"],
+            0
+        );
+        if (newTimestamp > currentTimestamp) {
+            let newForms = _.cloneDeep(forms);
+            _.set(newForms, [formId, "content", "data"], data);
+            _.set(newForms, [formId, "content", "timestamp"], newTimestamp);
+            set({ forms: newForms });
+        }
     },
     addSessionMessage: (data) => {
         const messageLabel = _.get(data, "message.label", null);

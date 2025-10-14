@@ -36,7 +36,9 @@ export default function JSONForm({ content, hasError }) {
                 cells={vanillaCells}
                 onChange={({ data, errors }) => {
                     console.log(data, errors);
-                    setFormData(id, data);
+                    const timestamp =
+                        performance.timeOrigin + performance.now();
+                    setFormData(id, data, timestamp);
                 }}
             />
             {closed && (

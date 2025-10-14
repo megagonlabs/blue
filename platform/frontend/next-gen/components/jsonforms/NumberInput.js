@@ -1,6 +1,7 @@
+import { useSocketStore } from "@/stores/socket-store";
 import { NumericInput, Size } from "@blueprintjs/core";
 import _ from "lodash";
-import { useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 const NumberAbbreviation = {
     BILLION: "b",
     MILLION: "m",
@@ -10,9 +11,10 @@ const NUMBER_ABBREVIATION_REGEX = /((\.\d+)|(\d+(\.\d+)?))(k|m|b)\b/gi;
 const SCIENTIFIC_NOTATION_REGEX = /((\.\d+)|(\d+(\.\d+)?))(e\d+)\b/gi;
 export default function NumberInput({
     handleChange,
+    uischema,
     path,
     data,
-    precision = 11,
+    precision = 10,
     id,
 }) {
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
@@ -26,7 +28,6 @@ export default function NumberInput({
             expandScientificNotationNumber
         );
     };
-
     const expandNumberAbbreviationTerms = (value) => {
         // leave empty strings empty
         if (!value) {
@@ -37,7 +38,6 @@ export default function NumberInput({
             expandAbbreviatedNumber
         );
     };
-
     // adapted from http://stackoverflow.com/questions/2276021/evaluating-a-string-as-a-mathematical-expression-in-javascript
     const evaluateSimpleMathExpression = (value) => {
         // leave empty strings empty
@@ -76,13 +76,11 @@ export default function NumberInput({
         const roundedTotal = roundValue(total);
         return roundedTotal.toString();
     };
-
     const nanStringToEmptyString = (value) => {
         // our evaluation logic isn't perfect, so use this as a final
         // sanitization step if the result was not a number.
         return _.isEqual(value, "NaN") ? "" : value;
     };
-
     const expandAbbreviatedNumber = (value) => {
         if (!value) {
             return value;
@@ -103,25 +101,57 @@ export default function NumberInput({
         }
         return isValid ? result.toString() : "";
     };
-
     const expandScientificNotationNumber = (value) => {
         if (!value) {
             return value;
         }
         return (+value).toString();
     };
-
     const roundValue = (value) => {
         // round to at most two decimal places
         return Math.round(value * 10 ** precision) / 10 ** precision;
     };
+    const sendMessage = useSocketStore((state) => state.sendMessage);
+    const [localValue, setLocalValue] = useState(data || "");
+    const externalUpdateLogic = useCallback(
+        (path, value) => {
+            handleChange(path, value);
+            setTimeout(() => {
+                sendMessage(
+                    JSON.stringify({
+                        type: "INTERACTIVE_EVENT_MESSAGE",
+                        stream_id: _.get(uischema, "props.streamId", null),
+                        path,
+                        form_id: _.get(uischema, "props.formId", null),
+                        value,
+                        timestamp: performance.timeOrigin + performance.now(),
+                    })
+                );
+            }, 0);
+        },
+        [handleChange, sendMessage, uischema, path]
+    );
+    const debouncedExternalUpdate = useMemo(
+        () => _.debounce(externalUpdateLogic, 300),
+        [externalUpdateLogic]
+    );
+    const handleLocalChange = (path, value) => {
+        setLocalValue(value);
+        debouncedExternalUpdate(path, value);
+    };
+    useEffect(() => {
+        const externalValue = data || "";
+        if (!_.isEqual(externalValue, localValue)) {
+            setLocalValue(externalValue);
+        }
+    }, [data]);
     const handleConfirm = (value) => {
         let result = value;
         result = expandScientificNotationTerms(result);
         result = expandNumberAbbreviationTerms(result);
         result = evaluateSimpleMathExpression(result);
         result = nanStringToEmptyString(result);
-        handleChange(path, _.toNumber(result));
+        handleLocalChange(path, _.toNumber(result));
         // the user could have typed a different expression that evaluates to
         // the same value. force the update to ensure a render triggers even if
         // this is the case.
@@ -136,7 +166,7 @@ export default function NumberInput({
         handleConfirm(event.target.value);
     };
     const handleValueChange = (_valueAsNumber, valueAsString) => {
-        handleChange(path, valueAsString);
+        handleLocalChange(path, valueAsString);
     };
     return (
         <NumericInput
@@ -145,7 +175,7 @@ export default function NumberInput({
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             onValueChange={handleValueChange}
-            value={_.isNumber(data) || _.isString(data) ? data : ""}
+            value={localValue}
             buttonPosition="none"
             size={Size.LARGE}
             fill

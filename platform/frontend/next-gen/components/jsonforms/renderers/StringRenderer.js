@@ -5,6 +5,7 @@ import { InputGroup, Size, TextArea } from "@blueprintjs/core";
 import { isStringControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
+import { useCallback, useEffect, useMemo, useState } from "react";
 const StringRenderer = ({
     uischema,
     handleChange,
@@ -25,21 +26,40 @@ const StringRenderer = ({
         </label>
     ) : null;
     const sendMessage = useSocketStore((state) => state.sendMessage);
-    const handleOnChange = (event) => {
-        handleChange(path, event.target.value);
-        setTimeout(() => {
-            sendMessage(
-                JSON.stringify({
-                    type: "INTERACTIVE_EVENT_MESSAGE",
-                    stream_id: _.get(uischema, "props.streamId", null),
-                    path,
-                    form_id: _.get(uischema, "props.formId", null),
-                    value: event.target.value,
-                    timestamp: performance.timeOrigin + performance.now(),
-                })
-            );
-        }, 0);
+    const [localValue, setLocalValue] = useState(data || "");
+    const externalUpdateLogic = useCallback(
+        (path, value) => {
+            handleChange(path, value);
+            setTimeout(() => {
+                sendMessage(
+                    JSON.stringify({
+                        type: "INTERACTIVE_EVENT_MESSAGE",
+                        stream_id: _.get(uischema, "props.streamId", null),
+                        path,
+                        form_id: _.get(uischema, "props.formId", null),
+                        value,
+                        timestamp: performance.timeOrigin + performance.now(),
+                    })
+                );
+            }, 0);
+        },
+        [handleChange, sendMessage, uischema, path]
+    );
+    const debouncedExternalUpdate = useMemo(
+        () => _.debounce(externalUpdateLogic, 300),
+        [externalUpdateLogic]
+    );
+    const handleLocalChange = (event) => {
+        const newValue = event.target.value;
+        setLocalValue(newValue);
+        debouncedExternalUpdate(path, newValue);
     };
+    useEffect(() => {
+        const externalValue = data || "";
+        if (!_.isEqual(externalValue, localValue)) {
+            setLocalValue(externalValue);
+        }
+    }, [data]);
     if (multiline) {
         return (
             <FormCell
@@ -51,8 +71,8 @@ const StringRenderer = ({
                 <TextArea
                     name={id}
                     placeholder={placeholder}
-                    value={_.isEmpty(data) ? "" : data}
-                    onChange={handleOnChange}
+                    value={localValue}
+                    onChange={handleLocalChange}
                     fill
                     autoResize
                     style={{ resize: "vertical", minHeight: 56 }}
@@ -71,8 +91,8 @@ const StringRenderer = ({
                 name={id}
                 placeholder={placeholder}
                 size={Size.LARGE}
-                value={_.isEmpty(data) ? "" : data}
-                onChange={handleOnChange}
+                value={localValue}
+                onChange={handleLocalChange}
                 fill
             />
         </FormCell>
