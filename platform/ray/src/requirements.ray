@@ -1,4 +1,4 @@
-ray[client]==2.47.0
+ray[default]==2.47.0
 click==8.2.1
 pydantic==2.11.7
 pandas==2.2.3
