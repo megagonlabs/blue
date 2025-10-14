@@ -7,10 +7,6 @@ ENV BLUE_DEPLOY_VERSION=${BLUE_DEPLOY_VERSION}
 # Set workdir
 WORKDIR /app
 
-# Install ping
-RUN apt-get update
-RUN apt-get install iputils-ping -y
-
 # Update pip
 RUN pip install --upgrade pip
 
