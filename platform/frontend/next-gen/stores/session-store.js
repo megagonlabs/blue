@@ -222,11 +222,7 @@ export const useSessionStore = create((set, get) => ({
     setFormData: (formId, data, newTimestamp) => {
         const { forms } = get();
         const currentForm = _.get(forms, formId);
-        const currentTimestamp = _.get(
-            currentForm,
-            ["content", "timestamp"],
-            0
-        );
+        const currentTimestamp = _.get(currentForm, "content.timestamp", 0);
         if (newTimestamp > currentTimestamp) {
             let newForms = _.cloneDeep(forms);
             _.set(newForms, [formId, "content", "data"], data);
