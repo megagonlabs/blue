@@ -314,7 +314,7 @@ def update_agent_container(request: Request, agent_name):
     container_acl_enforce(request, agent, write=True)
     properties = agent_registry.get_agent_properties(agent_name)
     if 'image' in properties:
-        image = properties['images']
+        image = properties['image']
 
         version = None
         if 'version' in properties:
