@@ -917,7 +917,6 @@ class PlatformManager:
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "ray"},
             environment=config,
             restart_policy={"Name": "always"},
-            shm_size="5.04gb",
             detach=True,
             stdout=True,
             stderr=True,
