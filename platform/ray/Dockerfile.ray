@@ -11,21 +11,21 @@ WORKDIR /app
 RUN pip install --upgrade pip
 
 # Add core requirements
-ADD src/requirements.core /app/requirements.core
-RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
+# ADD src/requirements.core /app/requirements.core
+# RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
 
-ADD src/requirements.data /app/requirements.data
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.data
+# ADD src/requirements.data /app/requirements.data
+# RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.data
 
-ADD src/requirements.registry /app/requirements.registry
-RUN pip install ${BLUE_BUILD_CACHE_ARG} --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
+# ADD src/requirements.registry /app/requirements.registry
+# RUN pip install ${BLUE_BUILD_CACHE_ARG} --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
 
-ADD src/requirements.tool /app/requirements.tool
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.tool
+# ADD src/requirements.tool /app/requirements.tool
+# RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.tool
 
-# Add ray requirements
-ADD src/requirements.ray /app/requirements.ray
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.ray
+# # Add ray requirements
+# ADD src/requirements.ray /app/requirements.ray
+# RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.ray
 
 # Environment variables
 ENV dashboard_host '0.0.0.0'
