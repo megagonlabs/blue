@@ -12,6 +12,7 @@ import {
 } from "@blueprintjs/core";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import Image from "next/image";
 import Link from "next/link";
@@ -43,10 +44,12 @@ export default function Authentication() {
             );
             setAppAuth(getAuth(initializeApp(firebaseConfig)));
         } catch (error) {
-            appToaster.show({
-                intent: Intent.DANGER,
-                message: error,
-            });
+            if (appToaster) {
+                appToaster.show({
+                    intent: Intent.DANGER,
+                    message: error,
+                });
+            }
         }
     }, []);
     return (
@@ -115,6 +118,7 @@ export default function Authentication() {
                             loading={!initialized || isPopupOpen}
                             onClick={() => signInWithGoogle(appAuth)}
                             size={Size.LARGE}
+                            disabled={_.isNull(appAuth)}
                             style={{ marginTop: 20, borderRadius: 10 }}
                             variant={ButtonVariant.OUTLINED}
                             text="Sign in with Google"

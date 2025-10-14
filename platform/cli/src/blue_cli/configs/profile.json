@@ -1,11 +1,11 @@
 {
-    "BLUE_INSTALL_DIR": { 
+    "BLUE_INSTALL_DIR": {
         "default": "~/blue/",
         "prompt": "Blue Installation Directory",
         "required": true,
         "cast": "file"
     },
-    "BLUE_DATA_DIR": { 
+    "BLUE_DATA_DIR": {
         "default": "~/.blue/data",
         "prompt": "Blue Shared Data Directory",
         "required": true,
@@ -29,13 +29,13 @@
         "required": true,
         "cast": "str"
     },
-    "BLUE_DEV_DOCKER_ORG": { 
+    "BLUE_DEV_DOCKER_ORG": {
         "default": null,
         "prompt": "Docker Organization for Publishing Agent Images",
         "required": true,
         "cast": "str"
     },
-    "BLUE_CORE_DOCKER_ORG": { 
+    "BLUE_CORE_DOCKER_ORG": {
         "default": "megagonlabs",
         "prompt": "Docker Organization for Publishing Blue Core Images",
         "required": true,
@@ -51,6 +51,12 @@
         "default": null,
         "prompt": "Profile UID",
         "required": false,
+        "cast": "str"
+    },
+    "BLUE_FIREBASE_CONFIG": {
+        "default": "ewogICAgImFwaUtleSI6ICJBSXphU3lCZ3dJMC1IY3N6a0NydE1mNUVuVkg0aThKNkFBaVFrM1EiLAogICAgImF1dGhEb21haW4iOiAiYmx1ZS1wdWJsaWMuZmlyZWJhc2VhcHAuY29tIiwKICAgICJwcm9qZWN0SWQiOiAiYmx1ZS1wdWJsaWMiLAogICAgInN0b3JhZ2VCdWNrZXQiOiAiYmx1ZS1wdWJsaWMuZmlyZWJhc2VzdG9yYWdlLmFwcCIsCiAgICAibWVzc2FnaW5nU2VuZGVySWQiOiAiMzQyNDE0MzI3NDQxIiwKICAgICJhcHBJZCI6ICIxOjM0MjQxNDMyNzQ0MTp3ZWI6NDc3ZDQzOGE3NWQwZDQwNmUzYzkzMCIsCiAgICAibWVhc3VyZW1lbnRJZCI6ICJHLU03NDc4M0xUWE4iCn0K",
+        "prompt": "Firebase Configuration",
+        "required": true,
         "cast": "str"
     }
 }

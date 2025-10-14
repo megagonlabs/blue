@@ -1,161 +1,161 @@
 {
-    "BLUE_DEPLOY_VERSION": { 
+    "BLUE_DEPLOY_VERSION": {
         "default": "",
         "prompt": "Blue Deployment Version",
         "required": true,
         "cast": "str"
     },
-    "BLUE_DEPLOY_TARGET": { 
+    "BLUE_DEPLOY_TARGET": {
         "default": "localhost",
         "prompt": "Blue Deployment Target",
         "required": true,
         "cast": "str"
     },
-    "BLUE_DEPLOY_SECURE": { 
+    "BLUE_DEPLOY_SECURE": {
         "default": false,
         "prompt": "Secure API Deployment over HTTPS",
         "required": true,
         "cast": "bool"
     },
-    "BLUE_DEPLOY_DEVELOPMENT": { 
+    "BLUE_DEPLOY_DEVELOPMENT": {
         "default": true,
         "prompt": "Development Mode",
         "required": true,
         "cast": "bool"
     },
-    "BLUE_AGENT_REGISTRY": { 
+    "BLUE_AGENT_REGISTRY": {
         "default": "default",
         "prompt": "Agent Registry Name",
         "required": true,
         "cast": "str"
     },
-    "BLUE_AGENT_REGISTRY_MODEL": { 
+    "BLUE_AGENT_REGISTRY_MODEL": {
         "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Agent Registry Model",
         "required": false,
         "cast": "file"
     },
-    "BLUE_DATA_REGISTRY": { 
+    "BLUE_DATA_REGISTRY": {
         "default": "default",
         "prompt": "Data Registry Name",
         "required": true,
         "cast": "str"
     },
-    "BLUE_DATA_REGISTRY_MODEL": { 
+    "BLUE_DATA_REGISTRY_MODEL": {
         "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Data Registry Model",
         "required": false,
         "cast": "file"
     },
-    "BLUE_TOOL_REGISTRY": { 
+    "BLUE_TOOL_REGISTRY": {
         "default": "default",
         "prompt": "Tool Registry Name",
         "required": true,
         "cast": "str"
     },
-    "BLUE_TOOL_REGISTRY_MODEL": { 
+    "BLUE_TOOL_REGISTRY_MODEL": {
         "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Tool Registry Model",
         "required": false,
         "cast": "file"
     },
-    "BLUE_OPERATOR_REGISTRY": { 
+    "BLUE_OPERATOR_REGISTRY": {
         "default": "default",
         "prompt": "Operator Registry Name",
         "required": true,
         "cast": "str"
     },
-    "BLUE_OPERATOR_REGISTRY_MODEL": { 
+    "BLUE_OPERATOR_REGISTRY_MODEL": {
         "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Operator Registry Model",
         "required": false,
         "cast": "file"
     },
-    "BLUE_MODEL_REGISTRY": { 
+    "BLUE_MODEL_REGISTRY": {
         "default": "default",
         "prompt": "Model Registry Name",
         "required": true,
         "cast": "str"
     },
-    "BLUE_MODEL_REGISTRY_MODEL": { 
+    "BLUE_MODEL_REGISTRY_MODEL": {
         "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Model Registry Model",
         "required": false,
         "cast": "file"
     },
-    "BLUE_PUBLIC_API_SERVER": { 
+    "BLUE_PUBLIC_API_SERVER": {
         "default": "localhost",
         "prompt": "Public IP/Name of API Server",
         "required": true,
         "cast": "str"
     },
-    "BLUE_PRIVATE_API_SERVER_PORT": { 
+    "BLUE_PRIVATE_API_SERVER_PORT": {
         "default": 5050,
         "prompt": "Private Port of API Server",
         "required": false,
         "cast": "int"
     },
-    "BLUE_PUBLIC_API_SERVER_PORT": { 
+    "BLUE_PUBLIC_API_SERVER_PORT": {
         "default": 5050,
         "prompt": "Public Exposed Port of API Server",
         "required": true,
         "cast": "int"
     },
-    "BLUE_PUBLIC_DB_SERVER": { 
+    "BLUE_PUBLIC_DB_SERVER": {
         "default": "localhost",
         "prompt": "Public IP/Name of DB Server",
         "required": true,
         "cast": "str"
     },
-    "BLUE_PRIVATE_DB_SERVER_PORT": { 
+    "BLUE_PRIVATE_DB_SERVER_PORT": {
         "default": 6379,
         "prompt": "Private Port Address of Redis DB",
         "required": false,
         "cast": "int"
     },
-    "BLUE_PUBLIC_DB_SERVER_PORT": { 
+    "BLUE_PUBLIC_DB_SERVER_PORT": {
         "default": 6379,
         "prompt": "Public IP/Name of Redis DB Server",
         "required": false,
         "cast": "int"
     },
-    "BLUE_PUBLIC_WEB_SERVER": { 
+    "BLUE_PUBLIC_WEB_SERVER": {
         "default": "localhost",
         "prompt": "Public IP/Name of Web Application Server",
         "required": true,
         "cast": "str"
     },
-    "BLUE_PRIVATE_WEB_SERVER_PORT": { 
+    "BLUE_PRIVATE_WEB_SERVER_PORT": {
         "default": 3000,
         "prompt": "Private Port of Web Application Server",
         "required": false,
         "cast": "int"
     },
-    "BLUE_PUBLIC_WEB_SERVER_PORT": { 
+    "BLUE_PUBLIC_WEB_SERVER_PORT": {
         "default": 3000,
         "prompt": "Public Exposed Port of Web Application Server",
         "required": true,
         "cast": "int"
     },
-    "BLUE_PUBLIC_RAY_SERVER": { 
+    "BLUE_PUBLIC_RAY_SERVER": {
         "default": "localhost",
         "prompt": "Public IP/Name of Ray Cluster",
         "required": true,
         "cast": "str"
     },
-    "BLUE_PRIVATE_RAY_SERVER_PORT": { 
+    "BLUE_PRIVATE_RAY_SERVER_PORT": {
         "default": 6380,
         "prompt": "Private Port of Ray Cluster",
         "required": false,
         "cast": "int"
     },
-    "BLUE_PUBLIC_RAY_SERVER_PORT": { 
+    "BLUE_PUBLIC_RAY_SERVER_PORT": {
         "default": 6380,
         "prompt": "Public Exposed Port of Ray Cluster",
         "required": true,
         "cast": "int"
     },
-    "BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE": { 
+    "BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE": {
         "default": "10000-10010",
         "prompt": "Public Exposed Port Range of Ray Clients",
         "required": false,
@@ -168,45 +168,51 @@
         "cast": "str"
     },
     "BLUE_RBAC_CONFIG_FOLDER": {
-        "default":"/blue_data/config/rbac",
+        "default": "/blue_data/config/rbac",
         "prompt": "Access Control Config Directory",
         "required": false,
         "cast": "file"
     },
     "BLUE_BUILD_LIB_ARG": {
-        "default":"",
+        "default": "",
         "prompt": "Build Lib Argument",
         "required": false,
         "cast": "str"
     },
     "BLUE_BUILD_CACHE_ARG": {
-        "default":"",
+        "default": "",
         "prompt": "Build Cache Argument",
         "required": false,
         "cast": "str"
     },
     "BLUE_BUILD_IMG_SUFFIX": {
-        "default":"",
+        "default": "",
         "prompt": "Build Image Suffix",
         "required": false,
         "cast": "str"
     },
     "BLUE_SERVICE_OPENAI_URL": {
-        "default":"ws://blue_service_openai:8001",
+        "default": "ws://blue_service_openai:8001",
         "prompt": "Build Service OpenAI URL",
         "required": false,
         "cast": "str"
     },
     "FIREBASE_SERVICE_CRED": {
         "default": "",
-	    "prompt": "FireBase Service Credentialls",
+        "prompt": "Firebase Service Credentialls",
         "required": false,
         "cast": "str"
     },
     "FIREBASE_CLIENT_ID": {
         "default": "blue-public",
-	    "prompt": "FireBase Client ID",
+        "prompt": "Firebase Client ID",
         "required": false,
+        "cast": "str"
+    },
+    "BLUE_FIREBASE_CONFIG": {
+        "default": "ewogICAgImFwaUtleSI6ICJBSXphU3lCZ3dJMC1IY3N6a0NydE1mNUVuVkg0aThKNkFBaVFrM1EiLAogICAgImF1dGhEb21haW4iOiAiYmx1ZS1wdWJsaWMuZmlyZWJhc2VhcHAuY29tIiwKICAgICJwcm9qZWN0SWQiOiAiYmx1ZS1wdWJsaWMiLAogICAgInN0b3JhZ2VCdWNrZXQiOiAiYmx1ZS1wdWJsaWMuZmlyZWJhc2VzdG9yYWdlLmFwcCIsCiAgICAibWVzc2FnaW5nU2VuZGVySWQiOiAiMzQyNDE0MzI3NDQxIiwKICAgICJhcHBJZCI6ICIxOjM0MjQxNDMyNzQ0MTp3ZWI6NDc3ZDQzOGE3NWQwZDQwNmUzYzkzMCIsCiAgICAibWVhc3VyZW1lbnRJZCI6ICJHLU03NDc4M0xUWE4iCn0K",
+        "prompt": "Firebase Configuration",
+        "required": true,
         "cast": "str"
     },
     "BLUE_USER_ROLE": {
