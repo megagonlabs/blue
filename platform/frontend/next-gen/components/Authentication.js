@@ -7,14 +7,21 @@ import {
     Colors,
     H1,
     H3,
+    Intent,
     Size,
 } from "@blueprintjs/core";
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { allEnv } from "next-runtime-env";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Col, Container, Hidden, Row } from "react-grid-system";
 import { useShallow } from "zustand/react/shallow";
+import { useToaster } from "./contexts/ToasterContext";
+const { NEXT_PUBLIC_FIREBASE_CONFIG } = allEnv();
 export default function Authentication() {
+    const [appAuth, setAppAuth] = useState(null);
     const darkMode = useAppStore((state) => state.dark_mode);
     const { isPopupOpen, initialized, signInWithGoogle, fetchAccountProfile } =
         useAuthStore(
@@ -28,6 +35,20 @@ export default function Authentication() {
     useEffect(() => {
         fetchAccountProfile();
     }, [fetchAccountProfile]);
+    const { appToaster } = useToaster();
+    useEffect(() => {
+        try {
+            const firebaseConfig = JSON.parse(
+                atob(NEXT_PUBLIC_FIREBASE_CONFIG)
+            );
+            setAppAuth(getAuth(initializeApp(firebaseConfig)));
+        } catch (error) {
+            appToaster.show({
+                intent: Intent.DANGER,
+                message: error,
+            });
+        }
+    }, []);
     return (
         <Container
             className={darkMode && Classes.DARK}
@@ -92,7 +113,7 @@ export default function Authentication() {
                         <div>Sign in to your account to continue.</div>
                         <Button
                             loading={!initialized || isPopupOpen}
-                            onClick={signInWithGoogle}
+                            onClick={() => signInWithGoogle(appAuth)}
                             size={Size.LARGE}
                             style={{ marginTop: 20, borderRadius: 10 }}
                             variant={ButtonVariant.OUTLINED}

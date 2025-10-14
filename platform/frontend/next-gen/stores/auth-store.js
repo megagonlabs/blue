@@ -1,29 +1,18 @@
 import { hasIntersection } from "@/components/helper";
 import axios from "axios";
-import { initializeApp } from "firebase/app";
-import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { create } from "zustand";
 import { useAppStore } from "./app-store";
 import { useSocketStore } from "./socket-store";
 import { useUIVisibilityStore } from "./ui-visibility-store";
-const firebaseConfig = {
-    apiKey: "AIzaSyAkVp-dj3o1yf89mL3wMUtEidUHjzqyWCQ",
-    authDomain: "blue-9d597.firebaseapp.com",
-    projectId: "blue-9d597",
-    storageBucket: "blue-9d597.appspot.com",
-    messagingSenderId: "851224572522",
-    appId: "1:851224572522:web:b8b3f5b50e30333773d013",
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 export const useAuthStore = create((set, get) => ({
     user: null,
     permissions: {},
     initialized: false,
     isPopupOpen: false,
-    signInWithGoogle: () => {
+    signInWithGoogle: (auth) => {
         set({ isPopupOpen: true });
         signInWithPopup(auth, provider).then((result) =>
             result.user.getIdToken().then((idToken) =>
