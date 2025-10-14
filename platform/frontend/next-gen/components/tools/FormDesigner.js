@@ -42,6 +42,7 @@ import {
     MIN_ALLOTMENT_PANE_SIZE,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
@@ -67,6 +68,7 @@ function FormDesigner({ width, height }) {
     const [showData, setShowData] = useState(false);
     const breaker = useRef(true);
     const { appToaster } = useToaster();
+    const { gridContainerId } = useGridContainerContext();
     const handleExport = (withData) => {
         let result = { schema: schema, uischema: uischema };
         if (withData) {
@@ -82,6 +84,22 @@ function FormDesigner({ width, height }) {
         if (!idRef.current) {
             idRef.current = uuidv4();
         }
+        try {
+            const sessionSchema = sessionStorage.getItem(
+                `${gridContainerId}-schema`
+            );
+            if (!_.isEmpty(sessionSchema)) {
+                setSchema(JSON.parse(sessionSchema));
+            }
+        } catch {}
+        try {
+            const sessionUischema = sessionStorage.getItem(
+                `${gridContainerId}-uischema`
+            );
+            if (!_.isEmpty(sessionUischema)) {
+                setUischema(JSON.parse(sessionUischema));
+            }
+        } catch {}
     }, []);
     const elementRef = useRef(null);
     return (
@@ -183,6 +201,14 @@ function FormDesigner({ width, height }) {
                                         jsonObject={uischema}
                                         setBack={(object) => {
                                             setUischema(object);
+                                            try {
+                                                if (!error) {
+                                                    sessionStorage.setItem(
+                                                        `${gridContainerId}-uischema`,
+                                                        JSON.stringify(object)
+                                                    );
+                                                }
+                                            } catch {}
                                         }}
                                     />
                                 </div>
@@ -211,6 +237,14 @@ function FormDesigner({ width, height }) {
                                         jsonObject={schema}
                                         setBack={(object) => {
                                             setSchema(object);
+                                            try {
+                                                if (!error) {
+                                                    sessionStorage.setItem(
+                                                        `${gridContainerId}-schema`,
+                                                        JSON.stringify(object)
+                                                    );
+                                                }
+                                            } catch {}
                                         }}
                                     />
                                 </div>
