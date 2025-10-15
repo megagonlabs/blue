@@ -149,9 +149,15 @@ export default function OutputEntity({ entity, backCrumb }) {
             backCrumb();
         });
     };
+    const onDoubleClick = () => {
+        if (!isEditing) {
+            setIsEditing(true);
+        }
+    };
     return (
         <div>
             <div
+                onDoubleClick={onDoubleClick}
                 style={{
                     backgroundColor: `${Colors.BLUE3}${
                         HEX_TRANSPARENCY[darkMode ? 20 : 10]
