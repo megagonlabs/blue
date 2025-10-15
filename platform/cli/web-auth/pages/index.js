@@ -204,8 +204,18 @@ export default function Index() {
                             Unable to connect to Blue CLI
                         </Callout>
                     ) : null}
+                    {_.isNil(appAuth) ? (
+                        <Callout
+                            style={{ borderRadius: 0 }}
+                            intent={Intent.DANGER}
+                            icon={null}
+                        >
+                            Failed to initialize Firebase authentication
+                        </Callout>
+                    ) : null}
                     <DialogBody>
                         <Button
+                            style={{ borderRadius: 10 }}
                             loading={popupOpen}
                             disabled={_.isNil(ws) || _.isNull(appAuth)}
                             size={Size.LARGE}
