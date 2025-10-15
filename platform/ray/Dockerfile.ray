@@ -35,5 +35,5 @@ RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.ray
 ENV dashboard_host '0.0.0.0'
 ENV port '6380'
 
-CMD ["sh", "-c", "ray start --head --temp-dir=/blue_data/data/ray --enable-resource-isolation --system-reserved-memory=5368709120  --include-dashboard=False --disable-usage-stats --port ${port} --block"]
-
+CMD ["sh", "-c", "ray start --head --temp-dir=/blue_data/data/ray --include-dashboard=False --disable-usage-stats --port ${port} --block"]
+                                                                                                        
