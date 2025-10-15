@@ -159,8 +159,10 @@ class OpenAIAgent(RequestorAgent):
         if len(selected_servers) == 0:
             selected_servers = [server['name'] for server in self.registry.get_servers()]
 
-        matched_tools = []
+        
         for server_name in selected_servers:
+            matched_tools = []
+            
             if properties['tool_discovery']:
                 if "tool_discovery_similarity_threshold" in properties and properties["tool_discovery_similarity_threshold"]:
                     similarity_threshold = self.properties["tool_discovery_similarity_threshold"]
