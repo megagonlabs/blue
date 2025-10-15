@@ -365,6 +365,7 @@ export default function SourceEntity({
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
+                    setIsEditing={setIsEditing}
                     updateEntity={updateSource}
                     entity={editedSource}
                     loading={loading}

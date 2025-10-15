@@ -290,6 +290,7 @@ export default function OperatorEntity({
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
+                    setIsEditing={setIsEditing}
                     updateEntity={updateOperator}
                     entity={editedOperator}
                     loading={loading}

@@ -9,6 +9,7 @@ import _ from "lodash";
 export default function EntityProperties({
     entity,
     isEditing,
+    setIsEditing,
     updateEntity,
     loading,
     JSONError,
@@ -17,8 +18,13 @@ export default function EntityProperties({
         _.get(entity, "properties", {}),
         ENTITY_MAIN_INFO_PROPERTY_KEYS
     );
+    const onDoubleClick = () => {
+        if (!isEditing && _.isFunction(setIsEditing)) {
+            setIsEditing(true);
+        }
+    };
     return (
-        <>
+        <div onDoubleClick={onDoubleClick}>
             <div style={{ marginBottom: 10 }}>
                 <EntityTitle
                     icon={<FAIcon icon={faBracketsCurly} size={25} />}
@@ -46,6 +52,6 @@ export default function EntityProperties({
                     </Pre>
                 )}
             </div>
-        </>
+        </div>
     );
 }

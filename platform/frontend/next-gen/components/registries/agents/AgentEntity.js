@@ -389,6 +389,7 @@ export default function AgentEntity({
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
+                    setIsEditing={setIsEditing}
                     updateEntity={updateAgent}
                     entity={editedAgent}
                     loading={loading}

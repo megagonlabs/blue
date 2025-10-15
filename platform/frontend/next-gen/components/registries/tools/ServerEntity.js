@@ -302,6 +302,7 @@ export default function ServerEntity({
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
+                    setIsEditing={setIsEditing}
                     updateEntity={updateServer}
                     entity={editedServer}
                     loading={loading}

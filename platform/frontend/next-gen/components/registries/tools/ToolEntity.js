@@ -259,6 +259,7 @@ export default function ToolEntity({ entity, backCrumb }) {
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
+                    setIsEditing={setIsEditing}
                     updateEntity={updateTool}
                     entity={editedTool}
                     loading={loading}

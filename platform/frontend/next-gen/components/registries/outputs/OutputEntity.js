@@ -257,6 +257,7 @@ export default function OutputEntity({ entity, backCrumb }) {
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
+                    setIsEditing={setIsEditing}
                     updateEntity={updateOutput}
                     entity={editedOutput}
                     loading={loading}

@@ -278,6 +278,7 @@ export default function ModelEntity({
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
+                    setIsEditing={setIsEditing}
                     updateEntity={updateModel}
                     entity={editedModel}
                     loading={loading}
