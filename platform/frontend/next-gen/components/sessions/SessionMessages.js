@@ -152,7 +152,7 @@ const Row = ({ index, data, style }) => {
             isOverflow.current =
                 scrollHeight > clientHeight || scrollWidth > clientWidth;
             let height =
-                53 +
+                61 +
                 (isOverflow.current
                     ? MESSAGE_OVERFLOW_THRESHOLD
                     : rowRef.current.clientHeight);
@@ -370,7 +370,7 @@ export default function SessionMessages({
         });
     }, [messages, filterTags]);
     function getRowHeight(index) {
-        let height = 71;
+        let height = 81;
         return rowHeights.current[index] || height;
     }
     const addContainer = useGridStore((state) => state.addContainer);

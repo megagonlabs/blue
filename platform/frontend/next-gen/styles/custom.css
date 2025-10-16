@@ -169,3 +169,6 @@ table.nerd-table td {
         0 4px 8px rgba(255, 255, 255, 0.2),
         0 18px 46px 6px rgba(255, 255, 255, 0.2) !important;
 }
+.bp6-callout {
+    padding: 20px !important;
+}
