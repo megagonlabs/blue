@@ -28,7 +28,6 @@ const docJson = {
         style: {},
     },
     scope: "#/properties/...",
-    required: false,
 };
 export default function BooleanDoc() {
     return (

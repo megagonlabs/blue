@@ -68,7 +68,7 @@ function SettingsContainer({ width, height }) {
                     style={{
                         padding: 10,
                         overflowY: "auto",
-                        minWidth: 235,
+                        minWidth: 237,
                     }}
                     className="border-right"
                 >

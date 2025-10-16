@@ -45,7 +45,9 @@ export default function BasicsDoc() {
                 defined in the JSON Schema, e.g. a property of type boolean is
                 rendered as a Checkbox by default.
             </div>
-            <H3>scope &#40;string&#41;</H3>
+            <H3>
+                scope <Code>string</Code>
+            </H3>
             <div>
                 The mandatory <Code>scope</Code> property, which expects a&nbsp;
                 <a
@@ -82,6 +84,43 @@ export default function BasicsDoc() {
                     json={{
                         type: "Control",
                         scope: "#/properties/name",
+                    }}
+                />
+            </Pre>
+            <H3>
+                required <Code>list&#91;string&#93;</Code>
+            </H3>
+            <div>
+                For supported control elements such as <Code>Boolean</Code>
+                ,&nbsp;<Code>Enum</Code>, <Code>Integer</Code>,&nbsp;
+                <Code>Number</Code>, and <Code>String</Code>, mark a field as
+                required by adding its property key to the <Code>required</Code>
+                &nbsp;list in the Data schema. This will automatically display a
+                required asterisk (*) next to the element's label.
+            </div>
+            <Pre>
+                <JSONViewer
+                    enableClipboard={false}
+                    json={{
+                        type: "object",
+                        properties: {
+                            name: {
+                                type: "object",
+                                properties: {
+                                    first_name: {
+                                        type: "string",
+                                    },
+                                    last_name: {
+                                        type: "string",
+                                    },
+                                },
+                                required: ["first_name"],
+                            },
+                            age: {
+                                type: "integer",
+                            },
+                        },
+                        required: ["age"],
                     }}
                 />
             </Pre>

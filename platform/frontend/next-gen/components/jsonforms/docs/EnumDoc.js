@@ -23,7 +23,6 @@ const docJson = {
         large: false,
     },
     scope: "#/properties/...",
-    required: false,
 };
 export default function EnumDoc() {
     return (

@@ -27,7 +27,6 @@ const docJson = {
         style: {},
     },
     scope: "#/properties/...",
-    required: false,
 };
 export default function StringDoc() {
     return (

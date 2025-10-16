@@ -218,6 +218,11 @@ export default function SourceEntity({
             ),
         });
     };
+    const onDoubleClick = () => {
+        if (!isEditing) {
+            setIsEditing(true);
+        }
+    };
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
@@ -255,6 +260,7 @@ export default function SourceEntity({
                 />
             </div>
             <div
+                onDoubleClick={onDoubleClick}
                 style={{
                     backgroundColor: `${Colors.BLUE3}${
                         HEX_TRANSPARENCY[darkMode ? 20 : 10]

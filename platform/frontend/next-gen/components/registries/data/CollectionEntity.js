@@ -104,9 +104,15 @@ export default function CollectionEntity({ entity, addCrumb }) {
                 setLoading(false);
             });
     };
+    const onDoubleClick = () => {
+        if (!isEditing) {
+            setIsEditing(true);
+        }
+    };
     return (
         <div>
             <div
+                onDoubleClick={onDoubleClick}
                 style={{
                     backgroundColor: `${Colors.BLUE3}${
                         HEX_TRANSPARENCY[darkMode ? 20 : 10]
