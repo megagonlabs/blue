@@ -897,17 +897,27 @@ class PlatformManager:
 
         # ray
         BLUE_PRIVATE_RAY_SERVER_PORT = config["BLUE_PRIVATE_RAY_SERVER_PORT"]
+        BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE = config["BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE"]
         image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-ray" + BLUE_BUILD_IMG_SUFFIX + ":v" + BLUE_DEPLOY_VERSION
+        ray_ports = {}
+        ray_ports[str(BLUE_PRIVATE_RAY_SERVER_PORT)] = 6380
+        cpa = BLUE_PUBLIC_RAY_CLIENT_PORT_RANGE.split("-")
+        start = int(cpa[0])
+        end = int(cpa[1])
+        for port in range(start, end + 1):
+            ray_ports[str(port)] = port
+
         print("Starting container: " + image)
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_server_ray",
-            ports={str(BLUE_PRIVATE_RAY_SERVER_PORT): 6380},
+            ports=ray_ports,
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "ray"},
             environment=config,
             restart_policy={"Name": "always"},
+            shm_size="4G",
             detach=True,
             stdout=True,
             stderr=True,

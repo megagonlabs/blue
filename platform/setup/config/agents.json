@@ -175,6 +175,8 @@
     "description": "Blocking OpenAI agent that waits for all input to be ready to initiate an OpenAI call",
     "created_by": null,
     "properties": {
+      "image": "megagonlabs/blue-agent-blocking_openai-private",
+      "display_name": "OpenAI Blocking Agent",
       "include_extra_input": true,
       "wait_for_inputs": ["DEFAULT"],
        "categories": [
