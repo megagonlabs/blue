@@ -6,7 +6,8 @@ from click import Context
 
 from blue_cli.helper import RESERVED_KEYS, bcolors, show_output
 from blue_cli.manager import Authentication, PlatformManager
-        
+
+
 @click.group(help="command group to interact with blue platforms")
 @click.option("--platform_name", default=None, required=False, help="name of the platform, default is selected platform")
 @click.option("--output", default='table', required=False, type=str, help="output format (table|json|csv)")
@@ -62,9 +63,9 @@ def show():
         value = platform[key]
         if pydash.is_equal(key, "BLUE_COOKIE"):
             if not pydash.is_empty(value):
-                value = u'\033[32m\u2714\033[0m'
+                value = f'{bcolors.OKGREEN}\u2714{bcolors.ENDC}'
             else:
-                value = u'\033[31m\u274C\033[0m'
+                value = f'{bcolors.FAIL}\u274c{bcolors.ENDC}'
         if output == "table":
             data.append([key, value])
         else:
@@ -87,7 +88,7 @@ def create():
 
     if platform_name in platform_mgr.get_platform_list():
         raise Exception(f"platform {platform_name} exists")
-    
+
     # create platform
     platform_mgr.create_platform(platform_name)
 
@@ -106,9 +107,10 @@ def install():
 
     if platform_name not in platform_mgr.get_platform_list():
         raise Exception(f"platform {platform_name} does not exists")
-    
+
     # install platform
     platform_mgr.install_platform(platform_name)
+
 
 @platform.command(short_help="uninstall a blue platform")
 def uninstall():
@@ -121,9 +123,10 @@ def uninstall():
 
     if platform_name not in platform_mgr.get_platform_list():
         raise Exception(f"platform {platform_name} does not exists")
-    
+
     # uninstall platform
     platform_mgr.uninstall_platform(platform_name)
+
 
 @platform.command(short_help="starts a blue platform")
 def start():
@@ -136,9 +139,10 @@ def start():
 
     if platform_name not in platform_mgr.get_platform_list():
         raise Exception(f"platform {platform_name} does not exists")
-    
+
     # start platform
     platform_mgr.start_platform(platform_name)
+
 
 @platform.command(short_help="stop a blue platform")
 def stop():
@@ -151,9 +155,10 @@ def stop():
 
     if platform_name not in platform_mgr.get_platform_list():
         raise Exception(f"platform {platform_name} does not exists")
-    
+
     # stop platform
     platform_mgr.stop_platform(platform_name)
+
 
 @platform.command(short_help="select a blue platform")
 def select():
@@ -198,13 +203,8 @@ def config(key: str, value):
             cookie = auth.get_cookie()
             uid = auth.get_uid()
 
-            platform_mgr.set_user_role(
-                platform_name=platform_name,
-                cookie=cookie,
-                uid=uid,
-                role=value
-            )
-            
+            platform_mgr.set_user_role(platform_name=platform_name, cookie=cookie, uid=uid, role=value)
+
         # save to platform attrs
         platform_mgr.set_platform_attribute(
             platform_name=platform_name,
@@ -217,4 +217,3 @@ def config(key: str, value):
 
 if __name__ == "__main__":
     platform()
-

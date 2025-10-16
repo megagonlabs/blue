@@ -6,7 +6,8 @@ from click import Context
 
 from blue_cli.helper import RESERVED_KEYS, bcolors, show_output
 from blue_cli.manager import Authentication, ServiceManager
-        
+
+
 @click.group(help="command group to interact with blue services")
 @click.option("--service_name", default=None, required=False, help="name of the service, default is selected service")
 @click.option("--output", default='table', required=False, type=str, help="output format (table|json|csv)")
@@ -43,6 +44,7 @@ def ls():
 
     show_output(data, ctx, single=True, headers=["name", "selected"], tablefmt="plain")
 
+
 @click.pass_context
 @service.command(help="show service values")
 def show():
@@ -62,9 +64,9 @@ def show():
         value = service[key]
         if pydash.is_equal(key, "BLUE_COOKIE"):
             if not pydash.is_empty(value):
-                value = u'\033[32m\u2714\033[0m'
+                value = f'{bcolors.OKGREEN}\u2714{bcolors.ENDC}'
             else:
-                value = u'\033[31m\u274C\033[0m'
+                value = f'{bcolors.FAIL}\u274c{bcolors.ENDC}'
         if output == "table":
             data.append([key, value])
         else:
@@ -74,6 +76,7 @@ def show():
         print(f"{bcolors.OKBLUE}{service_name}{bcolors.ENDC}")
 
     show_output(data, ctx, tablefmt="plain")
+
 
 @click.pass_context
 @service.command(short_help="create a blue service")
@@ -87,12 +90,13 @@ def create():
 
     if service_name in service_mgr.get_service_list():
         raise Exception(f"service {service_name} exists")
-    
+
     # create service
     service_mgr.create_service(service_name)
 
     # inquire service attributes from user, update
     service_mgr.inquire_service_attributes(service_name=service_name)
+
 
 @click.pass_context
 @service.command(short_help="install a blue service")
@@ -106,9 +110,10 @@ def install():
 
     if service_name not in service_mgr.get_service_list():
         raise Exception(f"service {service_name} does not exists")
-    
+
     # install service
     service_mgr.install_service(service_name)
+
 
 @click.pass_context
 @service.command(short_help="uninstall a blue service")
@@ -122,7 +127,7 @@ def uninstall():
 
     if service_name not in service_mgr.get_service_list():
         raise Exception(f"service {service_name} does not exists")
-    
+
     # uninstall service
     service_mgr.uninstall_service(service_name)
 
@@ -139,9 +144,10 @@ def start():
 
     if service_name not in service_mgr.get_service_list():
         raise Exception(f"service {service_name} does not exists")
-    
+
     # start service
     service_mgr.start_service(service_name)
+
 
 @click.pass_context
 @service.command(short_help="stop a blue service")
@@ -155,9 +161,10 @@ def stop():
 
     if service_name not in service_mgr.get_service_list():
         raise Exception(f"service {service_name} does not exists")
-    
+
     # stop service
     service_mgr.stop_service(service_name)
+
 
 @click.pass_context
 @service.command(short_help="select a blue service")
@@ -168,6 +175,7 @@ def select():
         raise Exception(f"service name cannot be empty")
 
     service_mgr.select_service(service_name)
+
 
 @click.pass_context
 @service.command(
@@ -197,7 +205,7 @@ def config(key: str, value):
     if service_name is None:
         service_name = service_mgr.get_selected_service_name()
     if key is not None:
-        
+
         # save to service attrs
         service_mgr.set_service_attribute(
             service_name=service_name,
@@ -210,4 +218,3 @@ def config(key: str, value):
 
 if __name__ == "__main__":
     service()
-
