@@ -12,23 +12,10 @@ import {
 } from "@blueprintjs/core";
 import axios from "axios";
 import { initializeApp } from "firebase/app";
-import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import Head from "next/head";
-import { useEffect, useState } from "react";
-// Your web app's Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyBgwI0-HcszkCrtMf5EnVH4i8J6AAiQk3Q",
-    authDomain: "blue-public.firebaseapp.com",
-    projectId: "blue-public",
-    storageBucket: "blue-public.firebasestorage.app",
-    messagingSenderId: "342414327441",
-    appId: "1:342414327441:web:477d438a75d0d406e3c930",
-    measurementId: "G-M74783LTXN",
-};
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { useCallback, useEffect, useState } from "react";
 const provider = new GoogleAuthProvider();
 const GOOGLE_LOGO_SVG = (
     <svg
@@ -70,6 +57,7 @@ export default function Index() {
     const [done, setDone] = useState(false);
     const [profile, setProfile] = useState(null);
     const [ws, setWs] = useState(null);
+    const [appAuth, setAppAuth] = useState(null);
     const { appToaster } = useToaster();
     useEffect(() => {
         setLoading(true);
@@ -93,6 +81,19 @@ export default function Index() {
                 const message = _.get(data, "message", null);
                 if (_.isEqual(type, "REQUEST_CONNECTION_INFO")) {
                     setProfile(message);
+                    try {
+                        const firebaseConfig = JSON.parse(
+                            atob(_.get(message, "BLUE_FIREBASE_CONFIG", null))
+                        );
+                        setAppAuth(getAuth(initializeApp(firebaseConfig)));
+                    } catch (error) {
+                        if (appToaster) {
+                            appToaster.show({
+                                intent: Intent.DANGER,
+                                message: error,
+                            });
+                        }
+                    }
                 } else if (_.has(data, "error")) {
                     if (appToaster) {
                         appToaster.show({
@@ -128,14 +129,14 @@ export default function Index() {
         setWs(socket);
     }, []);
     const [popupOpen, setPopupOpen] = useState(false);
-    const signInWithGoogle = () => {
+    const signInWithGoogle = useCallback(() => {
         const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
         const secure =
             _.toLower(_.get(profile, "BLUE_DEPLOY_SECURE", "True")) == "true";
         const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT", null);
         const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
         setPopupOpen(true);
-        signInWithPopup(auth, provider)
+        signInWithPopup(appAuth, provider)
             .then((result) => {
                 result.user.getIdToken().then((idToken) => {
                     axios
@@ -167,7 +168,7 @@ export default function Index() {
                     });
                 }
             });
-    };
+    }, [appAuth]);
     return (
         <>
             <Head>
@@ -203,10 +204,20 @@ export default function Index() {
                             Unable to connect to Blue CLI
                         </Callout>
                     ) : null}
+                    {_.isNil(appAuth) ? (
+                        <Callout
+                            style={{ borderRadius: 0 }}
+                            intent={Intent.DANGER}
+                            icon={null}
+                        >
+                            Failed to initialize Firebase authentication
+                        </Callout>
+                    ) : null}
                     <DialogBody>
                         <Button
+                            style={{ borderRadius: 10 }}
                             loading={popupOpen}
-                            disabled={_.isNil(ws)}
+                            disabled={_.isNil(ws) || _.isNull(appAuth)}
                             size={Size.LARGE}
                             variant={ButtonVariant.OUTLINED}
                             className={loading ? Classes.SKELETON : null}
