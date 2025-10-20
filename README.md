@@ -1,22 +1,22 @@
 # What is Blue?
 
-Blue is an agent orchestration platform for building and deploying applications with agentic workflows for the enterprise. 
+[Blue](https://megagon.ai/blue/) is an agent orchestration platform for building and deploying applications with agentic workflows for the enterprise. 
 
 A key target use-case of Blue is enterprise, i.e. integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide-variety of enterprise use-cases. We aim to leverage what already exist in the enterprise infrastructure, i.e. existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
 
-Blue is currently a research project to explore the design space of agent orchestration systems, agentic planning and data processing, to support a variety of use-cases: from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from applications working on purely relational data to multi-modal data  (incl. semi-structured text, graphs, and beyond), from purely textual interaction to interactive agents with user interfaces, charts, and beyond. 
+[Blue](https://megagon.ai/blue/) is currently a research project to explore the design space of agent orchestration systems, agentic planning and data processing, to support a variety of use-cases: from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from applications working on purely relational data to multi-modal data  (incl. semi-structured text, graphs, and beyond), from purely textual interaction to interactive agents with user interfaces, charts, and beyond. 
 
 # What are key concepts in Blue?
 
-To help facilitate ‘Agentic for Enterprise’ we are introducing several concepts in the design of our framework, including:
+To help facilitate ‘Agentic for Enterprise’, we are introducing several concepts in the design of our framework, including:
 - **Streams** to facilitate data, control, and communication among agents
-- **Messages** in streams to standardize of data and instructions for agents
-- **Registries** to capture metadata about data, agents and beyond
+- **Messages** in streams to standardize data and instructions for agents
+- **Registries** to capture metadata about data, agents, and beyond
 - **Session** to provide context (and shared memory) for computation
 - **Plans** to represent workflows and execution of agents
 - **Planners** to craft task and data plans
 - **Tools** to interface with external sources and APIs
-- **Operators** to perform data-intenstive functions
+- **Operators** to perform data-intensive functions
 
 ![Stream](./docs/images/concepts.png)
 
@@ -33,17 +33,17 @@ To get a glimpse of where we are heading with agentic architectures, read our pa
 
 # What can you build with Blue?
 
-Here are a few examples to inspire you to build with blue:
+Here are a few examples to inspire you to build with [Blue](https://megagon.ai/blue/):
 
-* a set of agents that convert natural language to SQL, executes, and summarizes results in natural language 
-* agents that produces interactive graphical user interfaces and visualizations with your data (e.g. self-service business intelligence) 
+* a set of agents that convert natural language to SQL, execute, and summarize results in natural language 
+* agents that produce interactive graphical user interfaces and visualizations with your data (e.g., self-service business intelligence) 
 * a conversational agent that interfaces to existing predictive models and APIs (e.g. job search agent with predictive models and data)
-* agents that execute workflows processing text data, extracting and populating databases.
+* agents that execute workflows processing text data, extracting, and populating databases.
 * conversational applications with agents managing dialogue and performing task planning.
 * complex agentic data processing pipelines, with multi-modal operators
 
 
-# Want to try out blue demos?
+# Want to try out Blue demos?
 
 You can try out a demos on our [blue-examples repository!](http://github.com/rit-git/blue-examples)
 
