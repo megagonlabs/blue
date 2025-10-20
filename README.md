@@ -2,7 +2,7 @@
 
 [Blue](https://megagon.ai/blue/) is an agent orchestration platform for building and deploying applications with agentic workflows for the enterprise. 
 
-A key target use-case of Blue is enterprise, i.e. integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide-variety of enterprise use-cases. We aim to leverage what already exist in the enterprise infrastructure, i.e. existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
+A key target use-case of [Blue](https://megagon.ai/blue/) is enterprise, i.e., integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide variety of enterprise use-cases. We aim to leverage what already exists in the enterprise infrastructure, i.e., existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
 
 [Blue](https://megagon.ai/blue/) is currently a research project to explore the design space of agent orchestration systems, agentic planning and data processing, to support a variety of use-cases: from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from applications working on purely relational data to multi-modal data  (incl. semi-structured text, graphs, and beyond), from purely textual interaction to interactive agents with user interfaces, charts, and beyond. 
 
