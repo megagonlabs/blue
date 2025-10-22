@@ -43,6 +43,7 @@ import {
 } from "@blueprintjs/table";
 import {
     faAt,
+    faCaretDown,
     faIdCardClip,
     faRefresh,
     faTrash,
@@ -421,6 +422,7 @@ export default function AuthenticationConfigurations() {
                                         defaultUserRole
                                     )}
                                     size={Size.LARGE}
+                                    endIcon={<FAIcon icon={faCaretDown} />}
                                 />
                             </Select>
                             <Button
