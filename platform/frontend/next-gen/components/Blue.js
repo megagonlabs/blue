@@ -20,12 +20,12 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import { Omnibar } from "@blueprintjs/select";
+import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBellConcierge,
     faCircleA,
     faInboxFull,
     faInboxOut,
-    faMagnifyingGlass,
     faMonitorWaveform,
     faPencilRuler,
     faScrewdriverWrench,
@@ -233,7 +233,7 @@ export default function Blue({ children }) {
                             inputProps={{
                                 size: Size.LARGE,
                                 placeholder: null,
-                                leftIcon: <FAIcon icon={faMagnifyingGlass} />,
+                                leftIcon: <FAIcon icon={faSearch} />,
                             }}
                             onClose={closeOmnibar}
                             isOpen={showOmnibar}

@@ -35,7 +35,7 @@ export default function AuthErrorHandler({ children }) {
                         2 * 60 * 1000
                     );
                 })
-                .catch((error) => {});
+                .catch(() => {});
         };
         checkAuthSession();
         return () => {

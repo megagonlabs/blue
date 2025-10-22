@@ -96,7 +96,7 @@ export default function BasicsDoc() {
                 <Code>Number</Code>, and <Code>String</Code>, mark a field as
                 required by adding its property key to the <Code>required</Code>
                 &nbsp;list in the Data schema. This will automatically display a
-                required asterisk (*) next to the element's label.
+                required asterisk (*) next to the element&apos;s label.
             </div>
             <Pre>
                 <JSONViewer

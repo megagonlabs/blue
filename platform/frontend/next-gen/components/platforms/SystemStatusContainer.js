@@ -71,7 +71,6 @@ const TrackerCard = memo(function TrackerCard({ data, index, style }) {
         >
             <div
                 ref={cardRef}
-                className="interactive-card-border "
                 style={{
                     borderRadius: 2,
                     padding: 20,
