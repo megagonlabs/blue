@@ -61,7 +61,6 @@ const Row = ({ index, data, style }) => {
         sessionId,
         addInspectionContainer,
         setShowWorkspace,
-        variableSizeListRef,
     } = data;
     const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
@@ -175,7 +174,7 @@ const Row = ({ index, data, style }) => {
     const expanded = _.get(expandedMessages, [sessionId, stream], false);
     useEffect(() => {
         handleResize();
-    }, [expanded]);
+    }, [expanded, detailedMessage]);
     return (
         <div
             key={index}
