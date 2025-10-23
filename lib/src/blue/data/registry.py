@@ -1715,6 +1715,118 @@ class DataRegistry(Registry):
             except Exception as e:
                 self.logger.warning(f"Failed to set collection schema for {collection}: {e}")
 
+    
+    def sync_source_database_collection_entity(self, source, database, collection, entity, source_connection=None, recursive=False, rebuild=False):
+        if source_connection is None:
+            source_connection = self.connect_source(source)
+
+        if source_connection:
+            # fetch entity metadata
+            metadata = source_connection.fetch_database_collection_entity_metadata(database, collection, entity)
+            
+            # update source database collection entity properties
+            properties = {}
+            properties['metadata'] = metadata
+            description = ""
+            if 'description' in metadata:
+                description = metadata['description']
+
+            current_description = self.get_source_database_collection_entity_description(source, database, collection, entity)
+
+            if description.strip() and metadata:
+                if not current_description or current_description.strip() == "":
+                    self.update_source_database_collection_entity(source, database, collection, entity, description=description, properties=properties, rebuild=rebuild)
+                else:                          
+                    self.update_source_database_collection_entity(source, database, collection, entity, description=current_description, properties=properties, rebuild=rebuild)
+
+            try:
+                fetched_attrs = source_connection.fetch_database_collection_entity_attributes(database, collection, entity) or {}
+            except Exception as e:
+                logging.exception("Failed to fetch attributes for %s.%s.%s: %s", database, collection, entity, e)
+                fetched_attrs = {}
+
+            registry_attrs = self.get_source_database_collection_entity_attributes(source, database, collection, entity) or []
+            registry_attrs_set = set(json_utils.json_query(registry_attrs, '$[*].name', single=False))
+
+            fetched_attrs_set = set(fetched_attrs.keys())
+
+            attr_adds = fetched_attrs_set - registry_attrs_set
+            attr_removes = registry_attrs_set - fetched_attrs_set
+            attr_merges = fetched_attrs_set & registry_attrs_set
+
+            for attr in attr_adds:
+                self.register_source_database_collection_entity_attribute(
+                    source, database, collection, entity, attr,
+                    description="", properties=fetched_attrs.get(attr, {}), rebuild=rebuild
+                )
+
+            for attr in attr_removes:
+                self.deregister_source_database_collection_entity_attribute(
+                    source, database, collection, entity, attr
+                )
+
+            for attr in attr_merges:
+                self.update_source_database_collection_entity_attribute(
+                    source, database, collection, entity, attr,
+                    description="", properties=fetched_attrs.get(attr, {}), rebuild=rebuild
+                ) 
+                    
+    def sync_source_database_collection_relation(self, source, database, collection, relation, source_connection=None, recursive=False, rebuild=False):
+        if source_connection is None:
+            source_connection = self.connect_source(source)
+
+        if source_connection:
+            # fetch entity metadata
+            metadata = source_connection.fetch_database_collection_relation_metadata(database, collection, relation)
+            
+            # update source database collection entity properties
+            properties = {}
+            properties['metadata'] = metadata
+            description = ""
+            if 'description' in metadata:
+                description = metadata['description']
+
+            current_description = self.get_source_database_collection_relation_description(source, database, collection, relation)
+
+            if description.strip() and metadata:
+                if not current_description or current_description.strip() == "":
+                    self.update_source_database_collection_relation(source, database, collection, relation, description=description, properties=properties, rebuild=rebuild)
+                else:                          
+                    self.update_source_database_collection_relation(source, database, collection, relation, description=current_description, properties=properties, rebuild=rebuild)
+
+            try:
+                fetched_attrs = source_connection.fetch_database_collection_relation_attributes(database, collection, relation) or {}
+            except Exception as e:
+                logging.exception("Failed to fetch attributes for %s.%s.%s: %s", database, collection, relation, e)
+                fetched_attrs = {}
+
+            registry_attrs = self.get_source_database_collection_relation_attributes(source, database, collection, relation) or []
+            registry_attrs_set = set(json_utils.json_query(registry_attrs, '$[*].name', single=False))
+
+            fetched_attrs_set = set(fetched_attrs.keys())
+
+            attr_adds = fetched_attrs_set - registry_attrs_set
+            attr_removes = registry_attrs_set - fetched_attrs_set
+            attr_merges = fetched_attrs_set & registry_attrs_set
+
+            for attr in attr_adds:
+                self.register_source_database_collection_relation_attribute(
+                    source, database, collection, relation, attr,
+                    description="", properties=fetched_attrs.get(attr, {}), rebuild=rebuild
+                )
+
+            for attr in attr_removes:
+                self.deregister_source_database_collection_relation_attribute(
+                    source, database, collection, relation, attr
+                )
+
+            for attr in attr_merges:
+                self.update_source_database_collection_relation_attribute(
+                    source, database, collection, relation, attr,
+                    description="", properties=fetched_attrs.get(attr, {}), rebuild=rebuild
+                ) 
+            
+    
     ###############
     ##  data sources search
     def get_data_source_schema(self, source, database, collection, format="dict"):
