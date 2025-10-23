@@ -31,7 +31,7 @@ class MongoDBSource(DataSource):
         host = connection['host']
         port = connection['port']
 
-        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)
+        connection_url = self.properties['connection']['protocol'] + "://" + host + ":" + str(port)
         return MongoClient(connection_url)
 
     def _disconnect(self):
