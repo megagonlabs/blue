@@ -68,7 +68,10 @@ class MongoDBSource(DataSource):
             list[str]: Names of all available databases.
         """
         dbs = self.connection.list_database_names()
-        return dbs
+        # Exclude MongoDB internal databases
+        system_dbs = {"admin", "config", "local"}
+        user_dbs = [db for db in dbs if db not in system_dbs]
+        return user_dbs
 
     def fetch_database_metadata(self, database):
         """
@@ -106,7 +109,8 @@ class MongoDBSource(DataSource):
         Returns:
             list[str]: Names of collections.
         """
-        collections = self.connection[database].list_collection_names()
+        collections = []
+        collections.append("public")
         return collections
 
     def fetch_database_collection_metadata(self, database, collection):
@@ -147,10 +151,37 @@ class MongoDBSource(DataSource):
             collection (str): Collection name.
 
         Returns:
-            list[str]: Entity names in the collection schema.
+            dict: A dictionary mapping entity names to their inferred schema, where each entry contains:
+            - properties (dict): Metadata such as sample count.
+            - contents (dict): Attributes inferred from sample documents with their types.
         """
-        schema = self._get_collection_schema(database, collection)
-        return schema.get_entities()
+        db = self.connection[database]
+        collection_names = db.list_collection_names()
+        
+        schema = {}
+
+        for coll_name in collection_names:
+            coll = db[coll_name]
+            sample_docs = list(coll.find().limit(sample_limit))
+        
+            attributes = {}
+
+            # Infer attributes from documents
+            for doc in sample_docs:
+                for key, value in doc.items():
+                    if key not in attributes:
+                        attr_type = type(value).__name__
+                        attributes[key] = {"type": attr_type}
+                    else:
+                        pass
+
+            # Add entity metadata
+            schema[coll_name] = {
+                "properties": {"sample_count": len(sample_docs)},
+                "contents": {"attributes": attributes},
+            }
+
+        return schema
 
     def fetch_database_collection_relations(self, database, collection):
         """
