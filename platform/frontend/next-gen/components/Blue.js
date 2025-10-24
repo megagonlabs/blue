@@ -62,7 +62,7 @@ import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
 import BasicTour from "./ux/BasicTour";
 import VerticalScrollable from "./VerticalScrollable";
-const { NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
+const { NEXT_PUBLIC_PLATFORM_NAME, NEXT_PUBLIC_REST_API_SERVER } = allEnv();
 const AGENT_GROUP_ICON = _.get(ENTITY_TYPE_LOOKUP, "agent_group.icon", null);
 export default function Blue({ children }) {
     const {
@@ -157,6 +157,14 @@ export default function Blue({ children }) {
     };
     useEffect(() => {
         addApplicationContainer();
+        axios
+            .get(`${NEXT_PUBLIC_REST_API_SERVER}/configuration_check`)
+            .then((response) => {
+                setState({
+                    key: "configuration",
+                    value: _.get(response, "data", {}),
+                });
+            });
     }, []);
     const { createNewSession } = useSessionStore(
         useShallow((state) => ({

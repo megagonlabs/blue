@@ -9,6 +9,7 @@ import {
     H3,
     Intent,
     Size,
+    Tag,
 } from "@blueprintjs/core";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -23,7 +24,12 @@ import { useToaster } from "./contexts/ToasterContext";
 const { NEXT_PUBLIC_FIREBASE_CONFIG } = allEnv();
 export default function Authentication() {
     const [appAuth, setAppAuth] = useState(null);
-    const darkMode = useAppStore((state) => state.dark_mode);
+    const { darkMode, configuration } = useAppStore(
+        useShallow((state) => ({
+            darkMode: state.dark_mode,
+            configuration: state.configuration,
+        }))
+    );
     const { isPopupOpen, initialized, signInWithGoogle, fetchAccountProfile } =
         useAuthStore(
             useShallow((state) => ({
@@ -52,6 +58,7 @@ export default function Authentication() {
             }
         }
     }, []);
+    const idTokenCookie = _.get(configuration, "id_token_cookie", true);
     return (
         <Container
             className={darkMode && Classes.DARK}
@@ -158,6 +165,11 @@ export default function Authentication() {
                                 </svg>
                             }
                         />
+                        {idTokenCookie && (
+                            <div style={{ marginTop: 20 }}>
+                                <Tag minimal>Session Timeout: 1 hour</Tag>
+                            </div>
+                        )}
                     </div>
                 </Col>
             </Row>

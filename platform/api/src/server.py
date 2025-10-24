@@ -207,10 +207,14 @@ async def session_verification(request: Request, call_next):
 
 
 @app.middleware("http")
-async def health_check(request: Request, call_next):
-    if request.url.path not in ["/health_check"]:
+async def system_check(request: Request, call_next):
+    path = request.url.path
+    if path not in ["/health_check", "/configuration_check"]:
         return await call_next(request)
-    return JSONResponse(content={"message": "Success"})
+    if pydash.is_equal(path, "/health_check"):
+        return JSONResponse(content={"message": "Success"})
+    elif pydash.is_equal(path, "/configuration_check"):
+        return JSONResponse(content={"id_token_cookie": pydash.is_empty(FIREBASE_SERVICE_CRED)})
 
 
 # middlewares are added in reverse order

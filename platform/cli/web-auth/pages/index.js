@@ -9,6 +9,7 @@ import {
     DialogBody,
     Intent,
     Size,
+    Tag,
 } from "@blueprintjs/core";
 import axios from "axios";
 import { initializeApp } from "firebase/app";
@@ -59,6 +60,14 @@ export default function Index() {
     const [ws, setWs] = useState(null);
     const [appAuth, setAppAuth] = useState(null);
     const { appToaster } = useToaster();
+    const [configuration, setConfiguration] = useState(null);
+    const idTokenCookie = _.get(configuration, "id_token_cookie", true);
+    const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
+    const secure =
+        _.toLower(_.get(profile, "BLUE_DEPLOY_SECURE", "True")) == "true";
+    const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT", null);
+    const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
+    const baseURL = `http${secure ? "s" : ""}://${server}:${port}`;
     useEffect(() => {
         setLoading(true);
         const server = "localhost:25831";
@@ -128,22 +137,20 @@ export default function Index() {
         };
         setWs(socket);
     }, []);
+    useEffect(() => {
+        axios.get(`${baseURL}/configuration_check`).then((response) => {
+            setConfiguration(_.get(response, "data", {}));
+        });
+    }, [baseURL]);
     const [popupOpen, setPopupOpen] = useState(false);
     const signInWithGoogle = useCallback(() => {
-        const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
-        const secure =
-            _.toLower(_.get(profile, "BLUE_DEPLOY_SECURE", "True")) == "true";
-        const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT", null);
-        const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
         setPopupOpen(true);
         signInWithPopup(appAuth, provider)
             .then((result) => {
                 result.user.getIdToken().then((idToken) => {
                     axios
                         .post(
-                            `http${
-                                secure ? "s" : ""
-                            }://${server}:${port}/blue/platform/${platformName}/accounts/sign-in/cli`,
+                            `${baseURL}/blue/platform/${platformName}/accounts/sign-in/cli`,
                             { id_token: idToken }
                         )
                         .then((response) => {
@@ -168,7 +175,7 @@ export default function Index() {
                     });
                 }
             });
-    }, [appAuth]);
+    }, [appAuth, baseURL]);
     return (
         <>
             <Head>
@@ -192,12 +199,16 @@ export default function Index() {
                     enforceFocus
                     style={{ maxWidth: 300, backgroundColor: Colors.WHITE }}
                     isCloseButtonShown={false}
-                    title="Blue CLI"
+                    title={
+                        <div style={{ paddingLeft: 4, paddingRight: 4 }}>
+                            Blue CLI
+                        </div>
+                    }
                     isOpen
                 >
                     {_.isNil(ws) ? (
                         <Callout
-                            style={{ borderRadius: 0 }}
+                            style={{ borderRadius: 0, padding: 20 }}
                             intent={Intent.DANGER}
                             icon={null}
                         >
@@ -206,14 +217,14 @@ export default function Index() {
                     ) : null}
                     {_.isNil(appAuth) ? (
                         <Callout
-                            style={{ borderRadius: 0 }}
+                            style={{ borderRadius: 0, padding: 20 }}
                             intent={Intent.DANGER}
                             icon={null}
                         >
                             Failed to initialize Firebase authentication
                         </Callout>
                     ) : null}
-                    <DialogBody>
+                    <DialogBody style={{ padding: 20 }}>
                         <Button
                             style={{ borderRadius: 10 }}
                             loading={popupOpen}
@@ -226,6 +237,11 @@ export default function Index() {
                             fill
                             icon={GOOGLE_LOGO_SVG}
                         />
+                        {idTokenCookie && (
+                            <div style={{ marginTop: 20 }}>
+                                <Tag minimal>Session Timeout: 1 hour</Tag>
+                            </div>
+                        )}
                     </DialogBody>
                 </Dialog>
             )}
