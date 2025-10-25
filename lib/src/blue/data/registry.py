@@ -2140,6 +2140,41 @@ class DataRegistry(Registry):
 
         return vector_score
 
+    def _compute_most_relevant_attribute_values(self, result, input_query, top_k=5):
+        """
+        Compute the most relevant attribute values for an attribute record.
+        Uses the 'values' field in the registry record directly.
+        Returns:
+            value_relevance_score: float
+            most_relevant_values: list
+        """
+        if not hasattr(result, "values") or not result.values:
+            return 0.0, []
+
+        try:
+            values = json.loads(result.values) if isinstance(result.values, str) else result.values
+        except Exception:
+            values = result.values
+
+        if not values:
+            return 0.0, []
+
+        value_scores = []
+        for val in values:
+            val_text = str(val)
+            # Compute BM25 score between query and value
+            bm25_score = compute_bm25_score(input_query, result.name, val_text) if input_query else 0.0
+            value_scores.append((val_text, bm25_score))
+
+        # Sort descending by combined score and pick top_k
+        value_scores.sort(key=lambda x: x[1], reverse=True)
+        most_relevant_values = [v for v, s in value_scores[:top_k]]
+
+        top_scores = [s for v, s in value_scores[:top_k]]
+        value_relevance_score = sum(top_scores) / len(top_scores) if top_scores else 0.0
+
+        return value_relevance_score, most_relevant_values
+    
     def search_records(
         self,
         input_query,
@@ -2158,6 +2193,7 @@ class DataRegistry(Registry):
         bm25_normalization=None,
         enable_schema=None,
         redis_search_limit=None,
+        enable_value_semantics=True
     ):
         """
         Search records using BM25 relevance, vector similarity, and optional schema-based scoring.
@@ -2226,7 +2262,7 @@ class DataRegistry(Registry):
         )
 
         q, query_params = self._build_search_query(params)
-        query = Query(q).return_fields("id", "name", "type", "scope", "description", "schema").paging(0, params['redis_search_limit'])
+        query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
 
         results = self.connection.ft(params['index_name']).search(query, query_params).docs
         print(f"  Found {len(results)} entities in index")
@@ -2262,8 +2298,17 @@ class DataRegistry(Registry):
             # Compute vector score
             vector_score = self._compute_vector_score(result, query_vector, vector_bytes, schema_vector_bytes, params)
 
+            value_relevance_score = 0.0
+            most_relevant_values = []
+            
+            if enable_value_semantics and result.type == "attribute":
+                value_relevance_score, most_relevant_values = self._compute_most_relevant_attribute_values(result, input_query)
+           
             result.bm25_score = bm25_score
             result.vector_score = vector_score
+            result.value_relevance_score = value_relevance_score
+            result.most_relevant_values = most_relevant_values
+            
 
         # Normalize BM25 scores to [0, 1] range, higher is better
         all_bm25_scores = [result.bm25_score for result in results]
@@ -2303,6 +2348,10 @@ class DataRegistry(Registry):
             }
             if hasattr(result, 'schema') and result.schema:
                 output_dict['schema'] = result.schema
+            # Add most relevant attribute values if this is an attribute
+            if result.type == "attribute" and result.most_relevant_values:
+                output_dict['most_relevant_values'] = result.most_relevant_values
+
             final_results.append(output_dict)
 
         # Sort by inverted score, lower is better
@@ -2419,7 +2468,7 @@ class DataRegistry(Registry):
             search_types = [type]
 
         q, query_params = self._build_search_query(params, search_types)
-        query = Query(q).return_fields("id", "name", "type", "scope", "description", "schema").paging(0, params['redis_search_limit'])
+        query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
         results = self.connection.ft(params['index_name']).search(query, query_params).docs
 
         if not results:
@@ -2456,6 +2505,12 @@ class DataRegistry(Registry):
             # Compute vector score
             vector_score = self._compute_vector_score(result, query_vector, vector_bytes, schema_vector_bytes, params)
 
+            value_relevance_score = 0.0
+            most_relevant_values = []
+            
+            if enable_value_semantics and result.type == "attribute":
+                value_relevance_score, most_relevant_values = self._compute_most_relevant_attribute_values(result, input_query)
+           
             # Attach scores directly to result object
             result.bm25_score = bm25_score
             result.vector_score = vector_score
