@@ -22,7 +22,7 @@ const docJson = {
         style: {},
         large: false,
     },
-    scope: "#/properties/...",
+    scope: "#/properties/blood_type",
 };
 const dataSchemaJson = {
     type: "object",
