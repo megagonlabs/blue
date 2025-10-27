@@ -24,6 +24,15 @@ const docJson = {
     },
     scope: "#/properties/...",
 };
+const dataSchemaJson = {
+    type: "object",
+    properties: {
+        blood_type: {
+            type: "string",
+            enum: ["A", "B", "AB", "O"],
+        },
+    },
+};
 export default function EnumDoc() {
     return (
         <div>
@@ -39,6 +48,7 @@ export default function EnumDoc() {
                     icon={<FAIcon icon={faListDropdown} size={30} />}
                 />
             </div>
+            <H2>Example</H2>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
                     <CopyDocJSONButton
@@ -46,7 +56,25 @@ export default function EnumDoc() {
                         copyMessage="Copied Enum (Control) JSON"
                     />
                 </div>
+                <div>
+                    <Tag size={Size.LARGE} style={{ marginBottom: 10 }} minimal>
+                        UI Schema
+                    </Tag>
+                </div>
                 <JSONViewer json={docJson} enableClipboard={false} />
+            </Pre>
+            <Pre style={{ position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", right: 15, top: 13 }}>
+                    <CopyDocJSONButton
+                        docJson={JSON.stringify(dataSchemaJson, null, 4)}
+                    />
+                </div>
+                <div>
+                    <Tag size={Size.LARGE} style={{ marginBottom: 10 }} minimal>
+                        Data Schema
+                    </Tag>
+                </div>
+                <JSONViewer json={dataSchemaJson} enableClipboard={false} />
             </Pre>
             <H2>Props</H2>
             <HTMLTable className="docs-prop-table" style={{ width: "100%" }}>

@@ -6,7 +6,7 @@ import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { JSONFORMS_RENDERERS } from "../renderers";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const EXAMPLE_SPECS = {
-    "candidates-table": {
+    candidates_table: {
         title: "1. Candidates table",
         uiSchemaJson: {
             type: "VerticalLayout",
@@ -96,7 +96,7 @@ const EXAMPLE_SPECS = {
 export default function ExamplesDoc() {
     return (
         <div>
-            {["candidates-table"].map((key) => {
+            {["candidates_table"].map((key) => {
                 const example = EXAMPLE_SPECS[key];
                 return (
                     <>
