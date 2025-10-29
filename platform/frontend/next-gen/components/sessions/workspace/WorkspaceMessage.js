@@ -163,7 +163,7 @@ export default function WorkspaceMessage({
     return (
         <div style={{ position: "relative" }}>
             <div ref={ref}>
-                <Callout style={{ padding: 0, overflow: "hidden" }}>
+                <Callout className="padding-0" style={{ overflow: "hidden" }}>
                     <div
                         style={{
                             display: "flex",
@@ -207,7 +207,10 @@ export default function WorkspaceMessage({
                     </div>
                     <Collapse keepChildrenMounted isOpen={!dragging}>
                         <div
-                            className={loading ? Classes.SKELETON : null}
+                            className={classNames({
+                                [Classes.SKELETON]: loading,
+                                "message-bubble-callout-content": true,
+                            })}
                             style={{ padding: "0px 20px 20px" }}
                         >
                             {hasError.current ? (
