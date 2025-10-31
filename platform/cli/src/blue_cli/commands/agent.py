@@ -179,13 +179,13 @@ def build_io_map(io_list):
             io_map[item["name"]] = item
     return io_map
 
-@agent.command(help="Sync JSON file with agent registry interactively")
+@agent.command(help="Update agent registry from JSON file")
 @click.argument("json_file", type=click.Path(exists=True))
-@click.option("--yes", is_flag=True, help="Apply all changes without prompting")
+@click.option("--auto", is_flag=True, help="Auto import all changes without interactive verification")
 @click.pass_context
-def sync(ctx, json_file, yes):
+def update(ctx, json_file, auto):
     """
-    Sync agents and agent groups from a JSON file with the live agent registry.
+    Update agents and agent groups from a JSON file with the live agent registry.
     Compares scope-aware entities and shows detailed diffs.
     """
     agent_mgr = ctx.obj["agent_mgr"]
@@ -331,8 +331,8 @@ def sync(ctx, json_file, yes):
     for m in modified_groups:
         print(f"\nKey: {m['key']}")
         print(json.dumps(m["diff"], indent=2))
-        
-    print("\nStarting interactive sync for agent groups...")
+
+    print("\nStarting interactive update for agent groups...")
 
     for mm in new_groups + modified_groups:
         key = mm["key"]
@@ -347,9 +347,9 @@ def sync(ctx, json_file, yes):
 
         if diff:
             click.echo(f"Diff:\n{json.dumps(diff, indent=2)}")
-        
-        # Auto-apply if --yes, otherwise prompt
-        if yes:
+
+        # Auto-apply if --auto, otherwise prompt
+        if auto:
             do_update = True
         else:
             do_update = click.prompt("Apply this change? [y/n]", default="n").lower() == "y"
@@ -404,9 +404,9 @@ def sync(ctx, json_file, yes):
                                 click.echo(f"Updated property '{prop_name}' for {name}")
 
         except Exception as e:
-            click.echo(f" Error syncing group {name}: {e}")
-        
-    print("\nStarting interactive sync for agents ...")
+            click.echo(f" Error updating group {name}: {e}")
+
+    print("\nStarting interactive update for agents ...")
 
     for mm in new_agents + modified_agents:
         key = mm["key"]
@@ -419,8 +419,8 @@ def sync(ctx, json_file, yes):
         click.echo(f"Input Agent:\n{json.dumps(input_agent, indent=2)}")
         click.echo(f"Registry Agent:\n{json.dumps(reg_agent, indent=2) if reg_agent else 'MISSING'}")
 
-        # If --yes flag provided, auto-apply; otherwise prompt
-        if yes:
+        # If --auto flag provided, auto-apply; otherwise prompt
+        if auto:
             do_update = True
         else:
             do_update = click.prompt("Apply this change? [y/n]", default="n").lower() == "y"
@@ -483,7 +483,7 @@ def sync(ctx, json_file, yes):
                     reg_outputs, err_out = agent_mgr.get_agent_outputs(name)
 
                     if err_in or err_out:
-                        click.echo(f" Skipping IO sync for {name} due to fetch error.")
+                        click.echo(f" Skipping IO update for {name} due to fetch error.")
                         continue
 
                     if reg_inputs is None:
@@ -590,7 +590,7 @@ def sync(ctx, json_file, yes):
                                 else:
                                     click.echo(f" Updated property '{prop_name}' for {name}")
 
-                    click.echo("\n--- Syncing Inputs/Outputs ---")
+                    click.echo("\n--- Updating Inputs/Outputs ---")
                     contents = input_agent.get("contents", {})
                     if not contents:
                         continue
@@ -604,7 +604,7 @@ def sync(ctx, json_file, yes):
 
                     click.echo(f"Registry outputs: {list(reg_outputs.keys()) if isinstance(reg_outputs, dict) else 'N/A'}")
                     if err_in or err_out:
-                        click.echo(f" Skipping IO sync for {name} due to fetch error.")
+                        click.echo(f" Skipping IO update for {name} due to fetch error.")
                         continue
                     click.echo(f"Registry inputs: {list(reg_inputs.keys()) if isinstance(reg_inputs, dict) else 'N/A'}")
                     
@@ -670,9 +670,9 @@ def sync(ctx, json_file, yes):
                             click.echo(f" Updated output property '{prop_name}' for {oname}" if not err else f" Failed to update output property '{prop_name}' for {oname}: {err}")
 
         except Exception as e:
-            click.echo(f" Error syncing {name}: {e}")
+            click.echo(f" Error updating {name}: {e}")
 
-        click.echo("\n Sync complete!")
+        click.echo("\n Update complete!")
 
 if __name__ == "__main__":
     agent()  
