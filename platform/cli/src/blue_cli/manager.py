@@ -1874,3 +1874,274 @@ class DataRegistryManager:
         sources = self.get_all_sources()
         matches = {name: data for name, data in sources.items() if keyword.lower() in json.dumps(data).lower()}
         return matches
+
+
+class AgentRegistryManager:
+    def __init__(self):
+        profile = ProfileManager()
+        self.cookies = profile.get_selected_profile_cookie()
+        self.base_api_path = profile.get_selected_profile_base_api_path()
+
+    ######### Agents #########
+    def get_agents(self, recursive=False):
+        url = f"{self.base_api_path}/registry/default/agents?recursive={str(recursive).lower()}"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["results"], None
+        print("ERROR", r.status_code, r.text)
+        return None, r.json()
+
+    def get_agent(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["result"], None
+        return None, r.json()
+
+    def add_agent(self, agent_name, description=None, icon=None, properties=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        payload = {"name": agent_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code in [200, 201]:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def update_agent(self, agent_name, description=None, icon=None, properties=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        payload = {"name": agent_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    # ------------------------
+    # INPUTS
+    # ------------------------
+    
+    def get_agent_inputs(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/inputs"
+        try:
+            r = requests.get(url, cookies=self.cookies)
+            if r.status_code == 200:
+                results = r.json().get("results", {})
+                return results, None  
+            else:
+                return None, r.json()  
+        except Exception as e:
+            return None, {"error": str(e)}
+
+    
+    def add_agent_input(self, agent_name, param_name, description=None, properties=None, icon=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}"
+        payload = {
+            "name": param_name,
+            "description": description or "",
+            "properties": properties or {},
+            "icon": icon
+        }
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def update_agent_input(self, agent_name, param_name, description=None, properties=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}"
+        payload = {
+            "name": param_name,  
+            "description": description or "",
+            "properties": properties or {},
+            "icon": None
+        }
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("message"), None
+        return None, r.json()
+
+    def set_agent_input_property(self, agent_name, param_name, property_name, property_value):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}/property/{property_name}"
+        payload = {property_name: property_value}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent_input_property(self, agent_name, param_name, property_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}/property/{property_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    # ------------------------
+    # OUTPUTS
+    # ------------------------
+    def get_agent_outputs(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/outputs"
+        try:
+            r = requests.get(url, cookies=self.cookies)
+            if r.status_code == 200:
+                results = r.json().get("results", {})
+                return results, None
+            else:
+                return None, r.json()
+        except Exception as e:
+            return None, {"error": str(e)}
+
+
+    def add_agent_output(self, agent_name, param_name, description=None, properties=None, icon=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}"
+        payload = {
+            "name": param_name,
+            "description": description or "",
+            "properties": properties or {},
+            "icon": icon
+        }
+       
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def update_agent_output(self, agent_name, param_name, description=None, properties=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}"
+        payload = {
+            "name": param_name,  # MUST include name
+            "description": description or "",
+            "properties": properties or {},
+            "icon": None
+        }
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("message"), None
+        return None, r.json()
+
+    def set_agent_output_property(self, agent_name, param_name, property_name, property_value):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}/property/{property_name}"
+        payload = {property_name: property_value}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent_output_property(self, agent_name, param_name, property_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}/property/{property_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+    
+    ######### Agent Properties #########
+    def get_agent_properties(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/properties"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["results"], None
+        return None, r.json()
+
+    def set_agent_property(self, agent_name, property_name, value):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/property/{property_name}"
+        #payload = value
+        payload = {property_name: value} 
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent_property(self, agent_name, property_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/property/{property_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    ######### Agent Groups #########
+    def get_agent_groups(self):
+        url = f"{self.base_api_path}/registry/default/agent_groups"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["results"], None
+        return None, r.json()
+
+    def get_agent_group(self, group_name):
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["result"], None
+        return None, r.json()
+
+    def add_agent_group(self, group_name, description=None, icon=None, properties=None):
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
+        payload = {"name": group_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code in [200, 201]:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def update_agent_group(self, group_name, description=None, icon=None, properties=None):
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
+        payload = {"name": group_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent_group(self, group_name):
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    ######### Agent Group Properties #########
+    def set_agent_group_property(self, group_name, property_name, value):
+        """
+        Set (or update) a specific property on an agent group.
+        Mirrors the API: POST /registry/default/agent_group/{group_name}/property/{property_name}
+        """
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/property/{property_name}"
+        payload = {property_name: value}  # key must match what the API expects
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    ######### Agents in Agent Groups #########
+    def add_agent_to_agent_group(self, group_name, agent_name, description=None, icon=None, properties=None, rebuild=False):
+        """
+        Add an agent inside a specific agent group.
+        """
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}"
+        payload = {
+            "name": agent_name,
+            "description": description,
+            "icon": icon,
+            "properties": properties or {},
+            "rebuild": rebuild
+        }
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code in [200, 201]:
+            return r.json().get("message"), None
+        return None, r.json()
+
+    def update_agent_in_agent_group(self, group_name, agent_name, description=None, icon=None, properties=None, rebuild=False):
+        """
+        Update an existing agent inside a specific agent group.
+        """
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}"
+        payload = {
+            "description": description,
+            "icon": icon,
+            "properties": properties or {},
+            "rebuild": rebuild
+        }
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("message"), None
+        return None, r.json()

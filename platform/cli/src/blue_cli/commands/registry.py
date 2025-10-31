@@ -1,5 +1,7 @@
 import click
 from blue_cli.commands import data as data_cmd
+from blue_cli.commands import agent as agent_cmd
+
 
 @click.group(help="Registry related commands")
 @click.pass_context
@@ -8,3 +10,9 @@ def registry(ctx):
 
 # Attach the data group under registry
 registry.add_command(data_cmd.data, name="data")
+# Attach the agent group under registry
+registry.add_command(agent_cmd.agent, name="agent")
+
+if __name__ == "__main__":
+    registry()
+
