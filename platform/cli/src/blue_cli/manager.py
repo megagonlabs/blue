@@ -17,6 +17,7 @@ import docker
 
 import webbrowser
 import websockets
+import requests
 from websockets import exceptions as ws_exceptions
 
 from blue_cli.helper import inquire_user_input, convert, print_list_curses
