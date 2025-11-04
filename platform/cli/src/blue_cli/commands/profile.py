@@ -139,20 +139,8 @@ def authenticate():
         if profile_name is None:
             raise Exception(f"profile name cannot be empty")
 
-    auth = Authentication()
-    cookie = auth.get_cookie()
-    uid = auth.get_uid()
-
-    profile_mgr.set_profile_attribute(
-        profile_name=profile_name,
-        attribute_name="BLUE_COOKIE",
-        attribute_value=cookie,
-    )
-    profile_mgr.set_profile_attribute(
-        profile_name=profile_name,
-        attribute_name="BLUE_UID",
-        attribute_value=uid,
-    )
+    profile_mgr.authenticate_profile(profile_name=profile_name)
+    
 
 
 @click.pass_context

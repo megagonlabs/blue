@@ -13,11 +13,12 @@ import json
 
 @click.pass_context
 def data(ctx, platform, registry, output, query):
+    global data_registry_mgr
+    data_registry_mgr = DataRegistryManager(platform=platform, registry=registry)
     ctx.ensure_object(dict)
     ctx.obj["platform"] = platform
     ctx.obj["registry"] = registry
     ctx.obj["output"] = output
-    ctx.obj["data_mgr"] = DataRegistryManager(platform=platform, registry=registry)
     ctx.obj["query"] = query
 
 
@@ -28,12 +29,11 @@ def data(ctx, platform, registry, output, query):
 @click.option("--entity", required=False, help="Entity name (optional; lists attributes under the entity)")
 def ls(source, database, collection, entity):
     ctx = click.get_current_context()
-    data_mgr = ctx.obj["data_mgr"]
     output = ctx.obj["output"]
 
     # Level 1: List sources
     if not source:
-        sources = data_mgr.get_all_sources()
+        sources = data_registry_mgr.get_all_sources()
         data = [[name, src.get("type", ""), src.get("scope", "")] for name, src in sources.items()] if output == "table" \
             else [{"name": k, **v} for k, v in sources.items()]
         headers = ["name", "type", "scope"] if output == "table" else None
@@ -41,7 +41,7 @@ def ls(source, database, collection, entity):
         return
 
     # Fetch source
-    src = data_mgr.get_source(source)
+    src = data_registry_mgr.get_source(source)
     if not src:
         raise click.ClickException(f"Source '{source}' not found")
     if isinstance(src, list):  # RedisJSON returns list for path queries
@@ -127,14 +127,14 @@ def ls(source, database, collection, entity):
 @click.option("--attribute", required=False, help="Attribute name. To show an attribute you must also provide --source, --database, --collection, and --entity")
 def show(source, database, collection, entity, attribute):
     ctx = click.get_current_context()
-    data_mgr = ctx.obj["data_mgr"]
+    data_registry_mgr = ctx.obj["data_registry_mgr"]
     output = ctx.obj["output"]
 
     if not source:
         raise click.ClickException("You must provide at least --source")
 
     # Fetch source
-    src = data_mgr.get_source(source)
+    src = data_registry_mgr.get_source(source)
     if not src:
         raise click.ClickException(f"Source '{source}' not found")
     if isinstance(src, list):  # RedisJSON safety
@@ -217,7 +217,7 @@ def show(source, database, collection, entity, attribute):
 @click.option("--entity", help="Parent entity name (required for attribute)")
 def create(name, description, properties, source, database, collection, entity):
     ctx = click.get_current_context()
-    data_mgr = ctx.obj["data_mgr"]
+    data_registry_mgr = ctx.obj["data_registry_mgr"]
 
     try:
         props = json.loads(properties)
@@ -233,23 +233,23 @@ def create(name, description, properties, source, database, collection, entity):
     # Hierarchy: source -> database -> collection -> entity -> attribute
     if not source and not database and not collection and not entity:
         # create source
-        data_mgr.create_source(name, obj)
+        data_registry_mgr.create_source(name, obj)
         click.echo(f"Created source '{name}'")
     elif source and not database and not collection and not entity:
         # create database
-        data_mgr.create_database(source, name, obj)
+        data_registry_mgr.create_database(source, name, obj)
         click.echo(f"Created database '{name}' in source '{source}'")
     elif source and database and not collection and not entity:
         # create collection
-        data_mgr.create_collection(source, database, name, obj)
+        data_registry_mgr.create_collection(source, database, name, obj)
         click.echo(f"Created collection '{name}' in database '{database}' of source '{source}'")
     elif source and database and collection and not entity:
         # create entity
-        data_mgr.create_entity(source, database, collection, name, obj)
+        data_registry_mgr.create_entity(source, database, collection, name, obj)
         click.echo(f"Created entity '{name}' in collection '{collection}' of database '{database}' in source '{source}'")
     elif source and database and collection and entity:
         # create attribute
-        data_mgr.create_attribute(source, database, collection, entity, name, obj)
+        data_registry_mgr.create_attribute(source, database, collection, entity, name, obj)
         click.echo(f"Created attribute '{name}' in entity '{entity}' of collection '{collection}' in database '{database}' in source '{source}'")
     else:
         raise click.ClickException("Invalid hierarchy: must specify parent flags properly.")
@@ -268,12 +268,12 @@ def create(name, description, properties, source, database, collection, entity):
 @click.confirmation_option(prompt="Are you sure you want to delete?")
 def delete(name, source, database, collection, entity):
     ctx = click.get_current_context()
-    data_mgr = ctx.obj["data_mgr"]
+    data_registry_mgr = ctx.obj["data_registry_mgr"]
 
     # Determine level from options
     if source and not database:
         # Level 1: delete database name
-        if data_mgr.delete_database(source, name):
+        if data_registry_mgr.delete_database(source, name):
             click.echo(f"Deleted database '{name}' from source '{source}'")
         else:
             click.echo(f"Database '{name}' not found in source '{source}'")
@@ -281,7 +281,7 @@ def delete(name, source, database, collection, entity):
 
     if source and database and not collection:
         # Level 2: delete collection name
-        if data_mgr.delete_collection(source, database, name):
+        if data_registry_mgr.delete_collection(source, database, name):
             click.echo(f"Deleted collection '{name}' from database '{database}'")
         else:
             click.echo(f"Collection '{name}' not found in database '{database}'")
@@ -289,7 +289,7 @@ def delete(name, source, database, collection, entity):
 
     if source and database and collection and not entity:
         # Level 3: delete entity name
-        if data_mgr.delete_entity(source, database, collection, name):
+        if data_registry_mgr.delete_entity(source, database, collection, name):
             click.echo(f"Deleted entity '{name}' from collection '{collection}'")
         else:
             click.echo(f"Entity '{name}' not found in collection '{collection}'")
@@ -297,7 +297,7 @@ def delete(name, source, database, collection, entity):
 
     if source and database and collection and entity:
         # Level 4: delete attribute name
-        if data_mgr.delete_attribute(source, database, collection, entity, name):
+        if data_registry_mgr.delete_attribute(source, database, collection, entity, name):
             click.echo(f"Deleted attribute '{name}' from entity '{entity}'")
         else:
             click.echo(f"Attribute '{name}' not found in entity '{entity}'")
@@ -305,7 +305,7 @@ def delete(name, source, database, collection, entity):
 
     if name and not source:
         # Level 0: delete source
-        if data_mgr.delete_source(name):
+        if data_registry_mgr.delete_source(name):
             click.echo(f"Deleted source '{name}'")
         else:
             click.echo(f"Source '{name}' not found")
@@ -319,7 +319,7 @@ def delete(name, source, database, collection, entity):
 @click.argument("keyword", required=True)
 def search(source, database, collection, entity, keyword):
     ctx = click.get_current_context()
-    data_mgr = ctx.obj["data_mgr"]
+    data_registry_mgr = ctx.obj["data_registry_mgr"]
     output = ctx.obj["output"]
 
     keyword_lower = keyword.lower()
@@ -330,7 +330,7 @@ def search(source, database, collection, entity, keyword):
     # Level 1: search sources
     # ------------------------------
     if not source:
-        sources = data_mgr.get_all_sources()
+        sources = data_registry_mgr.get_all_sources()
         matches = {
             name: src for name, src in sources.items()
             if keyword_lower in name.lower() or keyword_lower in json.dumps(src).lower()
@@ -350,7 +350,7 @@ def search(source, database, collection, entity, keyword):
     # ------------------------------
     # Fetch source
     # ------------------------------
-    src = data_mgr.get_source(source)
+    src = data_registry_mgr.get_source(source)
     if not src:
         raise click.ClickException(f"Source '{source}' not found")
     if isinstance(src, list):
