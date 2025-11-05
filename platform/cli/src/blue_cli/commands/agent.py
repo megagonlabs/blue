@@ -105,6 +105,50 @@ def collect_agents_and_groups(data):
 
     return agents, agent_groups
 
+def collect_agents_io(data):
+    """
+    Recursively collect agents, agent_groups, inputs, outputs from JSON
+    """
+    agents, agent_groups, inputs, outputs = {}, {}, {}, {}
+
+    if isinstance(data, dict):
+        t = data.get("type")
+        name = data.get("name")
+        scope = data.get("scope", "/")
+
+        if t == "agent" and name:
+            path = f"{scope.rstrip('/')}/agent/{name}"
+            agents[path] = data
+        elif t == "agent_group" and name:
+            path = f"{scope.rstrip('/')}/agent_group/{name}"
+            agent_groups[path] = data
+        elif t == "input" and name:
+            inputs.setdefault(data.get("scope", ""), {})[name] = data
+        elif t == "output" and name:
+            outputs.setdefault(data.get("scope", ""), {})[name] = data
+
+        for v in data.values():
+            sub_agents, sub_groups, sub_inputs, sub_outputs = collect_agents_io(v)
+            agents.update(sub_agents)
+            agent_groups.update(sub_groups)
+            for k, d in sub_inputs.items():
+                inputs.setdefault(k, {}).update(d)
+            for k, d in sub_outputs.items():
+                outputs.setdefault(k, {}).update(d)
+
+    elif isinstance(data, list):
+        for item in data:
+            sub_agents, sub_groups, sub_inputs, sub_outputs = collect_agents_io(item)
+            agents.update(sub_agents)
+            agent_groups.update(sub_groups)
+            for k, d in sub_inputs.items():
+                inputs.setdefault(k, {}).update(d)
+            for k, d in sub_outputs.items():
+                outputs.setdefault(k, {}).update(d)
+
+    return agents, agent_groups, inputs, outputs
+
+
 def make_key(entity):
     scope = entity.get("scope", "/") or "/"
     name = entity.get("name")
@@ -152,7 +196,7 @@ def compute_simple_diff(old_obj, new_obj, keys=None):
     Returns a dict of changes (old vs new) or empty dict if no difference.
     """
     if keys is None:
-        keys = ["description", "icon", "properties", "contents"]
+        keys = ["description", "properties"]
 
     diff = {}
     for k in keys:
@@ -164,6 +208,7 @@ def compute_simple_diff(old_obj, new_obj, keys=None):
 
 
 def build_registry_map(entities):
+    """Build a map of registry entities keyed by scope/name"""
     reg_map = {}
     for e in entities:
         if not isinstance(e, dict):
@@ -183,7 +228,7 @@ def build_io_map(io_list):
             io_map[item["name"]] = item
     return io_map
 
-@agent.command(help="Update agent registry from JSON file")
+@agent.command(help="Update agent registry from JSON file. Input JSON file contains list of registry entries.")
 @click.argument("json_file", type=click.Path(exists=True))
 @click.option("--auto", is_flag=True, help="Auto import all changes without interactive verification")
 @click.pass_context
@@ -192,12 +237,10 @@ def update(ctx, json_file, auto):
     Update agents and agent groups from a JSON file with the live agent registry.
     Compares scope-aware entities and shows detailed diffs.
     """
-
-    print(f"\n=== Loading JSON file: {json_file} ===")
     with open(json_file) as f:
         input_data = json.load(f)
 
-    raw_agents, raw_agent_groups = collect_agents_and_groups(input_data)
+    raw_agents, raw_agent_groups, raw_inputs, raw_outputs = collect_agents_io(input_data)
 
     input_flat_agents = flatten_agents(raw_agents)
     input_flat_groups = flatten_groups(raw_agent_groups)
@@ -220,6 +263,21 @@ def update(ctx, json_file, auto):
         key = make_key(data)
         if key:
             input_groups[key] = data
+
+    # ------------------------------
+    # Build agent -> IO mapping
+    # ------------------------------
+    agent_io_map = {}
+    for scope, input_dict in raw_inputs.items():
+        if scope.startswith("/agent/"):
+            agent_name = scope.split("/agent/")[-1].split("/")[0]
+            agent_io_map.setdefault(agent_name, {})["inputs"] = input_dict
+
+    for scope, output_dict in raw_outputs.items():
+        if scope.startswith("/agent/"):
+            agent_name = scope.split("/agent/")[-1].split("/")[0]
+            agent_io_map.setdefault(agent_name, {})["outputs"] = output_dict
+    
 
     # ------------------------------
     # Fetch registry entries
@@ -246,41 +304,24 @@ def update(ctx, json_file, auto):
             print(f"Warning: could not fetch group {g_name}: {group_err}")
             continue
 
-        agents_in_group = []
-
-        if "agents" in group_data and isinstance(group_data["agents"], list):
-            agents_in_group = group_data["agents"]
-
-        elif "agent" in group_data and isinstance(group_data["agent"], dict):
-            agents_in_group = [group_data["agent"]]
-
-        elif ("contents" in group_data
-            and isinstance(group_data["contents"], dict)
-            and "agent" in group_data["contents"]):
-            nested_agents = group_data["contents"]["agent"]
-            if isinstance(nested_agents, dict):
-                agents_in_group = list(nested_agents.values())
-
-        # Add group name/scope to each agent so they can be compared later
-        for a in agents_in_group:
+        collected_agents, _, _, _ = collect_agents_io(group_data)
+        for a in collected_agents.values():
             if isinstance(a, dict):
                 a_scope = f"/agent_group/{g_name}"
                 if "scope" not in a or not a["scope"]:
                     a["scope"] = a_scope
                 group_agents.append(a)
-
+        
+        
     # Merge top-level and group agents
     all_registry_agents = agents + group_agents
 
     registry_agents = build_registry_map(all_registry_agents)
     registry_groups = build_registry_map(agent_groups)
 
-    group_agents = [a for a in agents if "agent_group" in (a.get("scope") or "")]
-    
     # ------------------------------
     # Compare input vs registry (agents)
     # ------------------------------
-    print("\n=== Comparing Agents ===")
     mismatches_agents = []
     for key, input_agent in input_agents.items():
         reg_agent = registry_agents.get(key)
@@ -294,7 +335,6 @@ def update(ctx, json_file, auto):
     # ------------------------------
     # Compare input vs registry (agent groups)
     # ------------------------------
-    print("\n=== Comparing Agent Groups ===")
     mismatches_groups = []
     for key, input_group in input_groups.items():
         reg_group = registry_groups.get(key)
@@ -313,27 +353,6 @@ def update(ctx, json_file, auto):
 
     new_groups = [m for m in mismatches_groups if m["registry"] is None]
     modified_groups = [m for m in mismatches_groups if m["registry"] is not None]
-
-    click.echo(f"\n=== Summary ===")
-    click.echo(f"New Agents: {len(new_agents)}, Modified Agents: {len(modified_agents)}")
-    click.echo(f"New Agent Groups: {len(new_groups)}, Modified Agent Groups: {len(modified_groups)}")
-
-    print("\n=== New Agents ===")
-    for m in new_agents:
-        print(f"\nKey: {m['key']}")
-        
-    # ------------------------------
-    # Detailed diff for modified ones
-    # ------------------------------
-    print("\n=== Modified Agents (Diff) ===")
-    for m in modified_agents:
-        print(f"\nKey: {m['key']}")
-        print(json.dumps(m["diff"], indent=2))
-        
-    print("\n=== Modified Agent Groups (Diff) ===")
-    for m in modified_groups:
-        print(f"\nKey: {m['key']}")
-        print(json.dumps(m["diff"], indent=2))
 
     print("\nStarting interactive update for agent groups...")
 
@@ -395,7 +414,6 @@ def update(ctx, json_file, auto):
 
                 # Update changed properties individually
                 if "properties" in diff:
-                    click.echo("we are trying to update properties individually")
                     input_props = input_group.get("properties", {})
                     reg_props = reg_group.get("properties", {})
                     for prop_name, prop_value in input_props.items():
@@ -422,255 +440,246 @@ def update(ctx, json_file, auto):
         click.echo(f"Input Agent:\n{json.dumps(input_agent, indent=2)}")
         click.echo(f"Registry Agent:\n{json.dumps(reg_agent, indent=2) if reg_agent else 'MISSING'}")
 
+        if diff:
+            click.echo(f"Diff:\n{json.dumps(diff, indent=2)}")
+        
         # If --auto flag provided, auto-apply; otherwise prompt
         if auto:
-            do_update = True
+            do_update_agent = True
         else:
-            do_update = click.prompt("Apply this change? [y/n]", default="n").lower() == "y"
-
-        if not do_update:
-            continue
+            do_update_agent = click.prompt("Apply this change? [y/n]", default="n").lower() == "y"
 
         name = input_agent.get("name")
         agent_scope = input_agent.get("scope", "")
 
         try:
-            if "/agent_group/" in agent_scope:
-                group_name = agent_scope.split("/agent_group/")[-1].split("/")[0]
-                if reg_agent is None:
-                    msg, err = agent_registry_mgr.add_agent_to_agent_group(
-                        group_name,
-                        name,
-                        description=input_agent.get("description"),
-                        properties=input_agent.get("properties"),
-                        rebuild=True
-                    )
-                else:
-                    update_fields = {}
-                    for field in ["description", "icon", "properties"]:
-                        if field in diff:
-                            update_fields[field] = input_agent.get(field)
-
-                    if update_fields:
-                        msg, err = agent_registry_mgr.update_agent_in_agent_group(
-                        group_name,
-                        name,
-                        description=update_fields.get("description"),
-                        properties=None
-                        )        
-                        if err:
-                            click.echo(f" Failed to update {name}: {err}")
-                        else:
-                            click.echo(f" Updated {name}: {msg}")
-
-                    # Update changed properties individually
-                    if "properties" in diff:
-                        input_props = input_agent.get("properties", {})
-                        reg_props = reg_agent.get("properties", {})
-                        for prop_name, prop_value in input_props.items():
-                            if prop_name not in reg_props or reg_props[prop_name] != prop_value:
-                                msg, err = agent_registry_mgr.set_agent_property(name, prop_name, prop_value)
-                                if err:
-                                    click.echo(f" Failed to update property '{prop_name}' for {name}: {err}")
-                                else:
-                                    click.echo(f" Updated property '{prop_name}' for {name}")
-
-                    contents = input_agent.get("contents", {})
-                    if not contents:
-                        continue
-
-                    inputs_local = contents.get("input", {})
-                    outputs_local = contents.get("output", {})
-
-                    reg_inputs, err_in = agent_registry_mgr.get_agent_inputs(name)
-                    reg_outputs, err_out = agent_registry_mgr.get_agent_outputs(name)
-
-                    if err_in or err_out:
-                        click.echo(f" Skipping IO update for {name} due to fetch error.")
-                        continue
-
-                    if reg_inputs is None:
-                        reg_inputs = {}
-                    if reg_outputs is None:
-                        reg_outputs = {}
-
-                    input_diff = compute_io_diff(inputs_local, reg_inputs)
-                    click.echo(f"Input diff: {json.dumps(input_diff, indent=2)}")
-                    output_diff = compute_io_diff(outputs_local, reg_outputs)
-                    click.echo(f"Output diff: {json.dumps(output_diff, indent=2)}")
-
-                    # --- Apply input diffs ---
-                    for iname, data in input_diff["added"].items():
-                        msg, err = agent_registry_mgr.add_agent_input(name, param_name=iname, description=data.get("description"))
-                        click.echo(f"Added input {iname}" if not err else f" Input add failed {iname}: {err}")
-
-                        # Apply properties individually
-                        for prop_name, prop_value in data.get("properties", {}).items():
-                            msg, err = agent_registry_mgr.set_agent_input_property(name, iname, prop_name, prop_value)
-                            click.echo(f" Set input property '{prop_name}' for {iname}" if not err else f" Failed to set input property '{prop_name}' for {iname}: {err}")
-
-                    for iname, data in input_diff["updated"].items():
-                        msg, err = agent_registry_mgr.update_agent_input(name, param_name=iname, description=data.get("description"))
-                        click.echo(f" Updated input {iname}" if not err else f" Input update failed {iname}: {err}")
-
-                        reg_inputs = build_io_map(reg_inputs)
-                        reg_item = reg_inputs.get(iname, {})
-
-                        reg_props = reg_item.get("properties", {}) if reg_item else {}
-                        local_props = data.get("properties", {})
-
-                        prop_changes = compute_properties_diff(local_props, reg_props)
-                        
-                        for prop_name, prop_value in prop_changes.items():
-                            msg, err = agent_registry_mgr.set_agent_input_property(name, iname, prop_name, prop_value)
-                            click.echo(f" Updated input property '{prop_name}' for {iname}" if not err else f" Failed to update input property '{prop_name}' for {iname}: {err}")
-                        
-                    # --- Apply output diffs ---
-                    for oname, data in output_diff["added"].items():
-                        msg, err = agent_registry_mgr.add_agent_output(name, param_name=oname, description=data.get("description"), properties=data.get("properties"))
-                        click.echo(f" Added output {oname}" if not err else f" Output add failed {oname}: {err}")
-
-                        # Apply properties individually
-                        for prop_name, prop_value in data.get("properties", {}).items():
-                            msg, err = agent_registry_mgr.set_agent_output_property(name, oname, prop_name, prop_value)
-                            click.echo(f" Set output property '{prop_name}' for {oname}" if not err else f" Failed to set output property '{prop_name}' for {oname}: {err}")
-
-                    
-                    for oname, data in output_diff["updated"].items():
-                        msg, err = agent_registry_mgr.update_agent_output(name, param_name=oname, description=data.get("description"))
-                        click.echo(f" Updated output {oname}" if not err else f" Output update failed {oname}: {err}")
-
-                        reg_outputs = build_io_map(reg_outputs)
-                        reg_item = reg_outputs.get(oname, {})
-                        
-                        reg_props = reg_item.get("properties", {}) if reg_item else {}
-                        local_props = data.get("properties", {})
-
-                        prop_changes = compute_properties_diff(local_props, reg_props)
-                        for prop_name, prop_value in prop_changes.items():
-                            msg, err = agent_registry_mgr.set_agent_output_property(name, oname, prop_name, prop_value)
-                            click.echo(f"Updated output property '{prop_name}' for {oname}" if not err else f" Failed to update output property '{prop_name}' for {oname}: {err}")
-
-            else:
-                if reg_agent is None:
-                    msg, err = agent_registry_mgr.add_agent(
-                        name,
-                        description=input_agent.get("description"),
-                        icon=input_agent.get("icon"),
-                        properties=input_agent.get("properties")
-                    )
-                    if err:
-                        click.echo(f" Failed to add {name}: {err}")
+            if do_update_agent:
+                if "/agent_group/" in agent_scope:
+                    group_name = agent_scope.split("/agent_group/")[-1].split("/")[0]
+                    if reg_agent is None:
+                        msg, err = agent_registry_mgr.add_agent_to_agent_group(
+                            group_name,
+                            name,
+                            description=input_agent.get("description"),
+                            properties=input_agent.get("properties"),
+                            rebuild=True
+                        )
                     else:
-                        click.echo(f" Added {name}: {msg}")
-                else:
-                    update_fields = {}
-                    for field in ["description", "icon", "properties"]:
-                        if field in diff:
-                            update_fields[field] = input_agent.get(field)
-                
-                    if update_fields:
-                        msg, err = agent_registry_mgr.update_agent(
+                        update_fields = {}
+                        for field in ["description", "icon", "properties"]:
+                            if field in diff:
+                                update_fields[field] = input_agent.get(field)
+
+                        if update_fields:
+                            msg, err = agent_registry_mgr.update_agent_in_agent_group(
+                            group_name,
                             name,
                             description=update_fields.get("description"),
-                            icon=update_fields.get("icon"),
-                            properties=None  
+                            properties=None
+                            )        
+                            if err:
+                                click.echo(f" Failed to update {name}: {err}")
+                            else:
+                                click.echo(f" Updated {name}: {msg}")
+
+                        # Update changed properties individually
+                        if "properties" in diff:
+                            input_props = input_agent.get("properties", {})
+                            reg_props = reg_agent.get("properties", {})
+                            for prop_name, prop_value in input_props.items():
+                                if prop_name not in reg_props or reg_props[prop_name] != prop_value:
+                                    msg, err = agent_registry_mgr.set_agent_property_in_agent_group(group_name, name, prop_name, prop_value)
+                                    
+                                    if err:
+                                        click.echo(f" Failed to update property '{prop_name}' for {name}: {err}")
+                                    else:
+                                        click.echo(f" Updated property '{prop_name}' for {name}")
+
+                else:
+                    if reg_agent is None:
+                        msg, err = agent_registry_mgr.add_agent(
+                            name,
+                            description=input_agent.get("description"),
+                            icon=input_agent.get("icon"),
+                            properties=input_agent.get("properties")
                         )
                         if err:
-                            click.echo(f" Failed to update {name}: {err}")
+                            click.echo(f" Failed to add {name}: {err}")
                         else:
-                            click.echo(f" Updated {name}: {msg}")
+                            click.echo(f" Added {name}: {msg}")
+                    else:
+                        update_fields = {}
+                        for field in ["description", "icon", "properties"]:
+                            if field in diff:
+                                update_fields[field] = input_agent.get(field)
                     
-                    # Update changed properties individually
-                    if "properties" in diff:
-                        input_props = input_agent.get("properties", {})
-                        reg_props = reg_agent.get("properties", {})
-                        for prop_name, prop_value in input_props.items():
-                            if prop_name not in reg_props or reg_props[prop_name] != prop_value:
-                                msg, err = agent_registry_mgr.set_agent_property(name, prop_name, prop_value)
-                                if err:
-                                    click.echo(f" Failed to update property '{prop_name}' for {name}: {err}")
-                                else:
-                                    click.echo(f" Updated property '{prop_name}' for {name}")
-
-                    click.echo("\n--- Updating Inputs/Outputs ---")
-                    contents = input_agent.get("contents", {})
-                    if not contents:
-                        continue
-
-                    inputs_local = contents.get("input", {})
-                    outputs_local = contents.get("output", {})
-                    
-                    # --- Get current registry state ---
-                    reg_inputs, err_in = agent_registry_mgr.get_agent_inputs(name)
-                    reg_outputs, err_out = agent_registry_mgr.get_agent_outputs(name)
-
-                    click.echo(f"Registry outputs: {list(reg_outputs.keys()) if isinstance(reg_outputs, dict) else 'N/A'}")
-                    if err_in or err_out:
-                        click.echo(f" Skipping IO update for {name} due to fetch error.")
-                        continue
-                    click.echo(f"Registry inputs: {list(reg_inputs.keys()) if isinstance(reg_inputs, dict) else 'N/A'}")
-                    
-                    # Compare I/O
-                    if reg_inputs is None:
-                        reg_inputs = {}
-                    if reg_outputs is None:
-                        reg_outputs = {}
-
-                    input_diff = compute_io_diff(inputs_local, reg_inputs)
-                    click.echo(f"Input diff: {json.dumps(input_diff, indent=2)}")
-                    output_diff = compute_io_diff(outputs_local, reg_outputs)
-                    click.echo(f"Output diff: {json.dumps(output_diff, indent=2)}")
-
-                    # --- Apply input diffs ---
-                    for iname, data in input_diff["added"].items():
-                        msg, err = agent_registry_mgr.add_agent_input(name, param_name=iname, description=data.get("description"))
-                        click.echo(f" Added input {iname}" if not err else f"Input add failed {iname}: {err}")
-
-                        # Apply properties individually
-                        for prop_name, prop_value in data.get("properties", {}).items():
-                            msg, err = agent_registry_mgr.set_agent_input_property(name, iname, prop_name, prop_value)
-                            click.echo(f" Set input property '{prop_name}' for {iname}" if not err else f" Failed to set input property '{prop_name}' for {iname}: {err}")
-
-                    for iname, data in input_diff["updated"].items():
-                        msg, err = agent_registry_mgr.update_agent_input(name, param_name=iname, description=data.get("description"))
-                        click.echo(f" Updated input {iname}" if not err else f" Input update failed {iname}: {err}")
-
-                        reg_inputs = build_io_map(reg_inputs)
-                        reg_item = reg_inputs.get(iname, {})
-
-                        reg_props = reg_item.get("properties", {}) if reg_item else {}
-                        local_props = data.get("properties", {})
-                        prop_changes = compute_properties_diff(local_props, reg_props)
+                        if update_fields:
+                            msg, err = agent_registry_mgr.update_agent(
+                                name,
+                                description=update_fields.get("description"),
+                                icon=update_fields.get("icon"),
+                                properties=None  
+                            )
+                            if err:
+                                click.echo(f" Failed to update {name}: {err}")
+                            else:
+                                click.echo(f" Updated {name}: {msg}")
                         
-                        for prop_name, prop_value in prop_changes.items():
-                            msg, err = agent_registry_mgr.set_agent_input_property(name, iname, prop_name, prop_value)
-                            click.echo(f" Updated input property '{prop_name}' for {iname}" if not err else f" Failed to update input property '{prop_name}' for {iname}: {err}")
-                        
-                    # --- Apply output diffs ---
-                    for oname, data in output_diff["added"].items():
-                        msg, err = agent_registry_mgr.add_agent_output(name, param_name=oname, description=data.get("description"), properties=data.get("properties"))
-                        click.echo(f"Added output {oname}" if not err else f" Output add failed {oname}: {err}")
+                        # Update changed properties individually
+                        if "properties" in diff:
+                            input_props = input_agent.get("properties", {})
+                            reg_props = reg_agent.get("properties", {})
+                            for prop_name, prop_value in input_props.items():
+                                if prop_name not in reg_props or reg_props[prop_name] != prop_value:
+                                    msg, err = agent_registry_mgr.set_agent_property(name, prop_name, prop_value)
+                                    if err:
+                                        click.echo(f" Failed to update property '{prop_name}' for {name}: {err}")
+                                    else:
+                                        click.echo(f" Updated property '{prop_name}' for {name}")
 
-                        # Apply properties individually
-                        for prop_name, prop_value in data.get("properties", {}).items():
-                            msg, err = agent_registry_mgr.set_agent_output_property(name, oname, prop_name, prop_value)
-                            click.echo(f"Set output property '{prop_name}' for {oname}" if not err else f"Failed to set output property '{prop_name}' for {oname}: {err}")
+            if "/agent_group/" in agent_scope:
+                continue
 
-                    for oname, data in output_diff["updated"].items():
-                        msg, err = agent_registry_mgr.update_agent_output(name, param_name=oname, description=data.get("description"))
-                        click.echo(f" Updated output {oname}" if not err else f" Output update failed {oname}: {err}")
+            inputs_local = agent_io_map.get(name, {}).get("inputs", {})
+            outputs_local = agent_io_map.get(name, {}).get("outputs", {})
 
-                        reg_outputs = build_io_map(reg_outputs)
-                        reg_item = reg_outputs.get(oname, {})
-                        
-                        reg_props = reg_item.get("properties", {}) if reg_item else {}
-                        local_props = data.get("properties", {})
+            # --- Get current registry state ---
+            reg_inputs, err_in = agent_registry_mgr.get_agent_inputs(name)
+            reg_outputs, err_out = agent_registry_mgr.get_agent_outputs(name)
 
-                        prop_changes = compute_properties_diff(local_props, reg_props)
-                        for prop_name, prop_value in prop_changes.items():
-                            msg, err = agent_registry_mgr.set_agent_output_property(name, oname, prop_name, prop_value)
-                            click.echo(f" Updated output property '{prop_name}' for {oname}" if not err else f" Failed to update output property '{prop_name}' for {oname}: {err}")
+            if err_in or err_out:
+                click.echo(f"Skipping IO update for {name} due to fetch error.")
+                continue
+
+            # Compare I/O
+            if reg_inputs is None:
+                reg_inputs = {}
+            if reg_outputs is None:
+                reg_outputs = {}
+
+            input_diff = compute_io_diff(inputs_local, reg_inputs)
+            click.echo(f"Input diff: {json.dumps(input_diff, indent=2)}")
+            output_diff = compute_io_diff(outputs_local, reg_outputs)
+            click.echo(f"Output diff: {json.dumps(output_diff, indent=2)}")
+
+            # --- Apply input diffs ---
+            for iname, data in input_diff["added"].items():
+                click.echo(f"\n Input to add: {iname}")
+                click.echo(json.dumps(data, indent=2))
+                
+                if auto:
+                    apply_change = True
+                else:
+                    apply_change = click.prompt("Apply this input addition? [y/n]", default="n").lower() in ("y", "yes")
+
+                if not apply_change:
+                    continue
+                
+                
+                msg, err = agent_registry_mgr.add_agent_input(name, param_name=iname, description=data.get("description"))
+                click.echo(f"Added input {iname}" if not err else f"Input add failed {iname}: {err}")
+
+                # Apply properties individually
+                for prop_name, prop_value in data.get("properties", {}).items():
+                    msg, err = agent_registry_mgr.set_agent_input_property(name, iname, prop_name, prop_value)
+                    click.echo(f"Set input property '{prop_name}' for {iname}" if not err else f"Failed to set input property '{prop_name}' for {iname}: {err}")
+
+            
+
+            for iname, data in input_diff["updated"].items():
+                click.echo(f"\nInput to update: {iname}")
+                
+                reg_inputs = build_io_map(reg_inputs)
+                reg_item = reg_inputs.get(iname, {})
+                reg_props = reg_item.get("properties", {}) if reg_item else {}
+                local_props = data.get("properties", {})
+                
+                full_diff = {}
+                for field in ["description"]:
+                    if reg_item.get(field) != data.get(field):
+                        full_diff[field] = {"old": reg_item.get(field), "new": data.get(field)}
+
+                # Add property changes
+                prop_changes = compute_properties_diff(local_props, reg_props)
+                if prop_changes:
+                    full_diff["properties"] = prop_changes
+
+                click.echo("Diff:")
+                click.echo(json.dumps(full_diff, indent=2))
+                            
+                if auto:
+                    apply_change = True
+                else:
+                    apply_change = click.prompt("Apply this input update? [y/n]", default="n").lower() in ("y", "yes")
+
+                if not apply_change:
+                    continue
+                
+                
+                msg, err = agent_registry_mgr.update_agent_input(name, param_name=iname, description=data.get("description"))
+                click.echo(f"Updated input {iname}" if not err else f"Input update failed {iname}: {err}")
+
+                for prop_name, prop_value in prop_changes.items():
+                    msg, err = agent_registry_mgr.set_agent_input_property(name, iname, prop_name, prop_value)
+                    click.echo(f"Updated input property '{prop_name}' for {iname}" if not err else f"Failed to update input property '{prop_name}' for {iname}: {err}")
+                
+            # --- Apply output diffs ---
+            for oname, data in output_diff["added"].items():
+                click.echo(f"\nOutput to add: {oname}")
+                click.echo(json.dumps(data, indent=2))
+                
+                if auto:
+                    apply_change = True
+                else:
+                    apply_change = click.prompt("Apply this output addition? [y/n]", default="n").lower() in ("y", "yes")
+
+                if not apply_change:
+                    continue
+                
+                msg, err = agent_registry_mgr.add_agent_output(name, param_name=oname, description=data.get("description"), properties=data.get("properties"))
+                click.echo(f"Added output {oname}" if not err else f"Output add failed {oname}: {err}")
+
+                # Apply properties individually
+                for prop_name, prop_value in data.get("properties", {}).items():
+                    msg, err = agent_registry_mgr.set_agent_output_property(name, oname, prop_name, prop_value)
+                    click.echo(f"Set output property '{prop_name}' for {oname}" if not err else f"Failed to set output property '{prop_name}' for {oname}: {err}")
+
+            
+            for oname, data in output_diff["updated"].items():
+                click.echo(f"\nOutput to update: {oname}")
+                reg_outputs = build_io_map(reg_outputs)
+                reg_item = reg_outputs.get(oname, {})
+                reg_props = reg_item.get("properties", {}) if reg_item else {}
+                local_props = data.get("properties", {})
+
+                full_diff = {}
+                for field in ["description"]:
+                    if reg_item.get(field) != data.get(field):
+                        full_diff[field] = {"old": reg_item.get(field), "new": data.get(field)}
+
+                # Add property changes
+                prop_changes = compute_properties_diff(local_props, reg_props)
+                if prop_changes:
+                    full_diff["properties"] = prop_changes
+
+                click.echo("Diff:")
+                click.echo(json.dumps(full_diff, indent=2))
+                
+                if auto:
+                    apply_change = True
+                else:
+                    apply_change = click.prompt("Apply this output update? [y/n]", default="n").lower() in ("y", "yes")
+
+                if not apply_change:
+                    continue
+                
+                
+                msg, err = agent_registry_mgr.update_agent_output(name, param_name=oname, description=data.get("description"))
+                click.echo(f"Updated output {oname}" if not err else f"Output update failed {oname}: {err}")
+
+                for prop_name, prop_value in prop_changes.items():
+                    msg, err = agent_registry_mgr.set_agent_output_property(name, oname, prop_name, prop_value)
+                    click.echo(f"Updated output property '{prop_name}' for {oname}" if not err else f"Failed to update output property '{prop_name}' for {oname}: {err}")
 
         except Exception as e:
             click.echo(f" Error updating {name}: {e}")

@@ -1522,12 +1522,10 @@ class AgentRegistryManager:
 
     ######### Agents #########
     def get_agents(self, recursive=False):
-        print(self.cookies)
         url = f"{self.base_api_path}/registry/default/agents?recursive={str(recursive).lower()}"
         r = requests.get(url, cookies=self.cookies)
         if r.status_code == 200:
             return r.json()["results"], None
-        print("ERROR", r.status_code, r.text)
         return None, r.json()
 
     def get_agent(self, agent_name):
@@ -1686,7 +1684,6 @@ class AgentRegistryManager:
 
     def set_agent_property(self, agent_name, property_name, value):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/property/{property_name}"
-        #payload = value
         payload = {property_name: value} 
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
@@ -1784,3 +1781,30 @@ class AgentRegistryManager:
         if r.status_code == 200:
             return r.json().get("message"), None
         return None, r.json()
+
+    ######### Agent Properties in Agent Groups #########
+    def get_agent_properties_in_agent_group(self, group_name, agent_name):
+        """
+        Get all properties for a specific agent inside an agent group.
+        Mirrors the API:
+        GET /registry/default/agent_group/{group_name}/agent/{agent_name}/properties
+        """
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}/properties"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("results", {}), None
+        return None, r.json()
+
+    def set_agent_property_in_agent_group(self, group_name, agent_name, property_name, property_value):
+        """
+        Set (or update) a property on a specific agent within an agent group.
+        Mirrors the API:
+        POST /registry/default/agent_group/{group_name}/agent/{agent_name}/property/{property_name}
+        """
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}/property/{property_name}"
+        payload = {property_name: property_value}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
