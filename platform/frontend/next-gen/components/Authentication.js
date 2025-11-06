@@ -16,7 +16,6 @@ import { getAuth } from "firebase/auth";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Col, Container, Hidden, Row } from "react-grid-system";
 import { useShallow } from "zustand/react/shallow";
@@ -85,29 +84,11 @@ export default function Authentication() {
                                 borderRadius: 2,
                             }}
                         >
-                            <Link
-                                href="https://unsplash.com/photos/black-and-white-computer-keyboard-pfR18JNEMv8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-                                target="__blank"
-                                rel="noopener noreferrer"
-                            >
-                                <Button
-                                    size={Size.SMALL}
-                                    variant={ButtonVariant.MINIMAL}
-                                    style={{
-                                        position: "absolute",
-                                        top: 20,
-                                        left: 20,
-                                        zIndex: 1,
-                                        color: Colors.LIGHT_GRAY1,
-                                    }}
-                                    text="Photo by Vishnu Mohanan on Unsplash"
-                                />
-                            </Link>
                             <Image
                                 className="border-radius-10"
                                 layout="fill"
                                 objectFit="cover"
-                                src="/images/vishnu-mohanan-pfR18JNEMv8-unsplash.jpg"
+                                src="/images/launch.jpg"
                                 alt=""
                             />
                         </div>
