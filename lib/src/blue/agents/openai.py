@@ -15,7 +15,36 @@ from blue.stream import Message, ControlCode
 ### RequestorAgent.OpenAIAgent
 #
 class OpenAIAgent(RequestorAgent):
-    """Agent to interact with OpenAI's API, supporting tool usage and function calling."""
+    """Agent to interact with OpenAI's API, supporting tool usage and function calling.
+    
+    Properties (in addition to RequestorAgent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `service_url`      | `str`                 | `ws://localhost:8001` | The URL of the OpenAI service. |
+    | `openai.api`      | `str`                 | `ChatCompletion` | The OpenAI API to use (e.g., ChatCompletion, Completion). |
+    | `openai.model`    | `str`                 | `gpt-4o` | The OpenAI model to use for generating responses. |
+    | `input_json`     | `str`                | `[{"role": "user"}]` | JSON template for the input messages. |
+    | `input_context`  | `str`                 | `$[0]` | JSONPath to extract context from the input JSON. |
+    | `input_context_field` | `str`            | `content` | The field in the context JSON to extract. |
+    | `input_field`    | `str`                 | `messages` | The field in the input JSON to populate with messages. |
+    | `input_template` | `str`                 | `${input}` | Template for formatting the user input. |
+    | `output_path`   | `str`                 | `$.choices[0].message.content` | JSONPath to extract the output from the OpenAI response. |
+    | `openai.stream`  | `bool`                | `False` | Whether to use streaming responses from OpenAI. |
+    | `openai.max_tokens` | `int`              | `300` | Maximum number of tokens for the OpenAI response. |
+    | `use_tools`     | `bool`                | `False` | Whether to enable tool usage. |
+    | `tool_discovery` | `bool`               | `False` | Whether to enable tool discovery based on user input. |
+    | `tool_servers`  | `list of str`        | `[]` | List of tool server names to use. If empty, all servers are considered. |
+    | `tools`         | `list of str`        | `[]` | List of tool names or canonical names to use. If empty, all tools are considered. |
+    | `tool_discovery_similarity_threshold` | `float` | `0.5` | Similarity threshold for tool discovery (lower is more similar). |
+    | `tool_max_calling_depth` | `int`          | `5` | Maximum depth for tool calling recursion. |
+
+    Inputs:
+    - DEFAULT: Text input to be sent to OpenAI.
+
+    Outputs:
+    - DEFAULT: Generated text output from OpenAI, tagged as `AI`.
+    """
 
     def __init__(self, **kwargs):
         if 'name' not in kwargs:

@@ -29,6 +29,24 @@ class VisualizerAgent(Agent):
     """An agent that generates visualizations based on natural language questions and SQL queries.
     The agent can issue questions to an NL2SQL agent and queries to a QueryExecutor agent,
     and then uses the results to create visualizations using a specified template.
+
+    Properties (in addition to Agent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `template`      | `str`                | `""`      | The template string used to generate the visualization, which can include placeholders for query results. |
+    | `questions`     | `dict`               | `{}`      | A dictionary of natural language questions to be asked as part of the visualization process. |
+    | `queries`       | `dict`               | `{}`      | A dictionary of SQL queries to be executed as part of the visualization process. |
+    | `rephrase`      | `bool`               | `True`    | Whether to rephrase the generated visualization for improved readability. |
+    | `auto_template` | `bool`               | `False`   | Whether to automatically generate visualization templates based on query results. |
+
+    Inputs:
+    - `DEFAULT`: The main input stream where the agent receives user input to trigger the visualization process.
+
+    Outputs:
+    - `DEFAULT`: The output stream where the generated visualizations are sent, tagged as VIS.
+    - `VIS`: Control output stream for visualization UI interactions.
+    
     """
 
     def __init__(self, **kwargs):

@@ -17,6 +17,23 @@ class PresenterAgent(Agent):
     The form schema and UI schema are defined in the agent's properties.
     The agent listens for specific triggers in the input stream and displays the form when triggered.
     The form data is collected and sent to a specified output stream when the user submits the form.
+
+    Properties (in addition to Agent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `triggers`       | `list of str`        | `[]`       | List of keywords that trigger the form display when found in the input stream. |
+    | `schema`         | `dict`                | `{}`       | The JSON schema defining the structure of the form to be presented. |
+    | `form`           | `dict`                | `{}`       | The UI schema defining the layout and appearance of the form. |
+    | `output`         | `str`                | `None`    | The output stream where the collected form data will be sent upon submission. If not specified, the data is returned as a message. |
+
+    Inputs:
+    - `DEFAULT`: The main input stream where the agent listens for trigger keywords.
+    
+    Outputs:
+    - `DEFAULT`: The output stream where the collected form data is sent in structured format (JSON) upon form submission, tagged as JSON.
+    - `FORM`: Control output stream for form UI interactions.
+
     """
 
     def __init__(self, **kwargs):
