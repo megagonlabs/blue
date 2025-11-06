@@ -246,7 +246,8 @@ $ blue registry agent update input.json
 Here input.json is a json file containing list of agent registry items you want to update. Here is an example input json: 
 
 ```json
-[{
+[
+            {
               "name": "OPENAI___INTENT_REWRITER",
               "type": "agent",
               "scope": "/agent/OPENAI",
@@ -258,37 +259,38 @@ Here input.json is a json file containing list of agent registry items you want 
               "icon": null
             },
             {
-                    "name": "DEFAULT",
-                    "type": "output",
-                    "scope": "/agent/OPENAI/agent/OPENAI___INTENT_REWRITER",
-                    "description": "",
-                    "created_by": null,
-                    "properties": {
-                      "tags": [
-                        "HIDDEN"
-                      ]
-                    },
-                    "icon": null
-                  },
-                  {
-        "name": "BLOCKING_OPENAI",
-        "type": "agent",
-        "scope": "/",
-        "description": "Blocking OpenAI agent that waits for all input to be ready to initiate an OpenAI call",
-        "properties": {
-          "image": "megagonlabs/blue-agent-blocking_openai-private",
-          "display_name": "OpenAI Blocking Agent",
-          "include_extra_input": true,
-          "wait_for_inputs": [
-            "DEFAULT"
-          ],
-          "categories": [
-            "EXPERIMENTAL"
-          ],
-          "service_url": "ws://blue_service_openai:8001"
-        },
-        "icon": "aperture:#16A5A5"
-      }]
+              "name": "DEFAULT",
+              "type": "output",
+              "scope": "/agent/OPENAI/agent/OPENAI___INTENT_REWRITER",
+              "description": "",
+              "created_by": null,
+              "properties": {
+                "tags": [
+                  "HIDDEN"
+                ]
+              },
+              "icon": null
+            },
+            {
+            "name": "BLOCKING_OPENAI",
+            "type": "agent",
+            "scope": "/",
+            "description": "Blocking OpenAI agent that waits for all input to be ready to initiate an OpenAI call",
+            "properties": {
+              "image": "megagonlabs/blue-agent-blocking_openai-private",
+              "display_name": "OpenAI Blocking Agent",
+              "include_extra_input": true,
+              "wait_for_inputs": [
+                "DEFAULT"
+              ],
+              "categories": [
+                "EXPERIMENTAL"
+              ],
+              "service_url": "ws://blue_service_openai:8001"
+            },
+            "icon": "aperture:#16A5A5"
+          }
+]
 ```
 
 You can accept an update, or decline. If you want to automatically accept all updates, then you can use the option --auto True. Running the update command with this option will skip interactive steps and automatically update the registry with the changes. 
