@@ -253,11 +253,13 @@ export default function SessionCard({ sessionId }) {
                         maxWidth: "100%",
                     }}
                 >
-                    <MessageContent
-                        isPreview={true}
-                        contentType={lastMessage.contentType}
-                        streamData={lastMessage.streamData}
-                    />
+                    <div className="message-bubble-callout-content">
+                        <MessageContent
+                            isPreview={true}
+                            contentType={lastMessage.contentType}
+                            streamData={lastMessage.streamData}
+                        />
+                    </div>
                 </Callout>
             )}
             <SessionMemberStack

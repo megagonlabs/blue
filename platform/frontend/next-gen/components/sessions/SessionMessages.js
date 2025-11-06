@@ -15,7 +15,6 @@ import {
     Menu,
     MenuDivider,
     MenuItem,
-    mergeRefs,
     Popover,
     Size,
     Tag,
@@ -268,7 +267,7 @@ const Row = ({ index, data, style }) => {
                         }}
                     >
                         <div
-                            ref={mergeRefs(rowRef)}
+                            ref={rowRef}
                             className="message-bubble-callout-content"
                             style={{
                                 maxHeight: expanded
