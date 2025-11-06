@@ -245,6 +245,7 @@ $ blue registry agent update input.json
 ```
 Here input.json is a json file containing list of agent registry items you want to update. Here is an example input json: 
 
+```json
 [{
               "name": "OPENAI___INTENT_REWRITER",
               "type": "agent",
@@ -288,6 +289,6 @@ Here input.json is a json file containing list of agent registry items you want 
         },
         "icon": "aperture:#16A5A5"
       }]
-
+```
 
 You can accept an update, or decline. If you want to automatically accept all updates, then you can use the option --auto True. Running the update command with this option will skip interactive steps and automatically update the registry with the changes. 
