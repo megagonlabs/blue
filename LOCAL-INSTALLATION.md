@@ -175,7 +175,7 @@ Optionally, at this point you can also start some of the blue services that some
 ```
 $ blue service --service_name OPENAI create
 ```
-and the configure it:
+This will create the OPENAI server and will allow you to configure it as well. Optionally you can also configure the service using `config` command:
 ```
 $ blue service  --service_name OPENAI config
 ```
@@ -191,6 +191,7 @@ OPENAI_API_KEY  <your key>
 ```
 
 For `OPENAI` and other services that require additional service-specific configurations you can config them separately, e.g. for `OPENAI` you would need to configure `OPENAI_API_KEY`
+
 ```
 $ blue service --service_name OPENAI config OPENAI_API_KEY  <your_key>
 ```
