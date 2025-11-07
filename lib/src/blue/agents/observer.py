@@ -17,6 +17,19 @@ class ObserverAgent(Agent):
     """
     An agent that observes all messages in a session and logs them or sends them to a specified output.
     Used primarily internally for Web UI.
+
+    Properties (in addition to Agent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `output`         | `dict`                | `{}`       | Output configuration. If 'type' is 'websocket', messages are sent to the specified websocket URL. |
+    | `debug_mode`     | `bool`                | `False`    | If True, hidden messages (with metadata tag HIDDEN) are also sent to the output. |
+
+    Inputs:
+    None
+
+    Outputs:
+    None
     """
 
     def __init__(self, **kwargs):

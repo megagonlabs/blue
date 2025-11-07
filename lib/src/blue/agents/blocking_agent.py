@@ -18,6 +18,19 @@ class BlockingAgent(Agent):
     It can be configured to wait for a list of input streams before proceeding with its processing logic.
 
     This is an experimental implementation and may be subject to changes in future releases.
+
+    Properties (in addition to Agent properties):
+    ----------
+    | Name                 | Type                 | Default | Description |
+    |----------------------|----------------------|----------|-------------|
+    | `wait_for_inputs`    | `list of str`        | `['DEFAULT']` | List of input stream labels that the agent should wait for before processing. |
+    | `include_extra_input` | `bool`               | `True`   | If true, any extra input streams not specified in `wait_for_inputs` will also be included in the processing logic. |
+
+    Inputs:
+    - `DEFAULT`: The main input stream where the agent receives data.
+
+    Outputs:
+    - `DEFAULT`: The output stream where the processed data is sent.
     """
 
     def __init__(self, **kwargs):

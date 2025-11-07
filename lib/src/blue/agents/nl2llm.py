@@ -18,7 +18,27 @@ from blue.data.registry import DataRegistry
 class NL2LLMAgent(Agent):
     """An agent that processes natural language queries using LLM models.
     It can be configured to use a specific LLM source or discover available LLM sources in the data registry.
-    The agent sends the query to the selected LLM source and returns the response as structured data."""
+    The agent sends the query to the selected LLM source and returns the response as structured data.
+    
+    Properties (in addition to Agent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `nl2llm_source`  | `str`                 | `None`     | The name of the LLM source to use. If None, the agent will discover available LLM sources in the data registry. |
+    | `nl2llm_discovery` | `bool`              | `True`     | If True, the agent will search for any source that has "llm" as their protocol in the data registry. |
+    | `nl2llm_discovery_source_protocols` | `list of str` | `["openai"]` | List of protocols to search for. Should be changed to `["llm"]` after github issue #945 is resolved. |
+    | `nl2llm_context` | `list of str`        | `[]`       | Optional context to provide to the LLM source for query processing. |
+    | `nl2llm_attr_names` | `list of str`   | `[]`       | Optional attribute names to provide to the LLM source for query processing. |
+    | `nl2llm_output_filters` | `list of str` | `["all"]` | Output filters to apply to the result. Options are "all", "question", "source", "result", "error". |
+    | `nl2llm_output_max_results` | `int or None` | `None` | If not None, limits the number of records in the returned JSON array. |
+
+    Inputs:
+    - DEFAULT: natural language query
+    
+    Outputs:
+    - DEFAULT: query results, tagged as `QUERY` and `NL`
+
+    """
 
     PROPERTIES = {
         # agent related properties

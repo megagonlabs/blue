@@ -17,6 +17,7 @@ import docker
 
 import webbrowser
 import websockets
+import requests
 from websockets import exceptions as ws_exceptions
 
 from blue_cli.helper import inquire_user_input, convert, print_list_curses
@@ -140,6 +141,17 @@ class ProfileManager:
 
         # activate selected profiile
         self.__activate_selected_profile()
+
+    def authenticate(self, profile_name=None):
+        if profile_name is None:
+            profile_name = self.get_selected_profile_name()
+
+        auth = Authentication()
+        cookie = auth.get_cookie()
+        uid = auth.get_uid()
+
+        self.set_profile_attribute(profile_name, "BLUE_COOKIE", cookie)
+        self.set_profile_attribute(profile_name, "BLUE_UID", uid)
 
     def __load_profile_attributes_config(self):
         self._profile_attributes_config = {}
@@ -333,11 +345,6 @@ class ProfileManager:
 
     def get_selected_profile_cookie(self):
         return {'session': self.get_selected_profile_attribute('BLUE_COOKIE')}
-
-    def get_selected_profile_base_api_path(self):
-        api_server = self.get_selected_profile_attribute('BLUE_PUBLIC_API_SERVER')
-        platform_name = self.get_selected_profile_attribute('BLUE_DEPLOY_PLATFORM')
-        return f'{api_server}/blue/platform/{platform_name}'
 
 
 class ProfileName(click.Group):
@@ -917,7 +924,7 @@ class PlatformManager:
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "ray"},
             environment=config,
             restart_policy={"Name": "always"},
-            shm_size="4G",
+            shm_size="5g",
             detach=True,
             stdout=True,
             stderr=True,
@@ -1056,8 +1063,15 @@ class PlatformManager:
 
     def get_selected_platform_base_api_path(self):
         api_server = self.get_selected_platform_attribute('BLUE_PUBLIC_API_SERVER')
+        api_port = self.get_selected_platform_attribute('BLUE_PUBLIC_API_SERVER_PORT')
+        api_server += f':{api_port}'
         platform_name = self.get_selected_platform_attribute('BLUE_DEPLOY_PLATFORM')
-        return f'{api_server}/blue/platform/{platform_name}'
+        secure = self.get_selected_platform_attribute('BLUE_DEPLOY_SECURE')
+        protocol = "http"
+        if convert(secure, cast='bool'):
+            protocol += "s"
+        protocol += "://"
+        return f'{protocol}{api_server}/blue/platform/{platform_name}'
 
 
 class PlatformName(click.Group):
@@ -1486,11 +1500,6 @@ class ServiceManager:
     def get_selected_service_cookie(self):
         return {'session': self.get_selected_service_attribute('BLUE_COOKIE')}
 
-    def get_selected_service_base_api_path(self):
-        api_server = self.get_selected_service_attribute('BLUE_PUBLIC_API_SERVER')
-        service_name = self.get_selected_service_attribute('BLUE_DEPLOY_PLATFORM')
-        return f'{api_server}/blue/service/{service_name}'
-
 
 class ServiceName(click.Group):
     def parse_args(self, ctx, args):
@@ -1499,378 +1508,329 @@ class ServiceName(click.Group):
                 args.insert(0, "")
         super(ServiceName, self).parse_args(ctx, args)
 
+class AgentRegistryManager:
+    def __init__(self, profile_name=None):
+        profile_mgr = ProfileManager()
+        profile_mgr.authenticate(profile_name=profile_name)
+        self.cookies = profile_mgr.get_selected_profile_cookie()
+        platform = PlatformManager()
+        self.base_api_path = platform.get_selected_platform_base_api_path()
 
-class DataRegistryManager:
-    """
-    Data Registry Manager for handling sources in Redis.
-    """
+    ######### Agents #########
+    def get_agents(self, recursive=False):
+        url = f"{self.base_api_path}/registry/default/agents?recursive={str(recursive).lower()}"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["results"], None
+        return None, r.json()
 
-    def __init__(self, registry="default", platform="jalal-mahmud", host="localhost", port=6379, db=0):
-        self.redis_client = self.__connect_redis(host, port, db)
-        self.platform_prefix = "PLATFORM"
-        self.registry = registry
-        self.platform = platform
-        # Dynamic Redis key
-        self.DATA_REGISTRY_KEY = f"{self.platform_prefix}:{self.platform}:DATA_REGISTRY:{self.registry}:DATA"
+    def get_agent(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["result"], None
+        return None, r.json()
 
-    def __connect_redis(self, host, port, db):
+    def add_agent(self, agent_name, description=None, icon=None, properties=None):
+        description = description or ""
+        icon = icon or ""
+        properties = properties or {}
+
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        payload = {"name": agent_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code in [200, 201]:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def update_agent(self, agent_name, description=None, icon=None, properties=None):
+        description = description or ""
+        icon = icon or ""
+        properties = properties or {}
+
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        payload = {"name": agent_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+
+        
+    def delete_agent(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    # ------------------------
+    # INPUTS
+    # ------------------------
+    
+    def get_agent_inputs(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/inputs"
         try:
-            client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
-            client.ping()  # ensure connection works
-            return client
+            r = requests.get(url, cookies=self.cookies)
+            if r.status_code == 200:
+                results = r.json().get("results", {})
+                return results, None  
+            else:
+                return None, r.json()  
         except Exception as e:
-            logger.error(f"Could not connect to Redis: {e}")
-            return None
-
-    def __ensure_registry_exists(self):
-        """Ensure the root JSON structure exists in RedisJSON."""
-        if not self.redis_client.json().get(self.DATA_REGISTRY_KEY):
-            self.redis_client.json().set(self.DATA_REGISTRY_KEY, "$", {"contents": {"source": {}}})
-
-    def create_source(self, source_name, source_data):
-        """Create a new source in the registry. Fails if the source already exists."""
-        self.__ensure_registry_exists()
-
-        # Check if the source already exists
-        existing = self.get_source(source_name)
-        if existing:
-            raise RuntimeError(f"Source '{source_name}' already exists.")
-
-        source_data["type"] = "source"
-        source_data["scope"] = f"/"
-
-        # Ensure the source has a contents dict for child objects
-        if "contents" not in source_data:
-            source_data["contents"] = {}
-
-        path = f"$.contents.source.{source_name}"
-        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, source_data)
-        logger.info(f"Source '{source_name}' created successfully.")
-        return True
-
-    def create_database(self, source_name, database_name, database_data):
-        """Create a new database under a source in the registry."""
-        self.__ensure_registry_exists()
-
-        # Ensure source exists
-        source = self.get_source(source_name)
-        if not source:
-            raise RuntimeError(f"Source '{source_name}' does not exist.")
-
-        # RedisJSON sometimes returns a list; pick the first element if needed
-        if isinstance(source, list):
-            source = source[0]
-
-        # Ensure the source has a contents dict
-        if "contents" not in source:
-            source["contents"] = {}
-            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}", source)
-
-        # Ensure the "database" dict exists under contents
-        if "database" not in source["contents"] or not isinstance(source["contents"]["database"], dict):
-            source["contents"]["database"] = {}
-            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database", {})
-
-        # Check if database already exists
-        existing = self.get_database(source_name, database_name)
-        if existing:
-            raise RuntimeError(f"Database '{database_name}' already exists in source '{source_name}'.")
-
-        database_data["type"] = "database"
-        database_data["scope"] = f"/source/{source_name}"
-
-        # Ensure the source has a contents dict for child objects
-        if "contents" not in database_data:
-            database_data["contents"] = {}
-
-        path = f"$.contents.source.{source_name}.contents.database.{database_name}"
-        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, database_data)
-        logger.info(f"Database '{database_name}' created successfully in source '{source_name}'.")
-        return True
-
-    def create_collection(self, source_name, database_name, collection_name, collection_data):
-        """Create a new collection under a database in the registry."""
-        self.__ensure_registry_exists()
-
-        # Ensure database exists
-        database = self.get_database(source_name, database_name)
-        if not database:
-            raise RuntimeError(f"Database '{database_name}' does not exist in source '{source_name}'.")
-
-        # RedisJSON sometimes returns a list; pick the first element if needed
-        if isinstance(database, list):
-            database = database[0]
-
-        # Ensure the database has a contents dict
-        if "contents" not in database:
-            database["contents"] = {}
-            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}", database)
-
-        # Ensure the "collection" dict exists under contents
-        if "collection" not in database["contents"] or not isinstance(database["contents"]["collection"], dict):
-            database["contents"]["collection"] = {}
-            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection", {})
-
-        # Check if collection already exists
-        existing = self.get_collection(source_name, database_name, collection_name)
-        if existing:
-            raise RuntimeError(f"Collection '{collection_name}' already exists in database '{database_name}'.")
-
-        collection_data["type"] = "collection"
-        collection_data["scope"] = f"/source/{source_name}/database/{database_name}"
-
-        # Ensure collection has a contents dict for child objects
-        if "contents" not in collection_data:
-            collection_data["contents"] = {}
-
-        # Write collection into the "collection" dict
-        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}"
-        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, collection_data)
-
-        logger.info(f"Collection '{collection_name}' created successfully in database '{database_name}' of source '{source_name}'.")
-        return True
-
-    def create_entity(self, source_name, database_name, collection_name, entity_name, entity_data):
-        """Create a new entity under a collection in the registry."""
-        self.__ensure_registry_exists()
-
-        # Ensure collection exists
-        collection = self.get_collection(source_name, database_name, collection_name)
-        if not collection:
-            raise RuntimeError(f"Collection '{collection_name}' does not exist in database '{database_name}' of source '{source_name}'.")
-
-        # RedisJSON sometimes returns a list; pick the first element if needed
-        if isinstance(collection, list):
-            collection = collection[0]
-
-        # Ensure the collection has a contents dict
-        if "contents" not in collection:
-            collection["contents"] = {}
-            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}", collection)
-
-        # Ensure the "entity" dict exists under contents
-        if "entity" not in collection["contents"] or not isinstance(collection["contents"]["entity"], dict):
-            collection["contents"]["entity"] = {}
-            self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity", {})
-
-        # Check if entity already exists
-        existing = self.get_entity(source_name, database_name, collection_name, entity_name)
-        if existing:
-            raise RuntimeError(f"Entity '{entity_name}' already exists in collection '{collection_name}' of database '{database_name}' in source '{source_name}'.")
-
-        entity_data["type"] = "entity"
-        entity_data["scope"] = f"/source/{source_name}/database/{database_name}/collection/{collection_name}"
-
-        # Ensure entity has a contents dict for child attributes
-        if "contents" not in entity_data:
-            entity_data["contents"] = {}
-
-        # Write entity into the "entity" dict
-        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}"
-        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, entity_data)
-
-        logger.info(f"Entity '{entity_name}' created successfully in collection '{collection_name}' of database '{database_name}' in source '{source_name}'.")
-        return True
-
-    def create_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name, attribute_data):
-        """Create a new attribute under an entity."""
-        self.__ensure_registry_exists()
-
-        # Ensure entity exists
-        entity = self.get_entity(source_name, database_name, collection_name, entity_name)
-        if not entity:
-            raise RuntimeError(f"Entity '{entity_name}' does not exist in collection '{collection_name}'.")
-
-        # RedisJSON sometimes returns a list; pick the first element if needed
-        if isinstance(entity, list):
-            entity = entity[0]
-
-        # Ensure entity has a contents dict
-        if "contents" not in entity:
-            entity["contents"] = {}
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents", {}
-            )
-
-        # Ensure the "attribute" dict exists under contents
-        if "attribute" not in entity["contents"] or not isinstance(entity["contents"]["attribute"], dict):
-            entity["contents"]["attribute"] = {}
-            self.redis_client.json().set(
-                self.DATA_REGISTRY_KEY,
-                f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents.attribute",
-                {},
-            )
-
-        # Check if attribute already exists
-        existing = self.get_attribute(source_name, database_name, collection_name, entity_name, attribute_name)
-        if existing:
-            raise RuntimeError(f"Attribute '{attribute_name}' already exists in entity '{entity_name}'.")
-
-        attribute_data["type"] = "attribute"
-        attribute_data["scope"] = f"/source/{source_name}/database/{database_name}/collection/{collection_name}/entity/{entity_name}"
-
-        # Ensure attribute has a contents dict for child objects
-        if "contents" not in attribute_data:
-            attribute_data["contents"] = {}
-
-        # Write attribute into the "attribute" dict
-        path = (
-            f"$.contents.source.{source_name}.contents.database.{database_name}" f".contents.collection.{collection_name}.contents.entity.{entity_name}" f".contents.attribute.{attribute_name}"
-        )
-        self.redis_client.json().set(self.DATA_REGISTRY_KEY, path, attribute_data)
-
-        logger.info(
-            f"Attribute '{attribute_name}' created successfully in entity '{entity_name}' " f"of collection '{collection_name}' in database '{database_name}' in source '{source_name}'."
-        )
-        return True
-
-    def get_source(self, source_name):
-        """Fetch a single source by name."""
-        logger.info(f"Source '{source_name}' need to be fetched.")
-
-        self.__ensure_registry_exists()
-        path = f"$.contents.source.{source_name}"
-        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
-
-    def get_database(self, source_name, database_name):
-        """Fetch a single database by name under a source."""
-        logger.info(f"Database '{database_name}' in source '{source_name}' needs to be fetched.")
-        self.__ensure_registry_exists()
-        path = f"$.contents.source.{source_name}.contents.database.{database_name}"
-        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
-
-    def get_collection(self, source_name, database_name, collection_name):
-        """Fetch a single collection by name under a database."""
-        logger.info(f"Collection '{collection_name}' in database '{database_name}' of source '{source_name}' needs to be fetched.")
-        self.__ensure_registry_exists()
-        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}"
-        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
-
-    def get_entity(self, source_name, database_name, collection_name, entity_name):
-        """Fetch a single entity by name under a collection."""
-        logger.info(f"Entity '{entity_name}' in collection '{collection_name}' of database '{database_name}' in source '{source_name}' needs to be fetched.")
-        self.__ensure_registry_exists()
-        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}"
-        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
-
-    def get_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name):
-        """Fetch a single attribute by name under an entity."""
-        logger.info(f"Attribute '{attribute_name}' in entity '{entity_name}' of collection '{collection_name}' in database '{database_name}' in source '{source_name}' needs to be fetched.")
-        self.__ensure_registry_exists()
-        path = f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents.attribute.{attribute_name}"
-        return self.redis_client.json().get(self.DATA_REGISTRY_KEY, path)
-
-    def delete_source(self, source_name):
-        """Delete a source from the registry."""
-        self.__ensure_registry_exists()
-        path = f"$.contents.source.{source_name}"
-        deleted = self.redis_client.json().delete(self.DATA_REGISTRY_KEY, path)
-        if deleted:
-            logger.info(f"Source '{source_name}' deleted successfully.")
-            return True
-        else:
-            logger.warning(f"Source '{source_name}' not found.")
-            return False
-
-    def delete_database(self, source_name, database_name):
-        """Delete a database under a source."""
-        self.__ensure_registry_exists()
-
-        source = self.get_source(source_name)
-        if not source:
-            logger.warning(f"Source '{source_name}' not found.")
-            return False
-        if isinstance(source, list):
-            source = source[0]
-
-        dbs = source.get("contents", {}).get("database", {})
-        if database_name not in dbs:
-            logger.warning(f"Database '{database_name}' not found in source '{source_name}'.")
-            return False
-
-        del dbs[database_name]
-        self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database", dbs)
-        logger.info(f"Database '{database_name}' deleted successfully from source '{source_name}'.")
-        return True
-
-    def delete_collection(self, source_name, database_name, collection_name):
-        """Delete a collection under a database."""
-        self.__ensure_registry_exists()
-
-        database = self.get_database(source_name, database_name)
-        if not database:
-            logger.warning(f"Database '{database_name}' not found in source '{source_name}'.")
-            return False
-        if isinstance(database, list):
-            database = database[0]
-
-        colls = database.get("contents", {}).get("collection", {})
-        if collection_name not in colls:
-            logger.warning(f"Collection '{collection_name}' not found in database '{database_name}'.")
-            return False
-
-        del colls[collection_name]
-        self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection", colls)
-        logger.info(f"Collection '{collection_name}' deleted successfully from database '{database_name}'.")
-        return True
-
-    def delete_entity(self, source_name, database_name, collection_name, entity_name):
-        """Delete an entity under a collection."""
-        self.__ensure_registry_exists()
-
-        collection = self.get_collection(source_name, database_name, collection_name)
-        if not collection:
-            logger.warning(f"Collection '{collection_name}' not found in database '{database_name}'.")
-            return False
-        if isinstance(collection, list):
-            collection = collection[0]
-
-        ents = collection.get("contents", {}).get("entity", {})
-        if entity_name not in ents:
-            logger.warning(f"Entity '{entity_name}' not found in collection '{collection_name}'.")
-            return False
-
-        del ents[entity_name]
-        self.redis_client.json().set(self.DATA_REGISTRY_KEY, f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity", ents)
-        logger.info(f"Entity '{entity_name}' deleted successfully from collection '{collection_name}'.")
-        return True
-
-    def delete_attribute(self, source_name, database_name, collection_name, entity_name, attribute_name):
-        """Delete an attribute under an entity."""
-        self.__ensure_registry_exists()
-
-        entity = self.get_entity(source_name, database_name, collection_name, entity_name)
-        if not entity:
-            logger.warning(f"Entity '{entity_name}' not found in collection '{collection_name}'.")
-            return False
-        if isinstance(entity, list):
-            entity = entity[0]
-
-        attrs = entity.get("contents", {}).get("attribute", {})
-        if attribute_name not in attrs:
-            logger.warning(f"Attribute '{attribute_name}' not found in entity '{entity_name}'.")
-            return False
-
-        del attrs[attribute_name]
-        self.redis_client.json().set(
-            self.DATA_REGISTRY_KEY,
-            f"$.contents.source.{source_name}.contents.database.{database_name}.contents.collection.{collection_name}.contents.entity.{entity_name}.contents.attribute",
-            attrs,
-        )
-        logger.info(f"Attribute '{attribute_name}' deleted successfully from entity '{entity_name}'.")
-        return True
-
-    def get_all_sources(self):
-        """Fetch all sources from the data registry."""
-        self.__ensure_registry_exists()
-        data = self.redis_client.json().get(self.DATA_REGISTRY_KEY, "$.contents.source")
-        # RedisJSON returns a list for "$" queries
-        if isinstance(data, list) and len(data) > 0:
-            return data[0]
-        return {}
-
-    def search_sources(self, keyword):
-        """Search sources by keyword in their JSON."""
-        sources = self.get_all_sources()
-        matches = {name: data for name, data in sources.items() if keyword.lower() in json.dumps(data).lower()}
-        return matches
+            return None, {"error": str(e)}
+
+    
+    def add_agent_input(self, agent_name, param_name, description=None, properties=None, icon=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}"
+        payload = {
+            "name": param_name,
+            "description": description or "",
+            "properties": properties or {},
+            "icon": icon or ""
+        }
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def update_agent_input(self, agent_name, param_name, description=None, properties=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}"
+        payload = {
+            "name": param_name,  
+            "description": description or "",
+            "properties": properties or {},
+            "icon": ""
+        }
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("message"), None
+        return None, r.json()
+
+    def set_agent_input_property(self, agent_name, param_name, property_name, property_value):
+        if property_value is None:
+            property_value = ""  
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}/property/{property_name}"
+        payload = {property_name: property_value}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent_input_property(self, agent_name, param_name, property_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}/property/{property_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    # ------------------------
+    # OUTPUTS
+    # ------------------------
+    def get_agent_outputs(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/outputs"
+        try:
+            r = requests.get(url, cookies=self.cookies)
+            if r.status_code == 200:
+                results = r.json().get("results", {})
+                return results, None
+            else:
+                return None, r.json()
+        except Exception as e:
+            return None, {"error": str(e)}
+
+
+    def add_agent_output(self, agent_name, param_name, description=None, properties=None, icon=None):
+        
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}"
+        payload = {
+            "name": param_name,
+            "description": description or "",
+            "properties": properties or {},
+            "icon": icon or ""
+        }
+       
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def update_agent_output(self, agent_name, param_name, description=None, properties=None):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}"
+        payload = {
+            "name": param_name,  
+            "description": description or "",
+            "properties": properties or {},
+            "icon": ""
+        }
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("message"), None
+        return None, r.json()
+
+    def set_agent_output_property(self, agent_name, param_name, property_name, property_value):
+        if property_value is None:
+            property_value = ""  
+        
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}/property/{property_name}"
+        payload = {property_name: property_value}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent_output_property(self, agent_name, param_name, property_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}/property/{property_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+    
+    ######### Agent Properties #########
+    def get_agent_properties(self, agent_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/properties"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["results"], None
+        return None, r.json()
+
+    def set_agent_property(self, agent_name, property_name, value):
+        if value is None:
+           value = ""  
+        
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/property/{property_name}"
+        payload = {property_name: value} 
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent_property(self, agent_name, property_name):
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}/property/{property_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    ######### Agent Groups #########
+    def get_agent_groups(self):
+        url = f"{self.base_api_path}/registry/default/agent_groups"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["results"], None
+        return None, r.json()
+
+    def get_agent_group(self, group_name):
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["result"], None
+        return None, r.json()
+
+    def add_agent_group(self, group_name, description=None, icon=None, properties=None):
+        description = description or ""
+        icon = icon or ""
+        properties = properties or {}
+
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
+        payload = {"name": group_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code in [200, 201]:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def update_agent_group(self, group_name, description=None, icon=None, properties=None):
+        description = description or ""
+        icon = icon or ""
+        properties = properties or {}
+
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
+        payload = {"name": group_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    def delete_agent_group(self, group_name):
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
+        r = requests.delete(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    ######### Agent Group Properties #########
+    def set_agent_group_property(self, group_name, property_name, value):
+        """
+        Set (or update) a specific property on an agent group.
+        Mirrors the API: POST /registry/default/agent_group/{group_name}/property/{property_name}
+        """
+        if value is None:
+            value = ""
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/property/{property_name}"
+        payload = {property_name: value}  
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()
+
+    ######### Agents in Agent Groups #########
+    def add_agent_to_agent_group(self, group_name, agent_name, description=None, icon=None, properties=None, rebuild=False):
+        """
+        Add an agent inside a specific agent group.
+        """
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}"
+        payload = {
+            "name": agent_name,
+            "description": description or "",
+            "icon": icon or "",
+            "properties": properties or {},
+            "rebuild": rebuild
+        }
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code in [200, 201]:
+            return r.json().get("message"), None
+        return None, r.json()
+
+    def update_agent_in_agent_group(self, group_name, agent_name, description=None, icon=None, properties=None, rebuild=False):
+        """
+        Update an existing agent inside a specific agent group.
+        """
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}"
+        payload = {
+            "description": description or "",
+            "icon": icon or "",
+            "properties": properties or {},
+            "rebuild": rebuild
+        }
+        r = requests.put(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("message"), None
+        return None, r.json()
+
+    ######### Agent Properties in Agent Groups #########
+    def get_agent_properties_in_agent_group(self, group_name, agent_name):
+        """
+        Get all properties for a specific agent inside an agent group.
+        Mirrors the API:
+        GET /registry/default/agent_group/{group_name}/agent/{agent_name}/properties
+        """
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}/properties"
+        r = requests.get(url, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("results", {}), None
+        return None, r.json()
+
+    def set_agent_property_in_agent_group(self, group_name, agent_name, property_name, property_value):
+        """
+        Set (or update) a property on a specific agent within an agent group.
+        Mirrors the API:
+        POST /registry/default/agent_group/{group_name}/agent/{agent_name}/property/{property_name}
+        """
+        if property_value is None:
+            property_value = ""
+        url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}/property/{property_name}"
+        payload = {property_name: property_value}
+        r = requests.post(url, json=payload, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json()["message"], None
+        return None, r.json()

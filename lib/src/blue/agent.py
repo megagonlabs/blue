@@ -781,8 +781,27 @@ class Worker:
 ###############
 ### Agent
 #
-class Agent(ErrorLoom):
-    """Represents an agent that can process data from input streams and output results to output streams."""
+class Agent:
+    """Represents an agent that can process data from input streams and output results to output streams.
+
+    Properties:
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `db.host`       | `str`                  | `"localhost"` | The database host.
+    | `db.port`       | `int`                  | `6379`    | The database port.
+    | `instructable`  | `bool`                 | `True`    | Whether the agent is instructable.
+    | `tracker.perf.platform.agent.autostart` | `bool` | `False` | Whether to autostart the performance tracker for the agent.
+    | `tracker.perf.platform.agent.outputs`   | `list` | `["log.INFO"]` | The outputs for the performance tracker.
+    | `consumer.expiration` | `int`              | `3600`    | The expiration time for consumer streams in seconds. Default is 3600 (60 minutes).
+
+     Inputs:
+    - DEFAULT: The default input parameter.
+
+    Outputs:
+    - DEFAULT: The default output parameter.
+
+    """
 
     def __init__(
         self,

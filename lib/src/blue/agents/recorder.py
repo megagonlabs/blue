@@ -14,6 +14,19 @@ from blue.utils import json_utils
 class RecorderAgent(Agent):
     """An agent that records specific data from input streams based on configured queries, scanning JSON data.
     The recorded data is stored in session variables for later use by other agents or processes.
+
+    Properties (in addition to Agent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `records`       | `list of dict`        | `[]`       | List of record configurations, each containing: `variable` (name of the session variable to store the result), `query` (the jsonpath query to execute on the input data), and `single` (boolean indicating if a single result is expected). |
+
+    Inputs:
+    - `DEFAULT`: The JSON input stream to process and query records.
+
+    Outputs:
+    None.
+    
     """
 
     def __init__(self, **kwargs):

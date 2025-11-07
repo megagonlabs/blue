@@ -13,7 +13,32 @@ from blue.data.registry import DataRegistry
 ### OpenAIAgent.NL2SQLAgent
 #
 class NL2SQLAgent(OpenAIAgent):
-    """An agent that translates natural language questions into SQL queries using an LLM."""
+    """An agent that translates natural language questions into SQL queries using an LLM.
+    
+    Properties (in addition to OpenAIAgent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `nl2q_source`    | `str`                 | `None`     | The data source name to use for schema and query execution. If None, discovery mode is used to suggest sources. |
+    | `nl2q_source_database` | `str`            | `None`     | The database name within the source to use. If None, all databases are considered. |
+    | `nl2q_discovery` | `bool`               | `False`    | Whether to use discovery mode to suggest schemas based on the question. |
+    | `nl2q_discovery_similarity_threshold` | `float` | `0.2` | The similarity threshold for discovery mode (lower is more similar). |
+    | `nl2q_case_insensitive` | `bool`        | `True`     | Whether to use case-insensitive matching for string comparisons. |
+    | `nl2q_valid_query_prefixes` | `list of str` | `["SELECT"]` | List of valid SQL query prefixes. Queries not starting with these prefixes will be rejected. |
+    | `nl2q_force_query_prefixes` | `list of str` | `["SELECT"]` | List of SQL query prefixes that the generated query must start with. |
+    | `nl2q_additional_requirements` | `list of str` | `[]` | Additional requirements to include in the prompt. |
+    | `nl2q_context`  | `list of str`      | `[]`       | Additional context to include in the prompt. |
+    | `nl2q_output_filters` | `list of str` | `["all"]` | List of output fields to include in the final output. Options include "all", "question", "source", "query", "result", "error", "count". |
+    | `nl2q_output_max_results` | `int`        | `None`     | Maximum number of results to return from the executed query. If None, all results are returned. |
+    | `nl2q_fuzzy_match` | `bool`             | `True`     | Whether to use fuzzy matching for string comparisons in the generated SQL query. |
+
+    Inputs:
+    - DEFAULT: natural language input to transform into SQL
+
+    Outputs:
+    - DEFAULT: transformed SQL, tagged as `QUERY` and `SQL`
+
+    """
 
     PROMPT = """
 Your task is to translate a natural language question into a SQL query based on a list of provided data sources.

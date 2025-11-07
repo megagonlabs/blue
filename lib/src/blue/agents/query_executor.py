@@ -15,6 +15,19 @@ class QueryExecutorAgent(Agent):
     """
     An agent that executes queries against a specified data source and database using the DataRegistry.
     The agent takes input in the form of JSON containing the source, database, and query to execute.
+
+    Properties (in addition to Agent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `output_filters` | `list of str`        | `['all']` | List of output filters to apply to the query result (e.g., 'all', 'question', 'source', 'query', 'result', 'error'). |
+    | `output_max_results` | `int`                | `None`  | Maximum number of results to return in the output. If not specified, all results are returned. |
+
+    Inputs:
+    - `DEFAULT`: The main input stream where the agent receives query requests in JSON format.
+
+    Outputs:
+    - `DEFAULT`: The output stream where the query results are sent, tagged as QUERY, RESULT, and HIDDEN.
     """
 
     def __init__(self, **kwargs):
