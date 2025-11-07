@@ -1536,6 +1536,10 @@ class AgentRegistryManager:
         return None, r.json()
 
     def add_agent(self, agent_name, description=None, icon=None, properties=None):
+        description = description or ""
+        icon = icon or ""
+        properties = properties or {}
+
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
         payload = {"name": agent_name, "description": description, "icon": icon, "properties": properties or {}}
         r = requests.post(url, json=payload, cookies=self.cookies)
@@ -1544,33 +1548,18 @@ class AgentRegistryManager:
         return None, r.json()
 
     def update_agent(self, agent_name, description=None, icon=None, properties=None):
-        get_url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
-        resp = requests.get(get_url, cookies=self.cookies)
-        if resp.status_code != 200:
-            return None, {"error": f"Failed to fetch {agent_name}", "status": resp.status_code}
+        description = description or ""
+        icon = icon or ""
+        properties = properties or {}
 
-        data = resp.json()
-        existing = data.get("result", data)
-
-        editable = {
-            "name": existing.get("name"),
-            "description": existing.get("description"),
-            "icon": existing.get("icon"),
-            "properties": existing.get("properties", {}),
-        }
-
-        if description is not None:
-            editable["description"] = description
-        if icon is not None:
-            editable["icon"] = icon
-        if properties is not None:
-            editable["properties"].update(properties)
-
-        r = requests.put(get_url, json=editable, cookies=self.cookies)
+        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        payload = {"name": agent_name, "description": description, "icon": icon, "properties": properties or {}}
+        r = requests.put(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
-            return r.json().get("message", "Updated successfully"), None
-        else:
-            return None, r.json()
+            return r.json()["message"], None
+        return None, r.json()
+
+
         
     def delete_agent(self, agent_name):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
@@ -1602,7 +1591,7 @@ class AgentRegistryManager:
             "name": param_name,
             "description": description or "",
             "properties": properties or {},
-            "icon": icon
+            "icon": icon or ""
         }
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
@@ -1615,7 +1604,7 @@ class AgentRegistryManager:
             "name": param_name,  
             "description": description or "",
             "properties": properties or {},
-            "icon": None
+            "icon": ""
         }
         r = requests.put(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
@@ -1623,6 +1612,8 @@ class AgentRegistryManager:
         return None, r.json()
 
     def set_agent_input_property(self, agent_name, param_name, property_name, property_value):
+        if property_value is None:
+            property_value = ""  
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}/property/{property_name}"
         payload = {property_name: property_value}
         r = requests.post(url, json=payload, cookies=self.cookies)
@@ -1654,12 +1645,13 @@ class AgentRegistryManager:
 
 
     def add_agent_output(self, agent_name, param_name, description=None, properties=None, icon=None):
+        
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}"
         payload = {
             "name": param_name,
             "description": description or "",
             "properties": properties or {},
-            "icon": icon
+            "icon": icon or ""
         }
        
         r = requests.post(url, json=payload, cookies=self.cookies)
@@ -1670,10 +1662,10 @@ class AgentRegistryManager:
     def update_agent_output(self, agent_name, param_name, description=None, properties=None):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}"
         payload = {
-            "name": param_name,  # MUST include name
+            "name": param_name,  
             "description": description or "",
             "properties": properties or {},
-            "icon": None
+            "icon": ""
         }
         r = requests.put(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
@@ -1681,6 +1673,9 @@ class AgentRegistryManager:
         return None, r.json()
 
     def set_agent_output_property(self, agent_name, param_name, property_name, property_value):
+        if property_value is None:
+            property_value = ""  
+        
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}/property/{property_name}"
         payload = {property_name: property_value}
         r = requests.post(url, json=payload, cookies=self.cookies)
@@ -1704,6 +1699,9 @@ class AgentRegistryManager:
         return None, r.json()
 
     def set_agent_property(self, agent_name, property_name, value):
+        if value is None:
+           value = ""  
+        
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/property/{property_name}"
         payload = {property_name: value} 
         r = requests.post(url, json=payload, cookies=self.cookies)
@@ -1734,6 +1732,10 @@ class AgentRegistryManager:
         return None, r.json()
 
     def add_agent_group(self, group_name, description=None, icon=None, properties=None):
+        description = description or ""
+        icon = icon or ""
+        properties = properties or {}
+
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
         payload = {"name": group_name, "description": description, "icon": icon, "properties": properties or {}}
         r = requests.post(url, json=payload, cookies=self.cookies)
@@ -1742,6 +1744,10 @@ class AgentRegistryManager:
         return None, r.json()
 
     def update_agent_group(self, group_name, description=None, icon=None, properties=None):
+        description = description or ""
+        icon = icon or ""
+        properties = properties or {}
+
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}"
         payload = {"name": group_name, "description": description, "icon": icon, "properties": properties or {}}
         r = requests.put(url, json=payload, cookies=self.cookies)
@@ -1762,8 +1768,10 @@ class AgentRegistryManager:
         Set (or update) a specific property on an agent group.
         Mirrors the API: POST /registry/default/agent_group/{group_name}/property/{property_name}
         """
+        if value is None:
+            value = ""
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/property/{property_name}"
-        payload = {property_name: value}  # key must match what the API expects
+        payload = {property_name: value}  
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json()["message"], None
@@ -1777,8 +1785,8 @@ class AgentRegistryManager:
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}"
         payload = {
             "name": agent_name,
-            "description": description,
-            "icon": icon,
+            "description": description or "",
+            "icon": icon or "",
             "properties": properties or {},
             "rebuild": rebuild
         }
@@ -1793,8 +1801,8 @@ class AgentRegistryManager:
         """
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}"
         payload = {
-            "description": description,
-            "icon": icon,
+            "description": description or "",
+            "icon": icon or "",
             "properties": properties or {},
             "rebuild": rebuild
         }
@@ -1822,10 +1830,11 @@ class AgentRegistryManager:
         Mirrors the API:
         POST /registry/default/agent_group/{group_name}/agent/{agent_name}/property/{property_name}
         """
+        if property_value is None:
+            property_value = ""
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}/property/{property_name}"
         payload = {property_name: property_value}
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json()["message"], None
         return None, r.json()
-
