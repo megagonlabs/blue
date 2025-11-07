@@ -47,6 +47,6 @@ def catch_fatal_exceptions(cls: Type) -> Type:
 
 
 @catch_fatal_exceptions
-class Loom:
+class ErrorLoom:
     def __init__(self):
         pass
