@@ -18,11 +18,9 @@ To help facilitate ‘Agentic for Enterprise’ we are introducing several conce
 - **Tools** to interface with external sources and APIs
 - **Operators** to perform data-intenstive functions
 
-![Stream](./docs/images/concepts.png)
-
 # How does Blue work?
 
-![Architecture](./docs/images/architecture.png)
+![Architecture](./docs/images/blue_architecture.png)
 
 To get a glimpse of where we are heading with agentic architectures, read our papers:
 
@@ -49,7 +47,7 @@ You can try out a demos on our [blue-examples repository!](http://github.com/rit
 
 </br>
 
-Sounds interesting? Want to learn more? Read documentation below.
+Sounds interesting? Want to learn more? Read the documentation below.
 
 # Outline of the Documentation:
 
@@ -71,6 +69,12 @@ Blue has two python libraries that you can use:
 
 [blue-cli](https://pypi.org/project/blue-cli/) is a good starting point to install and try out blue!
 
+# Learn More
+
+Product overview: [What Blue is and  why it’s “agentic for enterprise](https://megagon.ai/blue/)
+Design principles: [The “Agentic for Enterprise” foundations](https://megagon.ai/blue-designing-agentic/)
+Streams deep-dive: [Why stream processing is the right abstraction for orchestration](https://megagon.ai/streams-orchestrating-work/)
+Blueprint architecture (paper): [A Blueprint Architecture of Compound AI Systems](https://megagon.ai/publications/a-blueprint-architecture-of-compound-ai-systems-for-enterprise/)
 
 </br>
 </br>
