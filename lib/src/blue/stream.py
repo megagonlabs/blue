@@ -103,6 +103,7 @@ ControlCode.UPDATE_FORM = ControlCode("UPDATE_FORM")
 ControlCode.CLOSE_FORM = ControlCode("CLOSE_FORM")
 # progress
 ControlCode.PROGRESS = ControlCode('PROGRESS')
+ControlCode.ERROR = ControlCode("ERROR")
 # operators
 ControlCode.CREATE_PIPELINE = ControlCode("CREATE_PIPELINE")
 ControlCode.JOIN_PIPELINE = ControlCode("JOIN_PIPELINE")

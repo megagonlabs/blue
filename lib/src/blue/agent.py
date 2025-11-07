@@ -17,6 +17,8 @@ from blue.tracker import PerformanceTracker, SystemPerformanceTracker, Metric, M
 from blue.utils import json_utils, uuid_utils, log_utils
 from blue.agents.plan import AgenticPlan
 from blue.constant import Separator
+from blue.loom import Loom
+from blue.blueerror import BlueError
 
 # system tracker
 system_tracker = None
@@ -779,7 +781,7 @@ class Worker:
 ###############
 ### Agent
 #
-class Agent:
+class Agent(Loom):
     """Represents an agent that can process data from input streams and output results to output streams."""
 
     def __init__(
@@ -1597,6 +1599,20 @@ class Agent:
         # write data, automatically notify session on BOS
         worker.write_data(data, output=output)
 
+        if eos:
+            worker.write_eos(output=output)
+
+    def error_handler(self, error: BlueError, exception: Exception):
+        self.emit_error(error)
+
+    def emit_error(self, error: BlueError, output="ERROR", unique=True, eos=True):
+        if self.session is None:
+            self.logger.error("No current session to emit error to.")
+            return
+        if unique:
+            output = output + ":" + uuid_utils.create_uuid()
+        worker = self.create_worker(None)
+        worker.write_control(ControlCode.ERROR, args=error.get_dict(), output=output)
         if eos:
             worker.write_eos(output=output)
 
