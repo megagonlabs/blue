@@ -46,7 +46,7 @@ Here are a few examples to inspire you to build with blue:
 
 # Want to try out blue demos?
 
-You can try out a demos on our [blue-examples repository!](http://github.com/rit-git/blue-examples)
+You can try out a demos on our [blue-examples repository!](http://github.com/megagonlabs/blue-examples)
 
 </br>
 
