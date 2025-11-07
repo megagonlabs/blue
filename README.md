@@ -18,11 +18,9 @@ To help facilitate ‘Agentic for Enterprise’ we are introducing several conce
 - **Tools** to interface with external sources and APIs
 - **Operators** to perform data-intenstive functions
 
-![Stream](./docs/images/concepts.png)
-
 # How does Blue work?
 
-![Architecture](./docs/images/architecture.png)
+![Architecture](./docs/images/blue_architecture.png)
 
 To get a glimpse of where we are heading with agentic architectures, read our papers:
 
