@@ -7,6 +7,7 @@ import {
     faPenLine,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import Error from "./renderers/Error";
 import JSONForm from "./renderers/JSONForm";
 const PreviewTag = ({ contentType, icon }) => {
     return (
@@ -39,7 +40,7 @@ export default function MessageContent({
                 <PreviewTag contentType={contentType} icon={faExclamation} />
             );
         }
-        return JSON.stringify(lastStreamData.content);
+        return <Error content={lastStreamData.content} />;
     }
     return streamData.map((data, index) => {
         const { dataType, content, id } = data;
