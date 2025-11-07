@@ -1063,14 +1063,10 @@ class PlatformManager:
 
     def get_selected_platform_base_api_path(self):
         api_server = self.get_selected_platform_attribute('BLUE_PUBLIC_API_SERVER')
-        print(api_server)
         api_port = self.get_selected_platform_attribute('BLUE_PUBLIC_API_SERVER_PORT')
-        print(api_port)
         api_server += f':{api_port}'
         platform_name = self.get_selected_platform_attribute('BLUE_DEPLOY_PLATFORM')
-        print(platform_name)
         secure = self.get_selected_platform_attribute('BLUE_DEPLOY_SECURE')
-        print(secure)
         protocol = "http"
         if convert(secure, cast='bool'):
             protocol += "s"
