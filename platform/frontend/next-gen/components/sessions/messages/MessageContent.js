@@ -3,6 +3,7 @@ import JSONViewer from "@/components/JSONViewer";
 import { Classes } from "@blueprintjs/core";
 import {
     faBracketsCurly,
+    faExclamation,
     faPenLine,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -32,6 +33,13 @@ export default function MessageContent({
         return (
             <JSONForm content={lastStreamData.content} hasError={hasError} />
         );
+    } else if (_.isEqual(contentType, "ERROR")) {
+        if (isPreview) {
+            return (
+                <PreviewTag contentType={contentType} icon={faExclamation} />
+            );
+        }
+        return JSON.stringify(lastStreamData.content);
     }
     return streamData.map((data, index) => {
         const { dataType, content, id } = data;

@@ -250,7 +250,7 @@ const Row = ({ index, data, style }) => {
                     {detailedMessage && <MessageMetadata message={message} />}
                     <Callout
                         intent={
-                            hasError.current
+                            hasError.current || _.isEqual(contentType, "ERROR")
                                 ? Intent.DANGER
                                 : own
                                 ? Intent.PRIMARY

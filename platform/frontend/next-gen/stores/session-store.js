@@ -362,6 +362,17 @@ export const useSessionStore = create((set, get) => ({
                         ...baseData,
                         content: messageContentsArgs,
                     });
+                } else if (_.isEqual(messageContentsCode, "ERROR")) {
+                    for (let i = _.size(messages) - 1; i >= 0; i--) {
+                        if (_.isEqual(messages[i].stream, stream)) {
+                            _.set(messages, [i, "contentType"], "ERROR");
+                            break;
+                        }
+                    }
+                    streamData.push({
+                        ...baseData,
+                        content: messageContentsArgs,
+                    });
                 }
             } else if (_.isEqual(messageLabel, "DATA")) {
                 for (let i = _.size(messages) - 1; i >= 0; i--) {
