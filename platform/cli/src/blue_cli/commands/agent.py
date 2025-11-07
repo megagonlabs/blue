@@ -408,6 +408,17 @@ def update(ctx, json_file, auto):
                     click.echo(f" Failed to add group {name}: {err}")
                 else:
                     click.echo(f" Added group {name}: {msg}")
+                
+                input_props = input_group.get("properties", {})
+                for prop_name, prop_value in input_props.items():
+                    msg, err = agent_registry_mgr.set_agent_group_property(name, prop_name, prop_value)
+                    if check_fatal_error(err, f"adding agent group property for {name}"):
+                        return  
+                    if err:
+                        click.echo(f" Failed to add property '{prop_name}' for {name}: {err}")
+                    else:
+                        click.echo(f"Added property '{prop_name}' for {name}")
+
             else:
                 # Selectively update fields based on diff
                 update_fields = {}
@@ -485,6 +496,18 @@ def update(ctx, json_file, auto):
                             properties=input_agent.get("properties"),
                             rebuild=True
                         )
+                        input_props = input_agent.get("properties", {})
+                        for prop_name, prop_value in input_props.items():
+                            msg, err = agent_registry_mgr.set_agent_property_in_agent_group(group_name, name, prop_name, prop_value)
+                            if check_fatal_error(err, f"adding property for agent {name}"):
+                                return
+                            if err:
+                                click.echo(f" Failed to add property '{prop_name}' for {name}: {err}")
+                                
+                            else:
+                                click.echo(f" Adding property '{prop_name}' for {name}")
+                    
+                    
                     else:
                         update_fields = {}
                         for field in ["description", "icon", "properties"]:
@@ -533,6 +556,17 @@ def update(ctx, json_file, auto):
                             click.echo(f" Failed to add {name}: {err}")
                         else:
                             click.echo(f" Added {name}: {msg}")
+                    
+                        input_props = input_agent.get("properties", {})
+                        for prop_name, prop_value in input_props.items():
+                            msg, err = agent_registry_mgr.set_agent_property(name, prop_name, prop_value)
+                            if check_fatal_error(err, f"adding property for agent {name}"):
+                                return
+                            if err:
+                                click.echo(f" Failed to add property '{prop_name}' for {name}: {err}")
+                            else:
+                                click.echo(f" Added property '{prop_name}' for {name}")
+                    
                     else:
                         update_fields = {}
                         for field in ["description", "icon", "properties"]:
