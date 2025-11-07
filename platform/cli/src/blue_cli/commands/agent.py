@@ -228,6 +228,21 @@ def build_io_map(io_list):
             io_map[item["name"]] = item
     return io_map
 
+def check_fatal_error(err, context=""):
+    """
+    Detect fatal registry errors and signal the caller to break.
+    Returns True if a fatal error was found.
+    """
+    if not err:
+        return False
+
+    err_str = str(err).lower()
+    if "internal server error" in err_str or "500" in err_str:
+        click.echo(f"\n Fatal error encountered during {context}: {err}")
+        click.echo("Stopping further updates to avoid inconsistent registry state.\n")
+        return True  
+    return False
+
 @agent.command(help="Update agent registry from JSON file. Input JSON file contains list of registry entries.")
 @click.argument("json_file", type=click.Path(exists=True))
 @click.option("--auto", is_flag=True, help="Auto import all changes without interactive verification")
@@ -407,6 +422,9 @@ def update(ctx, json_file, auto):
                         icon=update_fields.get("icon"),
                         properties=update_fields.get("properties")
                     )
+                    if check_fatal_error(err, f"updating agent group {name}"):
+                        return  
+                    
                     if err:
                         click.echo(f" Failed to update group {name}: {err}")
                     else:
@@ -419,6 +437,9 @@ def update(ctx, json_file, auto):
                     for prop_name, prop_value in input_props.items():
                         if prop_name not in reg_props or reg_props[prop_name] != prop_value:
                             msg, err = agent_registry_mgr.set_agent_group_property(name, prop_name, prop_value)
+                            if check_fatal_error(err, f"updating agent group property for {name}"):
+                                return  
+                            
                             if err:
                                 click.echo(f" Failed to update property '{prop_name}' for {name}: {err}")
                             else:
@@ -477,6 +498,8 @@ def update(ctx, json_file, auto):
                             description=update_fields.get("description"),
                             properties=None
                             )        
+                            if check_fatal_error(err, f"updating agent {name}"):
+                                return
                             if err:
                                 click.echo(f" Failed to update {name}: {err}")
                             else:
@@ -490,6 +513,9 @@ def update(ctx, json_file, auto):
                                 if prop_name not in reg_props or reg_props[prop_name] != prop_value:
                                     msg, err = agent_registry_mgr.set_agent_property_in_agent_group(group_name, name, prop_name, prop_value)
                                     
+                                    if check_fatal_error(err, f"updating property for agent {name}"):
+                                        return
+                            
                                     if err:
                                         click.echo(f" Failed to update property '{prop_name}' for {name}: {err}")
                                     else:
@@ -520,6 +546,9 @@ def update(ctx, json_file, auto):
                                 icon=update_fields.get("icon"),
                                 properties=None  
                             )
+                            if check_fatal_error(err, f"updating agent {name}"):
+                                return  
+                            
                             if err:
                                 click.echo(f" Failed to update {name}: {err}")
                             else:
@@ -532,6 +561,10 @@ def update(ctx, json_file, auto):
                             for prop_name, prop_value in input_props.items():
                                 if prop_name not in reg_props or reg_props[prop_name] != prop_value:
                                     msg, err = agent_registry_mgr.set_agent_property(name, prop_name, prop_value)
+                            
+                                    if check_fatal_error(err, f"updating property for agent {name}"):
+                                        return
+                            
                                     if err:
                                         click.echo(f" Failed to update property '{prop_name}' for {name}: {err}")
                                     else:
@@ -577,11 +610,17 @@ def update(ctx, json_file, auto):
                 
                 
                 msg, err = agent_registry_mgr.add_agent_input(name, param_name=iname, description=data.get("description"))
+                if check_fatal_error(err, f"adding agent input for agent {name}"):
+                    return  
+                
                 click.echo(f"Added input {iname}" if not err else f"Input add failed {iname}: {err}")
 
                 # Apply properties individually
                 for prop_name, prop_value in data.get("properties", {}).items():
                     msg, err = agent_registry_mgr.set_agent_input_property(name, iname, prop_name, prop_value)
+                    if check_fatal_error(err, f"adding input property for agent {name}"):
+                        return  
+                
                     click.echo(f"Set input property '{prop_name}' for {iname}" if not err else f"Failed to set input property '{prop_name}' for {iname}: {err}")
 
             
@@ -617,10 +656,16 @@ def update(ctx, json_file, auto):
                 
                 
                 msg, err = agent_registry_mgr.update_agent_input(name, param_name=iname, description=data.get("description"))
+                if check_fatal_error(err, f"updating agent input for agent {name}"):
+                    return  
+                
                 click.echo(f"Updated input {iname}" if not err else f"Input update failed {iname}: {err}")
 
                 for prop_name, prop_value in prop_changes.items():
                     msg, err = agent_registry_mgr.set_agent_input_property(name, iname, prop_name, prop_value)
+                    if check_fatal_error(err, f"updating agent input property for agent {name}"):
+                        return  
+                
                     click.echo(f"Updated input property '{prop_name}' for {iname}" if not err else f"Failed to update input property '{prop_name}' for {iname}: {err}")
                 
             # --- Apply output diffs ---
@@ -637,11 +682,17 @@ def update(ctx, json_file, auto):
                     continue
                 
                 msg, err = agent_registry_mgr.add_agent_output(name, param_name=oname, description=data.get("description"), properties=data.get("properties"))
+                if check_fatal_error(err, f"adding agent output for agent {name}"):
+                    return  
+                
                 click.echo(f"Added output {oname}" if not err else f"Output add failed {oname}: {err}")
 
                 # Apply properties individually
                 for prop_name, prop_value in data.get("properties", {}).items():
                     msg, err = agent_registry_mgr.set_agent_output_property(name, oname, prop_name, prop_value)
+                    if check_fatal_error(err, f"adding agent output property for agent {name}"):
+                        return  
+                
                     click.echo(f"Set output property '{prop_name}' for {oname}" if not err else f"Failed to set output property '{prop_name}' for {oname}: {err}")
 
             
@@ -675,10 +726,16 @@ def update(ctx, json_file, auto):
                 
                 
                 msg, err = agent_registry_mgr.update_agent_output(name, param_name=oname, description=data.get("description"))
+                if check_fatal_error(err, f"updating agent output for agent {name}"):
+                    return  
+                
                 click.echo(f"Updated output {oname}" if not err else f"Output update failed {oname}: {err}")
 
                 for prop_name, prop_value in prop_changes.items():
                     msg, err = agent_registry_mgr.set_agent_output_property(name, oname, prop_name, prop_value)
+                    if check_fatal_error(err, f"updating agent output property for agent {name}"):
+                        return  
+                
                     click.echo(f"Updated output property '{prop_name}' for {oname}" if not err else f"Failed to update output property '{prop_name}' for {oname}: {err}")
 
         except Exception as e:

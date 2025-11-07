@@ -1544,13 +1544,34 @@ class AgentRegistryManager:
         return None, r.json()
 
     def update_agent(self, agent_name, description=None, icon=None, properties=None):
-        url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
-        payload = {"name": agent_name, "description": description, "icon": icon, "properties": properties or {}}
-        r = requests.put(url, json=payload, cookies=self.cookies)
-        if r.status_code == 200:
-            return r.json()["message"], None
-        return None, r.json()
+        get_url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
+        resp = requests.get(get_url, cookies=self.cookies)
+        if resp.status_code != 200:
+            return None, {"error": f"Failed to fetch {agent_name}", "status": resp.status_code}
 
+        data = resp.json()
+        existing = data.get("result", data)
+
+        editable = {
+            "name": existing.get("name"),
+            "description": existing.get("description"),
+            "icon": existing.get("icon"),
+            "properties": existing.get("properties", {}),
+        }
+
+        if description is not None:
+            editable["description"] = description
+        if icon is not None:
+            editable["icon"] = icon
+        if properties is not None:
+            editable["properties"].update(properties)
+
+        r = requests.put(get_url, json=editable, cookies=self.cookies)
+        if r.status_code == 200:
+            return r.json().get("message", "Updated successfully"), None
+        else:
+            return None, r.json()
+        
     def delete_agent(self, agent_name):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
         r = requests.delete(url, cookies=self.cookies)
