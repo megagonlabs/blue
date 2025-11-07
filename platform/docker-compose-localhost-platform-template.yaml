@@ -77,7 +77,7 @@ services:
             <<: *blue-common-env
         env_file:
             - ray/ray.env
-        shm_size: '5.04gb'
+        shm_size: '5g'
         restart: always
 
     api:

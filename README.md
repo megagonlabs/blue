@@ -29,6 +29,7 @@ To get a glimpse of where we are heading with agentic architectures, read our pa
 * [A Blueprint Architecture of Compound AI Systems for Enterprise](https://arxiv.org/abs/2406.00584) [Compound AI Systems Workshop](https://sites.google.com/view/compound-ai-systems-workshop/home)
 * [Orchestrating Agents and Data for Enterprise: A Blueprint Architecture for Compound AI](http://arxiv.org/abs/2504.08148) [Data-AI Systems Workshop at ICDE'25](https://dais-workshop-icde.github.io/)
 
+For more details refer to the [API Doc](https://rit-git.github.io/blue)
 </br>
 
 # What can you build with Blue?
@@ -58,6 +59,7 @@ Sounds interesting? Want to learn more? Read documentation below.
   * [Local Installation](LOCAL-INSTALLATION.md) more suited for trying out and development 
   * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
 * [Quickstart Guide](QUICK-START.md) to learn basics of using blue web application.
+* [API Doc](https://rit-git.github.io/blue) to learn more about blue library, for development
 * [Demos](https://github.com/rit-git/blue-examples/tree/v1.0) to try out agentic demos with base and experimental agents
 * [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue

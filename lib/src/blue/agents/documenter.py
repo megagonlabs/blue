@@ -23,7 +23,24 @@ def build_doc_form(doc):
 ### Agent.DocumenterAgent
 #
 class DocumenterAgent(Agent):
-    """An agent that generates and renders documents based on templates, by running natural language and SQL queries, specified as propertiesconstructed by substituting input, and other contextual information defined as variables."""
+    """An agent that generates and renders documents based on templates, by running natural language and SQL queries, specified as propertiesconstructed by substituting input, and other contextual information defined as variables.
+
+    Properties (in addition to Agent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `hilite`       | `str`            | `""`     | (Optional) A template string for highlighting the document using the HILITER agent. If specified, the document will be highlighted before rendering. |
+    | `template`     | `str` or `dict`  | `""`     | A template string or JSON object for the document. This template will be processed by substituting variables and results from queries. |
+    | `questions`    | `dict`              | `{}`     | (Optional) A dictionary of natural language questions to be processed by the NL2SQL agent. Each key is a question name, and the value is the question template string. |
+    | `queries`      | `dict`              | `{}`     | (Optional) A dictionary of SQL queries to be executed by the QUERYEXECUTOR agent. Each key is a query name, and the value is the SQL query template string. |
+    
+    Inputs: 
+    - `DEFAULT`: Accepts user input text to initiate document generation.
+    
+    Outputs:
+    - `DEFAULT`: Outputs the generated document, optionally highlighted, tagged as DOC.
+
+    """
 
     def __init__(self, **kwargs):
         if "name" not in kwargs:

@@ -21,6 +21,23 @@ class RequestorAgent(Agent, ServiceClient):
     """An agent that sends requests to an external service via a WebSocket API.
     The agent collects input data from the input stream, sends it to the specified service URL,
     and writes the response to the output stream.
+
+    Properties (in addition to Agent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `service.url`   | `str`                | `ws://localhost:8000/request` | The WebSocket URL of the external service to send requests to. |
+    | `input_json`    | `str`                | `None`    | Optional JSON string to use as the entire input payload. If specified, this overrides other input fields. |
+    | `input_context` | `str`                | `None`    | Optional session variable name to use as context data in the input payload. |
+    | `input_context_field` | `str`                | `None`    | The field name in the input payload where the context data should be placed. Required if `input_context` is specified. |
+    | `input_field`   | `str`                | `input`   | The field name in the input payload where the main input data should be placed. |
+    | `output_path`   | `str`                | `output`  | The JSON path in the response payload where the output data can be found. |
+    
+    Inputs:
+    - `DEFAULT`: The main input stream where the agent receives data to send to the external service.
+
+    Outputs:
+    - `DEFAULT`: The output stream where the responses from the external service are sent.
     """
 
     def __init__(self, **kwargs):

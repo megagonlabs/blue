@@ -36,7 +36,23 @@ agent_properties = {
 ### OpenAIAgent.SummarizerAgent
 #
 class SummarizerAgent(OpenAIAgent):
-    """An agent that summarizes input text using OpenAI's language models, incorporating results from natural language and SQL queries."""
+    """An agent that summarizes input text using OpenAI's language models, incorporating results from natural language and SQL queries.
+    
+    Properties (in addition to OpenAIAgent properties):
+    ----------
+    | Name           | Type                 | Default | Description |
+    |----------------|--------------------|----------|---------|
+    | `template`      | `str`                | `""`      | The template string used to generate the summary, which can include placeholders for query results. |
+    | `questions`     | `dict`               | `{}`      | A dictionary of natural language questions to be asked as part of the summarization process. |
+    | `queries`       | `dict`               | `{}`      | A dictionary of SQL queries to be executed as part of the summarization process. |
+    | `rephrase`      | `bool`               | `True`    | Whether to rephrase the generated summary for improved readability. |
+
+    Inputs:
+    - `DEFAULT`: The main input stream where the agent receives text to summarize.
+
+    Outputs:
+    - `DEFAULT`: The output stream where the summary text is sent, tagged as SUMMARY.
+    """
 
     def __init__(self, **kwargs):
         if "name" not in kwargs:

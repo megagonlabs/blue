@@ -27,6 +27,17 @@ class CoordinatorAgent(Agent):
     invoking EXECUTE_AGENT commands as needed.
 
     Plans are represented using the AgenticPlan class, which defines the structure and flow of tasks to be executed by various agents.
+
+    Properties (in addition to Agent properties):
+    ----------
+    This agent does not have additional properties beyond those inherited from the base Agent class.
+
+    Inputs:
+    - DEFAULT: Listens for incoming plans tagged with PLAN.
+
+    Outputs:
+    - DEFAULT: Outputs instructions, tagged as `INSTRUCTION` and `HIDDEN`.
+
     """
 
     def __init__(self, **kwargs):
