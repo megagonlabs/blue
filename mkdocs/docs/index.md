@@ -6,7 +6,7 @@ Blue is Megagon’s open-source framework for building enterprise-ready agentic 
 Blue provides robust task reasoning and execution over multimodal datasets. While it is designed to integrate with enterprise-level systems, it is a blank canvas for your own specific needs and creative, agentic impulses.
 
 <h3 align="center">
-  <a href="quickstart.md">Get started</a>
+  <a href="quickstart.html">Get started</a>
 </h3>
 
 ## Blue Architecture
@@ -37,11 +37,11 @@ Blue provides robust task reasoning and execution over multimodal datasets. Whil
 
 ## Learn more
 
-* **Source code (v1.0):** [Browse concepts, examples, and deployment docs.](https://github.com/megagonlabs/blue)  
-* **Product overview:** [What Blue is and  why it’s “agentic for enterprise.”](https://megagon.ai/blue/)  
-* **Design principles:** [The “Agentic for Enterprise” foundations.](https://megagon.ai/blue-designing-agentic/)  
-* **Streams deep-dive:** [Why stream processing is the right abstraction for orchestration.](https://megagon.ai/streams-orchestrating-work/)  
-* **Blueprint architecture (paper):** [A Blueprint Architecture of Compound AI Systems for Enterprise](https://megagon.ai/publications/a-blueprint-architecture-of-compound-ai-systems-for-enterprise/?utm_source=chatgpt.com)
+* **Source code (v1.0):** <a href="https://github.com/megagonlabs/blue" target="_blank" rel="noopener noreferrer">Browse concepts, examples, and deployment docs.</a>  
+* **Product overview:** <a href="https://megagon.ai/blue/" target="_blank" rel="noopener noreferrer">What Blue is and  why it’s “agentic for enterprise.</a>
+* **Design principles:** <a href="https://megagon.ai/blue-designing-agentic/" target="_blank" rel="noopener noreferrer">The “Agentic for Enterprise” foundations.</a>
+* **Streams deep-dive:** <a href="https://megagon.ai/streams-orchestrating-work/" target="_blank" rel="noopener noreferrer">Why stream processing is the right abstraction for orchestration.</a> 
+* **Blueprint architecture (paper):**  <a href="https://megagon.ai/publications/a-blueprint-architecture-of-compound-ai-systems-for-enterprise/" target="_blank" rel="noopener noreferrer">A Blueprint Architecture of Compound AI Systems for Enterprise</a>
 
 <p align="center">
   <img src="assets/images/blue_gitlogo.png"  alt="blue_logo">
