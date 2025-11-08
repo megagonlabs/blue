@@ -1,8 +1,8 @@
 # Getting Started
 ## Installation
  There are two Blue installations options:
-  * [Local Installation](/LOCAL-INSTALLATION.md) more suited for trying out and development 
-  * [SWARM Deployment](/SWARM-DEPLOYMENT.md) more suited for staging and production deployment
+  * [Local Installation]({{ config.repo_url }}/blob/{{ canonical_version }}/LOCAL-INSTALLATION.md) more suited for trying out and development 
+  * [SWARM Deployment]({{ config.repo_url }}/blob/{{ canonical_version }}/SWARM-DEPLOYMENT.md) more suited for staging and production deployment
 
 ## Login
 ### How to login
@@ -18,12 +18,12 @@ To login:
 
 - <u> For administrator users </u>
   
-  Please sign in with the google account you used during the [installation process](/LOCAL-INSTALLATION.md).
+  Please sign in with the google account you used during the [installation process]({{ config.repo_url }}/blob/{{ canonical_version }}/LOCAL-INSTALLATION.md).
 - <u> For new users </u>
    
-  Please sign in using a google account within the whitelisted email domain defined in the configuration `BLUE_EMAIL_DOMAIN_WHITE_LIST` set during the [installation process](/LOCAL-INSTALLATION.md).  Note: by default new users are created with guest role.  Administrators can grant administrator role access using `Navigation menu > Users` 
+  Please sign in using a google account within the whitelisted email domain defined in the configuration `BLUE_EMAIL_DOMAIN_WHITE_LIST` set during the [installation process]({{ config.repo_url }}/blob/{{ canonical_version }}/LOCAL-INSTALLATION.md).  Note: by default new users are created with guest role.  Administrators can grant administrator role access using `Navigation menu > Users` 
 
 - Home screen should appear once you have logged in successfully. 
 
 ### Role Based Permissions
-Blue supports role based permissions. For more information please refer to [Access Controls](/ACCESS-CONTROL.md)
+Blue supports role based permissions. For more information please refer to [Access Controls]({{ config.repo_url }}/blob/{{ canonical_version }}/ACCESS-CONTROL.md)
