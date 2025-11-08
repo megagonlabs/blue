@@ -6,7 +6,7 @@ Blue is Megagon’s open-source framework for building enterprise-ready agentic 
 Blue provides robust task reasoning and execution over multimodal datasets. While it is designed to integrate with enterprise-level systems, it is a blank canvas for your own specific needs and creative, agentic impulses.
 
 <h3 align="center">
-  <a href="/quickstart.html">Get started</a>
+  <a href="quickstart.html">Get started</a>
 </h3>
 
 ## Blue Architecture
@@ -15,7 +15,7 @@ Blue provides robust task reasoning and execution over multimodal datasets. Whil
 
 [**Data Planner**](references/blue/data/planner.md)**:** Break complex queries into several operators across structured and unstructured data to improve speed, cost, and accuracy.
 
-[**Task Planners**](references/blue/data/planner.md)**:** Decompose and prioritize tasks, coordinate agents, and explain results so workflows execute like expert teams.
+**Task Planners** **:** Decompose and prioritize tasks, coordinate agents, and explain results so workflows execute like expert teams.
 
 [**Data Registry**](registry.md#data-registry)**:** Seamlessly connect agents to private and public multimodal data sources. 
 
