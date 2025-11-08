@@ -11,17 +11,17 @@ Blue provides robust task reasoning and execution over multimodal datasets. Whil
 
 ## Blue Architecture
 
-[**Streams**](/references/blue/stream.html)**:** Streams distribute data and tasks among agents, making complex workflows scalable and easy to debug.
+[**Streams**](references/blue/stream.md)**:** Streams distribute data and tasks among agents, making complex workflows scalable and easy to debug.
 
-[**Data Planner**](/references/blue/data/planner.html)**:** Break complex queries into several operators across structured and unstructured data to improve speed, cost, and accuracy.
+[**Data Planner**](references/blue/data/planner.md)**:** Break complex queries into several operators across structured and unstructured data to improve speed, cost, and accuracy.
 
-[**Task Planners**](/references/blue/data/planner.html)**:** Decompose and prioritize tasks, coordinate agents, and explain results so workflows execute like expert teams.
+[**Task Planners**](references/blue/data/planner.md)**:** Decompose and prioritize tasks, coordinate agents, and explain results so workflows execute like expert teams.
 
-[**Data Registry**](/registry.html#data-registry)**:** Seamlessly connect agents to private and public multimodal data sources. 
+[**Data Registry**](registry.md#data-registry)**:** Seamlessly connect agents to private and public multimodal data sources. 
 
-[**Agent Registry**](/registry.html)**:** Find and reuse vetted agents and tools across your projects to build reliable, reproducible workflows at any scale.
+[**Agent Registry**](registry.md)**:** Find and reuse vetted agents and tools across your projects to build reliable, reproducible workflows at any scale.
 
-[**Tool Registry**](/registry.html#tool)**:** Register and integrate custom or public tools—including MCP servers—so agents can access resources across workflows.
+[**Tool Registry**](registry.md#tool)**:** Register and integrate custom or public tools—including MCP servers—so agents can access resources across workflows.
 
 <p align="center">
   <img src="assets/images/blue_architecture.png"  alt="blue_architecture">
