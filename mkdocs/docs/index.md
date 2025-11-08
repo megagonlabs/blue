@@ -6,7 +6,7 @@ Blue is Megagon’s open-source framework for building enterprise-ready agentic 
 Blue provides robust task reasoning and execution over multimodal datasets. While it is designed to integrate with enterprise-level systems, it is a blank canvas for your own specific needs and creative, agentic impulses.
 
 <h3 align="center">
-  <a href="quickstart.html">Get started</a>
+  <a href="quickstart.md">Get started</a>
 </h3>
 
 ## Blue Architecture
