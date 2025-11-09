@@ -1,6 +1,7 @@
 site_name: Blue Docs
 site_url: https://blue.megagon.info/
 repo_url: https://github.com/megagonlabs/blue
+repo_name: megagonlabs/blue
 theme:
     name: material
     logo: assets/logo.svg
