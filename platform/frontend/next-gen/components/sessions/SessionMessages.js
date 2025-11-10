@@ -213,19 +213,24 @@ const Row = ({ index, data, style }) => {
                     }}
                 >
                     <ButtonGroup size={Size.LARGE}>
-                        <Tooltip placement="bottom" content="Add to Workspace">
-                            <Button
-                                icon={<FAIcon icon={faSidebar} />}
-                                onClick={() => {
-                                    addToWorkspace({
-                                        type: "session",
-                                        message,
-                                        sessionId,
-                                    });
-                                    setShowWorkspace(true);
-                                }}
-                            />
-                        </Tooltip>
+                        {!_.isEqual(contentType, "ERROR") && (
+                            <Tooltip
+                                placement="bottom"
+                                content="Add to Workspace"
+                            >
+                                <Button
+                                    icon={<FAIcon icon={faSidebar} />}
+                                    onClick={() => {
+                                        addToWorkspace({
+                                            type: "session",
+                                            message,
+                                            sessionId,
+                                        });
+                                        setShowWorkspace(true);
+                                    }}
+                                />
+                            </Tooltip>
+                        )}
                         <Tooltip placement="bottom-end" content="Inspect">
                             <Button
                                 onClick={() => {
@@ -250,7 +255,7 @@ const Row = ({ index, data, style }) => {
                     {detailedMessage && <MessageMetadata message={message} />}
                     <Callout
                         intent={
-                            hasError.current
+                            hasError.current || _.isEqual(contentType, "ERROR")
                                 ? Intent.DANGER
                                 : own
                                 ? Intent.PRIMARY

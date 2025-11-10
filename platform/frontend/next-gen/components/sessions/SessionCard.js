@@ -245,7 +245,13 @@ export default function SessionCard({ sessionId }) {
             {!_.isEmpty(lastMessage) && (
                 <Callout
                     icon={null}
-                    intent={lastMessage.own ? Intent.PRIMARY : null}
+                    intent={
+                        lastMessage.own
+                            ? Intent.PRIMARY
+                            : _.isEqual(lastMessage.contentType, "ERROR")
+                            ? Intent.DANGER
+                            : null
+                    }
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                     style={{
                         marginTop: 10,
