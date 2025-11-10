@@ -1,7 +1,7 @@
 
 ## What is Blue?
 
-Blue is Megagon’s open-source framework for building enterprise-ready agentic workflows, known as compound AI systems that orchestrate agents, data, and tools across your existing stack. Its core orchestration is done via [**streams**](https://megagon.ai/streams-orchestrating-work/), which carries data and instructions between agents with structure and control, so you can scale from prototypes to production without throwing away what you already run in the enterprise.
+Blue is Megagon’s open-source framework for building enterprise-ready agentic workflows, known as compound AI systems that orchestrate agents, data, and tools across your existing stack. Its core orchestration is done via <a href="https://megagon.ai/streams-orchestrating-work" target="_blank">**streams**</a>, which carries data and instructions between agents with structure and control, so you can scale from prototypes to production without throwing away what you already run in the enterprise.
 
 Blue provides robust task reasoning and execution over multimodal datasets. While it is designed to integrate with enterprise-level systems, it is a blank canvas for your own specific needs and creative, agentic impulses.
 
