@@ -17,7 +17,7 @@ from blue.tracker import PerformanceTracker, SystemPerformanceTracker, Metric, M
 from blue.utils import json_utils, uuid_utils, log_utils
 from blue.agents.plan import AgenticPlan
 from blue.constant import Separator
-from blue.loom import ErrorLoom
+from blue.errorloom import ErrorLoom
 from blue.blueerror import BlueError
 
 # system tracker
@@ -781,7 +781,7 @@ class Worker:
 ###############
 ### Agent
 #
-class Agent:
+class Agent(ErrorLoom):
     """Represents an agent that can process data from input streams and output results to output streams.
 
     Properties:

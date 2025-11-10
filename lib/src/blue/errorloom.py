@@ -12,6 +12,7 @@ def _create_method_wrapper(method: Callable) -> Callable:
             error = ex
             if not isinstance(error, BlueError):
                 error = BlueError(exception=ex)
+            error.add_description("processed by loom")
             if hasattr(self, 'error_handler') and callable(self.error_handler):
                 error_handler = getattr(self, 'error_handler')
                 error_handler(error=error, exception=ex)
