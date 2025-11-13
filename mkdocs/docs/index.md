@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="assets/images/blue_gitlogo.png"  alt="blue_logo">
+</p>
 
 ## What is Blue?
 
@@ -41,8 +44,4 @@ Blue provides robust task reasoning and execution over multimodal datasets. Whil
 * **Product overview:** <a href="https://megagon.ai/blue/" target="_blank" rel="noopener noreferrer">What Blue is and  why it’s “agentic for enterprise.</a>
 * **Design principles:** <a href="https://megagon.ai/blue-designing-agentic/" target="_blank" rel="noopener noreferrer">The “Agentic for Enterprise” foundations.</a>
 * **Streams deep-dive:** <a href="https://megagon.ai/streams-orchestrating-work/" target="_blank" rel="noopener noreferrer">Why stream processing is the right abstraction for orchestration.</a> 
-* **Blueprint architecture (paper):**  <a href="https://megagon.ai/publications/a-blueprint-architecture-of-compound-ai-systems-for-enterprise/" target="_blank" rel="noopener noreferrer">A Blueprint Architecture of Compound AI Systems for Enterprise</a>
-
-<p align="center">
-  <img src="assets/images/blue_gitlogo.png"  alt="blue_logo">
-</p>
+* **Read the Research:**  <a href="https://megagon.ai/publications-tags/compound-ai/" target="_blank" rel="noopener noreferrer">The research behind our compound AI framework.</a>
