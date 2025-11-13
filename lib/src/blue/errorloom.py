@@ -37,17 +37,6 @@ class CatcherMeta(type):
         return super().__new__(mcs, name, bases, new_attrs)
 
 
-def catch_fatal_exceptions(cls: Type) -> Type:
-    class CatchError(cls, metaclass=CatcherMeta):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-
-    CatchError.__name__ = cls.__name__
-    CatchError.__qualname__ = cls.__qualname__
-    return CatchError
-
-
-@catch_fatal_exceptions
-class ErrorLoom:
+class ErrorLoom(metaclass=CatcherMeta):
     def __init__(self):
         pass
