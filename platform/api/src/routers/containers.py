@@ -535,7 +535,7 @@ async def stream_log(container_id: str, filter: Optional[str] = Query(None)):
                 data = {'epoch': time.time(), 'line': line}
                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
             await asyncio.sleep(0)
-        log_thread.join(timeout=1)
+        log_thread.join(timeout=3)
 
     client.close()
 
