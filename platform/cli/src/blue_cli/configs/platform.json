@@ -199,7 +199,7 @@
     },
     "BLUE_FIREBASE_SERVICE_CRED": {
         "default": "",
-        "prompt": "Firebase Service Credentialls",
+        "prompt": "Firebase Service Credentials",
         "required": false,
         "cast": "str"
     },
