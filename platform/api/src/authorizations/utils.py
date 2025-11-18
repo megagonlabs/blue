@@ -1,5 +1,5 @@
 from fastapi import Header
-from src.constant import EMAIL_DOMAIN_ADDRESS_REGEXP, allowed_domains, p as platform
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, allowed_domains, p as platform
 from authorizations.constant import PermissionDenied
 from blue.properties import FIREBASE_CLIENT_ID
 from blue.utils.string_utils import encode_websafe_no_padding
