@@ -2377,6 +2377,7 @@ class DataRegistry(Registry):
         enable_schema=None,
         bm25_normalization=None,
         redis_search_limit=None,
+        enable_value_semantics=True, 
     ):
         """
         Perform a hierarchical search over records, considering parent-child relationships for databases and collections.
@@ -2453,6 +2454,7 @@ class DataRegistry(Registry):
                 bm25_normalization=bm25_normalization,
                 enable_schema=enable_schema,
                 redis_search_limit=redis_search_limit,
+                enable_value_semantics=enable_value_semantics
             )
 
         params = self._prepare_search_parameters(
@@ -2515,6 +2517,9 @@ class DataRegistry(Registry):
             result.bm25_score = bm25_score
             result.vector_score = vector_score
 
+            result.value_relevance_score = value_relevance_score
+            result.most_relevant_values = most_relevant_values
+
         # Normalize BM25 scores to [0, 1] range, higher is better
         all_bm25_scores = [result.bm25_score for result in results]
         normalized_bm25_scores = normalize_bm25_scores(all_bm25_scores, params['bm25_normalization'])
@@ -2546,26 +2551,33 @@ class DataRegistry(Registry):
         hierarchical_results = []
 
         for node_id in target_nodes:
-            best_score, best_record = self._update_node_score_with_children(node_id, hierarchy, params)
-            if best_record is not None:
+            best_score, best_record, best_values, best_value_score = self._update_node_score_with_children(node_id, hierarchy, params)
+            
+            if best_record is None:
+                continue
+            
+            result_entry = {
+            "name": hierarchy[node_id]['record'].name,
+            "type": hierarchy[node_id]['record'].type,
+            "scope": hierarchy[node_id]['record'].scope,
+            "id": hierarchy[node_id]['record'].id,
+            "description": hierarchy[node_id]['record'].description,
+            "score": best_score,
+            "bm25_score": best_record.bm25_score,
+            "vector_score": best_record.vector_score,
+            "normalized_bm25_score": best_record.normalized_bm25_score,
+            "best_record_id": best_record.id,
+            "best_record_name": best_record.name,
+            "best_record_type": best_record.type,
+            "best_record_scope": best_record.scope,
+            }
 
-                hierarchical_results.append(
-                    {
-                        "name": hierarchy[node_id]['record'].name,
-                        "type": hierarchy[node_id]['record'].type,
-                        "scope": hierarchy[node_id]['record'].scope,
-                        "id": hierarchy[node_id]['record'].id,
-                        "description": hierarchy[node_id]['record'].description,
-                        "score": best_score,
-                        "bm25_score": best_record.bm25_score,
-                        "vector_score": best_record.vector_score,
-                        "normalized_bm25_score": best_record.normalized_bm25_score,
-                        "best_record_id": best_record.id,
-                        "best_record_name": best_record.name,
-                        "best_record_type": best_record.type,
-                        "best_record_scope": best_record.scope,
-                    }
-                )
+            if best_values:
+                result_entry["most_relevant_values"] = best_values
+                result_entry["value_relevance_score"] = best_value_score
+
+            hierarchical_results.append(result_entry)
+            
         return hierarchical_results
 
     def _build_hierarchy_by_node_id(self, results):
@@ -2625,7 +2637,7 @@ class DataRegistry(Registry):
     def _update_node_score_with_children(self, node_id, hierarchy, params):
         """Update node score by itself and all children (nested) scores"""
         if node_id not in hierarchy:
-            return float('inf'), None  # invalid / worst score
+            return float('inf'), None, [], 0.0  # invalid / worst score
 
         node_data = hierarchy[node_id]
         record = node_data['record']
@@ -2634,9 +2646,9 @@ class DataRegistry(Registry):
         all_related_nodes = {node_id} | self._get_all_children_recursive(node_id, hierarchy)
 
         # Find the best score among all related nodes
-        best_score, best_record = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
+        best_score, best_record, best_values, best_value_score = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
 
-        return best_score, best_record
+        return best_score, best_record, best_values, best_value_score
 
     def _get_all_children_recursive(self, node_id, hierarchy, visited=None):
         """Get all children (nested) of a node recursively using set for efficiency"""
@@ -2668,6 +2680,9 @@ class DataRegistry(Registry):
         best_score = 1.0
         best_record = None
 
+        best_values = []
+        best_value_score = 0.0
+
         for node_id in node_ids:
             if node_id not in hierarchy:
                 continue
@@ -2683,9 +2698,30 @@ class DataRegistry(Registry):
             if normalized_bm25 < params['bm25_threshold'] or record.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
                 continue
 
+            # Retrieve value semantics (may be zero)
+            value_score = getattr(record, "value_relevance_score", 0.0)
+            values = getattr(record, "most_relevant_values", [])
+
             # Keep the best (lowest inverted_score) node
-            if best_record is None or inverted_score < best_score:
+            #if best_record is None or inverted_score < best_score:
+            #   best_score = inverted_score
+            #   best_record = record
+
+            # Choose record:
+            #   1. Smaller score is better
+            #   2. If tied, choose one with higher value_score
+            better = (
+                best_record is None or
+                inverted_score < best_score or
+                (inverted_score == best_score and value_score > best_value_score)
+            )
+
+            if better:
                 best_score = inverted_score
                 best_record = record
+                best_values = values
+                best_value_score = value_score
 
-        return best_score, best_record
+
+        return best_score, best_record, best_values, best_value_score
+
