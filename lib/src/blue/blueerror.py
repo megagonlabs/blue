@@ -22,7 +22,16 @@ class BlueError(Exception):
                 pydash.objects.merge(self.context, context)
             return
         self.timestamp = int(time.time() * 1000)
-        self.type = type(exception).__name__ if exception is not None else "UnknownError"
+        if exception:
+            ex_type = type(exception)
+            module_name = ex_type.__module__
+            class_name = ex_type.__name__
+            if module_name == 'builtins':
+                self.type = class_name
+            else:
+                self.type = f"{module_name}.{class_name}"
+        else:
+            self.type = "Unknown BlueError"
         self.intent = intent
         self.context = context.copy() if context else {}
         self.description = []
@@ -63,7 +72,7 @@ class BlueError(Exception):
     def from_json(self, json_string):
         data = json.loads(json_string)
         self.timestamp = pydash.objects.get(data, 'timestamp', int(time.time() * 1000))
-        self.type = pydash.objects.get(data, 'type', 'UnknownError')
+        self.type = pydash.objects.get(data, 'type', 'Unknown BlueError')
         self.intent = pydash.objects.get(data, 'intent', 'fatal')
         self.description = pydash.objects.get(data, 'description', [])
         self.stack_trace = pydash.objects.get(data, 'stack_trace', [])
