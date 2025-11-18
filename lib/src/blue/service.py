@@ -7,7 +7,7 @@ import pydash
 ##### Communication
 import asyncio
 import websockets
-
+import threading
 
 ###### Backend, Databases
 from redis.commands.json.path import Path
@@ -16,6 +16,8 @@ from redis.commands.json.path import Path
 from blue.connection import PooledConnectionFactory
 from blue.tracker import Tracker, Metric, MetricGroup
 from blue.utils import uuid_utils, log_utils
+from blue.errorloom import skip_error_loom, ErrorLoom
+from blue.blueerror import BlueError
 
 # service tracker
 service_tracker = None
@@ -129,7 +131,7 @@ class ServicePerformanceTracker(Tracker):
         return self.data.toDict()
 
 
-class Service:
+class Service(ErrorLoom):
     """Service class for handling communication with external APIs."""
 
     def __init__(
@@ -355,6 +357,29 @@ class Service:
         wsid = websocket.id
         self.set_metadata("stats.websockets." + str(wsid) + "." + key, value, nx=True)
 
+    def error_handler(self, error: BlueError, exception: Exception):
+        context = error.context
+        websocket_to_respond = pydash.objects.get(context, 'websocket', None)
+        if websocket_to_respond:
+
+            async def send_error_message():
+                if hasattr(websocket_to_respond, 'open') and not websocket_to_respond.open:
+                    return
+                await websocket_to_respond.send(json.dumps({"status": "server_error", "error": error.get_dict()}))
+
+            def run_in_thread(loop):
+                asyncio.set_event_loop(loop)
+                try:
+                    loop.run_until_complete(send_error_message())
+                except Exception as e:
+                    threading.current_thread().exception = e
+
+            new_loop = asyncio.new_event_loop()
+            thread = threading.Thread(target=run_in_thread, args=(new_loop,))
+            thread.daemon = True
+            thread.start()
+            thread.join(timeout=10)
+
     ###### handlers
     async def _handler(self, websocket):
         """Handle incoming WebSocket messages and process them using the service's handler function.
@@ -363,29 +388,33 @@ class Service:
         Parameters:
             websocket: WebSocket connection object.
         """
-        self._init_socket_stats(websocket)
+        try:
+            self._init_socket_stats(websocket)
 
-        while True:
-            try:
-                ### read message
-                s = await websocket.recv()
+            while True:
+                try:
+                    ### read message
+                    s = await websocket.recv()
 
-                # message length
-                self.set_socket_stat(websocket, "length", len(s))
+                    # message length
+                    self.set_socket_stat(websocket, "length", len(s))
 
-                message = json.loads(s)
+                    message = json.loads(s)
 
-                ### process message
-                start = time.time()
-                response = self.handler(message, websocket=websocket)
-                end = time.time()
-                self.set_socket_stat(websocket, "response_time", end - start)
+                    ### process message
+                    start = time.time()
+                    response = self.handler(message, websocket=websocket)
+                    end = time.time()
+                    self.set_socket_stat(websocket, "response_time", end - start)
 
-                ### write response
-                await websocket.send(response.json())
+                    ### write response
+                    await websocket.send(json.dumps(response))
 
-            except websockets.ConnectionClosedOK:
-                break
+                except websockets.ConnectionClosedOK:
+                    break
+        except Exception as ex:
+            error = BlueError(ex, context={'websocket': websocket})
+            raise error
 
     async def start_listening_socket(self):
         """Start listening for incoming WebSocket connections on port 8001."""
@@ -393,6 +422,7 @@ class Service:
             await asyncio.Future()  # run forever
 
     ## default handler, override
+    @skip_error_loom
     def default_handler(self, message, properties=None, websocket=None):
         """Default handler for processing incoming messages. This method should be overridden by subclasses to implement custom behavior.
 

@@ -3,6 +3,7 @@ import os
 import argparse
 import logging
 import json
+import pydash
 
 
 ###### Communication
@@ -10,6 +11,7 @@ import asyncio
 
 ###### Blue
 from blue.service import Service
+from blue.blueerror import BlueError
 
 ##### Agent specifc
 from openai import OpenAI
@@ -22,8 +24,9 @@ class OpenAIService(Service):
         super().__init__(**kwargs)
 
     def default_handler(self, message, properties=None, websocket=None):
-        api = message['api']
-        del message['api']
+        data = pydash.objects.get(message, 'data', {})
+        api = data['api']
+        pydash.objects.unset(data, 'api')
 
         response = {}
 
@@ -34,12 +37,14 @@ class OpenAIService(Service):
             client = OpenAI()
 
         if api == 'ChatCompletion':
-            # response = client.chat.completions.create(**message, extra_headers={"x-indeed-redact-allow": "LOCATION,PERSON,PHONE"})
-            response = client.chat.completions.create(**message)
+            # response = client.chat.completions.create(**data, extra_headers={"x-indeed-redact-allow": "LOCATION,PERSON,PHONE"})
+            response = client.chat.completions.create(**data)
         else:
-            response['error'] = "Unknown API"
+            error = BlueError()
+            error.add_description('Unknown API')
+            return {"status": "client_error", "error": error.get_dict()}
 
-        return response
+        return {"status": "success", "data": response.model_dump()}
 
 
 if __name__ == "__main__":

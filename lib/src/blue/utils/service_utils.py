@@ -3,6 +3,7 @@ import json
 import re
 import copy
 import logging
+import pydash
 
 ###### Communication
 from websockets.sync.client import connect
@@ -11,12 +12,14 @@ from websockets.sync.client import connect
 ###### Blue
 from blue.agent import Agent
 from blue.utils import string_utils, json_utils
+from blue.errorloom import ErrorLoom
+from blue.blueerror import BlueError
 
 
 ##########################
 ### ServiceClient
 #
-class ServiceClient:
+class ServiceClient(ErrorLoom):
     def __init__(self, name, properties=None):
         """Initialize ServiceClient to support calling external services.
 
@@ -280,14 +283,20 @@ class ServiceClient:
         r = self.call_service(url, m)
 
         response = json.loads(r)
+        if pydash.objects.get(response, 'status', None) == 'success':
+            data = pydash.objects.get(response, 'data', {})
 
-        # create output from response
-        output = self.create_output(response, properties=properties)
+            # create output from response
+            output = self.create_output(data, properties=properties)
 
-        # process output data
-        output = self.process_output(output, properties=properties)
+            # process output data
+            output = self.process_output(output, properties=properties)
 
-        return output
+            return output
+        else:
+            error = BlueError()
+            error.from_json(json_string=json.dumps(pydash.objects.get(response, 'error', {})))
+            raise error
 
     def get_service_prefix(self):
         """Get service prefix from properties.
