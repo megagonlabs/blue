@@ -92,7 +92,7 @@ export default function Index() {
                     setProfile(message);
                     try {
                         const firebaseConfig = JSON.parse(
-                            atob(_.get(message, "BLUE_FIREBASE_CONFIG", null))
+                            atob(_.get(message, "BLUE_FIREBASE_APP_CONFIG", null))
                         );
                         setAppAuth(getAuth(initializeApp(firebaseConfig)));
                     } catch (error) {
