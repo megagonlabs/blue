@@ -295,7 +295,7 @@ class ServiceClient(ErrorLoom):
             return output
         else:
             error = BlueError()
-            error.from_json(pydash.objects.get(response, 'error', {}))
+            error.from_json(json_string=json.dumps(pydash.objects.get(response, 'error', {})))
             raise error
 
     def get_service_prefix(self):
