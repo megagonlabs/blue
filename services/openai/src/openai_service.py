@@ -26,7 +26,7 @@ class OpenAIService(Service):
     def default_handler(self, message, properties=None, websocket=None):
         data = pydash.objects.get(message, 'data', {})
         api = data['api']
-        pydash.objects.unset('api')
+        pydash.objects.unset(data, 'api')
 
         response = {}
 
