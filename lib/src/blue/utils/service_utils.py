@@ -279,7 +279,7 @@ class ServiceClient(ErrorLoom):
 
         # serialize message, call service
         url = self.get_service_address(properties=properties)
-        m = json.dumps(message)
+        m = json.dumps({"data": message})
         r = self.call_service(url, m)
 
         response = json.loads(r)
