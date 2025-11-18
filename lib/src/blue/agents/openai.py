@@ -16,7 +16,7 @@ from blue.stream import Message, ControlCode
 #
 class OpenAIAgent(RequestorAgent):
     """Agent to interact with OpenAI's API, supporting tool usage and function calling.
-    
+
     Properties (in addition to RequestorAgent properties):
     ----------
     | Name           | Type                 | Default | Description |
@@ -188,10 +188,9 @@ class OpenAIAgent(RequestorAgent):
         if len(selected_servers) == 0:
             selected_servers = [server['name'] for server in self.registry.get_servers()]
 
-        
         for server_name in selected_servers:
             matched_tools = []
-            
+
             if properties['tool_discovery']:
                 if "tool_discovery_similarity_threshold" in properties and properties["tool_discovery_similarity_threshold"]:
                     similarity_threshold = self.properties["tool_discovery_similarity_threshold"]
@@ -351,8 +350,7 @@ class OpenAIAgent(RequestorAgent):
             while True and num_calls < properties["tool_max_calling_depth"]:
                 # serialize message, call service
                 url = self.get_service_address(properties=properties)
-                m = json.dumps(message)
-                r = self.call_service(url, m)
+                r = self.call_service(url, message)
 
                 response = json.loads(r)
 

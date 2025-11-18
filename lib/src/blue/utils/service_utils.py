@@ -279,8 +279,7 @@ class ServiceClient(ErrorLoom):
 
         # serialize message, call service
         url = self.get_service_address(properties=properties)
-        m = json.dumps({"data": message})
-        r = self.call_service(url, m)
+        r = self.call_service(url, message)
 
         response = json.loads(r)
         if pydash.objects.get(response, 'status', None) == 'success':
@@ -336,6 +335,6 @@ class ServiceClient(ErrorLoom):
         logging.info("sending data to:" + str(url))
         logging.info(str(data))
         with connect(url) as websocket:
-            websocket.send(data)
+            websocket.send(json.dumps({'data': data}))
             message = websocket.recv()
             return message
