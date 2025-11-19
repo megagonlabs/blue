@@ -44,7 +44,7 @@ def _create_async_method_wrapper(method: Callable) -> Callable:
             error = ex
             if not isinstance(error, BlueError):
                 error = BlueError(exception=ex)
-            error.add_description("processed by async loom")
+            error.add_log("processed by async loom")
             if hasattr(self, 'error_handler') and callable(self.error_handler):
                 error_handler = getattr(self, 'error_handler')
                 error_handler(error=error, exception=ex)
@@ -69,7 +69,7 @@ def _create_sync_method_wrapper(method: Callable) -> Callable:
             is_blue_error = isinstance(error, BlueError)
             if not is_blue_error:
                 error = BlueError(exception=ex)
-            error.add_description("processed by sync loom")
+            error.add_log("processed by sync loom")
             if hasattr(self, 'error_handler') and callable(self.error_handler):
                 error_handler = getattr(self, 'error_handler')
                 error_handler(error=error, exception=ex)

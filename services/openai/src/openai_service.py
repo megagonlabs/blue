@@ -41,7 +41,7 @@ class OpenAIService(Service):
             response = client.chat.completions.create(**data)
         else:
             error = BlueError()
-            error.add_description('Unknown API')
+            error.add_log('Unknown API')
             return {"status": "client_error", "error": error.get_dict()}
 
         return {"status": "success", "data": response.model_dump()}
