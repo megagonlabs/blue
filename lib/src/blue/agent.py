@@ -1622,6 +1622,7 @@ class Agent(ErrorLoom):
             worker.write_eos(output=output)
 
     def error_handler(self, error: BlueError, exception: Exception):
+        error.add_log("processed by base agent error handler")
         self.emit_error(error)
 
     def emit_error(self, error: BlueError, output="ERROR", unique=True, eos=True):
