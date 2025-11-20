@@ -26,7 +26,14 @@ function MessageMetadata({ message }) {
         } else {
             getAgentMetadata(createdBy);
         }
-    }, [createdBy, getAgentMetadata, getUserProfileById, id, isUser]);
+    }, [
+        createdBy,
+        getAgentMetadata,
+        getUserProfileById,
+        id,
+        isUser,
+        showAxiosErrorToast,
+    ]);
     const user = useAuthStore((state) => state.user);
     const own = useMemo(() => {
         return isUser && _.isEqual(user.uid, id);

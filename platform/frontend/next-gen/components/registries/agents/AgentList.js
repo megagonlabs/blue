@@ -60,7 +60,7 @@ function AgentList({ width, height }) {
     );
     useEffect(() => {
         getAgents();
-    }, []);
+    }, [getAgents]);
     const debounced = useCallback(debounce(getAgents, 800), [getAgents]);
     useEffect(() => {
         debounced();

@@ -18,6 +18,7 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
+import { faPlay } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowsFromDottedLine,
     faBinaryCircleCheck,
@@ -26,7 +27,6 @@ import {
     faBrowsers,
     faClipboard,
     faDownload,
-    faPlay,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { JsonForms } from "@jsonforms/react";
@@ -100,7 +100,7 @@ function FormDesigner({ width, height }) {
                 setUischema(JSON.parse(sessionUischema));
             }
         } catch {}
-    }, []);
+    }, [gridContainerId]);
     const elementRef = useRef(null);
     return (
         <div ref={elementRef} style={{ width, height }}>

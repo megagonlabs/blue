@@ -64,7 +64,7 @@ export default function InputEntity({ entity, backCrumb }) {
             title: <EntityDisplayName entity={input} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
-    }, [input]);
+    }, [input, gridContainerId, setContainerHeader, type]);
     useEffect(() => {
         setLoading(true);
         axios
@@ -80,7 +80,7 @@ export default function InputEntity({ entity, backCrumb }) {
             .finally(() => {
                 setLoading(false);
             });
-    }, [entity]);
+    }, [entity, url]);
     const JSONError = useRef(false);
     const handleDiscard = () => {
         setEditedInput(input);

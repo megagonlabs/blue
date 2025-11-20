@@ -107,6 +107,7 @@ function ApplicationContainer({ width, height }) {
                         </div>
                     ))}
                     <Button
+                        loading={loading}
                         onClick={() => {
                             setShowNewEntity(true);
                         }}

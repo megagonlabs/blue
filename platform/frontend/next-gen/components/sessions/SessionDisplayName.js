@@ -13,6 +13,6 @@ export default function SessionDisplayName({ sessionId }) {
             return date.toLocaleString();
         }
         return sessionName;
-    }, [details]);
+    }, [details, sessionId, sessionName]);
     return <>#&nbsp;{displayName}</>;
 }

@@ -25,7 +25,14 @@ export default function MessageIcon({ metadata }) {
         } else {
             getAgentMetadata(createdBy);
         }
-    }, [createdBy, getAgentMetadata, getUserProfileById, id, isUser]);
+    }, [
+        createdBy,
+        getAgentMetadata,
+        getUserProfileById,
+        id,
+        isUser,
+        showAxiosErrorToast,
+    ]);
     if (isUser) {
         return <UserAvatar userId={id} />;
     }

@@ -53,7 +53,7 @@ function ModelList({ width, height }) {
     const [showNewEntity, setShowNewEntity] = useState(false);
     useEffect(() => {
         getModels();
-    }, []);
+    }, [getModels]);
     const debounced = useCallback(debounce(getModels, 800), [getModels]);
     useEffect(() => {
         debounced();

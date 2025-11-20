@@ -61,7 +61,10 @@ export default function SessionAgents({
     }, []);
     return (
         <div
-            className="full-parent-dimension"
+            className={classNames({
+                "full-parent-dimension": true,
+                [Classes.SKELETON]: loading,
+            })}
             style={{ overflowY: "auto", ...style }}
         >
             {_.isEmpty(agents) ? (
