@@ -81,7 +81,16 @@ export default function Error({ content }) {
                             <td style={{ minWidth: 130 }}>
                                 <Timestamp epoch={element.timestamp} />
                             </td>
-                            <td>{element.description}</td>
+                            <td>
+                                {element.description}
+                                <Tag
+                                    minimal
+                                    intent={Intent.PRIMARY}
+                                    style={{ marginLeft: 5 }}
+                                >
+                                    {element.caller}
+                                </Tag>
+                            </td>
                         </tr>
                     ))}
                 </tbody>

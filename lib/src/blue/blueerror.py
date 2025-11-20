@@ -3,9 +3,39 @@ import sys
 import json
 import time
 import pydash
+import inspect
 
 
-class BlueError(Exception):
+class StackContextMixin:
+    def get_calling_class_name(self, stack_depth=2):
+        try:
+            stack = inspect.stack()
+            if len(stack) <= stack_depth:
+                return "Unknown (Stack too shallow)"
+            caller_frame = stack[stack_depth].frame
+            caller_code = caller_frame.f_code
+            caller_self = caller_frame.f_locals.get('self', None)
+            func_name = caller_code.co_name
+            if caller_self is None:
+                return "Unknown (No 'self' found)"
+            for cls in inspect.getmro(type(caller_self)):
+                if func_name in cls.__dict__:
+                    class_method = cls.__dict__[func_name]
+                    try:
+                        underlying_func = inspect.unwrap(class_method)
+                    except Exception:
+                        underlying_func = class_method
+                    if getattr(underlying_func, '__code__', None) == caller_code:
+                        return cls.__name__
+            return f"{type(caller_self).__name__} (inherited)"
+        except Exception as e:
+            return f"Error detecting source: {e}"
+        finally:
+            if 'caller_frame' in locals():
+                del caller_frame
+
+
+class BlueError(StackContextMixin, Exception):
     def __init__(self, exception=None, description=None, intent="fatal", context={}):
         super().__init__()
         if isinstance(exception, BlueError):
@@ -36,9 +66,9 @@ class BlueError(Exception):
         self.context = context.copy() if context else {}
         self.log = []
         if description is not None:
-            self.log.append({"timestamp": self.timestamp, "description": description})
+            self.add_log(description)
         elif exception is not None:
-            self.log.append({"timestamp": self.timestamp, "description": str(exception)})
+            self.add_log(str(exception))
         exc_type, exc_value, exc_traceback = sys.exc_info()
         structured_trace = []
         if exc_traceback:
@@ -61,7 +91,8 @@ class BlueError(Exception):
         pydash.objects.set_(self.context, key, value)
 
     def add_log(self, description):
-        self.log.append({"timestamp": int(time.time() * 1000), "description": description})
+        caller_name = self.get_calling_class_name(stack_depth=2)
+        self.log.append({"timestamp": int(time.time() * 1000), "description": description, "caller": caller_name})
 
     def __str__(self):
         return json.dumps(self.get_dict())
