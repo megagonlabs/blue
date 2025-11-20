@@ -149,67 +149,96 @@ export default function Error({ content }) {
                             <tr key={index}>
                                 <td>
                                     <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 5,
-                                        }}
+                                        className="split-pane-container"
+                                        style={{ rowGap: 0 }}
                                     >
-                                        <Tag
-                                            className="padding-0"
-                                            size={Size.LARGE}
-                                            minimal
-                                            intent={Intent.PRIMARY}
-                                            style={{
-                                                fontWeight: 600,
-                                                backgroundColor: "transparent",
-                                            }}
-                                        >
-                                            {element.function}
-                                        </Tag>
-                                        <div
-                                            className={classNames(
-                                                Classes.TEXT_DISABLED,
-                                                "white-space-no-wrap"
-                                            )}
-                                        >
-                                            in
-                                        </div>
-                                        <Tooltip
-                                            placement="bottom"
-                                            boundary={elementRef.current}
-                                            content={
-                                                <div
+                                        <div className=".pane-item">
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 5,
+                                                }}
+                                            >
+                                                <Tag
+                                                    className="padding-0"
+                                                    size={Size.LARGE}
+                                                    minimal
+                                                    intent={Intent.PRIMARY}
                                                     style={{
-                                                        maxWidth:
-                                                            POPOVER_CONTENT_MAX_WIDTH,
-                                                        wordBreak: "break-all",
+                                                        fontWeight: 600,
+                                                        backgroundColor:
+                                                            "transparent",
                                                     }}
                                                 >
-                                                    {element.file}
+                                                    {element.function}
+                                                </Tag>
+                                                <div
+                                                    className={classNames(
+                                                        Classes.TEXT_DISABLED,
+                                                        "white-space-no-wrap"
+                                                    )}
+                                                >
+                                                    in
                                                 </div>
-                                            }
-                                        >
-                                            <div
-                                                className={classNames(
-                                                    Classes.TEXT_MUTED,
-                                                    "white-space-no-wrap"
-                                                )}
-                                            >
-                                                {element.file.split("/").pop()}
+                                                <Tooltip
+                                                    placement="bottom"
+                                                    boundary={
+                                                        elementRef.current
+                                                    }
+                                                    content={
+                                                        <div
+                                                            style={{
+                                                                maxWidth:
+                                                                    POPOVER_CONTENT_MAX_WIDTH,
+                                                                wordBreak:
+                                                                    "break-all",
+                                                            }}
+                                                        >
+                                                            {element.file}
+                                                        </div>
+                                                    }
+                                                >
+                                                    <div
+                                                        className={classNames(
+                                                            Classes.TEXT_MUTED,
+                                                            "white-space-no-wrap"
+                                                        )}
+                                                    >
+                                                        {element.file
+                                                            .split("/")
+                                                            .pop()}
+                                                    </div>
+                                                </Tooltip>
                                             </div>
-                                        </Tooltip>
-                                    </div>
-                                    <div
-                                        style={{ lineHeight: "20px" }}
-                                        className={
-                                            Classes.TEXT_OVERFLOW_ELLIPSIS
-                                        }
-                                    >
-                                        <Tag minimal style={{ marginRight: 5 }}>
-                                            :{element.line_number}
-                                        </Tag>
-                                        {element.source_code}
+                                        </div>
+                                        <div
+                                            className={classNames(
+                                                ".pane-item",
+                                                Classes.TEXT_OVERFLOW_ELLIPSIS
+                                            )}
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 5,
+                                            }}
+                                        >
+                                            <Tag
+                                                minimal
+                                                style={{
+                                                    minWidth: "fit-content",
+                                                }}
+                                            >
+                                                :{element.line_number}
+                                            </Tag>
+                                            <div
+                                                className={
+                                                    Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                }
+                                            >
+                                                {element.source_code}
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
