@@ -27,7 +27,7 @@ export const useSessionStore = create((set, get) => ({
     toggleMessageFilterTag: (sessionId, tag) => {
         const { messageFilterTags } = get();
         let next = _.cloneDeep(messageFilterTags);
-        let current = _.get(messageFilterTags, sessionId, []);
+        let current = _.get(next, sessionId, []);
         if (!_.includes(current, tag)) {
             current.push(tag);
         } else {

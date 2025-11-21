@@ -60,7 +60,12 @@ const Row = ({ index, data, style }) => {
         sessionId,
         addInspectionContainer,
         setShowWorkspace,
+        filteredMessages,
     } = data;
+    const message = filteredMessages[index];
+    if (!message) {
+        return null;
+    }
     const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
             darkMode: state.dark_mode,
@@ -77,12 +82,10 @@ const Row = ({ index, data, style }) => {
     );
     const {
         streams,
-        messages,
         addToWorkspace,
         setInspectionFocusStream,
         expandMessage,
         expandedMessages,
-        messageFilterTags,
     } = useSessionStore(
         useShallow((state) => ({
             streams: _.get(
@@ -102,35 +105,11 @@ const Row = ({ index, data, style }) => {
             expandedMessages: state.expandedMessages,
         }))
     );
-    const filterTags = _.get(messageFilterTags, sessionId, []);
-    const filteredMessages = useMemo(() => {
-        return messages.filter((message) => {
-            const stream = _.get(message, "stream", null);
-            if (
-                _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
-                _.endsWith(stream, "PROGRESS:STREAM")
-            ) {
-                return false;
-            }
-            let include = false;
-            for (let i = 0; i < _.size(filterTags); i++) {
-                if (_.get(message, ["metadata", "tags", filterTags[i]])) {
-                    include = true;
-                    break;
-                }
-            }
-            return _.isEmpty(filterTags) || include;
-        });
-    }, [messages, filterTags]);
     const rowRef = useRef({});
     const user = useAuthStore((state) => state.user);
     const own = useMemo(() => {
-        const id = _.get(filteredMessages, [index, "metadata", "id"], null);
-        const createdBy = _.get(
-            filteredMessages,
-            [index, "metadata", "created_by"],
-            null
-        );
+        const id = _.get(message, "metadata.id", null);
+        const createdBy = _.get(message, "metadata.created_by", null);
         const isUser = _.isEqual(createdBy, "USER");
         if (isUser) {
             getUserProfileById(id, showAxiosErrorToast);
@@ -138,9 +117,8 @@ const Row = ({ index, data, style }) => {
             getAgentMetadata(createdBy);
         }
         return isUser && _.isEqual(user.uid, id);
-    }, [user, filteredMessages]);
+    }, [user, message]);
     const isOverflow = useRef(false);
-    const message = filteredMessages[index];
     const stream = message.stream;
     const handleResize = useCallback(() => {
         // do magic for resize
@@ -160,7 +138,7 @@ const Row = ({ index, data, style }) => {
         }
     }, [rowRef, index, setRowHeight, expandMessage, detailedMessage]);
     const streamData = _.get(streams, [stream, "data"], []);
-    const contentType = _.get(filteredMessages, [index, "contentType"], null);
+    const contentType = _.get(message, "contentType", null);
     const { ref: resizeRef } = useResizeDetector({ onResize: handleResize });
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
@@ -352,7 +330,7 @@ export default function SessionMessages({
             clearMessageFilterTags: state.clearMessageFilterTags,
         }))
     );
-    const filterTags = _.get(messageFilterTags, sessionId, []);
+    const filterTags = _.get(messageFilterTags, sessionId, EMPTY_ARRAY);
     const filteredMessages = useMemo(() => {
         return messages.filter((message) => {
             const stream = _.get(message, "stream", null);
@@ -386,6 +364,9 @@ export default function SessionMessages({
         });
     };
     useEffect(() => {
+        if (variableSizeListRef.current) {
+            variableSizeListRef.current.resetAfterIndex(0);
+        }
         setTimeout(() => {
             requestAnimationFrame(() => {
                 if (variableSizeListRef.current) {
@@ -596,6 +577,7 @@ export default function SessionMessages({
                             addInspectionContainer,
                             setShowWorkspace,
                             variableSizeListRef,
+                            filteredMessages,
                         }}
                         itemSize={getRowHeight}
                         itemCount={_.size(filteredMessages)}
