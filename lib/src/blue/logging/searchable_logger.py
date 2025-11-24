@@ -15,11 +15,19 @@ class SearchableCustomLogger(CustomLogger):
         self.logstore = logstore
         self.context = {}  # persistent execution context fields
 
+    def set_logstore(self, logstore: LogStore):
+        """Dynamically attach or replace the backend LogStore."""
+        self.logstore = logstore
+
     # -----------------------------------------------------
     # CONTEXT MANAGEMENT
     # -----------------------------------------------------
     def set_context(self, **kwargs):
         """Set persistent context (session, agent, operator, planner...)."""
+        self.context.update(kwargs)
+
+    def update_context(self, **kwargs):
+        """Alias for set_context(), improves readability."""
         self.context.update(kwargs)
 
     def clear_context(self):
