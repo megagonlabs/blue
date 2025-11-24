@@ -40,6 +40,7 @@ class SearchableCustomLogger(CustomLogger):
     def record(self, **fields):
         """
         Record a structured event.
+        Supports ephemeral context for workers via _ephemeral_context.
         Args may include:
             action, inputs, outputs, duration, metadata, etc.
         """
@@ -47,22 +48,32 @@ class SearchableCustomLogger(CustomLogger):
         if not self._initialized:
             self._initialize()
 
+        # Extract ephemeral worker-level context
+        ephemeral = fields.pop("_ephemeral_context", {})
+
+        # Merge persistent + ephemeral context
+        full_context = {**self.context, **ephemeral}
+
         # Build log event without injecting context here
         payload = {
             "timestamp": datetime.utcnow().isoformat(),
             **fields
         }
 
-        # Persist to backend store (with context passed separately)
+        # Final stored record
+        final_record = {
+            **payload,
+            "context": full_context
+        }
+
+        # Write to logstore
         if self.logstore:
             try:
-                self.logstore.write(record=payload, context=self.context)
+                self.logstore.write(record=final_record, context=full_context)
             except Exception as e:
                 super().error(f"Structured log backend failed: {e}")
 
-        # Emit to standard logger for visibility
-        super().info(json.dumps(payload))
+        # Emit readable log
+        super().info(json.dumps(final_record))
 
-        return payload
-
-
+        return final_record
