@@ -252,14 +252,19 @@ export default function SessionCard({ sessionId }) {
                             ? Intent.DANGER
                             : null
                     }
-                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                     style={{
                         marginTop: 10,
                         width: "fit-content",
                         maxWidth: "100%",
                     }}
                 >
-                    <div className="message-bubble-callout-content">
+                    <div
+                        className={classNames(
+                            "message-bubble-callout-content",
+                            Classes.TEXT_OVERFLOW_ELLIPSIS
+                        )}
+                        style={{ maxHeight: 11 }}
+                    >
                         <MessageContent
                             isPreview={true}
                             contentType={lastMessage.contentType}

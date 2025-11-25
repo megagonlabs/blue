@@ -32,6 +32,7 @@ import {
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import classNames from "classnames";
 import { motion } from "framer-motion";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
@@ -286,7 +287,14 @@ export default function Blue({ children }) {
                                 {(isExpanded) => (
                                     <Card
                                         interactive
-                                        className="full-parent-dimension border-radius-10"
+                                        className={classNames(
+                                            "full-parent-dimension",
+                                            "border-radius-10",
+                                            {
+                                                [Classes.ELEVATION_4]:
+                                                    isExpanded,
+                                            }
+                                        )}
                                         style={{
                                             padding: 0,
                                             position: "relative",
