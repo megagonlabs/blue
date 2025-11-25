@@ -15,6 +15,10 @@ from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
 from blue.utils import uuid_utils, log_utils
 
+from blue.logging.searchable_logger import SearchableCustomLogger
+from blue.logging.redis_logstore import RedisLogStore
+
+
 
 ###############
 ### Session
@@ -80,16 +84,44 @@ class Session(Entity):
         """
         return self.producer.get_stream()
 
-    def _initialize_logger(self):
-        """Initialize the session logger."""
-        self.logger = log_utils.CustomLogger()
+    #def _initialize_logger(self):
+    #    """Initialize the session logger."""
+    #    self.logger = log_utils.CustomLogger()
         # customize log
-        self.logger.set_config_data(
-            "stack",
-            "%(call_stack)s",
-        )
+    #    self.logger.set_config_data(
+     #       "stack",
+      #      "%(call_stack)s",
+       # )
+       # self.logger.set_config_data("session", self.sid, -1)
+
+    def _initialize_logger(self):
+        """Initialize the session logger with SearchableCustomLogger."""
+        
+        # Choose backend LogStore — can be overridden by properties
+        logstore = None
+
+        # If user passed logstore configs via properties (recommended)
+        if "logstore.type" in self.properties:
+            if self.properties["logstore.type"] == "redis":
+                logstore = RedisLogStore(
+                    properties={
+                        "db.host": self.properties.get("db.host", "localhost"),
+                        "db.port": self.properties.get("db.port", 6379),
+                        "platform.id": self.properties.get("platform.id", "default"),
+                    }
+                )
+
+        # Initialize structured logger
+        self.logger = SearchableCustomLogger(logstore=logstore)
+
+        # Old behavior — set config fields
+        self.logger.set_config_data("stack", "%(call_stack)s")
         self.logger.set_config_data("session", self.sid, -1)
 
+        # NEW: set execution context for structured events
+        self.logger.set_context(session=self.sid)
+
+    
     ###### AGENTS, NOTIFICATION
     def add_agent(self, agent):
         """
