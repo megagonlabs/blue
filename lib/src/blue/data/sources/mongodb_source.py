@@ -142,7 +142,7 @@ class MongoDBSource(DataSource):
         self._schema_cache[cache_key] = schema
         return schema
 
-    def fetch_database_collection_entities(self, database, collection):
+    def fetch_database_collection_entities(self, database, collection, sample_limit=10):
         """
         Fetch entities (document structures) for a collection.
 
