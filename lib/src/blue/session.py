@@ -2,7 +2,6 @@
 import time
 import argparse
 import logging
-import time
 import pydash
 
 ###### Backend, Databases
@@ -84,23 +83,12 @@ class Session(Entity):
         """
         return self.producer.get_stream()
 
-    #def _initialize_logger(self):
-    #    """Initialize the session logger."""
-    #    self.logger = log_utils.CustomLogger()
-        # customize log
-    #    self.logger.set_config_data(
-     #       "stack",
-      #      "%(call_stack)s",
-       # )
-       # self.logger.set_config_data("session", self.sid, -1)
-
     def _initialize_logger(self):
         """Initialize the session logger with SearchableCustomLogger."""
         
-        # Choose backend LogStore — can be overridden by properties
         logstore = None
 
-        # If user passed logstore configs via properties (recommended)
+        # If user passed logstore configs via properties 
         if "logstore.type" in self.properties:
             if self.properties["logstore.type"] == "redis":
                 logstore = RedisLogStore(
