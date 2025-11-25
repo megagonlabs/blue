@@ -63,9 +63,6 @@ const Row = ({ index, data, style }) => {
         filteredMessages,
     } = data;
     const message = filteredMessages[index];
-    if (!message) {
-        return null;
-    }
     const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
             darkMode: state.dark_mode,
@@ -152,6 +149,9 @@ const Row = ({ index, data, style }) => {
     useEffect(() => {
         handleResize();
     }, [expanded, detailedMessage]);
+    if (!message) {
+        return null;
+    }
     return (
         <div
             key={index}
