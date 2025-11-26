@@ -291,7 +291,7 @@ export default function Blue({ children }) {
                                             "full-parent-dimension",
                                             "border-radius-10",
                                             {
-                                                [Classes.ELEVATION_4]:
+                                                [Classes.ELEVATION_3]:
                                                     isExpanded,
                                             }
                                         )}

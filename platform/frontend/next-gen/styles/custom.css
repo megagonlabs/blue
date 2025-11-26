@@ -165,9 +165,14 @@ table.nerd-table td {
 }
 .bp6-elevation-4.bp6-dark,
 .bp6-dark .bp6-elevation-4 {
-    box-shadow: 0 0 0 1px rgba(211, 216, 222, 0.2),
+    box-shadow: 0 0 0 1px rgba(211, 216, 222, 0.1),
         0 4px 8px rgba(211, 216, 222, 0.2),
         0 18px 46px 6px rgba(211, 216, 222, 0.2) !important;
+}
+.bp6-elevation-3.bp6-dark,
+.bp6-dark .bp6-elevation-3 {
+    box-shadow: 0 0 0 1px rgba(211, 216, 222, 0.1),
+        0 2px 4px rgba(211, 216, 222, 0.2), 0 8px 24px rgba(211, 216, 222, 0.2) !important;
 }
 .bp6-callout {
     padding: 20px !important;

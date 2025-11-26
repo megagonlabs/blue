@@ -87,7 +87,7 @@ export default function AccountPanel({ isExpanded }) {
                 "border-radius-10",
                 "full-parent-dimension",
                 "overflow-hidden",
-                { "padding-0": !isExpanded, [Classes.ELEVATION_4]: isExpanded }
+                { "padding-0": !isExpanded, [Classes.ELEVATION_3]: isExpanded }
             )}
         >
             {!isExpanded && (
