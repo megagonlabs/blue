@@ -99,11 +99,11 @@ export default function Error({ content }) {
                 compact
                 bordered
                 className="full-parent-width"
-                style={{ tableLayout: "fixed", marginTop: 10 }}
+                style={{ tableLayout: "fixed", marginTop: 20 }}
             >
                 <thead>
                     <tr>
-                        <th className="padding-left-0 padding-right-0">
+                        <th className="padding-top-0 padding-left-0 padding-right-0">
                             <Button
                                 alignText={Alignment.START}
                                 variant={ButtonVariant.MINIMAL}

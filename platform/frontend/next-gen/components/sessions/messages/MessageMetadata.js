@@ -61,7 +61,7 @@ function MessageMetadata({ message }) {
                     ? _.get(users, [id, "name"], id)
                     : !_.isEmpty(displayName)
                     ? displayName
-                    : "-"}
+                    : createdBy}
             </div>
         </div>
     );
