@@ -36,6 +36,7 @@ x-blue-common: &blue-common # build: .
         BLUE_EMAIL_DOMAIN_WHITE_LIST: "${BLUE_EMAIL_DOMAIN_WHITE_LIST}"
         BLUE_FIREBASE_CLIENT_ID: "${BLUE_FIREBASE_CLIENT_ID}"
         BLUE_FIREBASE_APP_CONFIG: "${BLUE_FIREBASE_APP_CONFIG}"
+        BLUE_FIREBASE_SERVICE_CRED: "${BLUE_FIREBASE_SERVICE_CRED}"
     depends_on: &blue-common-depends-on
         redis:
             condition: service_healthy
