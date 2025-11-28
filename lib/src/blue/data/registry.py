@@ -2083,6 +2083,9 @@ class DataRegistry(Registry):
             'enable_schema': enable_schema,
             'redis_search_limit': redis_search_limit,
             'index_name': self._get_index_name(),
+            "hierarchical_enabled": hierarchical_enabled,
+            "hierarchical_database_types": hierarchical_database_types,
+            "hierarchical_collection_types": hierarchical_collection_types,
         }
 
     def _build_search_query(self, params, search_types=None):
