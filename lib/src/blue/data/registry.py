@@ -2259,8 +2259,22 @@ class DataRegistry(Registry):
         - Supports pagination via `page` and `page_size` parameters.
         - Special handling for `scope='/'` restricts results to top-level records only.
         """
+        #params = self._prepare_search_parameters(
+        #    input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit
+        #)
+
         params = self._prepare_search_parameters(
-            input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit
+            input_query=input_query,
+            type=type,
+            scope=scope,
+            bm25_weight=bm25_weight,
+            vector_weight=vector_weight,
+            bm25_threshold=bm25_threshold,
+            vector_threshold=vector_threshold,
+            combined_threshold=combined_threshold,
+            bm25_normalization=bm25_normalization,
+            enable_schema=enable_schema,
+            redis_search_limit=redis_search_limit,
         )
 
         q, query_params = self._build_search_query(params)
@@ -2459,8 +2473,22 @@ class DataRegistry(Registry):
                 enable_value_semantics=enable_value_semantics
             )
 
+        #params = self._prepare_search_parameters(
+        #    input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit
+        #)
+
         params = self._prepare_search_parameters(
-            input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit
+            input_query=input_query,
+            type=type,
+            scope=scope,
+            bm25_weight=bm25_weight,
+            vector_weight=vector_weight,
+            bm25_normalization=bm25_normalization,
+            bm25_threshold=bm25_threshold,
+            vector_threshold=vector_threshold,
+            combined_threshold=combined_threshold,
+            enable_schema=enable_schema,
+            redis_search_limit=redis_search_limit,
         )
 
         # Determine search types for hierarchical search
