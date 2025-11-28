@@ -2136,10 +2136,9 @@ class DataRegistry(Registry):
         vector_score = compute_vector_score(query_vector, doc_vector, normalize_score=True)
 
         # For collections, also check schema vector similarity if enabled
-        if params['enable_schema'] and result.type == 'collection' and getattr(result, 'schema', None):
-            if schema_vector is not None:
-                schema_vector_score = compute_vector_score(query_vector, schema_vector, normalize_score=True)
-                vector_score = max(vector_score, schema_vector_score)
+        if params['enable_schema'] and result.type == 'collection' and schema_vector is not None:
+            schema_vector_score = compute_vector_score(query_vector, schema_vector, normalize_score=True)
+            vector_score = max(vector_score, schema_vector_score)
 
         return vector_score
 
