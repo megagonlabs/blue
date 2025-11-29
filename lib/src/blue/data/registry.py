@@ -2277,6 +2277,27 @@ class DataRegistry(Registry):
             redis_search_limit=redis_search_limit,
         )
 
+        if params["hierarchical_enabled"]:
+            # Database/Collection automatically go hierarchical
+            if params["type"] in ["database", "collection"]:
+                return self.search_records_hierarchical(
+                    input_query=input_query,
+                    type=type,
+                    scope=scope,
+                    page=page,
+                    page_size=page_size,
+                    page_limit=page_limit,
+                    bm25_weight=bm25_weight,
+                    vector_weight=vector_weight,
+                    bm25_threshold=bm25_threshold,
+                    vector_threshold=vector_threshold,
+                    combined_threshold=combined_threshold,
+                    bm25_normalization=bm25_normalization,
+                    enable_schema=enable_schema,
+                    redis_search_limit=redis_search_limit,
+                    enable_value_semantics=enable_value_semantics,
+                )
+            
         q, query_params = self._build_search_query(params)
         query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
 
