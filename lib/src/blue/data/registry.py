@@ -2177,6 +2177,20 @@ class DataRegistry(Registry):
 
         return value_relevance_score, most_relevant_values
     
+    
+    def _fetch_raw_results(self, params, search_types=None):
+        q, query_params = self._build_search_query(params, search_types)
+        query = Query(q).return_fields(
+            "id","name","type","scope","description","values","schema"
+        ).paging(0, params["redis_search_limit"])
+        results = self.connection.ft(params["index_name"]).search(query, query_params).docs
+
+        # special handling for top-level scope="/"
+        if params["scope"] == "/":
+            results = [r for r in results if r.scope == "/"]
+
+        return results
+    
     def search_records(
         self,
         input_query,
@@ -2298,19 +2312,21 @@ class DataRegistry(Registry):
                     enable_value_semantics=enable_value_semantics,
                 )
             
-        q, query_params = self._build_search_query(params)
-        query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
+        #q, query_params = self._build_search_query(params)
+        #query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
 
-        results = self.connection.ft(params['index_name']).search(query, query_params).docs
-        print(f"  Found {len(results)} entities in index")
+        #results = self.connection.ft(params['index_name']).search(query, query_params).docs
+        #print(f"  Found {len(results)} entities in index")
 
         # Special handling for scope = '/'
-        if scope == "/":
-            filtered_results = []
-            for result in results:
-                if result.scope == "/":
-                    filtered_results.append(result)
-            results = filtered_results
+        #if scope == "/":
+        #    filtered_results = []
+        #    for result in results:
+        #        if result.scope == "/":
+        #            filtered_results.append(result)
+        #    results = filtered_results
+
+        results = self._fetch_raw_results(params, search_types=None)
 
         query_vector = None
         if input_query:
@@ -2520,20 +2536,24 @@ class DataRegistry(Registry):
         else:
             search_types = [type]
 
-        q, query_params = self._build_search_query(params, search_types)
-        query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
-        results = self.connection.ft(params['index_name']).search(query, query_params).docs
+        #q, query_params = self._build_search_query(params, search_types)
+        
+        #query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
+        #results = self.connection.ft(params['index_name']).search(query, query_params).docs
 
-        if not results:
-            return []
+        #if not results:
+        #    return []
 
         # Special handling for scope = '/'
-        if scope == "/":
-            filtered_results = []
-            for result in results:
-                if result.scope == "/":
-                    filtered_results.append(result)
-            results = filtered_results
+        #if scope == "/":
+        #    filtered_results = []
+        #    for result in results:
+        #        if result.scope == "/":
+        #            filtered_results.append(result)
+        #    results = filtered_results
+
+        results = self._fetch_raw_results(params, search_types=search_types)
+
 
         query_vector = None
         if input_query:
