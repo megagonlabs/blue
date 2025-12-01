@@ -50,6 +50,8 @@ class DataRegistry(Registry):
         # Search configuration
         self.properties['search_bm25_weight'] = 0.3
         self.properties['search_vector_weight'] = 0.7
+        self.properties['search_value_weight'] = 0.15
+        
         # self.properties['search_bm25_max_score'] = 20.0
         self.properties['search_bm25_normalization'] = 'minmax'  # 'linear', 'log', 'minmax'
         self.properties['search_enable_schema'] = True
@@ -2009,6 +2011,7 @@ class DataRegistry(Registry):
         scope=None,
         bm25_weight=None,
         vector_weight=None,
+        value_weight=None,
         bm25_normalization=None,
         bm25_threshold=None,
         vector_threshold=None,
@@ -2026,6 +2029,9 @@ class DataRegistry(Registry):
         # Use properties if not provided
         bm25_weight = bm25_weight if bm25_weight is not None else self.properties.get('search_bm25_weight', 0.3)
         vector_weight = vector_weight if vector_weight is not None else self.properties.get('search_vector_weight', 0.7)
+        value_weight = value_weight if value_weight is not None else self.properties.get("search_value_weight", 0.15)
+
+        
         bm25_normalization = bm25_normalization if bm25_normalization is not None else self.properties.get('search_bm25_normalization', 'minmax')
         enable_schema = enable_schema if enable_schema is not None else self.properties.get('search_enable_schema', True)
 
@@ -2047,13 +2053,20 @@ class DataRegistry(Registry):
         redis_search_limit = redis_search_limit if redis_search_limit is not None else self.properties.get('search_redis_limit', 1000)
 
         # Validate weights
-        if bm25_weight < 0 or vector_weight < 0:
+        #if bm25_weight < 0 or vector_weight < 0:
+        #    raise ValueError("Weights must be non-negative")
+        #total_weight = bm25_weight + vector_weight
+        
+        if bm25_weight < 0 or vector_weight < 0 or value_weight < 0:
             raise ValueError("Weights must be non-negative")
-        total_weight = bm25_weight + vector_weight
+        total_weight = bm25_weight + vector_weight + value_weight
+
         if total_weight != 0:
             # Normalize weights to sum to 1.0
             bm25_weight /= total_weight
             vector_weight /= total_weight
+            value_weight = value_weight / total_weight
+        
 
         # validate thresholds
         if bm25_threshold < 0 or bm25_threshold > 1:
@@ -2076,6 +2089,7 @@ class DataRegistry(Registry):
             'scope': scope,
             'bm25_weight': bm25_weight,
             'vector_weight': vector_weight,
+            'value_weight': value_weight,
             'bm25_threshold': bm25_threshold,
             'vector_threshold': vector_threshold,
             'combined_threshold': combined_threshold,
@@ -2185,6 +2199,9 @@ class DataRegistry(Registry):
         ).paging(0, params["redis_search_limit"])
         results = self.connection.ft(params["index_name"]).search(query, query_params).docs
 
+        if not results:
+            return []
+
         # special handling for top-level scope="/"
         if params["scope"] == "/":
             results = [r for r in results if r.scope == "/"]
@@ -2203,6 +2220,7 @@ class DataRegistry(Registry):
         page_limit=10,
         bm25_weight=None,
         vector_weight=None,
+        value_weight=None, 
         bm25_threshold=None,
         vector_threshold=None,
         combined_threshold=None,
@@ -2273,16 +2291,13 @@ class DataRegistry(Registry):
         - Supports pagination via `page` and `page_size` parameters.
         - Special handling for `scope='/'` restricts results to top-level records only.
         """
-        #params = self._prepare_search_parameters(
-        #    input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit
-        #)
-
         params = self._prepare_search_parameters(
             input_query=input_query,
             type=type,
             scope=scope,
             bm25_weight=bm25_weight,
             vector_weight=vector_weight,
+            value_weight=value_weight,
             bm25_threshold=bm25_threshold,
             vector_threshold=vector_threshold,
             combined_threshold=combined_threshold,
@@ -2312,20 +2327,6 @@ class DataRegistry(Registry):
                     enable_value_semantics=enable_value_semantics,
                 )
             
-        #q, query_params = self._build_search_query(params)
-        #query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
-
-        #results = self.connection.ft(params['index_name']).search(query, query_params).docs
-        #print(f"  Found {len(results)} entities in index")
-
-        # Special handling for scope = '/'
-        #if scope == "/":
-        #    filtered_results = []
-        #    for result in results:
-        #        if result.scope == "/":
-        #            filtered_results.append(result)
-        #    results = filtered_results
-
         results = self._fetch_raw_results(params, search_types=None)
 
         query_vector = None
@@ -2374,7 +2375,20 @@ class DataRegistry(Registry):
 
         for result in results:
             normalized_bm25 = result.normalized_bm25_score
-            combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * result.vector_score
+
+            value_norm = 0.0
+            if enable_value_semantics and result.type == "attribute":
+                value_norm = min(1.0, result.value_relevance_score)
+
+            # Compute combined score
+            #combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * result.vector_score
+
+            # Combine BM25, vector, and value relevance
+            combined_score = (
+                params['bm25_weight'] * normalized_bm25
+                + params['vector_weight'] * result.vector_score + 
+                params['value_weight'] * value_norm
+            )
 
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
@@ -2398,6 +2412,7 @@ class DataRegistry(Registry):
                 "bm25_score": result.bm25_score,
                 "vector_score": result.vector_score,
                 "normalized_bm25_score": normalized_bm25,
+                "value_relevance_score": result.value_relevance_score,
             }
             if hasattr(result, 'schema') and result.schema:
                 output_dict['schema'] = result.schema
@@ -2510,10 +2525,6 @@ class DataRegistry(Registry):
                 enable_value_semantics=enable_value_semantics
             )
 
-        #params = self._prepare_search_parameters(
-        #    input_query, type, scope, bm25_weight, vector_weight, bm25_threshold, vector_threshold, combined_threshold, bm25_normalization, enable_schema, redis_search_limit=redis_search_limit
-        #)
-
         params = self._prepare_search_parameters(
             input_query=input_query,
             type=type,
@@ -2536,21 +2547,7 @@ class DataRegistry(Registry):
         else:
             search_types = [type]
 
-        #q, query_params = self._build_search_query(params, search_types)
         
-        #query = Query(q).return_fields("id", "name", "type", "scope", "description", "values", "schema").paging(0, params['redis_search_limit'])
-        #results = self.connection.ft(params['index_name']).search(query, query_params).docs
-
-        #if not results:
-        #    return []
-
-        # Special handling for scope = '/'
-        #if scope == "/":
-        #    filtered_results = []
-        #    for result in results:
-        #        if result.scope == "/":
-        #            filtered_results.append(result)
-        #    results = filtered_results
 
         results = self._fetch_raw_results(params, search_types=search_types)
 
@@ -2646,6 +2643,12 @@ class DataRegistry(Registry):
             if best_values:
                 result_entry["most_relevant_values"] = best_values
                 result_entry["value_relevance_score"] = best_value_score
+
+            #result_entry["semantic_combined_score"] = (
+            #params['bm25_weight'] * best_record.normalized_bm25_score +
+            #params['vector_weight'] * best_record.vector_score +
+            #params['value_weight'] * best_value_score
+            #)
 
             hierarchical_results.append(result_entry)
             
@@ -2760,8 +2763,21 @@ class DataRegistry(Registry):
 
             record = hierarchy[node_id]['record']
             normalized_bm25 = record.normalized_bm25_score
+
+            # Retrieve value semantics (may be zero)
+            value_score = getattr(record, "value_relevance_score", 0.0)
+            values = getattr(record, "most_relevant_values", [])
+            value_score_norm = min(1.0, value_score)
+
             combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * record.vector_score
 
+            # full semantic combined score
+            #combined_score = (
+            #    params['bm25_weight'] * normalized_bm25 +
+            #    params['vector_weight'] * record.vector_score +
+            #    params['value_weight'] * value_score_norm
+            #    )
+            
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
 
@@ -2769,15 +2785,7 @@ class DataRegistry(Registry):
             if normalized_bm25 < params['bm25_threshold'] or record.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
                 continue
 
-            # Retrieve value semantics (may be zero)
-            value_score = getattr(record, "value_relevance_score", 0.0)
-            values = getattr(record, "most_relevant_values", [])
-
-            # Keep the best (lowest inverted_score) node
-            #if best_record is None or inverted_score < best_score:
-            #   best_score = inverted_score
-            #   best_record = record
-
+            
             # Choose record:
             #   1. Smaller score is better
             #   2. If tied, choose one with higher value_score
