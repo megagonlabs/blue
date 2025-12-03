@@ -164,7 +164,15 @@ function FormDesigner({ width, height }) {
                         onClick={() => {
                             breaker.current = false;
                             setData({});
+                            sessionStorage.setItem(
+                                `${gridContainerId}-schema`,
+                                JSON.stringify(DEFAULT_SCHEMA)
+                            );
                             setSchema(clone(DEFAULT_SCHEMA));
+                            sessionStorage.setItem(
+                                `${gridContainerId}-uischema`,
+                                JSON.stringify(DEFAULT_UI_SCHEMA)
+                            );
                             setUischema(clone(DEFAULT_UI_SCHEMA));
                         }}
                     />
