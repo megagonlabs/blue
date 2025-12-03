@@ -149,6 +149,7 @@ function SessionContainer({ width, height, sessionId }) {
                     </div>
                 </Overlay2>
                 <Overlay2
+                    backdropProps={{ style: { zIndex: 36 } }}
                     onClose={() => {
                         setShowDetails(false);
                     }}
@@ -160,6 +161,7 @@ function SessionContainer({ width, height, sessionId }) {
                     <div
                         className="custom-card center-center"
                         style={{
+                            zIndex: 36,
                             width: 650,
                             height: "calc(100% - 40px)",
                             maxWidth: "calc(100% - 40px)",
