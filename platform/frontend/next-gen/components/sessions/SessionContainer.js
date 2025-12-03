@@ -16,7 +16,11 @@ import {
     Tag,
     TextArea,
 } from "@blueprintjs/core";
-import { faCircleA, faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faCircleA,
+    faFiles,
+    faPlus,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Allotment } from "allotment";
 import _ from "lodash";
 import { createRef, useEffect, useMemo, useState } from "react";
@@ -98,6 +102,7 @@ function SessionContainer({ width, height, sessionId }) {
     const [showWorkspace, setShowWorkspace] = useState(defaultShowWorkspace);
     const [showDetails, setShowDetails] = useState(false);
     const [showAddSessionAgent, setShowAddSessionAgent] = useState(false);
+    const [showFileUpload, setShowFileUpload] = useState(false);
     const [skippable, setSkippable] = useState(false);
     useEffect(() => {
         if (_.get(triggers, ["addSessionAgent", sessionId], false)) {
@@ -293,6 +298,13 @@ function SessionContainer({ width, height, sessionId }) {
                                             }}
                                             icon={<FAIcon icon={faCircleA} />}
                                             text="Agents"
+                                        />
+                                        <MenuItem
+                                            onClick={() => {
+                                                setShowFileUpload(true);
+                                            }}
+                                            icon={<FAIcon icon={faFiles} />}
+                                            text="Files"
                                         />
                                     </Menu>
                                 }
