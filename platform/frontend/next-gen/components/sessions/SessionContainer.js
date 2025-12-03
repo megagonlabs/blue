@@ -120,6 +120,7 @@ function SessionContainer({ width, height, sessionId }) {
                 }}
             >
                 <Overlay2
+                    backdropProps={{ style: { zIndex: 36 } }}
                     onClose={() => {
                         setShowAddSessionAgent(false);
                         setSkippable(false);
@@ -132,6 +133,7 @@ function SessionContainer({ width, height, sessionId }) {
                     <div
                         className="custom-card center-center"
                         style={{
+                            zIndex: 36,
                             width: 650,
                             padding: 20,
                             height: "calc(100% - 40px)",
