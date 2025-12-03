@@ -35,8 +35,6 @@ x-blue-common: &blue-common # build: .
         BLUE_RBAC_CONFIG_FOLDER: "${BLUE_RBAC_CONFIG_FOLDER}"
         BLUE_EMAIL_DOMAIN_WHITE_LIST: "${BLUE_EMAIL_DOMAIN_WHITE_LIST}"
         BLUE_FIREBASE_CLIENT_ID: "${BLUE_FIREBASE_CLIENT_ID}"
-        BLUE_FIREBASE_APP_CONFIG: "${BLUE_FIREBASE_APP_CONFIG}"
-        BLUE_FIREBASE_SERVICE_CRED: "${BLUE_FIREBASE_SERVICE_CRED}"
     depends_on: &blue-common-depends-on
         redis:
             condition: service_healthy
@@ -113,6 +111,8 @@ services:
             blue.platform: "${BLUE_DEPLOY_PLATFORM}.frontend"
         environment:
             <<: *blue-common-env
+        env_file:
+            - frontend/frontend.env
         restart: always
 
 networks:
