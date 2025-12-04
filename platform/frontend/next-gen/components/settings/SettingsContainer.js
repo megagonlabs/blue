@@ -15,8 +15,8 @@ import {
     Switch,
 } from "@blueprintjs/core";
 import {
-    faComments,
     faHistory,
+    faMessages,
     faPaintRoller,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
@@ -28,7 +28,7 @@ import withAutoSizer from "../hocs/withAutoSizer";
 import ResetSection from "./ResetSection";
 const SECTIONS = [
     { icon: faPaintRoller, text: "Appearance" },
-    { icon: faComments, text: "Sessions & Messages" },
+    { icon: faMessages, text: "Sessions & Messages" },
     { icon: faHistory, text: "Reset" },
 ];
 function SettingsContainer({ width, height }) {
@@ -191,7 +191,7 @@ function SettingsContainer({ width, height }) {
                         style={{ marginTop: 20 }}
                     >
                         <EntityTitle
-                            icon={<FAIcon icon={faComments} size={20} />}
+                            icon={<FAIcon icon={faMessages} size={20} />}
                             heading={H3}
                             title="Sessions & Messages"
                         />

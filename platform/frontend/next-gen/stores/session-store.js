@@ -1,7 +1,7 @@
 import SessionContainer from "@/components/sessions/SessionContainer";
 import SessionDisplayName from "@/components/sessions/SessionDisplayName";
 import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
-import { faComments } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faMessages } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { create } from "zustand";
@@ -127,11 +127,11 @@ export const useSessionStore = create((set, get) => ({
                         id: gridContainerId,
                         title: <SessionDisplayName sessionId={sessionId} />,
                         content: <SessionContainer sessionId={sessionId} />,
-                        icon: faComments,
+                        icon: faMessages,
                     });
                 } else {
                     addContainer({
-                        icon: faComments,
+                        icon: faMessages,
                         title: <SessionDisplayName sessionId={sessionId} />,
                         content: <SessionContainer sessionId={sessionId} />,
                     });

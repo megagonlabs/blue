@@ -19,7 +19,7 @@ import {
     fa3,
     fa4,
     fa5,
-    faComments,
+    faMessages,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useEffect, useMemo } from "react";
@@ -109,7 +109,7 @@ export default function TopSessions() {
                                 }
                                 onClick={() => {
                                     addContainer({
-                                        icon: faComments,
+                                        icon: faMessages,
                                         title: (
                                             <SessionDisplayName
                                                 sessionId={sessionId}
