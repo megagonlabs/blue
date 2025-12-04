@@ -45,6 +45,9 @@ class MetaData(ServiceClient):
         self.properties['enable_database_description_generation'] = True
         self.properties['enable_collection_description_generation'] = True
 
+        self.properties['enable_value_semantics_inference'] = True
+
+
     def build_entity_description_prompt(self, entity_obj, attributes):
         """
         Build a prompt for generating an entity description using an LLM.
@@ -256,6 +259,39 @@ class MetaData(ServiceClient):
                     if not current_description or current_description.strip() == "":
                         data_registry.set_source_database_collection_entity_attribute_description(source, database, collection, entity_name, attr, desc, rebuild=rebuild)
 
+            if self.properties.get("enable_value_semantics_inference", True):
+                for attr_obj in attributes:
+                    attr_name = attr_obj.get("name")
+
+                    # Skip attributes without stats or samples
+                    attr_stats = attr_obj.get("properties", {}).get("stats", {})
+                    if not attr_stats:
+                        continue
+
+                    # Check existing semantics
+                    existing = data_registry.get_source_database_collection_entity_attribute_property(
+                        source, database, collection, entity_name, attr_name, "value_semantics"
+                    )
+
+                    # Infer only if missing or rebuild=True
+                    if existing and not rebuild:
+                        continue
+
+                    inferred = self.infer_attribute_value_semantics(entity_name, attr_obj)
+                    if inferred:
+                        data_registry.set_source_database_collection_entity_attribute_property(
+                            source,
+                            database,
+                            collection,
+                            entity_name,
+                            attr_name,
+                            "value_semantics",
+                            inferred,
+                            rebuild=rebuild
+                        )
+
+        
+        
         if self.properties.get('enable_collection_description_generation', True):
             current_description = data_registry.get_source_database_collection_description(source, database, collection)
             if not current_description or current_description.strip() == "":
@@ -356,3 +392,78 @@ class MetaData(ServiceClient):
 
         prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
         return self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+    
+    def build_value_semantics_prompt(self, entity_name, attr_name, attr_properties):
+        """
+        Build an LLM prompt to infer semantic meaning of attribute values.
+        """
+
+        attr_stats = attr_properties.get("stats", {})
+        sample_values = attr_stats.get("sample_values", [])[:10]
+        if not sample_values:
+            sample_values = ["<NO SAMPLE VALUES AVAILABLE>"]
+        attr_type = attr_properties.get("info", {}).get("type", "unknown")
+
+        prompt = f"""
+        You are analyzing attribute values from a database entity.
+
+        Your task:
+        Infer the SEMANTIC TYPE of this attribute based on sample values, patterns, datatype, and context.
+        Examples of semantic types: 
+        - US_STATE_CODE
+        - DATE
+        - TIMESTAMP
+        - ZIP_CODE
+        - CITY_NAME
+        - COUNTRY_CODE
+        - PERSON_NAME
+        - CURRENCY_AMOUNT
+        - ID / IDENTIFIER
+        - BOOLEAN
+        - FREE_TEXT
+        - UNKNOWN
+
+        Output MUST be strict JSON:
+
+        {{
+            "semantic_type": "string",
+            "confidence": 0.0,
+            "rationale": "why you inferred this",
+            "examples": []
+        }}
+
+        -------------------------
+        Entity: {entity_name}
+        Attribute: {attr_name}
+        Declared Type: {attr_type}
+
+        Sample Values:
+        {json.dumps(sample_values, indent=2)}
+        -------------------------
+
+        Now infer semantic meaning and return ONLY valid JSON.
+        """
+        return prompt.strip()
+
+    def infer_attribute_value_semantics(self, entity_name, attr):
+        attr_name = attr.get("name")
+        attr_properties = attr.get("properties", {})
+
+        # Build prompt
+        prompt = self.build_value_semantics_prompt(entity_name, attr_name, attr_properties)
+
+        # Call LLM
+        llm_output = self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+        # Parse LLM output
+        try:
+            semantics = json_utils.safe_json_parse(llm_output)
+            if not semantics:
+                logging.warning(f"Value semantics inference returned empty for {entity_name}.{attr_name}")
+                return None
+            return semantics
+        except Exception:
+            logging.warning(f"Invalid JSON from value semantics inference for {entity_name}.{attr_name}")
+            return None
+
