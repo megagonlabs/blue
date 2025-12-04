@@ -301,7 +301,7 @@ class MetaData(ServiceClient):
                 if not collection_metadata:
                     collection_metadata = {"name": collection, "type": "collection"}
 
-                collection_desc = self.enrich_collection_description(database, entity_descriptions, collection_metadata)
+                collection_desc = self.enrich_collection_description(collection, entity_descriptions, collection_metadata)
 
                 data_registry.set_source_database_collection_description(source, database, collection, collection_desc, rebuild=rebuild)
 
