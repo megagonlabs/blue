@@ -1,9 +1,14 @@
 import uuid
+import json
 from datetime import datetime
 from typing import Optional, Dict, Any
 
 from .logstore import LogStore
 from blue.connection import PooledConnectionFactory
+
+from redis.commands.search.field import TextField, TagField
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+
 
 class RedisLogStore(LogStore):
     """
@@ -27,12 +32,61 @@ class RedisLogStore(LogStore):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.redis = self.connection_factory.get_connection()
 
+        # create RediSearch index if not exists
+        self._ensure_index()
+
+    # -----------------------------------------------------
+    # Create RediSearch index
+    # -----------------------------------------------------
+    def _ensure_index(self):
+        """Create FT index for JSON logs if it does not already exist."""
+        try:
+            self.redis.ft(self.index_name).info()
+            return  # index exists
+        except Exception:
+            pass
+
+        platform_prefix = self._sanitize(self.properties["platform.id"])
+        key_prefix = f"PLATFORM:{platform_prefix}:LOGS:DATA:"
+
+        schema = [
+            # Core text fields
+            TextField("$.action", as_name="action"),
+            TextField("$.detail", as_name="detail"),
+            TextField("$.message", as_name="message"),
+            TextField("$.question", as_name="question"),
+
+            # Context filters
+            TagField("$.context.session",   as_name="session"),
+            TagField("$.context.agent",     as_name="agent"),
+            TagField("$.context.worker",    as_name="worker"),
+            TagField("$.context.plan",      as_name="plan"),
+            TagField("$.context.operator",  as_name="operator"),
+
+            # Catch-all semantic search blob
+            TextField("$._blob", as_name="blob"),
+        ]
+
+        definition = IndexDefinition(
+            index_type=IndexType.JSON,
+            prefix=[key_prefix]
+        )
+
+        self.redis.ft(self.index_name).create_index(schema, definition=definition)
+        print(f"Created RediSearch index {self.index_name}")
+    
     # -----------------------------------------------------
     # Sanitization
     # -----------------------------------------------------
     def _sanitize(self, val: str) -> str:
         """Prevents Redis key clashes and search issues."""
-        return val.replace(" ", "_").replace(":", "_").replace("/", "_")
+        return (
+            val.replace(" ", "_")
+            .replace(":", "_")
+            .replace("/", "_")
+            .replace("-", "_")      # <— ADD THIS
+        )
+
 
     # -----------------------------------------------------
     # Namespace construction
@@ -59,12 +113,20 @@ class RedisLogStore(LogStore):
 
         return f"PLATFORM:{platform}:{self.NAMESPACE}:DATA:{ctx}:{date_str}:{uid}"
 
+    
     # -----------------------------------------------------
     # Write operation
     # -----------------------------------------------------
     def write(self, record: dict, context: Optional[Dict[str, Any]] = None):
+        """
+        Write structured log record to RedisJSON and include `_blob`
+        for full-text search.
+        """
         record = dict(record)
         record["context"] = dict(context or {})
+
+        # catch-all full-text blob for search
+        record["_blob"] = json.dumps(record, ensure_ascii=False)
 
         key = self._log_key(context=context)
 
