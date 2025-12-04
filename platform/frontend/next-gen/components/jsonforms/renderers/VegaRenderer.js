@@ -6,7 +6,7 @@ const VegaRenderer = ({ uischema, data }) => {
     const style = _.get(uischema, "props.style", {});
     return (
         <div style={{ ...style, overflow: "auto", padding: 1 }}>
-            <VegaLite spec={data} actions={false} />
+            {!_.isEmpty(data) && <VegaLite spec={data} actions={false} />}
         </div>
     );
 };
