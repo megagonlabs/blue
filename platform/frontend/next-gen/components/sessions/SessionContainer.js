@@ -27,6 +27,7 @@ import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import AddSessionAgent from "./AddSessionAgent";
+import AddSessionFile from "./AddSessionFile";
 import SessionDetails from "./SessionDetails";
 import SessionMessages from "./SessionMessages";
 import Workspace from "./Workspace";
@@ -168,6 +169,28 @@ function SessionContainer({ width, height, sessionId }) {
                         }}
                     >
                         <SessionDetails sessionId={sessionId} />
+                    </div>
+                </Overlay2>
+                <Overlay2
+                    backdropProps={{ style: { zIndex: 36 } }}
+                    onClose={() => {
+                        setShowFileUpload(false);
+                    }}
+                    isOpen={showFileUpload}
+                    usePortal={false}
+                    enforceFocus={false}
+                    transitionDuration={0}
+                >
+                    <div
+                        className="custom-card center-center"
+                        style={{
+                            zIndex: 36,
+                            width: 650,
+                            height: "calc(100% - 40px)",
+                            maxWidth: "calc(100% - 40px)",
+                        }}
+                    >
+                        <AddSessionFile sessionId={sessionId} />
                     </div>
                 </Overlay2>
                 <div style={{ height: `calc(100% - ${controlGroupHeight}px)` }}>

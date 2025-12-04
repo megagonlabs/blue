@@ -34,6 +34,14 @@ export const USER_ROLES_LOOKUP = {
         developer: { text: "Developer" },
         demo: { text: "Demo" },
     },
+    FILE_UPLOAD_STATUS = {
+        PENDING: { text: "Pending", intent: Intent.WARNING },
+        UPLOADING: { text: "Uploading", intent: Intent.PRIMARY },
+        COMPLETED: { text: "Completed", intent: Intent.SUCCESS },
+        ERROR: { text: "Error", intent: Intent.DANGER },
+        CANCELED: { text: "Canceled" },
+    },
+    MAX_FILE_SIZE = 50 * 1024 * 1024, // 50 MB
     TABLE_CELL_HEIGHT = 40,
     END_OF_EVENT_SIGNAL = "END_OF_EVENT_SIGNAL",
     ENTITY_NAME_SEPARATOR = "___",

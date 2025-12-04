@@ -103,6 +103,9 @@
     /* WebKit */
     display: none;
 }
+.hidden {
+    display: none;
+}
 .multiline-ellipsis-5 {
     display: -webkit-box;
     -webkit-line-clamp: 5;

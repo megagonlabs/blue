@@ -8,3 +8,4 @@ websockets==15.0.1
 firebase-admin==6.5.0
 casbin==1.36.3
 schedule==1.2.2
+uuid==1.30

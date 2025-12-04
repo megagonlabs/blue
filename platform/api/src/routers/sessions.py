@@ -15,7 +15,7 @@ from validations.base import BaseValidation
 from typing import Union, Any, Dict, List
 
 ###### FastAPI
-from fastapi import Depends, Request
+from fastapi import Depends, Request, UploadFile, File
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -36,6 +36,8 @@ from blue.utils import json_utils
 from blue.properties import PROPERTIES
 from settings import ACL
 from server import connection
+import base64
+import uuid
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -364,3 +366,18 @@ async def create_session_in_group(request: Request, group_name):
 def delete_session(session_id):
     p.delete_session(session_id)
     return JSONResponse(content={"message": "Success"})
+
+
+@router.post('/session/{session_id}/upload')
+async def upload_file(request: Request, session_id, file: UploadFile = File(...)):
+    file_content = await file.read()
+    if len(file_content) > 50 * 1024 * 1024:
+        return JSONResponse(status_code=413, content={"message": "File exceeds 50 MB limit"})
+    # encode: binary files must be base64 encoded to sit inside JSON
+    encoded_content = base64.b64encode(file_content).decode('ascii')
+    file_id = f'file:{str(uuid.uuid4())}'
+    data_packet = {"filename": file.filename, "content_type": file.content_type, "file_data": encoded_content}
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), write=True)
+    session.set_data(file_id, data_packet)
+    return JSONResponse(content={"result": {"file_id": file_id, "filename": file.filename, "content_type": file.content_type}})
