@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/stores/auth-store";
 import axios from "axios";
 import _ from "lodash";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 export default function AuthErrorHandler({ children }) {
     const { user, clearUser } = useAuthStore(
@@ -25,23 +25,23 @@ export default function AuthErrorHandler({ children }) {
         };
     }, [clearUser]);
     const timeoutIdRef = useRef(null); // ref to store the timeoutId
+    const checkAuthSession = useCallback(async () => {
+        if (!user) return;
+        try {
+            await axios.get("/accounts/profile");
+            timeoutIdRef.current = setTimeout(
+                checkAuthSession,
+                2 * 60 * 1000 // 2 minutes
+            );
+        } catch (error) {}
+    }, [user]);
     useEffect(() => {
-        const checkAuthSession = async () => {
-            axios
-                .get("/accounts/profile")
-                .then(() => {
-                    timeoutIdRef.current = setTimeout(
-                        checkAuthSession,
-                        2 * 60 * 1000
-                    );
-                })
-                .catch(() => {});
-        };
         checkAuthSession();
         return () => {
-            // clear the latest timeout using the ref
-            if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+            if (timeoutIdRef.current) {
+                clearTimeout(timeoutIdRef.current);
+            }
         };
-    }, [user]);
+    }, [checkAuthSession]);
     return children;
 }
