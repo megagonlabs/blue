@@ -210,9 +210,10 @@
         "cast": "str"
     },
     "BLUE_FIREBASE_APP_CONFIG": {
-        "default": "ewogICAgImFwaUtleSI6ICJBSXphU3lCZ3dJMC1IY3N6a0NydE1mNUVuVkg0aThKNkFBaVFrM1EiLAogICAgImF1dGhEb21haW4iOiAiYmx1ZS1wdWJsaWMuZmlyZWJhc2VhcHAuY29tIiwKICAgICJwcm9qZWN0SWQiOiAiYmx1ZS1wdWJsaWMiLAogICAgInN0b3JhZ2VCdWNrZXQiOiAiYmx1ZS1wdWJsaWMuZmlyZWJhc2VzdG9yYWdlLmFwcCIsCiAgICAibWVzc2FnaW5nU2VuZGVySWQiOiAiMzQyNDE0MzI3NDQxIiwKICAgICJhcHBJZCI6ICIxOjM0MjQxNDMyNzQ0MTp3ZWI6NDc3ZDQzOGE3NWQwZDQwNmUzYzkzMCIsCiAgICAibWVhc3VyZW1lbnRJZCI6ICJHLU03NDc4M0xUWE4iCn0K",
+        "default": "",
         "prompt": "Firebase App Configuration (Encoded)",
         "required": true,
+        "encode": true,
         "cast": "str"
     },
     "BLUE_USER_ROLE": {

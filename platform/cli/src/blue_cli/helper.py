@@ -1,7 +1,7 @@
 import os
 import subprocess
 import json
-from base64 import b64encode
+import base64
 import curses
 
 import tabulate
@@ -72,7 +72,7 @@ def show_output(data, ctx, **options):
         print('Unknown output format: ' + output)
 
 
-def inquire_user_input(prompt, default=None, required=False, cast=None):
+def inquire_user_input(prompt, default=None, required=False, encode=False, cast=None):
 
     if default is not None:
         user_input = input(f"{prompt} [default: {default}]: ")
@@ -80,10 +80,10 @@ def inquire_user_input(prompt, default=None, required=False, cast=None):
         user_input = input(f"{prompt}: ")
 
     if user_input != "":
-        user_input = convert(user_input, cast=cast)
+        user_input = convert(user_input, cast=cast, encode=encode)
         if type(user_input) == Exception:
             print(str(user_input))
-            return inquire_user_input(prompt, default=default, required=required, cast=cast)
+            return inquire_user_input(prompt, default=default, required=required, encode=encode, cast=cast)
         return user_input
     else:
         if default is not None:
@@ -91,12 +91,12 @@ def inquire_user_input(prompt, default=None, required=False, cast=None):
         else:
             if required:
                 print("Required attribute, please enter a valid value.")
-                return inquire_user_input(prompt, default=default, required=required, cast=cast)
+                return inquire_user_input(prompt, default=default, required=required, encode=encode, cast=cast)
             else:
                 return None
 
 
-def convert(value, cast=None):
+def convert(value, cast=None, encode=None):
     if cast:
         if cast == 'int':
             try:
@@ -120,5 +120,11 @@ def convert(value, cast=None):
             value = str(value)
         elif cast == 'file':
             value = os.path.expanduser(value)
+
+    if encode:
+        value = str(value)
+        bytes_to_encode = value.encode('utf-8')
+        encoded_bytes = base64.b64encode(bytes_to_encode)
+        value = encoded_bytes.decode('utf-8')
 
     return value

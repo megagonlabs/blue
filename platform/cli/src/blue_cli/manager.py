@@ -182,8 +182,9 @@ class ProfileManager:
             if current:
                 value = current
             required = profile_attribute_config['required']
+            encode = profile_attribute_config['encode']
             if required:
-                profile_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
+                profile_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required, encode=encode)
             else:
                 profile_attribute_value = value
 
@@ -426,9 +427,14 @@ class PlatformManager:
                 current = platform_attributes[platform_attribute]
             if current:
                 value = current
-            required = platform_attribute_config['required']
+            required = False
+            if 'required' in platform_attribute_config:
+                required = platform_attribute_config['required']
+            encode = False
+            if 'encode' in platform_attribute_config:
+                encode = platform_attribute_config['encode']
             if required:
-                platform_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
+                platform_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required, encode=encode)
             else:
                 platform_attribute_value = value
 
@@ -1138,8 +1144,9 @@ class ServiceManager:
             if current:
                 value = current
             required = service_attribute_config['required']
+            encode = service_attribute_config['encode']
             if required:
-                service_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
+                service_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required, encode=encode)
             else:
                 service_attribute_value = value
 
@@ -1508,6 +1515,7 @@ class ServiceName(click.Group):
                 args.insert(0, "")
         super(ServiceName, self).parse_args(ctx, args)
 
+
 class AgentRegistryManager:
     def __init__(self, profile_name=None):
         profile_mgr = ProfileManager()
@@ -1555,8 +1563,6 @@ class AgentRegistryManager:
             return r.json()["message"], None
         return None, r.json()
 
-
-        
     def delete_agent(self, agent_name):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}"
         r = requests.delete(url, cookies=self.cookies)
@@ -1567,28 +1573,22 @@ class AgentRegistryManager:
     # ------------------------
     # INPUTS
     # ------------------------
-    
+
     def get_agent_inputs(self, agent_name):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/inputs"
         try:
             r = requests.get(url, cookies=self.cookies)
             if r.status_code == 200:
                 results = r.json().get("results", {})
-                return results, None  
+                return results, None
             else:
-                return None, r.json()  
+                return None, r.json()
         except Exception as e:
             return None, {"error": str(e)}
 
-    
     def add_agent_input(self, agent_name, param_name, description=None, properties=None, icon=None):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}"
-        payload = {
-            "name": param_name,
-            "description": description or "",
-            "properties": properties or {},
-            "icon": icon or ""
-        }
+        payload = {"name": param_name, "description": description or "", "properties": properties or {}, "icon": icon or ""}
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json()["message"], None
@@ -1596,12 +1596,7 @@ class AgentRegistryManager:
 
     def update_agent_input(self, agent_name, param_name, description=None, properties=None):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}"
-        payload = {
-            "name": param_name,  
-            "description": description or "",
-            "properties": properties or {},
-            "icon": ""
-        }
+        payload = {"name": param_name, "description": description or "", "properties": properties or {}, "icon": ""}
         r = requests.put(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json().get("message"), None
@@ -1609,7 +1604,7 @@ class AgentRegistryManager:
 
     def set_agent_input_property(self, agent_name, param_name, property_name, property_value):
         if property_value is None:
-            property_value = ""  
+            property_value = ""
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/input/{param_name}/property/{property_name}"
         payload = {property_name: property_value}
         r = requests.post(url, json=payload, cookies=self.cookies)
@@ -1639,17 +1634,11 @@ class AgentRegistryManager:
         except Exception as e:
             return None, {"error": str(e)}
 
-
     def add_agent_output(self, agent_name, param_name, description=None, properties=None, icon=None):
-        
+
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}"
-        payload = {
-            "name": param_name,
-            "description": description or "",
-            "properties": properties or {},
-            "icon": icon or ""
-        }
-       
+        payload = {"name": param_name, "description": description or "", "properties": properties or {}, "icon": icon or ""}
+
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json()["message"], None
@@ -1657,12 +1646,7 @@ class AgentRegistryManager:
 
     def update_agent_output(self, agent_name, param_name, description=None, properties=None):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}"
-        payload = {
-            "name": param_name,  
-            "description": description or "",
-            "properties": properties or {},
-            "icon": ""
-        }
+        payload = {"name": param_name, "description": description or "", "properties": properties or {}, "icon": ""}
         r = requests.put(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json().get("message"), None
@@ -1670,8 +1654,8 @@ class AgentRegistryManager:
 
     def set_agent_output_property(self, agent_name, param_name, property_name, property_value):
         if property_value is None:
-            property_value = ""  
-        
+            property_value = ""
+
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/output/{param_name}/property/{property_name}"
         payload = {property_name: property_value}
         r = requests.post(url, json=payload, cookies=self.cookies)
@@ -1685,7 +1669,7 @@ class AgentRegistryManager:
         if r.status_code == 200:
             return r.json()["message"], None
         return None, r.json()
-    
+
     ######### Agent Properties #########
     def get_agent_properties(self, agent_name):
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/properties"
@@ -1696,10 +1680,10 @@ class AgentRegistryManager:
 
     def set_agent_property(self, agent_name, property_name, value):
         if value is None:
-           value = ""  
-        
+            value = ""
+
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/property/{property_name}"
-        payload = {property_name: value} 
+        payload = {property_name: value}
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json()["message"], None
@@ -1767,7 +1751,7 @@ class AgentRegistryManager:
         if value is None:
             value = ""
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/property/{property_name}"
-        payload = {property_name: value}  
+        payload = {property_name: value}
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json()["message"], None
@@ -1779,13 +1763,7 @@ class AgentRegistryManager:
         Add an agent inside a specific agent group.
         """
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}"
-        payload = {
-            "name": agent_name,
-            "description": description or "",
-            "icon": icon or "",
-            "properties": properties or {},
-            "rebuild": rebuild
-        }
+        payload = {"name": agent_name, "description": description or "", "icon": icon or "", "properties": properties or {}, "rebuild": rebuild}
         r = requests.post(url, json=payload, cookies=self.cookies)
         if r.status_code in [200, 201]:
             return r.json().get("message"), None
@@ -1796,12 +1774,7 @@ class AgentRegistryManager:
         Update an existing agent inside a specific agent group.
         """
         url = f"{self.base_api_path}/registry/default/agent_group/{group_name}/agent/{agent_name}"
-        payload = {
-            "description": description or "",
-            "icon": icon or "",
-            "properties": properties or {},
-            "rebuild": rebuild
-        }
+        payload = {"description": description or "", "icon": icon or "", "properties": properties or {}, "rebuild": rebuild}
         r = requests.put(url, json=payload, cookies=self.cookies)
         if r.status_code == 200:
             return r.json().get("message"), None
