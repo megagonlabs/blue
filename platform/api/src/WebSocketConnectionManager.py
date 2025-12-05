@@ -9,6 +9,7 @@ import time
 import uuid
 import pydash
 import secrets
+from pydantic import BaseModel, field_validator, ValidationError
 
 ##### FastAPI, Web, Sockets, Authentication
 from fastapi import WebSocket
@@ -57,6 +58,24 @@ def session_acl_enforce(session_sid: dict, user: dict, read=False, write=False):
         if pydash.objects.get(session, f'members.{uid}', False):
             allow = True
     return allow
+
+
+class FileMetadata(BaseModel):
+    file_id: str
+    filename: str
+    content_type: str
+
+    @field_validator('file_id')
+    @classmethod
+    def validate_file_id_format(cls, v: str) -> str:
+        if not v.startswith("file:"):
+            raise ValueError("ID must start with 'file:'")
+        try:
+            raw_uuid = v.split(":", 1)[1]
+            uuid.UUID(raw_uuid)  # verify it's a real UUID
+        except (IndexError, ValueError):
+            raise ValueError("Invalid UUID format after 'file:' prefix")
+        return v
 
 
 class WebSocketConnectionManager:
@@ -170,7 +189,13 @@ class WebSocketConnectionManager:
     def user_session_message(self, connection_id: str, session_id: str, message: str):
         user_agent: Agent = pydash.objects.get(self.session_to_client, [session_id, connection_id, "user"], None)
         if user_agent is not None:
-            user_agent.interact(message)
+            tags = []
+            try:
+                valid_model = FileMetadata(**message)
+                tags = ["FILE"]
+            except ValidationError as ex:
+                pass
+            user_agent.interact(message, tags=tags)
 
     def interactive_event_message(self, json_data):
         if json_data["stream_id"] is not None:

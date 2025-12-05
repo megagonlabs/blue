@@ -1620,7 +1620,7 @@ class Agent(ErrorLoom):
         return matched_inputs
 
     # interact
-    def interact(self, data, output="DEFAULT", unique=True, eos=True):
+    def interact(self, data, output="DEFAULT", unique=True, eos=True, tags=None):
         """
         Interact with the session by sending data to the specified output. Used for interacting with the session directly.
         If unique is True, a unique identifier will be appended to the output name.
@@ -1638,7 +1638,7 @@ class Agent(ErrorLoom):
         worker = self.create_worker(None)
 
         # write data, automatically notify session on BOS
-        worker.write_data(data, output=output)
+        worker.write_data(data, output=output, tags=tags)
 
         if eos:
             worker.write_eos(output=output)
