@@ -194,7 +194,7 @@ class WebSocketConnectionManager:
                 valid_model = FileMetadata(**message)
                 params['tags'] = ["FILE"]
                 params['output'] = 'FILE'
-            except ValidationError as ex:
+            except (ValidationError, Exception) as ex:
                 pass
             user_agent.interact(message, **params)
 
