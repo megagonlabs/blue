@@ -5,6 +5,7 @@ from blue.properties import PROPERTIES
 
 import logging
 import json
+import os
 
 
 class MetaData(ServiceClient):
@@ -46,6 +47,31 @@ class MetaData(ServiceClient):
         self.properties['enable_collection_description_generation'] = True
 
         self.properties['enable_value_semantics_inference'] = True
+        self.properties['enable_domain_concept_mapping'] = True
+
+        self.properties["concept_taxonomy_path"] = "/blue_data/config/concept_taxonomy.json"
+        self.properties["concept_taxonomy"] = self._load_concept_taxonomy()
+
+    def _load_concept_taxonomy(self):
+        """
+        Load domain concept taxonomy from the shared /blue_data/config folder.
+        """
+        taxonomy_path = self.properties.get(
+            "concept_taxonomy_path",
+            "/blue_data/config/concept_taxonomy.json"
+        )
+
+        if not os.path.exists(taxonomy_path):
+            logging.warning(f"[MetaData] Domain taxonomy not found at: {taxonomy_path}")
+            return []
+
+        try:
+            with open(taxonomy_path, "r") as f:
+                data = json.load(f)
+                return data.get("concepts", [])
+        except Exception as e:
+            logging.error(f"[MetaData] Failed loading taxonomy: {e}")
+            return []
 
 
     def build_entity_description_prompt(self, entity_obj, attributes):
@@ -289,8 +315,40 @@ class MetaData(ServiceClient):
                             inferred,
                             rebuild=rebuild
                         )
+                ### refresh attributes after value semantics inference
+                attributes = data_registry.get_source_database_collection_entity_attributes(
+                    source, database, collection, entity_name
+                )
+            
+            if self.properties.get("enable_domain_concept_mapping", True):
+                for attr_obj in attributes:
+                    attr_name = attr_obj.get("name")
 
-        
+                    # Skip attributes without value semantics
+                    attr_properties = attr_obj.get("properties", {})
+                    if "value_semantics" not in attr_properties:
+                        continue
+
+                    existing = data_registry.get_source_database_collection_entity_attribute_property(
+                        source, database, collection, entity_name, attr_name, "domain_concept"
+                    )
+
+                    if existing and not rebuild:
+                        continue
+
+                    inferred = self.infer_domain_concept(entity_name, attr_obj)
+                    if inferred:
+                        data_registry.set_source_database_collection_entity_attribute_property(
+                            source,
+                            database,
+                            collection,
+                            entity_name,
+                            attr_name,
+                            "domain_concept",
+                            inferred,
+                            rebuild=rebuild
+                        )
+            
         
         if self.properties.get('enable_collection_description_generation', True):
             current_description = data_registry.get_source_database_collection_description(source, database, collection)
@@ -466,4 +524,72 @@ class MetaData(ServiceClient):
         except Exception:
             logging.warning(f"Invalid JSON from value semantics inference for {entity_name}.{attr_name}")
             return None
+
+    def build_domain_concept_prompt(self, entity_name, attr_name, attr_properties):
+        """
+        Build a prompt for mapping an attribute to a domain concept.
+        """
+        taxonomy = self.properties.get("concept_taxonomy", [])
+        taxonomy_text = "\n".join([f"- {c}" for c in taxonomy]) if taxonomy else "- CONCEPT.UNKNOWN"
+
+        semantics = attr_properties.get("value_semantics", {})
+        semantic_type = semantics.get("semantic_type", "UNKNOWN")
+        sample_values = semantics.get("examples", [])
+        if not sample_values:
+            sample_values = attr_properties.get("stats", {}).get("sample_values", [])[:5]
+
+        if not sample_values:
+            sample_values = ["<NO SAMPLE VALUES AVAILABLE>"]
+
+        prompt = f"""
+        You are performing domain concept mapping for a data registry.
+
+        Map the attribute to a canonical DOMAIN CONCEPT.
+
+        Available domain concepts:
+        {taxonomy_text}
+
+        Attribute Context:
+        - Entity: {entity_name}
+        - Attribute Name: {attr_name}
+        - Semantic Type: {semantic_type}
+
+        Sample Values:
+        {json.dumps(sample_values, indent=2)}
+
+        Output JSON ONLY:
+
+        {{
+            "concept": "CONCEPT.X.Y",
+            "confidence": 0.0,
+            "rationale": "explain briefly"
+        }}
+        """
+        
+        return prompt.strip()
+
+    def infer_domain_concept(self, entity_name, attr):
+        attr_name = attr.get("name")
+        attr_properties = attr.get("properties", {})
+
+        # Skip if no value semantics yet
+        if "value_semantics" not in attr_properties:
+            return None
+
+        prompt = self.build_domain_concept_prompt(entity_name, attr_name, attr_properties)
+
+        llm_output = self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+        try:
+            concept = json_utils.safe_json_parse(llm_output)
+            if not concept:
+                logging.warning(f"Domain concept inference empty for {entity_name}.{attr_name}")
+                return None
+            return concept
+        except Exception:
+            logging.warning(f"Invalid JSON from domain concept inference for {entity_name}.{attr_name}")
+            return None
+
+
+
 
