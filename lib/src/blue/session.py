@@ -61,6 +61,8 @@ class Session(Entity):
         # db connectivity
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
+        self.properties["logstore.type"] = "redis"
+        
 
     def _update_properties(self, properties=None):
         """Update session properties with provided values.
@@ -95,7 +97,7 @@ class Session(Entity):
                     properties={
                         "db.host": self.properties.get("db.host", "localhost"),
                         "db.port": self.properties.get("db.port", 6379),
-                        "platform.id": self.properties.get("platform.id", "default"),
+                        "platform.id": self.properties.get("platform.name", "default"),
                     }
                 )
 

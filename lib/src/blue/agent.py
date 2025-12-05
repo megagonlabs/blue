@@ -190,10 +190,6 @@ class Worker:
         self.session = session
         self.agent = agent
 
-        # per-worker structured logging context (merged during record())
-        self._structured_context = {}
-
-
         if properties is None:
             properties = {}
         self._initialize(properties=properties)
@@ -249,11 +245,8 @@ class Worker:
         Initialize the logger for the worker, add session, agent, and worker information.
         """
 
-        #self.logger = log_utils.CustomLogger()
-        # Only create a local logger if session didn't replace it later
-        if not hasattr(self, "logger") or self.logger is None:
-            self.logger = log_utils.CustomLogger()
-
+        self.logger = log_utils.CustomLogger()
+        
         # customize log
         self.logger.set_config_data(
             "stack",
@@ -1418,11 +1411,6 @@ class Agent(ErrorLoom):
             properties=worker_properties,
             on_stop=lambda sid: self.on_worker_stop_handler(sid),
         )
-
-        if hasattr(self.session, "logger"):
-            worker.logger = self.session.logger
-            worker._structured_context = {"worker": worker.sid}
-
 
         self.workers[input_stream] = worker
 
