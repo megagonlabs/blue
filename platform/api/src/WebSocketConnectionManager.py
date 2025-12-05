@@ -189,13 +189,14 @@ class WebSocketConnectionManager:
     def user_session_message(self, connection_id: str, session_id: str, message: str):
         user_agent: Agent = pydash.objects.get(self.session_to_client, [session_id, connection_id, "user"], None)
         if user_agent is not None:
-            tags = []
+            params = {}
             try:
                 valid_model = FileMetadata(**message)
-                tags = ["FILE"]
+                params['tags'] = ["FILE"]
+                params['output'] = 'FILE'
             except ValidationError as ex:
                 pass
-            user_agent.interact(message, tags=tags)
+            user_agent.interact(message, **params)
 
     def interactive_event_message(self, json_data):
         if json_data["stream_id"] is not None:
