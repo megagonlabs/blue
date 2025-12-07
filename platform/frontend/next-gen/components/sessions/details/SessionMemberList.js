@@ -135,6 +135,7 @@ export default function SessionMemberList({ sessionId }) {
                         setShowSearch(state);
                     }}
                     boundary={popoverBoundary}
+                    placement="bottom"
                     className="full-parent-width"
                     matchTargetWidth
                     isOpen={showSearch}
