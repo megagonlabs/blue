@@ -13,6 +13,7 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
+import { faPlay } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowDownToLine,
     faCheck,
@@ -22,7 +23,6 @@ import {
     faFileHalfDashed,
     faFileWaveform,
     faPenLine,
-    faPlay,
     faRefresh,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";

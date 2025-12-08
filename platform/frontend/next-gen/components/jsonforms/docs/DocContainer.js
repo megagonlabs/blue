@@ -11,6 +11,7 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
+import { faPlay } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBookOpenCover,
     faFish,
@@ -23,7 +24,6 @@ import {
     faPalletBoxes,
     faParagraph,
     faPause,
-    faPlay,
     faPresentationScreen,
     faQuoteLeft,
     faRectanglesMixed,

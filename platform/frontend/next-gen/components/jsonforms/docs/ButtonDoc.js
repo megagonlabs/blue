@@ -15,7 +15,7 @@ import {
     Pre,
     Size,
 } from "@blueprintjs/core";
-import { faPlay } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faPlay } from "@fortawesome/pro-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
