@@ -38,7 +38,7 @@ from validations.constant import InvalidRequestJson
 from authorizations.constant import PermissionDenied
 from authorizations.utils import verify_google_id_token, is_email_allowed
 from routers import agents, data, models, operators, tools, sessions, containers, platform, accounts, status
-from ConnectionManager import ConnectionManager
+from WebSocketConnectionManager import WebSocketConnectionManager
 
 ###### Blue
 
@@ -125,9 +125,9 @@ async def lifespan(app: FastAPI):
     p._start_tracker()
 
     def session_cleanup(sessions):
-        connection_manager: ConnectionManager = app.connection_manager
+        web_socket_connection_manager: WebSocketConnectionManager = app.web_socket_connection_manager
         for session in sessions:
-            connection_manager.clear_session(session)
+            web_socket_connection_manager.clear_session(session)
 
     p._init_session_cleanup_scheduler(callback=session_cleanup)
     p._start_session_cleanup_job()
@@ -153,8 +153,8 @@ app.include_router(containers.router)
 app.include_router(platform.router)
 app.include_router(accounts.router)
 app.include_router(status.router)
-connection_manager = ConnectionManager()
-app.connection_manager = connection_manager
+web_socket_connection_manager = WebSocketConnectionManager()
+app.web_socket_connection_manager = web_socket_connection_manager
 
 
 @app.middleware("http")
@@ -241,25 +241,27 @@ async def unicorn_exception_handler_permission_denied(request: Request, exc: Per
 @app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
 async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
     # accept the connection from the client
-    await connection_manager.connect(websocket, ticket)
+    await web_socket_connection_manager.connect(websocket, ticket)
     try:
         while True:
             # Receive the message from the client
             data = await websocket.receive_text()
             json_data = json.loads(data)
-            connection_id = connection_manager.find_connection_id(websocket)
+            connection_id = web_socket_connection_manager.find_connection_id(websocket)
             if json_data['type'] == 'CONNECTION_SESSION_ATTRIBUTES':
-                connection_manager.set_connection_session_attributes(connection_id, json_data["session_id"], json_data)
+                web_socket_connection_manager.set_connection_session_attributes(connection_id, json_data["session_id"], json_data)
             elif json_data["type"] == "OBSERVE_SESSION":
-                connection_manager.observe_session(connection_id, json_data["session_id"])
+                web_socket_connection_manager.observe_session(connection_id, json_data["session_id"])
             elif json_data["type"] == "REQUEST_USER_AGENT_ID":
-                await connection_manager.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_manager.get_user_agent_id(connection_id), 'connection_id': connection_id}))
+                await web_socket_connection_manager.send_message_to(
+                    websocket, json.dumps({"type": "CONNECTED", "id": web_socket_connection_manager.get_user_agent_id(connection_id), 'connection_id': connection_id})
+                )
             elif json_data["type"] == "USER_SESSION_MESSAGE":
-                connection_manager.user_session_message(connection_id, json_data["session_id"], json_data["message"])
+                web_socket_connection_manager.user_session_message(connection_id, json_data["session_id"], json_data["message"])
             elif json_data["type"] == "INTERACTIVE_EVENT_MESSAGE":
-                connection_manager.interactive_event_message(json_data)
+                web_socket_connection_manager.interactive_event_message(json_data)
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
-                await connection_manager.observer_session_message(json_data["connection_id"], json_data)
+                await web_socket_connection_manager.observer_session_message(json_data["connection_id"], json_data)
     except WebSocketDisconnect:
         # remove the connection from the list of active connections
-        connection_manager.disconnect(websocket)
+        web_socket_connection_manager.disconnect(websocket)

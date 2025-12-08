@@ -61,7 +61,7 @@ def session_acl_enforce(session_sid: dict, user: dict, read=False, write=False):
 
 
 @dataclass
-class ConnectionManager:
+class WebSocketConnectionManager:
     def __init__(self) -> None:
         self.active_connections: dict = {}
         # {
@@ -248,4 +248,4 @@ class ConnectionManager:
             try:
                 await self.send_message_to(connection['websocket'], message)
             except Exception as ex:
-                print("ConnectionManager.broadcast", ex)
+                print("WebSocketConnectionManager.broadcast", ex)
