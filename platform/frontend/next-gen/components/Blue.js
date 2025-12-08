@@ -20,7 +20,6 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import { Omnibar } from "@blueprintjs/select";
-import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBellConcierge,
     faCircleA,
@@ -31,6 +30,7 @@ import {
     faScrewdriverWrench,
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faSearch } from "@fortawesome/sharp-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import { motion } from "framer-motion";

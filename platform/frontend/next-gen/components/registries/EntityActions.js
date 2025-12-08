@@ -13,7 +13,6 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
-import { faPlay } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowDownToLine,
     faCheck,
@@ -26,6 +25,7 @@ import {
     faRefresh,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faPlay } from "@fortawesome/sharp-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useMemo } from "react";

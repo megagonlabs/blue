@@ -17,12 +17,12 @@ import {
     Size,
     Tag,
 } from "@blueprintjs/core";
-import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faCheckCircle,
     faTrash,
     faUserPlus,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faSearch } from "@fortawesome/sharp-solid-svg-icons";
 import axios from "axios";
 import _, { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

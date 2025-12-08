@@ -14,11 +14,11 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
-import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faFastForward,
     faMonitorWaveform,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faSearch } from "@fortawesome/sharp-solid-svg-icons";
 import _ from "lodash";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";

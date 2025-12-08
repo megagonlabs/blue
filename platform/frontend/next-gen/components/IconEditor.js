@@ -14,7 +14,6 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -25,6 +24,7 @@ import {
     faTelescope,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faSearch } from "@fortawesome/sharp-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import Link from "next/link";

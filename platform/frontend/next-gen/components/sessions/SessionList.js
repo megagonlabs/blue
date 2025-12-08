@@ -13,7 +13,6 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
-import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowLeft,
     faBarsFilter,
@@ -21,6 +20,7 @@ import {
     faInboxArrowUp,
     faRefresh,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faSearch } from "@fortawesome/sharp-solid-svg-icons";
 import _ from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";

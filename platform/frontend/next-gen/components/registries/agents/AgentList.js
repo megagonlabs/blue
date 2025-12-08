@@ -20,13 +20,13 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
-import { faSearch } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBarsFilter,
     faEraser,
     faPlus,
     faRefresh,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faSearch } from "@fortawesome/sharp-solid-svg-icons";
 import _, { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";

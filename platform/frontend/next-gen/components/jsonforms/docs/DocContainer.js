@@ -11,7 +11,6 @@ import {
     Size,
     Tooltip,
 } from "@blueprintjs/core";
-import { faPlay } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBookOpenCover,
     faFish,
@@ -30,6 +29,7 @@ import {
     faSquareCheck,
     faTable,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faPlay } from "@fortawesome/sharp-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useState } from "react";

@@ -18,7 +18,6 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faPlay } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowsFromDottedLine,
     faBinaryCircleCheck,
@@ -29,6 +28,7 @@ import {
     faDownload,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faPlay } from "@fortawesome/sharp-solid-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
