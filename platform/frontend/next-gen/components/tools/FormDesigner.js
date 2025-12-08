@@ -34,7 +34,7 @@ import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
 import copy from "copy-to-clipboard";
 import _, { clone } from "lodash";
-import { createRef, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 import { v4 as uuidv4 } from "uuid";
 import JSONEditor from "../codemirror/JSONEditor";
@@ -61,7 +61,6 @@ function FormDesigner({ width, height }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const idRef = useRef(null);
     const [error, resetError] = useErrorBoundary();
-    const leftPaneRef = createRef();
     const [uischema, setUischema] = useState(clone(DEFAULT_UI_SCHEMA));
     const [schema, setSchema] = useState(clone(DEFAULT_SCHEMA));
     const [data, setData] = useState({});
@@ -184,7 +183,7 @@ function FormDesigner({ width, height }) {
             >
                 <Allotment>
                     <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
-                        <Allotment vertical ref={leftPaneRef}>
+                        <Allotment vertical>
                             <Allotment.Pane minSize={200}>
                                 <div
                                     className="border-bottom"
