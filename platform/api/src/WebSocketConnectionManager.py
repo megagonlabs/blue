@@ -12,7 +12,6 @@ import secrets
 
 ##### FastAPI, Web, Sockets, Authentication
 from fastapi import WebSocket
-from dataclasses import dataclass
 
 ###### Blue
 from blue.session import Session
@@ -60,7 +59,6 @@ def session_acl_enforce(session_sid: dict, user: dict, read=False, write=False):
     return allow
 
 
-@dataclass
 class WebSocketConnectionManager:
     def __init__(self) -> None:
         self.active_connections: dict = {}
