@@ -23,6 +23,7 @@ import { Omnibar } from "@blueprintjs/select";
 import {
     faBellConcierge,
     faCircleA,
+    faDatabase,
     faInboxFull,
     faInboxOut,
     faMonitorWaveform,
@@ -60,6 +61,7 @@ import OperatorList from "./registries/operators/OperatorList";
 import ToolList from "./registries/tools/ToolList";
 import ApplicationContainer from "./sessions/ApplicationContainer";
 import SessionList from "./sessions/SessionList";
+import DatabaseBuilder from "./tools/DatabaseBuilder";
 import FormDesigner from "./tools/FormDesigner";
 import BasicTour from "./ux/BasicTour";
 import VerticalScrollable from "./VerticalScrollable";
@@ -570,6 +572,28 @@ export default function Blue({ children }) {
                                                                             }
                                                                         />
                                                                     )}
+                                                                    <MenuItem
+                                                                        onClick={() =>
+                                                                            addContainer(
+                                                                                {
+                                                                                    title: "DB Builder",
+                                                                                    content:
+                                                                                        (
+                                                                                            <DatabaseBuilder />
+                                                                                        ),
+                                                                                    icon: faDatabase,
+                                                                                }
+                                                                            )
+                                                                        }
+                                                                        text="DB Builder"
+                                                                        icon={
+                                                                            <FAIcon
+                                                                                icon={
+                                                                                    faDatabase
+                                                                                }
+                                                                            />
+                                                                        }
+                                                                    />
                                                                 </>
                                                             )}
                                                             {_.some([

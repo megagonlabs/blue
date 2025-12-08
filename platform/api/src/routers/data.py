@@ -19,7 +19,7 @@ import logging
 
 ##### Typing
 from pydantic import BaseModel
-from typing import Union, Any, Dict, List
+from typing import Union, Any, Dict, List, Optional
 
 ###### FastAPI
 from APIRouter import APIRouter
@@ -42,7 +42,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 ###### Blue
 from blue.platform import Platform
 from blue.data.registry import DataRegistry
-
+from blue.data.source import DataSource
 from blue.metadata import MetaData
 
 ###### Properties
@@ -84,6 +84,12 @@ def source_acl_enforce(request: Request, source: dict, write=False, throw=True):
     if throw and not allow:
         raise PermissionDenied
     return allow
+
+
+class QueryRequest(BaseModel):
+    query: str
+    database: Optional[str] = None
+    collection: Optional[str] = None
 
 
 #############
@@ -406,3 +412,46 @@ def collect_source_database_collection_metadata(request: Request, source_name, d
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
+
+
+@router.post("/{source_name}/connect")
+def connect_source(request: Request, source_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
+    exist = request.app.database_connection_manager.get_source(source_name)
+
+    def get_source_tree(source_instance: DataSource):
+        result = {}
+        databases = source_instance.fetch_databases()
+        for database in databases:
+            result[database] = source_instance.fetch_database_collections(database)
+        return result
+
+    if exist:
+        result = get_source_tree(exist)
+        return JSONResponse(content={"result": result})
+    try:
+        source_instance = data_registry.connect_source(source_name)
+    except Exception:
+        return JSONResponse(status_code=500, content={"message": "Registry error"})
+    if not source_instance:
+        return JSONResponse(status_code=404, content={"message": f"Source '{source_name}' is invalid or uses an unsupported protocol."})
+    result = get_source_tree(source_instance)
+    request.app.database_connection_manager.add_source(source_name, source_instance)
+    return JSONResponse(content={"result": result})
+
+
+@router.post("/{source_name}/query")
+def execute_query(request: Request, source_name, payload: QueryRequest):
+    source_instance: DataSource = request.app.database_connection_manager.get_source(source_name)
+    if not source_instance:
+        response: JSONResponse = connect_source(request, source_name)
+        if not pydash.is_equal(response.status_code, 200):
+            return response
+    source_instance = request.app.database_connection_manager.get_source(source_name)
+    if not source_instance:
+        return JSONResponse(status_code=404, content={"message": f"Source '{source_name}' is invalid or uses an unsupported protocol."})
+    try:
+        result = source_instance.execute_query(query=payload.query, database=payload.database, collection=payload.collection)
+        return JSONResponse(content={"results": result})
+    except Exception as ex:
+        return JSONResponse(status_code=500, content={"message": "Query execution failed"})

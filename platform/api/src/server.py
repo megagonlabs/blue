@@ -39,6 +39,7 @@ from authorizations.constant import PermissionDenied
 from authorizations.utils import verify_google_id_token, is_email_allowed
 from routers import agents, data, models, operators, tools, sessions, containers, platform, accounts, status
 from WebSocketConnectionManager import WebSocketConnectionManager
+from DatabaseConnectionManager import DatabaseConnectionManager
 
 ###### Blue
 
@@ -154,7 +155,9 @@ app.include_router(platform.router)
 app.include_router(accounts.router)
 app.include_router(status.router)
 web_socket_connection_manager = WebSocketConnectionManager()
+database_connection_manager = DatabaseConnectionManager()
 app.web_socket_connection_manager = web_socket_connection_manager
+app.database_connection_manager = database_connection_manager
 
 
 @app.middleware("http")
