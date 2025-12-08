@@ -79,14 +79,17 @@ read_own_roles = ACL.get_implicit_users_for_permission('platform_agents', 'read_
 def resolve_agent_image(image, version=None):
     # check if image has suffix
     # deployed version
-    suffix = os.getenv("BLUE_DEPLOY_VERSION")
-    if version:
-        suffix = version
+    if version is None:
+        version = os.getenv("BLUE_DEPLOY_VERSION")
+    suffix = "v" + version
+    if version is None:
+        suffix = "latest"
+
     s = image.split(":")
     if len(s) > 1:
         image = s[0]
         suffix = s[1]
-    return image + ":v" + suffix
+    return image + ":" + suffix
 
 
 def container_acl_enforce(request: Request, agent: dict, read=False, write=False, throw=True):
