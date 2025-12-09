@@ -65,7 +65,7 @@ export default function SessionAgents({
                 "full-parent-dimension": true,
                 [Classes.SKELETON]: loading,
             })}
-            style={{ overflowY: "auto", ...style }}
+            style={{ borderRadius: 0, overflowY: "auto", ...style }}
         >
             {_.isEmpty(agents) ? (
                 <NonIdealState
