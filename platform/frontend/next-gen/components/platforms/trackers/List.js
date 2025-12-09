@@ -57,7 +57,7 @@ export default function List({ label, object }) {
             content={
                 <div
                     style={{
-                        padding: 15,
+                        padding: 20,
                         overflow: "auto",
                         maxHeight: 400,
                         maxWidth: 400,
