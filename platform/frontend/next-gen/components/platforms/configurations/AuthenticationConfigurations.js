@@ -324,7 +324,7 @@ export default function AuthenticationConfigurations() {
             <div
                 style={{
                     borderRadius: 2,
-                    padding: 15,
+                    padding: 20,
                     backgroundColor: darkMode
                         ? Colors.DARK_GRAY2
                         : Colors.LIGHT_GRAY5,
@@ -441,7 +441,7 @@ export default function AuthenticationConfigurations() {
                 style={{
                     borderRadius: 2,
                     marginTop: 10,
-                    padding: 15,
+                    padding: 20,
                     backgroundColor: darkMode
                         ? Colors.DARK_GRAY2
                         : Colors.LIGHT_GRAY5,
@@ -469,7 +469,7 @@ export default function AuthenticationConfigurations() {
                 style={{
                     borderRadius: 2,
                     marginTop: 10,
-                    padding: 15,
+                    padding: 20,
                     backgroundColor: darkMode
                         ? Colors.DARK_GRAY2
                         : Colors.LIGHT_GRAY5,
