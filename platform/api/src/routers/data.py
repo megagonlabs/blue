@@ -451,7 +451,7 @@ def execute_query(request: Request, source_name, payload: QueryRequest):
     if not source_instance:
         return JSONResponse(status_code=404, content={"message": f"Source '{source_name}' is invalid or uses an unsupported protocol."})
     try:
-        result = source_instance.execute_query(query=payload.query, database=payload.database, collection=payload.collection)
+        result = source_instance.execute_query(query=payload.query, database=payload.database, collection=payload.collection, optional_properties={'commit': True})
         return JSONResponse(content={"results": result})
     except Exception as ex:
         return JSONResponse(status_code=500, content={"message": "Query execution failed"})
