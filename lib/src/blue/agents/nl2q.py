@@ -14,7 +14,7 @@ from blue.data.registry import DataRegistry
 #
 class NL2SQLAgent(OpenAIAgent):
     """An agent that translates natural language questions into SQL queries using an LLM.
-    
+
     Properties (in addition to OpenAIAgent properties):
     ----------
     | Name           | Type                 | Default | Description |
@@ -233,24 +233,24 @@ Output:
                             entity_dict = existing_entity
                         else:
                             entity_dict = self.registry.get_source_database_collection_entity(source, database, collection, entity)
+                            if entity_dict is not None:
+                                # Initialize attributes list from contents if attribute=None
+                                if attribute is None and 'contents' in entity_dict and 'attribute' in entity_dict['contents']:
+                                    entity_dict['attributes'] = list(entity_dict['contents']['attribute'].values())
+                                else:
+                                    entity_dict['attributes'] = []
 
-                            # Initialize attributes list from contents if attribute=None
-                            if attribute is None and 'contents' in entity_dict and 'attribute' in entity_dict['contents']:
-                                entity_dict['attributes'] = list(entity_dict['contents']['attribute'].values())
-                            else:
-                                entity_dict['attributes'] = []
+                                if 'contents' in entity_dict and 'attribute' in entity_dict['contents']:
+                                    del entity_dict['contents']['attribute']
 
-                            if 'contents' in entity_dict and 'attribute' in entity_dict['contents']:
-                                del entity_dict['contents']['attribute']
-
-                            schemas[key]['entities'].append(entity_dict)
+                                schemas[key]['entities'].append(entity_dict)
 
                         # Add only the specified attribute
                         if attribute:
                             attribute_dict = self.registry.get_source_database_collection_entity_attribute(source, database, collection, entity, attribute)
 
                             if entity_dict:
-                                if all(attr['name'] != attribute_dict['name'] for attr in entity_dict['attributes']):
+                                if isinstance(entity_dict['attributes'], list) and all(attr['name'] != attribute_dict['name'] for attr in entity_dict['attributes']):
                                     entity_dict['attributes'].append(attribute_dict)
 
                     if relation:
