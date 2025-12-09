@@ -45,6 +45,15 @@ class PostgresDBSource(DataSource):
         # TODO:
         return None
 
+    def _get_cursor(self):
+        try:
+            if self.connection is None or self.connection.closed != 0:
+                raise psycopg2.InterfaceError("Connection already closed")
+            return self.connection.cursor()
+        except (psycopg2.InterfaceError, psycopg2.OperationalError):
+            self.connection = self._connect(**self.properties['connection'])
+            return self.connection.cursor()
+
     ######### source
     def fetch_metadata(self):
         """
@@ -79,7 +88,7 @@ class PostgresDBSource(DataSource):
 
         """
         query = "SELECT datname FROM pg_database;"
-        cursor = self.connection.cursor()
+        cursor = self._get_cursor()
         cursor.execute(query)
         data = cursor.fetchall()
         dbs = []
