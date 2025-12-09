@@ -1,3 +1,4 @@
+import { insertBetween } from "@/components/helper";
 import { useSourceStore } from "@/stores/source-store";
 import {
     Alignment,
@@ -5,6 +6,7 @@ import {
     ButtonGroup,
     ButtonVariant,
     Classes,
+    CompoundTag,
     Intent,
     Menu,
     MenuDivider,
@@ -12,7 +14,6 @@ import {
     NonIdealState,
     Popover,
     Size,
-    Tag,
     Tooltip,
     Tree,
 } from "@blueprintjs/core";
@@ -82,6 +83,61 @@ function convertJSONToCSV(jsonData, headers) {
     dataRows = _.join(dataRows, "\n");
     return `${headerRow}\n${dataRows}`;
 }
+const parseSourceTreeToNodes = (
+    data,
+    currentPath = "",
+    level = 0,
+    database = null,
+    collection = null
+) => {
+    const nodes = [];
+    const hierarchyLevels = ["database", "collection", "entity"];
+    const keys = _.keys(data);
+    for (let i = 0; i < _.size(keys); i++) {
+        const key = keys[i];
+        const id = currentPath ? `${currentPath}.${key}` : key;
+        const type = _.get(hierarchyLevels, level, "unknown");
+        const icon = <RegistryEntityIcon type={type} maxSize={20} />;
+        let node = {
+            id,
+            label: (
+                <div
+                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                    style={{ marginLeft: 8, paddingRight: 4 }}
+                >
+                    {key}
+                </div>
+            ),
+            icon,
+            nodeData: { type, path: id, value: key },
+            isExpanded: false,
+        };
+        if (type === "collection") {
+            _.set(node, "nodeData.database", database);
+        } else if (type === "entity") {
+            _.set(node, "nodeData.database", database);
+            _.set(node, "nodeData.collection", collection);
+        }
+        const childrenData = data[key];
+        if (
+            childrenData &&
+            _.isObject(childrenData) &&
+            !_.isEmpty(_.keys(childrenData)) &&
+            level < _.size(hierarchyLevels) - 1
+        ) {
+            node.childNodes = parseSourceTreeToNodes(
+                childrenData,
+                id,
+                level + 1,
+                database || (type === "database" ? key : null),
+                collection || (type === "collection" ? key : null)
+            );
+        }
+        nodes.push(node);
+    }
+    return nodes;
+};
+const COMPOUND_TAG_PROPS = { size: Size.LARGE, minimal: true, fill: true };
 function DatabaseBuilder({ width, height }) {
     const { data, getSources } = useSourceStore(
         useShallow((state) => ({
@@ -96,48 +152,9 @@ function DatabaseBuilder({ width, height }) {
     const elementRef = useRef(null);
     const [connected, setConnected] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [connecting, setConnecting] = useState(false);
     const [sourceTree, setSourceTree] = useState({});
     const [nodes, setNodes] = useState([]);
-    const parseSourceTreeToNodes = (data, currentPath = "", level = 0) => {
-        const nodes = [];
-        const hierarchyLevels = ["database", "collection", "entity"];
-        const keys = _.keys(data);
-        for (let i = 0; i < _.size(keys); i++) {
-            const key = keys[i];
-            const id = currentPath ? `${currentPath}.${key}` : key;
-            const type = _.get(hierarchyLevels, level, "unknown");
-            const icon = <RegistryEntityIcon type={type} maxSize={20} />;
-            const node = {
-                id,
-                label: (
-                    <div
-                        className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                        style={{ marginLeft: 8, paddingRight: 4 }}
-                    >
-                        {key}
-                    </div>
-                ),
-                icon,
-                nodeData: { type, path: id, value: key },
-                isExpanded: true,
-            };
-            const childrenData = data[key];
-            if (
-                childrenData &&
-                _.isObject(childrenData) &&
-                !_.isEmpty(_.keys(childrenData)) &&
-                level < _.size(hierarchyLevels) - 1
-            ) {
-                node.childNodes = parseSourceTreeToNodes(
-                    childrenData,
-                    id,
-                    level + 1
-                );
-            }
-            nodes.push(node);
-        }
-        return nodes;
-    };
     useEffect(() => {
         setNodes(parseSourceTreeToNodes(sourceTree));
     }, [sourceTree]);
@@ -148,7 +165,10 @@ function DatabaseBuilder({ width, height }) {
     useEffect(() => {
         if (_.has(selectedSource, "name")) {
             setConnected(false);
-            setLoading(true);
+            setConnecting(true);
+            setNodes([]);
+            setSelectedDatabase(null);
+            setSelectedCollection(null);
             axios
                 .post(
                     `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data/${selectedSource.name}/connect`
@@ -159,14 +179,13 @@ function DatabaseBuilder({ width, height }) {
                         _.get(response, "data.result.source_tree", {})
                     );
                     setConnected(true);
-                    setSelectedDatabase(null);
-                    setSelectedCollection(null);
                 })
                 .catch((error) => {
                     showAxiosErrorToast(error);
+                    setSelectedSource(null);
                 })
                 .finally(() => {
-                    setLoading(false);
+                    setConnecting(false);
                 });
         }
     }, [selectedSource]);
@@ -175,7 +194,7 @@ function DatabaseBuilder({ width, height }) {
     const [query, setQuery] = useState("");
     const [queryResults, setQueryResults] = useState(null);
     const setDefaultQuery = (entity) => {
-        if (_.isEqual(databaseType, "PostgresDBSource")) {
+        if (databaseType === "PostgresDBSource") {
             setQuery(`SELECT * FROM ${entity} LIMIT 100;`);
         }
     };
@@ -201,7 +220,7 @@ function DatabaseBuilder({ width, height }) {
             });
     };
     const handleExport = (type) => {
-        if (_.isEqual(type, "csv")) {
+        if (type === "csv") {
             const fileContent = convertJSONToCSV(queryResults);
             if (fileContent) {
                 const blob = new Blob([fileContent], {
@@ -216,14 +235,44 @@ function DatabaseBuilder({ width, height }) {
             }
         }
     };
+    const REQUIRE_DATABASE = !_.includes(
+        ["OpenAISource", "NEO4JSource"],
+        databaseType
+    );
+    const REQUIRE_COLLECTION = _.includes(["MongoDBSource"], databaseType);
+    const RUN_QUERY_DISABLED =
+        !connected ||
+        _.isEmpty(query) ||
+        (!_.includes(["NEO4JSource"], databaseType) &&
+            _.isEmpty(selectedDatabase)) ||
+        (!_.includes(["PostgresDBSource"], databaseType) &&
+            _.isEmpty(selectedCollection));
+    const onNodeExpand = (node, nodePath) => {
+        let temp = _.cloneDeep(nodes);
+        _.set(
+            temp,
+            [...insertBetween(nodePath, "childNodes"), "isExpanded"],
+            true
+        );
+        setNodes(temp);
+    };
+    const onNodeCollapse = (node, nodePath) => {
+        let temp = _.cloneDeep(nodes);
+        _.set(
+            temp,
+            [...insertBetween(nodePath, "childNodes"), "isExpanded"],
+            true
+        );
+        setNodes(temp);
+    };
     return (
         <div ref={elementRef} style={{ width, height }}>
             <div className="full-parent-dimension" style={{ display: "flex" }}>
                 <div
-                    style={{ overflowY: "auto", minWidth: 250 }}
+                    style={{ overflowY: "auto", minWidth: 250, maxWidth: 250 }}
                     className="border-right"
                 >
-                    <div className="border-bottom" style={{ padding: 10 }}>
+                    <div className="border-bottom" style={{ padding: 20 }}>
                         <Popover
                             fill
                             {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
@@ -245,11 +294,12 @@ function DatabaseBuilder({ width, height }) {
                             }
                         >
                             <Button
+                                loading={connecting}
                                 alignText={Alignment.START}
                                 ellipsizeText
                                 text={
                                     _.isEmpty(selectedSource)
-                                        ? "Connect"
+                                        ? "Connect source"
                                         : selectedSource.name
                                 }
                                 endIcon={<FAIcon icon={faAngleDown} />}
@@ -265,7 +315,7 @@ function DatabaseBuilder({ width, height }) {
                                 setView("query-editor");
                             }}
                             size={Size.LARGE}
-                            active={_.isEqual(view, "query-editor")}
+                            active={view === "query-editor"}
                             alignText={Alignment.START}
                             fill
                             variant={ButtonVariant.MINIMAL}
@@ -273,80 +323,104 @@ function DatabaseBuilder({ width, height }) {
                             text="Query Editor"
                         />
                     </div>
+                    <div className="border-bottom" style={{ padding: 10 }}>
+                        <CompoundTag
+                            {...COMPOUND_TAG_PROPS}
+                            leftContent="Database"
+                            icon={
+                                <FAIcon
+                                    icon={ENTITY_TYPE_LOOKUP["database"].icon}
+                                />
+                            }
+                            intent={
+                                _.isEmpty(selectedDatabase)
+                                    ? REQUIRE_DATABASE
+                                        ? Intent.DANGER
+                                        : Intent.NONE
+                                    : Intent.SUCCESS
+                            }
+                        >
+                            <div
+                                style={{ width: 88.17 }}
+                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            >
+                                {_.isEmpty(selectedDatabase)
+                                    ? "-"
+                                    : selectedDatabase}
+                            </div>
+                        </CompoundTag>
+                        <CompoundTag
+                            {...COMPOUND_TAG_PROPS}
+                            style={{ marginTop: 10 }}
+                            leftContent="Collection"
+                            icon={
+                                <FAIcon
+                                    icon={ENTITY_TYPE_LOOKUP["collection"].icon}
+                                />
+                            }
+                            intent={
+                                _.isEmpty(selectedCollection)
+                                    ? REQUIRE_COLLECTION
+                                        ? Intent.DANGER
+                                        : Intent.NONE
+                                    : Intent.SUCCESS
+                            }
+                        >
+                            <div
+                                style={{ width: 88.17 }}
+                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            >
+                                {_.isEmpty(selectedCollection)
+                                    ? "-"
+                                    : selectedCollection}
+                            </div>
+                        </CompoundTag>
+                    </div>
                     <div
+                        className={connecting ? Classes.SKELETON : null}
                         style={{
-                            height: "calc(100% - 111px)",
+                            height: "calc(100% - 222px)",
                             overflowY: "auto",
                             borderRadius: 0,
                         }}
                     >
-                        <div
-                            style={{
-                                padding: 10,
-                                gap: 10,
-                                display: "flex",
-                                alignItems: "center",
-                            }}
-                        >
-                            <Tag
-                                icon={
-                                    <FAIcon
-                                        icon={
-                                            ENTITY_TYPE_LOOKUP["database"].icon
-                                        }
-                                    />
-                                }
-                                minimal
-                                size={Size.LARGE}
-                                intent={
-                                    _.isEmpty(selectedDatabase)
-                                        ? Intent.DANGER
-                                        : Intent.SUCCESS
-                                }
-                            >
-                                {_.isEmpty(selectedDatabase)
-                                    ? "Database"
-                                    : selectedDatabase}
-                            </Tag>
-                            <Tag
-                                icon={
-                                    <FAIcon
-                                        icon={
-                                            ENTITY_TYPE_LOOKUP["collection"]
-                                                .icon
-                                        }
-                                    />
-                                }
-                                minimal
-                                size={Size.LARGE}
-                                intent={
-                                    _.includes(
-                                        ["PostgresDBSource"],
-                                        databaseType
-                                    )
-                                        ? Intent.NONE
-                                        : _.isEmpty(selectedCollection)
-                                        ? Intent.DANGER
-                                        : Intent.SUCCESS
-                                }
-                            >
-                                {_.isEmpty(selectedCollection)
-                                    ? "Collection"
-                                    : selectedCollection}
-                            </Tag>
-                        </div>
                         <Tree
                             contents={nodes}
                             onNodeClick={(node) => {
-                                const { type, value } = node.nodeData;
-                                if (_.isEqual(type, "database")) {
+                                const { type, value, database, collection } =
+                                    node.nodeData;
+                                if (database) {
+                                    setSelectedDatabase(database);
+                                }
+                                if (collection) {
+                                    setSelectedCollection(collection);
+                                }
+                                if (type === "database") {
                                     setSelectedDatabase(value);
-                                } else if (_.isEqual(type, "collection")) {
+                                } else if (type === "collection") {
                                     setSelectedCollection(value);
-                                } else if (_.isEqual(type, "entity")) {
+                                } else if (type === "entity") {
                                     setDefaultQuery(value);
                                 }
                             }}
+                            onNodeDoubleClick={(node) => {
+                                const { type, value, database, collection } =
+                                    node.nodeData;
+                                if (database) {
+                                    setSelectedDatabase(database);
+                                }
+                                if (collection) {
+                                    setSelectedCollection(collection);
+                                }
+                                if (type === "entity") {
+                                    setDefaultQuery(value);
+                                    setTimeout(() => {
+                                        runQuery();
+                                    }, 0);
+                                }
+                            }}
+                            onNodeExpand={onNodeExpand}
+                            onNodeCollapse={onNodeCollapse}
                         />
                     </div>
                 </div>
@@ -381,7 +455,7 @@ function DatabaseBuilder({ width, height }) {
                                             justifyContent: "space-between",
                                             borderColor:
                                                 !_.isNull(queryResults) &&
-                                                _.isEqual(viewMode, "table")
+                                                viewMode === "table"
                                                     ? "transparent"
                                                     : null,
                                         }}
@@ -396,8 +470,7 @@ function DatabaseBuilder({ width, height }) {
                                             >
                                                 <Button
                                                     disabled={
-                                                        !connected ||
-                                                        _.isEmpty(query)
+                                                        RUN_QUERY_DISABLED
                                                     }
                                                     loading={loading}
                                                     icon={
@@ -464,10 +537,9 @@ function DatabaseBuilder({ width, height }) {
                                                     onClick={() => {
                                                         setViewMode("table");
                                                     }}
-                                                    active={_.isEqual(
-                                                        viewMode,
-                                                        "table"
-                                                    )}
+                                                    active={
+                                                        viewMode === "table"
+                                                    }
                                                     icon={
                                                         <FAIcon
                                                             icon={faTable}
@@ -484,10 +556,7 @@ function DatabaseBuilder({ width, height }) {
                                                     onClick={() => {
                                                         setViewMode("json");
                                                     }}
-                                                    active={_.isEqual(
-                                                        viewMode,
-                                                        "json"
-                                                    )}
+                                                    active={viewMode === "json"}
                                                     icon={
                                                         <FAIcon
                                                             icon={
@@ -517,13 +586,13 @@ function DatabaseBuilder({ width, height }) {
                                             />
                                         )}
                                         {!_.isNull(queryResults) &&
-                                            _.isEqual(viewMode, "table") && (
+                                            viewMode === "table" && (
                                                 <TableVisualizer
                                                     list={queryResults}
                                                 />
                                             )}
                                         {!_.isNull(queryResults) &&
-                                            _.isEqual(viewMode, "json") && (
+                                            viewMode === "json" && (
                                                 <div
                                                     className="full-parent-height"
                                                     style={{
