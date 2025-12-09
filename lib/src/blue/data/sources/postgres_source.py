@@ -380,23 +380,32 @@ class PostgresDBSource(DataSource):
         if database is None:
             raise Exception("No database provided")
 
+        should_commit = optional_properties.get('commit', False)
         # create connection to db
         db_connection = self._db_connect(database)
+        try:
+            cursor = db_connection.cursor()
+            cursor.execute(query)
+            # check if the query returns rows (SELECT) or not (UPDATE/INSERT)
+            # cursor.description is None for operations that don't return rows
+            if cursor.description is None:
+                if should_commit:
+                    db_connection.commit()
+                return []
+            data = cursor.fetchall()
 
-        cursor = db_connection.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
-
-        # transform to json
-        columns = [desc[0] for desc in cursor.description]
-        df = pd.DataFrame(data, columns=columns)
-        df.fillna(value=np.nan, inplace=True)
-        result = json.loads(df.to_json(orient='records'))
-
-        # disconnect
-        self._db_disconnect(db_connection)
-
-        return result
+            # transform to json
+            columns = [desc[0] for desc in cursor.description]
+            df = pd.DataFrame(data, columns=columns)
+            df.fillna(value=np.nan, inplace=True)
+            result = json.loads(df.to_json(orient='records'))
+            return result
+        except Exception as e:
+            # rollback on error
+            db_connection.rollback()
+            raise e
+        finally:
+            self._db_disconnect(db_connection)
 
     ######### stats
 
