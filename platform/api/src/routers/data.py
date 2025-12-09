@@ -420,10 +420,14 @@ def connect_source(request: Request, source_name):
     exist = request.app.database_connection_manager.get_source(source_name)
 
     def get_source_tree(source_instance: DataSource):
-        result = {}
+        result = {'type': type(source_instance).__name__, 'source_tree': {}}
         databases = source_instance.fetch_databases()
         for database in databases:
-            result[database] = source_instance.fetch_database_collections(database)
+            collections = source_instance.fetch_database_collections(database)
+            for collection in collections:
+                entities = source_instance.fetch_database_collection_entities(database, collection)
+                for entity in entities:
+                    pydash.objects.set_(result, ['source_tree', database, collection, entity], {})
         return result
 
     if exist:
