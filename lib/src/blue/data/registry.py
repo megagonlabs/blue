@@ -20,6 +20,7 @@ from blue.data.sources.postgres_source import PostgresDBSource
 from blue.data.sources.mysql_source import MySQLDBSource
 from blue.data.sources.sqlite_source import SQLiteDBSource
 from blue.data.sources.openai_source import OpenAISource
+from blue.data.sources.bn_source import BNSource
 
 ###### Backend, Databases
 import redis
@@ -1128,6 +1129,8 @@ class DataRegistry(Registry):
                         source_connection = SQLiteDBSource(source, properties=properties)
                     elif protocol == "openai":
                         source_connection = OpenAISource(source, properties=properties)
+                    elif protocol == "bn":
+                        source_connection = BNSource(source, properties=properties)
 
         return source_connection
 
@@ -1711,7 +1714,13 @@ class DataRegistry(Registry):
 
             ## set schema after all entities and relations are processed
             try:
-                schema = self.get_data_source_schema(source, database, collection, format="json")
+                # Get protocol from source connection or source properties
+                protocol = None
+                connection_props = self.get_source_property(source, 'connection')
+                if connection_props:
+                    protocol = connection_props.get('protocol')
+                
+                schema = self.get_data_source_schema(source, database, collection, protocol=protocol, format="json")
                 if schema and schema != "{}":
                     self.set_source_database_collection_property(source, database, collection, "schema", schema, rebuild=True)
             except Exception as e:
@@ -1831,13 +1840,27 @@ class DataRegistry(Registry):
     
     ###############
     ##  data sources search
-    def get_data_source_schema(self, source, database, collection, format="dict"):
+    def get_data_source_schema(self, source, database, collection, protocol=None, format="dict"):
         """Return the schema by combining entities and relations, default in dict format"""
         schema = {}
         entities = self.get_source_database_collection_entities(source, database, collection)
         relations = self.get_source_database_collection_relations(source, database, collection)
+
         schema['entities'] = entities
         schema['relations'] = relations
+        schema['metadata'] = {}
+
+        if protocol == "bn":
+            # get metadata from collection properties
+            metadata = self.get_source_database_collection_property(source, database, collection, "metadata")
+            if metadata:
+                # optional remove the entities and relations from schema as they are already in the schema
+                if 'entities' in schema:
+                    schema['entities'] = []
+                if 'relations' in schema:
+                    schema['relations'] = []
+                schema['metadata'] = metadata
+
         if format == "dict":
             return schema
         elif format == "json":
@@ -1846,9 +1869,11 @@ class DataRegistry(Registry):
             return yaml.dump(schema)
 
         # build DataSchema class and return string representation
+        metadata = schema.get('metadata', {})
         schema = DataSchema()
         schema.entities = entities
         schema.relations = relations
+        schema.metadata = metadata
         # note: please update the schema representation in DataSchema class if the default __str__ doesn't satisfy your needs
         return str(schema)
 

@@ -6,6 +6,7 @@ class DataSchema:
         """Initialize empty containers for entities and relations."""
         self.entities = {}
         self.relations = {}
+        self.metadata = {}
 
     def has_entity(self, key):
         """
@@ -219,5 +220,10 @@ class DataSchema:
             s += "  properties: " + '\n'
             for property in properties:
                 s += "    " + property + ": " + properties[property] + '\n'
+
+        if self.metadata:
+            s += 'Metadata: ' + '\n'
+            for key in self.metadata:
+                s += "  " + key + ": " + self.metadata[key] + '\n'
 
         return s
