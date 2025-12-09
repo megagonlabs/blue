@@ -305,7 +305,7 @@ async def create_session(request: Request):
     session.set_metadata('created_by', uid)
     created_date = session.get_metadata('created_date')
     result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
-    await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
+    await request.app.web_socket_connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
     return JSONResponse(content={"result": result})
 
 
@@ -341,7 +341,7 @@ async def create_session_in_group(request: Request, group_name):
     session.set_metadata('created_by', uid)
     created_date = session.get_metadata('created_date')
     result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
-    await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
+    await request.app.web_socket_connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
     # auto-join agents in group to session
 
     agents = agent_registry.get_agent_group_agents(group_name)

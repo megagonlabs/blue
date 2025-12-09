@@ -22,10 +22,10 @@ import {
     faFileHalfDashed,
     faFileWaveform,
     faPenLine,
-    faPlay,
     faRefresh,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faPlay } from "@fortawesome/sharp-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useMemo } from "react";

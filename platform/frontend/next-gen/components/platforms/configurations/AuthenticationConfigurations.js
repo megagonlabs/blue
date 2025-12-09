@@ -520,6 +520,7 @@ export default function AuthenticationConfigurations() {
                                     variant={ButtonVariant.MINIMAL}
                                 >
                                     <Button
+                                        loading={emailsLoading}
                                         onClick={getAllowedEmails}
                                         icon={<FAIcon icon={faRefresh} />}
                                     />

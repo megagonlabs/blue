@@ -1,5 +1,4 @@
 import { Button, ButtonVariant, Colors, Intent } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowRightFromLine,
     faArrowRightToLine,
@@ -18,6 +17,7 @@ import {
     faServer,
     faXmark,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faCheck } from "@fortawesome/sharp-solid-svg-icons";
 import { allEnv } from "next-runtime-env";
 import { FAIcon } from "./FAIcon";
 const {

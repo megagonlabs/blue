@@ -248,6 +248,7 @@ class Worker:
         """
 
         self.logger = log_utils.CustomLogger()
+        
         # customize log
         self.logger.set_config_data(
             "stack",
@@ -1339,6 +1340,23 @@ class Agent(ErrorLoom):
         session_sid = "<NOT_SET>"
         self.logger.set_config_data("session", session_sid, -1)
 
+    ###########################################################################
+    # LOGGER UPGRADE (from Session)
+    ###########################################################################
+    def _upgrade_logger_from_session(self):
+        """
+        When agent joins a session, session injects a SearchableCustomLogger.
+        Update agent logger to use session's structured logger.
+        """
+        if hasattr(self.session, "logger") and \
+           hasattr(self.session.logger, "logstore"):
+            # Replace local logger with session's SearchableCustomLogger
+            self.logger = self.session.logger
+
+            # Extend structured context
+            self.logger.update_context(agent=self.sid)
+
+
     ###### database, data
     def _start_connection(self):
         """Start the database connection for the agent."""
@@ -1469,6 +1487,9 @@ class Agent(ErrorLoom):
         # update logger
         self.logger.del_config_data("session")
         self.logger.set_config_data("session", self.session.sid, -1)
+
+        # upgrade to structured logger
+        self._upgrade_logger_from_session()
 
         if self.session:
             self.session.add_agent(self)

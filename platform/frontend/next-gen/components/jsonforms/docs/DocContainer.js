@@ -23,13 +23,13 @@ import {
     faPalletBoxes,
     faParagraph,
     faPause,
-    faPlay,
     faPresentationScreen,
     faQuoteLeft,
     faRectanglesMixed,
     faSquareCheck,
     faTable,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faPlay } from "@fortawesome/sharp-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useState } from "react";

@@ -13,11 +13,11 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faAngleDown, faAngleRight } from "@fortawesome/pro-solid-svg-icons";
 import {
     faSquareExclamation,
     faTerminal,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faAngleDown, faAngleRight } from "@fortawesome/sharp-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useRef, useState } from "react";
