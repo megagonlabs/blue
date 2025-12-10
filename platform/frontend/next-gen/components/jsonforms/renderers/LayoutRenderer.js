@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { or, rankWith, uiTypeIs } from "@jsonforms/core";
 import { JsonFormsDispatch, withJsonFormsLayoutProps } from "@jsonforms/react";
 import _ from "lodash";
@@ -12,7 +13,7 @@ const LayoutRenderer = ({
 }) => {
     // default layout is VerticalLayout
     const type = _.get(uischema, "type", "VerticalLayout");
-    const style = _.get(uischema, "props.style", {});
+    const style = convertCss(_.get(uischema, "props.style", {}));
     const spaceEvenly = _.get(uischema, "props.spaceEvenly", true);
     const isHorizontal = _.isEqual(type, "HorizontalLayout");
     return (

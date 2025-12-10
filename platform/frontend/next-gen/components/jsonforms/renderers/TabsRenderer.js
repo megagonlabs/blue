@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { useSocketStore } from "@/stores/socket-store";
 import {
     Button,
@@ -54,7 +55,7 @@ const TabsRenderer = ({
             );
         }, 0);
     };
-    const style = _.get(uischema, "props.style", {});
+    const style = convertCss(_.get(uischema, "props.style", {}));
     const large = _.get(uischema, "props.large", false);
     const compact = _.get(uischema, "props.compact", false);
     const vertical = _.get(uischema, "props.vertical", false);

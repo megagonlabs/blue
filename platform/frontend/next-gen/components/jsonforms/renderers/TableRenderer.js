@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { Callout, Code, HTMLTable, Intent } from "@blueprintjs/core";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
 import {
@@ -6,7 +7,7 @@ import {
 } from "@jsonforms/react";
 import _ from "lodash";
 const TableRenderer = ({ cells, path, renderers, schema, uischema, data }) => {
-    const style = _.get(uischema, "props.style", {});
+    const style = convertCss(_.get(uischema, "props.style", {}));
     const compact = _.get(uischema, "props.compact", false);
     const striped = _.get(uischema, "props.striped", false);
     const bordered = _.get(uischema, "props.bordered", false);
