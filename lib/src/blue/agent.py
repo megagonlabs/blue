@@ -1581,6 +1581,7 @@ class Agent(ErrorLoom):
                     m = set()
                     a = True
                     for ii in i:
+                        ii = ii.strip()
                         p = re.compile(ii)
                         b = False
                         for tag in tags:
