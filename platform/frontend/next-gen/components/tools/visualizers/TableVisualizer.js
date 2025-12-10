@@ -7,23 +7,20 @@ import {
     ColumnHeaderCell,
     RowHeaderCell,
     Table,
-    TableLoadingOption,
 } from "@blueprintjs/table";
 import {
     faArrowDownShortWide,
     faArrowDownWideShort,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 export default function TableVisualizer({ list }) {
-    const [columns, setColumns] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [sortConfig, setSortConfig] = useState({
         column: null,
         direction: "asc", // 'asc' or 'desc'
     });
-    useEffect(() => {
-        setLoading(true);
+    const columns = useMemo(() => {
+        if (_.isEmpty(list)) return [];
         let newColumns = new Set();
         for (let i = 0; i < _.size(list); i++) {
             const keys = _.keys(list[i]);
@@ -31,8 +28,7 @@ export default function TableVisualizer({ list }) {
                 newColumns.add(keys[j]);
             }
         }
-        setColumns(_.toArray(newColumns));
-        setLoading(false);
+        return _.toArray(newColumns);
     }, [list]);
     const sortedList = useMemo(() => {
         if (!sortConfig.column) {
@@ -67,21 +63,9 @@ export default function TableVisualizer({ list }) {
             </Menu>
         );
     };
-    const handleHeaderDoubleClick = (column) => {
-        console.log(column);
-    };
     return (
         <Table
             cellRendererDependencies={[sortedList]}
-            loadingOptions={
-                loading
-                    ? [
-                          TableLoadingOption.CELLS,
-                          TableLoadingOption.ROW_HEADERS,
-                          TableLoadingOption.COLUMN_HEADERS,
-                      ]
-                    : []
-            }
             enableRowResizing={false}
             numRows={_.size(list)}
             defaultRowHeight={TABLE_CELL_HEIGHT}
