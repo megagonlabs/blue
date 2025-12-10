@@ -57,7 +57,7 @@ class PostgresDBSource(DataSource):
     def _get_cursor(self):
         """
         Returns a cursor. Ensures the connection is valid by testing it first.
-        If the connection is stale (OperationalError), it reconnects automatically.
+        If the connection is stale or broken, it reconnects automatically.
         """
         # check if the object thinks it is closed
         if self.connection is None or self.connection.closed != 0:
@@ -66,7 +66,11 @@ class PostgresDBSource(DataSource):
         try:
             with self.connection.cursor() as test_cur:
                 test_cur.execute("SELECT 1")
-        except (psycopg2.InterfaceError, psycopg2.OperationalError):
+        except psycopg2.Error:
+            try:
+                self.connection.close()
+            except Exception:
+                pass
             self.connection = self._connect(**self.properties['connection'])
         return self.connection.cursor()
 
