@@ -7,6 +7,7 @@ import {
     ButtonVariant,
     Classes,
     CompoundTag,
+    Divider,
     Intent,
     Menu,
     MenuDivider,
@@ -51,6 +52,7 @@ import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import JSONViewer from "../JSONViewer";
 import RegistryEntityIcon from "../registries/RegistryEntityIcon";
+import Timestamp from "../Timestamp";
 import TableVisualizer from "./visualizers/TableVisualizer";
 const { NEXT_PUBLIC_DATA_REGISTRY_NAME } = allEnv();
 function convertJSONToCSV(jsonData, headers) {
@@ -331,6 +333,7 @@ function DatabaseBuilder({ width, height }) {
             if (timerRef.current) clearTimeout(timerRef.current);
         };
     }, []);
+    const [lastUpdated, setLastUpdated] = useState(null);
     const runQuery = useCallback(() => {
         if (!selectedSource) {
             return;
@@ -352,6 +355,7 @@ function DatabaseBuilder({ width, height }) {
             })
             .then((response) => {
                 setQueryResults(_.get(response, "data.results", []));
+                setLastUpdated(new Date());
                 const currentInterval = refreshIntervalRef.current;
                 if (currentInterval > 0) {
                     timerRef.current = setTimeout(() => {
@@ -440,7 +444,10 @@ function DatabaseBuilder({ width, height }) {
     );
     return (
         <div ref={elementRef} style={{ width, height }}>
-            <div className="full-parent-dimension" style={{ display: "flex" }}>
+            <div
+                className="full-parent-dimension"
+                style={{ display: "flex", height: "calc(100% - 40px)" }}
+            >
                 <div
                     style={{ overflowY: "auto", minWidth: 256, maxWidth: 256 }}
                     className="border-right"
@@ -875,6 +882,33 @@ function DatabaseBuilder({ width, height }) {
                             </Allotment>
                         </Allotment.Pane>
                     </Allotment>
+                </div>
+            </div>
+            <div className="border-top" style={{ height: 40 }}>
+                <div
+                    className="full-parent-height"
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        marginLeft: 20,
+                        marginRight: 20,
+                    }}
+                >
+                    {!_.isNull(lastUpdated) && (
+                        <>
+                            Updated
+                            <div className={Classes.TEXT_MUTED}>
+                                <Timestamp
+                                    placement="top"
+                                    epoch={lastUpdated}
+                                />
+                            </div>
+                            <Divider style={{ height: 10 }} />
+                        </>
+                    )}
+                    {_.size(queryResults)} item
+                    {_.size(queryResults) > 1 ? "s" : ""}
                 </div>
             </div>
         </div>
