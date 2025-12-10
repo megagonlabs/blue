@@ -5,8 +5,8 @@ import _ from "lodash";
 const MarkdownRenderer = ({ uischema, data }) => {
     const style = _.get(uischema, "props.style", {});
     return (
-        <div style={{ ...style, overflow: "auto" }}>
-            <Markdown content={data} />
+        <div style={{ overflow: "auto" }}>
+            <Markdown content={data} style={style} />
         </div>
     );
 };
