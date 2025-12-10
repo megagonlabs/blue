@@ -454,56 +454,159 @@ class MetaData(ServiceClient):
     
     def build_value_semantics_prompt(self, entity_name, attr_name, attr_properties):
         """
-        Build an LLM prompt to infer semantic meaning of attribute values.
+        Build a generalized and production-grade prompt for Value Semantics Inference (VST).
+        This design supports: open-world semantic categories, linguistic and structural inference,
+        fuzzy categories, ranges, thresholds, and dynamic concept generation without relying on
+        enumerated domain lists. Suitable for agentic systems and evolving datasets.
         """
 
         attr_stats = attr_properties.get("stats", {})
         sample_values = attr_stats.get("sample_values", [])[:10]
         if not sample_values:
             sample_values = ["<NO SAMPLE VALUES AVAILABLE>"]
+
         attr_type = attr_properties.get("info", {}).get("type", "unknown")
 
         prompt = f"""
-        You are analyzing attribute values from a database entity.
+        You are an advanced VALUE SEMANTICS inference engine designed for enterprise-scale,
+        heterogeneous data. Your goal is to infer the **intrinsic semantic meaning** of the VALUES
+        in a database attribute—based only on the values themselves, not business rules.
 
-        Your task:
-        Infer the SEMANTIC TYPE of this attribute based on sample values, patterns, datatype, and context.
-        Examples of semantic types: 
-        - US_STATE_CODE
-        - DATE
-        - TIMESTAMP
-        - ZIP_CODE
-        - CITY_NAME
-        - COUNTRY_CODE
-        - PERSON_NAME
-        - CURRENCY_AMOUNT
-        - ID / IDENTIFIER
-        - BOOLEAN
-        - FREE_TEXT
-        - UNKNOWN
+        ──────────────────────────────────────────────
+        VALUE SEMANTICS (VST) — CORE PRINCIPLES
+        ──────────────────────────────────────────────
+        You operate under an OPEN-WORLD semantic model:
 
-        Output MUST be strict JSON:
+        1. VST is NOT a closed taxonomy.
+        2. You may generate new semantic types if supported by patterns in the values.
+        3. You infer meaning by analyzing:
+        • linguistic patterns
+        • structural patterns
+        • categorical signals
+        • statistical regularities
+        • latent real-world semantics
+
+        Never restrict yourself to predefined categories.
+
+        ──────────────────────────────────────────────
+        THE THREE-LAYER SEMANTIC MODEL
+        ──────────────────────────────────────────────
+
+        You infer semantics across three conceptual layers:
+
+        LAYER 1 — STRUCTURAL SEMANTICS
+            What *shape* do the values have?
+            Examples: STRING, NUMBER, INTEGER, DATE, URL, EMAIL, ID_STRING, BOOLEAN, CODE
+
+        LAYER 2 — LINGUISTIC / ENTITY SEMANTICS
+            What *type of entity or label* do the values resemble?
+            Examples (not exhaustive):
+            - person names
+            - job titles
+            - certification names
+            - skills or competencies
+            - locations (city/state/country)
+            - product names
+            - organizational entities
+            These categories are open-world: you may create new ones.
+
+        LAYER 3 — CONCEPTUAL / CATEGORY SEMANTICS
+            What *semantic class or conceptual grouping* do the values imply?
+            This includes:
+            - demographic groups (teenagers, seniors)
+            - vehicle classes (heavy truck, light truck)
+            - risk/quality tiers
+            - product tiers (premium, basic)
+            - salary or value levels (high/low/medium)
+            - measurement categories (speed, volume, weight)
+            - domain-relevant categories emerging from patterns
+            Again, this is open-world: you may generate new conceptual classes.
+
+        IMPORTANT:
+            These layers are not mutually exclusive — you produce the *most informative*
+            semantic type that best describes the values.
+
+        ──────────────────────────────────────────────
+        GENERALIZED DETECTION PATTERNS
+        ──────────────────────────────────────────────
+        Use the following reasoning strategies:
+
+        • STRUCTURAL SIGNALS:
+            - formats (dates, codes, emails, numbers)
+            - token patterns
+            - length consistency
+            - character composition
+
+        • LINGUISTIC SIGNALS:
+            - multi-word phrases
+            - professional titles
+            - credential-like structures (“Certified…”, “Diploma in…”)
+            - named entities (locations, organizations)
+            - labels with standardized wording (hazard class, tier labels)
+
+        • CATEGORY SIGNALS:
+            - group names (“teenagers”, “seniors”)
+            - categorical adjectives (high, low, premium, hazardous)
+            - domain-like clusters (“heavy truck”, “backup technologies certifications”)
+            - ordinal or tiered values
+
+        • NUMERIC SEMANTICS:
+            If values *represent* categories (not numbers), infer:
+                – ranges (age group, tier)
+                – thresholds (heavy truck → payload > X)
+                – levels (risk, salary, quality)
+
+        ──────────────────────────────────────────────
+        WHEN TO USE FREE_TEXT
+        ──────────────────────────────────────────────
+        ONLY use FREE_TEXT if:
+
+        1. Values show no consistent structure,
+        2. No stable linguistic or categorical signals exist,
+        3. Values are arbitrary human-written sentences with no common semantic class.
+
+        This should be rare.
+
+        ──────────────────────────────────────────────
+        OUTPUT FORMAT (STRICT JSON ONLY)
+        ──────────────────────────────────────────────
 
         {{
-            "semantic_type": "string",
-            "confidence": 0.0,
-            "rationale": "why you inferred this",
-            "examples": []
+        "semantic_type": "string",
+        "subcategory": "string or null",
+        "confidence": 0.0,
+        "range": {{
+            "min": number or null,
+            "max": number or null
+        }},
+        "criteria": "string or null",
+        "rationale": "short explanation of the inferred semantics",
+        "examples": []
         }}
 
-        -------------------------
+        INTERPRETATION GUIDELINES:
+        - semantic_type is the most informative object-level category.
+        - subcategory is a refinement (e.g., HEAVY_TRUCK, TEENAGER, PREMIUM).
+        - range is used only when applicable (ages, thresholds, numeric groups).
+        - criteria is used for inferred thresholds or rules.
+        - examples must be from the provided values.
+
+        ──────────────────────────────────────────────
+        ATTRIBUTE CONTEXT
+        ──────────────────────────────────────────────
         Entity: {entity_name}
         Attribute: {attr_name}
         Declared Type: {attr_type}
 
         Sample Values:
         {json.dumps(sample_values, indent=2)}
-        -------------------------
 
-        Now infer semantic meaning and return ONLY valid JSON.
+        Now infer the most accurate semantics and return ONLY valid JSON.
         """
         return prompt.strip()
 
+    
+    
     def infer_attribute_value_semantics(self, entity_name, attr):
         attr_name = attr.get("name")
         attr_properties = attr.get("properties", {})
