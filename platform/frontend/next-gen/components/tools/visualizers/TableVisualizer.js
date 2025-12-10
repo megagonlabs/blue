@@ -1,6 +1,6 @@
 import { TABLE_CELL_HEIGHT } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
-import { Menu, MenuItem, Size } from "@blueprintjs/core";
+import { Colors, Menu, MenuItem, Size } from "@blueprintjs/core";
 import {
     Cell,
     Column,
@@ -11,6 +11,8 @@ import {
 import {
     faArrowDownShortWide,
     faArrowDownWideShort,
+    faCircleCheck,
+    faCircleXmark,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useMemo, useState } from "react";
@@ -96,13 +98,37 @@ export default function TableVisualizer({ list }) {
                         key={column}
                         name={column}
                         columnHeaderCellRenderer={columnHeaderCellRenderer}
-                        cellRenderer={(rowIndex) => (
-                            <Cell
-                                style={{ lineHeight: `${TABLE_CELL_HEIGHT}px` }}
-                            >
-                                {_.get(sortedList, [rowIndex, column], "-")}
-                            </Cell>
-                        )}
+                        cellRenderer={(rowIndex) => {
+                            const cellData = _.get(
+                                sortedList,
+                                [rowIndex, column],
+                                "-"
+                            );
+                            return (
+                                <Cell
+                                    style={{
+                                        lineHeight: `${TABLE_CELL_HEIGHT}px`,
+                                    }}
+                                >
+                                    {_.isString(cellData) && cellData}
+                                    {_.isBoolean(cellData) && (
+                                        <FAIcon
+                                            style={{
+                                                marginTop: 12,
+                                                color: cellData
+                                                    ? Colors.GREEN3
+                                                    : Colors.RED3,
+                                            }}
+                                            icon={
+                                                cellData
+                                                    ? faCircleCheck
+                                                    : faCircleXmark
+                                            }
+                                        />
+                                    )}
+                                </Cell>
+                            );
+                        }}
                     />
                 );
             })}

@@ -576,7 +576,7 @@ export default function Blue({ children }) {
                                                                         onClick={() =>
                                                                             addContainer(
                                                                                 {
-                                                                                    title: "DB Builder",
+                                                                                    title: "DB Explorer",
                                                                                     content:
                                                                                         (
                                                                                             <DatabaseBuilder />
@@ -585,7 +585,7 @@ export default function Blue({ children }) {
                                                                                 }
                                                                             )
                                                                         }
-                                                                        text="DB Builder"
+                                                                        text="DB Explorer"
                                                                         icon={
                                                                             <FAIcon
                                                                                 icon={
