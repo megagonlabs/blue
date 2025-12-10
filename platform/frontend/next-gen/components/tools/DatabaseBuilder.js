@@ -22,6 +22,7 @@ import {
 import {
     faAngleDown,
     faBracketsSquare,
+    faEllipsisH,
     faFileCsv,
     faFileExport,
     faOctagonExclamation,
@@ -30,6 +31,7 @@ import {
     faServer,
     faTable,
     faTableList,
+    faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { faPlay } from "@fortawesome/sharp-solid-svg-icons";
 import { Allotment } from "allotment";
@@ -85,59 +87,21 @@ function convertJSONToCSV(jsonData, headers) {
     dataRows = _.join(dataRows, "\n");
     return `${headerRow}\n${dataRows}`;
 }
-const parseSourceTreeToNodes = (
-    data,
-    currentPath = "",
-    level = 0,
-    database = null,
-    collection = null
-) => {
-    const nodes = [];
-    const hierarchyLevels = ["database", "collection", "entity"];
-    const keys = _.keys(data);
-    for (let i = 0; i < _.size(keys); i++) {
-        const key = keys[i];
-        const id = currentPath ? `${currentPath}.${key}` : key;
-        const type = _.get(hierarchyLevels, level, "unknown");
-        const icon = <RegistryEntityIcon type={type} maxSize={20} />;
-        let node = {
-            id,
-            label: (
-                <div
-                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                    style={{ marginLeft: 8, paddingRight: 4 }}
-                >
-                    {key}
-                </div>
-            ),
-            icon,
-            nodeData: { type, path: id, value: key },
-            isExpanded: true,
-        };
-        if (type === "collection") {
-            _.set(node, "nodeData.database", database);
-        } else if (type === "entity") {
-            _.set(node, "nodeData.database", database);
-            _.set(node, "nodeData.collection", collection);
-        }
-        const childrenData = data[key];
-        if (
-            childrenData &&
-            _.isObject(childrenData) &&
-            !_.isEmpty(_.keys(childrenData)) &&
-            level < _.size(hierarchyLevels) - 1
-        ) {
-            node.childNodes = parseSourceTreeToNodes(
-                childrenData,
-                id,
-                level + 1,
-                database || (type === "database" ? key : null),
-                collection || (type === "collection" ? key : null)
-            );
-        }
-        nodes.push(node);
+const removeNodeFromTree = (nodes, nodeIdToDelete) => {
+    let filteredNodes = nodes.filter((node) => node.id !== nodeIdToDelete);
+    if (_.size(filteredNodes) !== _.size(nodes)) {
+        return filteredNodes;
     }
-    return nodes;
+    for (let i = 0; i < _.size(filteredNodes); i++) {
+        const node = filteredNodes[i];
+        if (!_.isEmpty(node.childNodes)) {
+            _.set(filteredNodes, i, {
+                ...node,
+                childNodes: removeNodeFromTree(node.childNodes, nodeIdToDelete),
+            });
+        }
+    }
+    return filteredNodes;
 };
 const COMPOUND_TAG_PROPS = { size: Size.LARGE, minimal: true, fill: true };
 function DatabaseBuilder({ width, height }) {
@@ -157,9 +121,6 @@ function DatabaseBuilder({ width, height }) {
     const [connecting, setConnecting] = useState(false);
     const [sourceTree, setSourceTree] = useState({});
     const [nodes, setNodes] = useState([]);
-    useEffect(() => {
-        setNodes(parseSourceTreeToNodes(sourceTree));
-    }, [sourceTree]);
     const [databaseType, setDatabaseType] = useState(null);
     const [selectedDatabase, setSelectedDatabase] = useState(null);
     const [selectedCollection, setSelectedCollection] = useState(null);
@@ -173,6 +134,147 @@ function DatabaseBuilder({ width, height }) {
             setQuery(`SELECT * FROM ${entity} LIMIT 100;`);
         }
     };
+    const handleDeleteEntity = (key, nodeData) => {
+        if (!selectedSource || !nodeData) return;
+        const sourceName = _.get(selectedSource, "name");
+        const url = `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data/${sourceName}/query`;
+        const { path, databaseType, database, collection } = nodeData;
+        let currentQuery = "";
+        if (databaseType === "PostgresDBSource") {
+            currentQuery = `DROP TABLE IF EXISTS ${key};`;
+        }
+        if (!_.isEmpty(currentQuery)) {
+            setLoading(true);
+            axios
+                .post(url, { query: currentQuery, database, collection })
+                .then(() => {
+                    setNodes((prevNodes) => {
+                        return removeNodeFromTree(prevNodes, path);
+                    });
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        }
+    };
+    const parseSourceTreeToNodes = (
+        data,
+        currentPath = "",
+        level = 0,
+        database = null,
+        collection = null
+    ) => {
+        const nodes = [];
+        const hierarchyLevels = ["database", "collection", "entity"];
+        const keys = _.keys(data);
+        for (let i = 0; i < _.size(keys); i++) {
+            const key = keys[i];
+            const id = currentPath ? `${currentPath}.${key}` : key;
+            const type = _.get(hierarchyLevels, level, "unknown");
+            const icon = <RegistryEntityIcon type={type} maxSize={20} />;
+            let node = {
+                id,
+                label: (
+                    <div
+                        className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                        style={{ marginLeft: 8, paddingRight: 4 }}
+                    >
+                        {key}
+                    </div>
+                ),
+                icon,
+                nodeData: { type, path: id, value: key, databaseType },
+                isExpanded: true,
+            };
+            if (type === "collection") {
+                _.set(node, "nodeData.database", database);
+            } else if (type === "entity") {
+                _.set(node, "nodeData.database", database);
+                _.set(node, "nodeData.collection", collection);
+                _.set(
+                    node,
+                    "secondaryLabel",
+                    <div
+                        onClick={(event) => {
+                            event.stopPropagation();
+                        }}
+                        onDoubleClick={(event) => {
+                            event.stopPropagation();
+                        }}
+                    >
+                        <Popover
+                            placement="right"
+                            content={
+                                <Menu size={Size.LARGE}>
+                                    <Popover
+                                        className="full-parent-width"
+                                        placement="right"
+                                        content={
+                                            <div style={{ padding: 10 }}>
+                                                <Button
+                                                    onClick={() => {
+                                                        handleDeleteEntity(
+                                                            key,
+                                                            node["nodeData"]
+                                                        );
+                                                    }}
+                                                    className={
+                                                        Classes.POPOVER_DISMISS
+                                                    }
+                                                    intent={Intent.DANGER}
+                                                    text="Confirm"
+                                                />
+                                            </div>
+                                        }
+                                    >
+                                        <MenuItem
+                                            shouldDismissPopover={false}
+                                            icon={<FAIcon icon={faTrash} />}
+                                            intent={Intent.DANGER}
+                                            text="Delete"
+                                        />
+                                    </Popover>
+                                </Menu>
+                            }
+                        >
+                            <Button
+                                onClick={() => {
+                                    setSelectedDatabase(database);
+                                    setSelectedCollection(collection);
+                                }}
+                                variant={ButtonVariant.MINIMAL}
+                                size={Size.SMALL}
+                                icon={<FAIcon icon={faEllipsisH} />}
+                            />
+                        </Popover>
+                    </div>
+                );
+            }
+            const childrenData = data[key];
+            if (
+                childrenData &&
+                _.isObject(childrenData) &&
+                !_.isEmpty(_.keys(childrenData)) &&
+                level < _.size(hierarchyLevels) - 1
+            ) {
+                node.childNodes = parseSourceTreeToNodes(
+                    childrenData,
+                    id,
+                    level + 1,
+                    database || (type === "database" ? key : null),
+                    collection || (type === "collection" ? key : null)
+                );
+            }
+            nodes.push(node);
+        }
+        return nodes;
+    };
+    useEffect(() => {
+        setNodes(parseSourceTreeToNodes(sourceTree));
+    }, [sourceTree]);
     const [refreshInterval, setRefreshInterval] = useState(0); // 0 = disabled, > 0 = seconds
     const refreshIntervalRef = useRef(refreshInterval);
     const queryRef = useRef(query);
@@ -195,16 +297,16 @@ function DatabaseBuilder({ width, height }) {
         }
     }, [refreshInterval]);
     useEffect(() => {
-        if (_.has(selectedSource, "name")) {
+        if (selectedSource) {
+            const sourceName = _.get(selectedSource, "name");
+            const url = `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data/${sourceName}/connect`;
             setConnected(false);
             setConnecting(true);
             setNodes([]);
             setSelectedDatabase(null);
             setSelectedCollection(null);
             axios
-                .post(
-                    `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data/${selectedSource.name}/connect`
-                )
+                .post(url)
                 .then((response) => {
                     setDatabaseType(_.get(response, "data.result.type", null));
                     setSourceTree(
@@ -238,18 +340,16 @@ function DatabaseBuilder({ width, height }) {
         }
         setLoading(true);
         const sourceName = _.get(selectedSource, "name");
+        const url = `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data/${sourceName}/query`;
         const currentQuery = queryRef.current;
         const currentDatabase = databaseRef.current;
         const currentCollection = collectionRef.current;
         axios
-            .post(
-                `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data/${sourceName}/query`,
-                {
-                    query: currentQuery,
-                    database: currentDatabase,
-                    collection: currentCollection,
-                }
-            )
+            .post(url, {
+                query: currentQuery,
+                database: currentDatabase,
+                collection: currentCollection,
+            })
             .then((response) => {
                 setQueryResults(_.get(response, "data.results", []));
                 const currentInterval = refreshIntervalRef.current;
