@@ -248,7 +248,7 @@ class Worker:
         """
 
         self.logger = log_utils.CustomLogger()
-        
+
         # customize log
         self.logger.set_config_data(
             "stack",
@@ -1348,14 +1348,12 @@ class Agent(ErrorLoom):
         When agent joins a session, session injects a SearchableCustomLogger.
         Update agent logger to use session's structured logger.
         """
-        if hasattr(self.session, "logger") and \
-           hasattr(self.session.logger, "logstore"):
+        if hasattr(self.session, "logger") and hasattr(self.session.logger, "logstore"):
             # Replace local logger with session's SearchableCustomLogger
             self.logger = self.session.logger
 
             # Extend structured context
             self.logger.update_context(agent=self.sid)
-
 
     ###### database, data
     def _start_connection(self):
@@ -1516,6 +1514,7 @@ class Agent(ErrorLoom):
                 return
 
             # find matching inputs
+            self.logger.info("Checking listen for stream {stream} with tags {tags}".format(stream=stream, tags=tags))
             matched_inputs = self._match_inputs_to_stream_tags(tags)
 
             # instructable
@@ -1560,15 +1559,24 @@ class Agent(ErrorLoom):
 
             includes = self.get_input_includes(input)
             excludes = self.get_input_excludes(input)
+            self.logger.info("includes: {includes}".format(includes=str(includes)))
+            self.logger.info("excludes: {excludes}".format(excludes=str(excludes)))
+            for include in includes:
 
-            for i in includes:
                 p = None
+                i = include
+
+                # "A;B" is expanded into [A,B] for conjunction of tags
+                if ";" in include:
+                    i = include.split(";")
+
                 if type(i) == str:
                     p = re.compile(i)
                     for tag in tags:
                         if p.match(tag):
                             matched_tags.add(tag)
                             self.logger.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=input))
+                # conjunction
                 elif type(i) == list:
                     m = set()
                     a = True
@@ -1600,11 +1608,12 @@ class Agent(ErrorLoom):
                 p = None
                 if type(x) == str:
                     p = re.compile(x)
-                    if p.match(tag):
-                        self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=input))
-                        # delete match
-                        del matched_inputs[input]
-                        break
+                    for tag in tags:
+                        if p.match(tag):
+                            self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=input))
+                            # delete match
+                            del matched_inputs[input]
+                            break
                 elif type(x) == list:
                     a = True
                     if len(x) == 0:
