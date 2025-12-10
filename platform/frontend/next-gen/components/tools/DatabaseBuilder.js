@@ -112,7 +112,7 @@ const parseSourceTreeToNodes = (
             ),
             icon,
             nodeData: { type, path: id, value: key },
-            isExpanded: false,
+            isExpanded: true,
         };
         if (type === "collection") {
             _.set(node, "nodeData.database", database);
@@ -325,7 +325,7 @@ function DatabaseBuilder({ width, height }) {
         _.set(
             temp,
             [...insertBetween(nodePath, "childNodes"), "isExpanded"],
-            true
+            false
         );
         setNodes(temp);
     };
