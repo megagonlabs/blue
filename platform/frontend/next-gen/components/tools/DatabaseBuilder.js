@@ -14,6 +14,8 @@ import {
     NonIdealState,
     Popover,
     Size,
+    Switch,
+    Tag,
     Tooltip,
     Tree,
 } from "@blueprintjs/core";
@@ -22,19 +24,19 @@ import {
     faBracketsSquare,
     faFileCsv,
     faFileExport,
+    faOctagonExclamation,
+    faPenNib,
+    faRefresh,
     faServer,
     faTable,
     faTableList,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import {
-    faBoxMagnifyingGlass,
-    faPlay,
-} from "@fortawesome/sharp-solid-svg-icons";
+import { faPlay } from "@fortawesome/sharp-solid-svg-icons";
 import { Allotment } from "allotment";
 import axios from "axios";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import TextEditor from "../codemirror/TextEditor";
 import {
@@ -162,6 +164,36 @@ function DatabaseBuilder({ width, height }) {
     const [selectedDatabase, setSelectedDatabase] = useState(null);
     const [selectedCollection, setSelectedCollection] = useState(null);
     const { showAxiosErrorToast } = useToaster();
+    const [view, setView] = useState("query-editor");
+    const [viewMode, setViewMode] = useState("table");
+    const [query, setQuery] = useState("");
+    const [queryResults, setQueryResults] = useState(null);
+    const setDefaultQuery = (entity) => {
+        if (databaseType === "PostgresDBSource") {
+            setQuery(`SELECT * FROM ${entity} LIMIT 100;`);
+        }
+    };
+    const [refreshInterval, setRefreshInterval] = useState(0); // 0 = disabled, > 0 = seconds
+    const refreshIntervalRef = useRef(refreshInterval);
+    const queryRef = useRef(query);
+    const databaseRef = useRef(selectedDatabase);
+    const collectionRef = useRef(selectedCollection);
+    const timerRef = useRef(null);
+    useEffect(() => {
+        queryRef.current = query;
+    }, [query]);
+    useEffect(() => {
+        databaseRef.current = selectedDatabase;
+    }, [selectedDatabase]);
+    useEffect(() => {
+        collectionRef.current = selectedCollection;
+    }, [selectedCollection]);
+    useEffect(() => {
+        refreshIntervalRef.current = refreshInterval;
+        if (refreshInterval === 0 && timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+    }, [refreshInterval]);
     useEffect(() => {
         if (_.has(selectedSource, "name")) {
             setConnected(false);
@@ -188,36 +220,68 @@ function DatabaseBuilder({ width, height }) {
                     setConnecting(false);
                 });
         }
-    }, [selectedSource]);
-    const [view, setView] = useState("query-editor");
-    const [viewMode, setViewMode] = useState("table");
-    const [query, setQuery] = useState("");
-    const [queryResults, setQueryResults] = useState(null);
-    const setDefaultQuery = (entity) => {
-        if (databaseType === "PostgresDBSource") {
-            setQuery(`SELECT * FROM ${entity} LIMIT 100;`);
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
         }
-    };
-    const runQuery = () => {
+    }, [selectedSource]);
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, []);
+    const runQuery = useCallback(() => {
+        if (!selectedSource) {
+            return;
+        }
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
         setLoading(true);
+        const sourceName = _.get(selectedSource, "name");
+        const currentQuery = queryRef.current;
+        const currentDatabase = databaseRef.current;
+        const currentCollection = collectionRef.current;
         axios
             .post(
-                `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data/${selectedSource.name}/query`,
+                `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data/${sourceName}/query`,
                 {
-                    query,
-                    database: selectedDatabase,
-                    collection: selectedCollection,
+                    query: currentQuery,
+                    database: currentDatabase,
+                    collection: currentCollection,
                 }
             )
             .then((response) => {
                 setQueryResults(_.get(response, "data.results", []));
+                const currentInterval = refreshIntervalRef.current;
+                if (currentInterval > 0) {
+                    timerRef.current = setTimeout(() => {
+                        runQuery();
+                    }, currentInterval * 1000);
+                }
             })
             .catch((error) => {
                 showAxiosErrorToast(error);
+                setRefreshInterval(0);
+                refreshIntervalRef.current = 0;
+                if (timerRef.current) {
+                    clearTimeout(timerRef.current);
+                }
             })
             .finally(() => {
                 setLoading(false);
             });
+    }, [selectedSource]);
+    const handleSetAutoRefresh = (seconds) => {
+        setRefreshInterval(seconds);
+        if (seconds > 0) {
+            setTimeout(() => {
+                runQuery();
+            }, 0);
+        } else {
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+            }
+        }
     };
     const handleExport = (type) => {
         if (type === "csv") {
@@ -265,50 +329,74 @@ function DatabaseBuilder({ width, height }) {
         );
         setNodes(temp);
     };
+    const QUERY_AUTO_RUN_WARNING = (
+        <Tag
+            intent={Intent.WARNING}
+            size={Size.LARGE}
+            icon={<FAIcon icon={faOctagonExclamation} />}
+        >
+            Ensure the query is idempotent and loop-safe.
+        </Tag>
+    );
     return (
         <div ref={elementRef} style={{ width, height }}>
             <div className="full-parent-dimension" style={{ display: "flex" }}>
                 <div
-                    style={{ overflowY: "auto", minWidth: 250, maxWidth: 250 }}
+                    style={{ overflowY: "auto", minWidth: 256, maxWidth: 256 }}
                     className="border-right"
                 >
                     <div className="border-bottom" style={{ padding: 20 }}>
-                        <Popover
-                            fill
-                            {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                            boundary={elementRef.current}
-                            content={
-                                <Menu size={Size.LARGE}>
-                                    {data.map((source, index) => (
-                                        <MenuItem
-                                            onClick={() =>
-                                                setSelectedSource(
-                                                    _.cloneDeep(source)
-                                                )
-                                            }
-                                            key={index}
-                                            text={source.name}
-                                        />
-                                    ))}
-                                </Menu>
-                            }
-                        >
+                        <ButtonGroup fill size={Size.LARGE}>
+                            <div style={{ width: "calc(100% - 40px)" }}>
+                                <Popover
+                                    fill
+                                    {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                    boundary={elementRef.current}
+                                    placement="bottom-start"
+                                    content={
+                                        <Menu size={Size.LARGE}>
+                                            {data.map((source, index) => (
+                                                <MenuItem
+                                                    onClick={() =>
+                                                        setSelectedSource(
+                                                            _.cloneDeep(source)
+                                                        )
+                                                    }
+                                                    key={index}
+                                                    text={source.name}
+                                                />
+                                            ))}
+                                        </Menu>
+                                    }
+                                >
+                                    <Button
+                                        variant={ButtonVariant.OUTLINED}
+                                        loading={connecting}
+                                        alignText={Alignment.START}
+                                        ellipsizeText
+                                        text={
+                                            _.isEmpty(selectedSource)
+                                                ? "Connect source"
+                                                : selectedSource.name
+                                        }
+                                        intent={Intent.PRIMARY}
+                                        icon={<FAIcon icon={faServer} />}
+                                    />
+                                </Popover>
+                            </div>
                             <Button
-                                loading={connecting}
-                                alignText={Alignment.START}
-                                ellipsizeText
-                                text={
-                                    _.isEmpty(selectedSource)
-                                        ? "Connect source"
-                                        : selectedSource.name
+                                disabled={
+                                    _.isEmpty(selectedSource) || connecting
                                 }
-                                endIcon={<FAIcon icon={faAngleDown} />}
-                                intent={Intent.PRIMARY}
-                                size={Size.LARGE}
-                                variant={ButtonVariant.OUTLINED}
-                                icon={<FAIcon icon={faServer} />}
+                                variant={ButtonVariant.MINIMAL}
+                                onClick={() => {
+                                    setSelectedSource(
+                                        _.cloneDeep(selectedSource)
+                                    );
+                                }}
+                                icon={<FAIcon icon={faRefresh} />}
                             />
-                        </Popover>
+                        </ButtonGroup>
                         <Button
                             style={{ marginTop: 10 }}
                             onClick={() => {
@@ -319,7 +407,7 @@ function DatabaseBuilder({ width, height }) {
                             alignText={Alignment.START}
                             fill
                             variant={ButtonVariant.MINIMAL}
-                            icon={<FAIcon icon={faBoxMagnifyingGlass} />}
+                            icon={<FAIcon icon={faPenNib} />}
                             text="Query Editor"
                         />
                     </div>
@@ -481,10 +569,87 @@ function DatabaseBuilder({ width, height }) {
                                                 />
                                             </Tooltip>
                                             <Popover
+                                                content={
+                                                    <div
+                                                        style={{ padding: 20 }}
+                                                    >
+                                                        <Tooltip
+                                                            content={
+                                                                QUERY_AUTO_RUN_WARNING
+                                                            }
+                                                        >
+                                                            <div>
+                                                                <Switch
+                                                                    checked={
+                                                                        refreshInterval >
+                                                                        0
+                                                                    }
+                                                                    onChange={(
+                                                                        event
+                                                                    ) => {
+                                                                        handleSetAutoRefresh(
+                                                                            event
+                                                                                .target
+                                                                                .checked
+                                                                                ? 2
+                                                                                : 0
+                                                                        );
+                                                                    }}
+                                                                    size={
+                                                                        Size.LARGE
+                                                                    }
+                                                                    label="Auto refresh"
+                                                                />
+                                                                <ButtonGroup
+                                                                    fill
+                                                                    variant={
+                                                                        ButtonVariant.MINIMAL
+                                                                    }
+                                                                >
+                                                                    {[
+                                                                        1, 2, 5,
+                                                                    ].map(
+                                                                        (
+                                                                            interval
+                                                                        ) => (
+                                                                            <Button
+                                                                                key={
+                                                                                    interval
+                                                                                }
+                                                                                onClick={() => {
+                                                                                    handleSetAutoRefresh(
+                                                                                        interval
+                                                                                    );
+                                                                                }}
+                                                                                text={`${interval}s`}
+                                                                                active={
+                                                                                    refreshInterval ===
+                                                                                    interval
+                                                                                }
+                                                                            />
+                                                                        )
+                                                                    )}
+                                                                </ButtonGroup>
+                                                            </div>
+                                                        </Tooltip>
+                                                    </div>
+                                                }
+                                            >
+                                                <Button
+                                                    size={Size.SMALL}
+                                                    intent={Intent.SUCCESS}
+                                                    icon={
+                                                        <FAIcon
+                                                            icon={faAngleDown}
+                                                        />
+                                                    }
+                                                />
+                                            </Popover>
+                                            <Popover
                                                 {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
                                                 boundary={elementRef.current}
                                                 minimal
-                                                placement="right-start"
+                                                placement="bottom-start"
                                                 content={
                                                     <Menu size={Size.LARGE}>
                                                         <MenuDivider title="Download as" />
