@@ -10,6 +10,10 @@ export default function AuthErrorHandler({ children }) {
             clearUser: state.clearUser,
         }))
     );
+    const userRef = useRef(user);
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
     useEffect(() => {
         const responseInterceptor = axios.interceptors.response.use(
             (response) => response,
@@ -29,19 +33,23 @@ export default function AuthErrorHandler({ children }) {
         if (!user) return;
         try {
             await axios.get("/accounts/profile");
-            timeoutIdRef.current = setTimeout(
-                checkAuthSession,
-                2 * 60 * 1000 // 2 minutes
-            );
+            if (userRef.current) {
+                timeoutIdRef.current = setTimeout(
+                    checkAuthSession,
+                    2 * 60 * 1000 // 2 minutes
+                );
+            }
         } catch (error) {}
-    }, [user]);
+    }, []);
     useEffect(() => {
-        checkAuthSession();
+        if (user) {
+            checkAuthSession();
+        }
         return () => {
             if (timeoutIdRef.current) {
                 clearTimeout(timeoutIdRef.current);
             }
         };
-    }, [checkAuthSession]);
+    }, [checkAuthSession, !!user]);
     return children;
 }
