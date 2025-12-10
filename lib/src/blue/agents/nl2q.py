@@ -232,26 +232,40 @@ Output:
 
                         if existing_entity:
                             entity_dict = existing_entity
+
+                            # Defensive code - Normalize attributes
+                            entity_dict.setdefault("attributes", [])
+                            if entity_dict["attributes"] is None:
+                                entity_dict["attributes"] = []
+
                         else:
                             entity_dict = self.registry.get_source_database_collection_entity(source, database, collection, entity)
-                            if entity_dict is not None:
+                            
+                            
+                            if entity_dict:
+                                # Safely get contents once
+                                contents = entity_dict.get('contents')
+
                                 # Initialize attributes list from contents if attribute=None
-                                if attribute is None and 'contents' in entity_dict:
-                                    if isinstance(entity_dict['contents'], Iterable) and 'attribute' in entity_dict['contents']:
-                                        entity_dict['attributes'] = list(entity_dict['contents']['attribute'].values())
+                                if attribute is None and isinstance(contents, dict) and 'attribute' in contents:
+                                    entity_dict['attributes'] = list(contents['attribute'].values())
+                                
                                 else:
-                                    entity_dict['attributes'] = []
-
-                                if 'contents' in entity_dict and 'attribute' in entity_dict['contents']:
-                                    del entity_dict['contents']['attribute']
-
+                                    # Defensive: ensure attributes is a list
+                                    if not isinstance(entity_dict.get('attributes'), list):
+                                        entity_dict['attributes'] = []
+                                    
+                                # Safely delete nested attribute block if present
+                                if isinstance(contents, dict) and 'attribute' in contents:
+                                    del contents['attribute']
+                                
                                 schemas[key]['entities'].append(entity_dict)
 
                         # Add only the specified attribute
                         if attribute:
                             attribute_dict = self.registry.get_source_database_collection_entity_attribute(source, database, collection, entity, attribute)
 
-                            if entity_dict:
+                            if entity_dict and attribute_dict:
                                 if isinstance(entity_dict['attributes'], Iterable) and all(attr['name'] != attribute_dict['name'] for attr in entity_dict['attributes']):
                                     entity_dict['attributes'].append(attribute_dict)
 
@@ -261,23 +275,45 @@ Output:
 
                         if existing_relation:
                             relation_dict = existing_relation
+                            # normalize attributes
+                            relation_dict.setdefault("attributes", [])
+                            if relation_dict["attributes"] is None:
+                                relation_dict["attributes"] = []
+
                         else:
                             relation_dict = self.registry.get_source_database_collection_relation(source, database, collection, relation)
 
-                            if attribute is None and 'contents' in relation_dict and 'attribute' in relation_dict['contents']:
-                                relation_dict['attributes'] = list(relation_dict['contents']['attribute'].values())
-                            else:
-                                relation_dict['attributes'] = []
+                            if relation_dict is None:
+                                return
 
-                            if 'contents' in relation_dict and 'attribute' in relation_dict['contents']:
-                                del relation_dict['contents']['attribute']
+                            # Safely get contents once
+                            contents = relation_dict.get("contents") if isinstance(relation_dict.get("contents"), dict) else None
+
+                            # Initialize attributes from contents
+                            if attribute is None and isinstance(contents, dict) and "attribute" in contents:   # FIX
+                                relation_dict["attributes"] = list(contents["attribute"].values())
+                            else:
+                                relation_dict["attributes"] = []
+
+                            # Safely delete nested attribute block
+                            if isinstance(contents, dict) and "attribute" in contents:   # FIX
+                                del contents["attribute"]
+
+                            # Ensure attributes always exists and is list
+                            relation_dict.setdefault("attributes", [])
+                            if not isinstance(relation_dict["attributes"], list):
+                                relation_dict["attributes"] = []
 
                             schemas[key]['relations'].append(relation_dict)
 
                         if attribute:
                             attribute_dict = self.registry.get_source_database_collection_relation_attribute(source, database, collection, relation, attribute)
 
-                            if relation_dict:
+                            if relation_dict and attribute_dict:
+                                relation_dict.setdefault("attributes", [])                
+                                if not isinstance(relation_dict["attributes"], list):     
+                                    relation_dict["attributes"] = []                      
+
                                 if all(attr['name'] != attribute_dict['name'] for attr in relation_dict['attributes']):
                                     relation_dict['attributes'].append(attribute_dict)
 

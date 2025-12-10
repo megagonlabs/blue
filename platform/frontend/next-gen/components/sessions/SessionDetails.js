@@ -26,7 +26,7 @@ export default function SessionDetails({ sessionId }) {
     const [focusTab, setFocusTab] = useState("about");
     return (
         <div className="full-parent-dimension" style={{ display: "flex" }}>
-            <div style={{ padding: 20 }} className="border-right">
+            <div style={{ padding: 10 }} className="border-right">
                 <ButtonGroup
                     vertical
                     size={Size.LARGE}
@@ -83,7 +83,9 @@ export default function SessionDetails({ sessionId }) {
                     />
                 </ButtonGroup>
             </div>
-            <div style={{ width: "calc(100% - 81px)", overflowX: "hidden" }}>
+            <div
+                style={{ width: "calc(100% - 147.14px)", overflowX: "hidden" }}
+            >
                 {_.isEqual(focusTab, "about") && (
                     <SessionAbout sessionId={sessionId} />
                 )}

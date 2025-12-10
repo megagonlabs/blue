@@ -308,6 +308,9 @@ export default function EntityActions({
         >
             <Tooltip>
                 <Button
+                    onDoubleClick={(event) => {
+                        event.stopPropagation();
+                    }}
                     disabled={loading}
                     intent={Intent.PRIMARY}
                     size={Size.LARGE}
