@@ -30,7 +30,7 @@ export default function AuthErrorHandler({ children }) {
     }, [clearUser]);
     const timeoutIdRef = useRef(null); // ref to store the timeoutId
     const checkAuthSession = useCallback(async () => {
-        if (!user) return;
+        if (!userRef.current) return;
         try {
             await axios.get("/accounts/profile");
             if (userRef.current) {
