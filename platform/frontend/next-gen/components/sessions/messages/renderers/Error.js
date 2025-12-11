@@ -15,7 +15,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faSquareExclamation,
-    faTerminal,
+    faSquareTerminal,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { faAngleDown, faAngleRight } from "@fortawesome/sharp-solid-svg-icons";
 import classNames from "classnames";
@@ -139,7 +139,7 @@ export default function Error({ content }) {
                                         icon={
                                             <FAIcon
                                                 size={20}
-                                                icon={faTerminal}
+                                                icon={faSquareTerminal}
                                                 style={{ marginRight: 10 }}
                                             />
                                         }
