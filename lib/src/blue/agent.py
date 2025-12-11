@@ -69,24 +69,26 @@ class AgentPerformanceTracker(PerformanceTracker):
         workers_list_group = MetricGroup(id="workers_list", label="Workers List", type="list")
         workers_group.add(workers_list_group)
 
-        for worker_id in self.agent.workers:
-            worker = self.agent.workers[worker_id]
-            stream = None
-            if worker.consumer:
-                if worker.consumer.stream:
-                    stream = worker.consumer.stream
+        for input in self.agent.workers:
+            workers_by_input = self.agent.workers[input]
+            for stream_id in workers_by_input:
+                worker = self.agent.workers[stream_id]
+                stream = None
+                if worker.consumer:
+                    if worker.consumer.stream:
+                        stream = worker.consumer.stream
 
-            worker_group = MetricGroup(id=worker_id, label=worker.cid)
-            workers_list_group.add(worker_group)
+                worker_group = MetricGroup(id=stream_id, label=worker.cid)
+                workers_list_group.add(worker_group)
 
-            worker_name_metric = Metric(id="name", label="Name", value=worker.name, type="text")
-            worker_group.add(worker_name_metric)
+                worker_name_metric = Metric(id="name", label="Name", value=worker.name, type="text")
+                worker_group.add(worker_name_metric)
 
-            worker_cid_metric = Metric(id="cid", label="ID", value=worker.cid, type="text", visibility=False)
-            worker_group.add(worker_cid_metric)
+                worker_cid_metric = Metric(id="cid", label="ID", value=worker.cid, type="text", visibility=False)
+                worker_group.add(worker_cid_metric)
 
-            worker_stream_metric = Metric(id="stream", label="Stream", value=stream, type="text")
-            worker_group.add(worker_stream_metric)
+                worker_stream_metric = Metric(id="stream", label="Stream", value=stream, type="text")
+                worker_group.add(worker_stream_metric)
 
         return self.data.toDict()
 
@@ -246,7 +248,7 @@ class Worker:
         """
 
         self.logger = log_utils.CustomLogger()
-        
+
         # customize log
         self.logger.set_config_data(
             "stack",
@@ -1346,14 +1348,12 @@ class Agent(ErrorLoom):
         When agent joins a session, session injects a SearchableCustomLogger.
         Update agent logger to use session's structured logger.
         """
-        if hasattr(self.session, "logger") and \
-           hasattr(self.session.logger, "logstore"):
+        if hasattr(self.session, "logger") and hasattr(self.session.logger, "logstore"):
             # Replace local logger with session's SearchableCustomLogger
             self.logger = self.session.logger
 
             # Extend structured context
             self.logger.update_context(agent=self.sid)
-
 
     ###### database, data
     def _start_connection(self):
@@ -1378,8 +1378,14 @@ class Agent(ErrorLoom):
             The created worker.
         """
         # check if listening already
-        if input_stream and input_stream in self.workers:
-            return self.workers[input_stream]
+        workers_by_input = {}
+        if input in self.workers:
+            workers_by_input = self.workers[input]
+        else:
+            self.workers[input] = workers_by_input
+
+        if input_stream and input_stream in workers_by_input:
+            return workers_by_input[input_stream]
 
         # listen
         if processor == None:
@@ -1412,14 +1418,17 @@ class Agent(ErrorLoom):
             on_stop=lambda sid: self.on_worker_stop_handler(sid),
         )
 
-        self.workers[input_stream] = worker
+        workers_by_input[input_stream] = worker
 
         return worker
 
     def on_worker_stop_handler(self, worker_input_stream):
         """Remove worker from workers list when it stops."""
-        if worker_input_stream in self.workers:
-            del self.workers[worker_input_stream]
+        for input in self.workers:
+            workers_by_input = self.workers[input]
+
+            if worker_input_stream in workers_by_input:
+                del workers_by_input[worker_input_stream]
 
     ###### default processor, override
     def default_processor(
@@ -1505,6 +1514,7 @@ class Agent(ErrorLoom):
                 return
 
             # find matching inputs
+            self.logger.info("Checking listen for stream {stream} with tags {tags}".format(stream=stream, tags=tags))
             matched_inputs = self._match_inputs_to_stream_tags(tags)
 
             # instructable
@@ -1525,7 +1535,7 @@ class Agent(ErrorLoom):
                 # create worker
                 worker = self.create_worker(stream, input=input, context=stream)
 
-                # self.logger.info("Spawned worker for stream {stream}...".format(stream=stream))
+                self.logger.info("Spawned worker for stream {stream} for input {input}...".format(stream=stream, input=input))
 
         # session ended, stop agent
         elif message.isEOS():
@@ -1549,19 +1559,29 @@ class Agent(ErrorLoom):
 
             includes = self.get_input_includes(input)
             excludes = self.get_input_excludes(input)
+            self.logger.info("includes: {includes}".format(includes=str(includes)))
+            self.logger.info("excludes: {excludes}".format(excludes=str(excludes)))
+            for include in includes:
 
-            for i in includes:
                 p = None
+                i = include
+
+                # "A;B" is expanded into [A,B] for conjunction of tags
+                if ";" in include:
+                    i = include.split(";")
+
                 if type(i) == str:
                     p = re.compile(i)
                     for tag in tags:
                         if p.match(tag):
                             matched_tags.add(tag)
-                            # self.logger.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
+                            self.logger.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=input))
+                # conjunction
                 elif type(i) == list:
                     m = set()
                     a = True
                     for ii in i:
+                        ii = ii.strip()
                         p = re.compile(ii)
                         b = False
                         for tag in tags:
@@ -1576,7 +1596,7 @@ class Agent(ErrorLoom):
                             break
                     if a:
                         matched_tags = matched_tags.union(m)
-                        # self.logger.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
+                        self.logger.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=input))
 
             # no matches for param
             if len(matched_tags) == 0:
@@ -1589,11 +1609,12 @@ class Agent(ErrorLoom):
                 p = None
                 if type(x) == str:
                     p = re.compile(x)
-                    if p.match(tag):
-                        # self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
-                        # delete match
-                        del matched_inputs[input]
-                        break
+                    for tag in tags:
+                        if p.match(tag):
+                            self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=input))
+                            # delete match
+                            del matched_inputs[input]
+                            break
                 elif type(x) == list:
                     a = True
                     if len(x) == 0:
@@ -1611,11 +1632,12 @@ class Agent(ErrorLoom):
                             a = False
                             break
                     if a:
-                        # self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
+                        self.logger.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=input))
                         # delete match
                         del matched_inputs[input]
                         break
 
+        self.logger.info("Matched inputs: " + str(json.dumps(matched_inputs)))
         return matched_inputs
 
     # interact
@@ -1776,19 +1798,26 @@ class Agent(ErrorLoom):
             self.session_consumer.stop()
 
         # send stop to each worker
-        for worker_input_stream in self.workers:
-            worker = self.workers[worker_input_stream]
-            worker.stop()
+        for input in self.workers:
+            workers_by_input = self.workers[input]
+            for worker_input_stream in workers_by_input:
+                worker = workers_by_input[worker_input_stream]
+                worker.stop()
 
-        for worker_input_stream in list(self.workers.keys()):
-            del self.workers[worker_input_stream]
+            for worker_input_stream in list(workers_by_input.keys()):
+                del workers_by_input[worker_input_stream]
+
+        for input in self.workers:
+            del self.workers[input]
 
     def wait(self):
         """Wait for the agent, its session consumer, and all its workers to finish."""
         # send wait to each worker
-        for worker_input_stream in self.workers:
-            worker = self.workers[worker_input_stream]
-            worker.wait()
+        for input in self.workers:
+            workers_by_input = self.workers[input]
+            for worker_input_stream in workers_by_input:
+                worker = workers_by_input[worker_input_stream]
+                worker.wait()
 
 
 ###############
