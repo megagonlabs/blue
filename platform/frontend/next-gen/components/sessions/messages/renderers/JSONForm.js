@@ -19,6 +19,7 @@ export default function JSONForm({ content, hasError }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const id = _.get(content, "form_id", null);
     const specifications = _.get(forms, [id, "content"], {});
+    const currentData = _.get(specifications, "data", {});
     const closed = _.get(forms, [id, "closed"], false);
     const [error] = useErrorBoundary();
     useEffect(() => {
@@ -35,10 +36,14 @@ export default function JSONForm({ content, hasError }) {
                 renderers={JSONFORMS_RENDERERS}
                 cells={vanillaCells}
                 onChange={({ data, errors }) => {
-                    console.log(data, errors);
-                    const timestamp =
-                        performance.timeOrigin + performance.now();
-                    setFormData(id, data, timestamp);
+                    // jsonforms often fires onChange on mount/validation.
+                    // only update store if the data has actually changed.
+                    if (!_.isEqual(data, currentData)) {
+                        console.log(data, errors);
+                        const timestamp =
+                            performance.timeOrigin + performance.now();
+                        setFormData(id, data, timestamp);
+                    }
                 }}
             />
             {closed && (
