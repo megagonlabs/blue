@@ -65,6 +65,20 @@ export default function TableVisualizer({ list }) {
             </Menu>
         );
     };
+    const CellData = ({ data }) => {
+        if (_.isBoolean(data)) {
+            return (
+                <FAIcon
+                    style={{
+                        marginTop: 12,
+                        color: data ? Colors.GREEN3 : Colors.RED3,
+                    }}
+                    icon={data ? faCircleCheck : faCircleXmark}
+                />
+            );
+        }
+        return data;
+    };
     return (
         <Table
             cellRendererDependencies={[sortedList]}
@@ -99,7 +113,7 @@ export default function TableVisualizer({ list }) {
                         name={column}
                         columnHeaderCellRenderer={columnHeaderCellRenderer}
                         cellRenderer={(rowIndex) => {
-                            const cellData = _.get(
+                            const data = _.get(
                                 sortedList,
                                 [rowIndex, column],
                                 "-"
@@ -110,22 +124,7 @@ export default function TableVisualizer({ list }) {
                                         lineHeight: `${TABLE_CELL_HEIGHT}px`,
                                     }}
                                 >
-                                    {_.isString(cellData) && cellData}
-                                    {_.isBoolean(cellData) && (
-                                        <FAIcon
-                                            style={{
-                                                marginTop: 12,
-                                                color: cellData
-                                                    ? Colors.GREEN3
-                                                    : Colors.RED3,
-                                            }}
-                                            icon={
-                                                cellData
-                                                    ? faCircleCheck
-                                                    : faCircleXmark
-                                            }
-                                        />
-                                    )}
+                                    <CellData data={data} />
                                 </Cell>
                             );
                         }}

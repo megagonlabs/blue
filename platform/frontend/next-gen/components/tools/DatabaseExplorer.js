@@ -105,8 +105,13 @@ const removeNodeFromTree = (nodes, nodeIdToDelete) => {
     }
     return filteredNodes;
 };
-const COMPOUND_TAG_PROPS = { size: Size.LARGE, minimal: true, fill: true };
-function DatabaseBuilder({ width, height }) {
+const COMPOUND_TAG_PROPS = {
+    size: Size.LARGE,
+    minimal: true,
+    fill: true,
+    className: Classes.TEXT_OVERFLOW_ELLIPSIS,
+};
+function DatabaseExplorer({ width, height }) {
     const { data, getSources } = useSourceStore(
         useShallow((state) => ({
             data: state.sources,
@@ -448,187 +453,222 @@ function DatabaseBuilder({ width, height }) {
                 className="full-parent-dimension"
                 style={{ display: "flex", height: "calc(100% - 40px)" }}
             >
-                <div
-                    style={{ overflowY: "auto", minWidth: 256, maxWidth: 256 }}
-                    className="border-right"
-                >
-                    <div className="border-bottom" style={{ padding: 20 }}>
-                        <ButtonGroup fill size={Size.LARGE}>
-                            <div style={{ width: "calc(100% - 40px)" }}>
-                                <Popover
-                                    fill
-                                    {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                                    boundary={elementRef.current}
-                                    placement="bottom-start"
-                                    content={
-                                        <Menu size={Size.LARGE}>
-                                            {data.map((source, index) => (
-                                                <MenuItem
-                                                    onClick={() =>
-                                                        setSelectedSource(
-                                                            _.cloneDeep(source)
-                                                        )
-                                                    }
-                                                    key={index}
-                                                    text={source.name}
-                                                />
-                                            ))}
-                                        </Menu>
-                                    }
+                <div className="full-parent-dimension">
+                    <Allotment defaultSizes={[256, 1024]}>
+                        <Allotment.Pane minSize={256}>
+                            <div style={{ overflowY: "auto" }}>
+                                <div
+                                    className="border-bottom"
+                                    style={{ padding: 20 }}
                                 >
+                                    <ButtonGroup fill size={Size.LARGE}>
+                                        <div
+                                            style={{
+                                                width: "calc(100% - 40px)",
+                                            }}
+                                        >
+                                            <Popover
+                                                fill
+                                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                                boundary={elementRef.current}
+                                                placement="bottom-start"
+                                                content={
+                                                    <Menu size={Size.LARGE}>
+                                                        {data.map(
+                                                            (source, index) => (
+                                                                <MenuItem
+                                                                    onClick={() =>
+                                                                        setSelectedSource(
+                                                                            _.cloneDeep(
+                                                                                source
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    key={index}
+                                                                    text={
+                                                                        source.name
+                                                                    }
+                                                                />
+                                                            )
+                                                        )}
+                                                    </Menu>
+                                                }
+                                            >
+                                                <Button
+                                                    variant={
+                                                        ButtonVariant.OUTLINED
+                                                    }
+                                                    loading={connecting}
+                                                    alignText={Alignment.START}
+                                                    ellipsizeText
+                                                    text={
+                                                        _.isEmpty(
+                                                            selectedSource
+                                                        )
+                                                            ? "Connect source"
+                                                            : selectedSource.name
+                                                    }
+                                                    intent={Intent.PRIMARY}
+                                                    icon={
+                                                        <FAIcon
+                                                            icon={faServer}
+                                                        />
+                                                    }
+                                                />
+                                            </Popover>
+                                        </div>
+                                        <Button
+                                            disabled={
+                                                _.isEmpty(selectedSource) ||
+                                                connecting
+                                            }
+                                            variant={ButtonVariant.MINIMAL}
+                                            onClick={() => {
+                                                setSelectedSource(
+                                                    _.cloneDeep(selectedSource)
+                                                );
+                                            }}
+                                            icon={<FAIcon icon={faRefresh} />}
+                                        />
+                                    </ButtonGroup>
                                     <Button
-                                        variant={ButtonVariant.OUTLINED}
-                                        loading={connecting}
+                                        style={{ marginTop: 10 }}
+                                        onClick={() => {
+                                            setView("query-editor");
+                                        }}
+                                        size={Size.LARGE}
+                                        active={view === "query-editor"}
                                         alignText={Alignment.START}
-                                        ellipsizeText
-                                        text={
-                                            _.isEmpty(selectedSource)
-                                                ? "Connect source"
-                                                : selectedSource.name
-                                        }
-                                        intent={Intent.PRIMARY}
-                                        icon={<FAIcon icon={faServer} />}
+                                        fill
+                                        variant={ButtonVariant.MINIMAL}
+                                        icon={<FAIcon icon={faPenNib} />}
+                                        text="Query Editor"
                                     />
-                                </Popover>
+                                </div>
+                                <div
+                                    className="border-bottom full-parent-width"
+                                    style={{ padding: 10 }}
+                                >
+                                    <CompoundTag
+                                        {...COMPOUND_TAG_PROPS}
+                                        leftContent="Database"
+                                        icon={
+                                            <FAIcon
+                                                icon={
+                                                    ENTITY_TYPE_LOOKUP[
+                                                        "database"
+                                                    ].icon
+                                                }
+                                            />
+                                        }
+                                        intent={
+                                            _.isEmpty(selectedDatabase)
+                                                ? REQUIRE_DATABASE
+                                                    ? Intent.DANGER
+                                                    : Intent.NONE
+                                                : Intent.SUCCESS
+                                        }
+                                    >
+                                        {_.isEmpty(selectedDatabase)
+                                            ? "-"
+                                            : selectedDatabase}
+                                    </CompoundTag>
+                                    <CompoundTag
+                                        {...COMPOUND_TAG_PROPS}
+                                        style={{ marginTop: 10 }}
+                                        leftContent="Collection"
+                                        icon={
+                                            <FAIcon
+                                                icon={
+                                                    ENTITY_TYPE_LOOKUP[
+                                                        "collection"
+                                                    ].icon
+                                                }
+                                            />
+                                        }
+                                        intent={
+                                            _.isEmpty(selectedCollection)
+                                                ? REQUIRE_COLLECTION
+                                                    ? Intent.DANGER
+                                                    : Intent.NONE
+                                                : Intent.SUCCESS
+                                        }
+                                    >
+                                        <div
+                                            style={{ width: 88.17 }}
+                                            className={
+                                                Classes.TEXT_OVERFLOW_ELLIPSIS
+                                            }
+                                        >
+                                            {_.isEmpty(selectedCollection)
+                                                ? "-"
+                                                : selectedCollection}
+                                        </div>
+                                    </CompoundTag>
+                                </div>
+                                <div
+                                    className={
+                                        connecting ? Classes.SKELETON : null
+                                    }
+                                    style={{
+                                        height: "calc(100% - 222px)",
+                                        overflowY: "auto",
+                                        borderRadius: 0,
+                                    }}
+                                >
+                                    <Tree
+                                        contents={nodes}
+                                        onNodeClick={(node) => {
+                                            const {
+                                                type,
+                                                value,
+                                                database,
+                                                collection,
+                                            } = node.nodeData;
+                                            if (database) {
+                                                setSelectedDatabase(database);
+                                            }
+                                            if (collection) {
+                                                setSelectedCollection(
+                                                    collection
+                                                );
+                                            }
+                                            if (type === "database") {
+                                                setSelectedDatabase(value);
+                                            } else if (type === "collection") {
+                                                setSelectedCollection(value);
+                                            } else if (type === "entity") {
+                                                setDefaultQuery(value);
+                                            }
+                                        }}
+                                        onNodeDoubleClick={(node) => {
+                                            const {
+                                                type,
+                                                value,
+                                                database,
+                                                collection,
+                                            } = node.nodeData;
+                                            if (database) {
+                                                setSelectedDatabase(database);
+                                            }
+                                            if (collection) {
+                                                setSelectedCollection(
+                                                    collection
+                                                );
+                                            }
+                                            if (type === "entity") {
+                                                setDefaultQuery(value);
+                                                setTimeout(() => {
+                                                    runQuery();
+                                                }, 0);
+                                            }
+                                        }}
+                                        onNodeExpand={onNodeExpand}
+                                        onNodeCollapse={onNodeCollapse}
+                                    />
+                                </div>
                             </div>
-                            <Button
-                                disabled={
-                                    _.isEmpty(selectedSource) || connecting
-                                }
-                                variant={ButtonVariant.MINIMAL}
-                                onClick={() => {
-                                    setSelectedSource(
-                                        _.cloneDeep(selectedSource)
-                                    );
-                                }}
-                                icon={<FAIcon icon={faRefresh} />}
-                            />
-                        </ButtonGroup>
-                        <Button
-                            style={{ marginTop: 10 }}
-                            onClick={() => {
-                                setView("query-editor");
-                            }}
-                            size={Size.LARGE}
-                            active={view === "query-editor"}
-                            alignText={Alignment.START}
-                            fill
-                            variant={ButtonVariant.MINIMAL}
-                            icon={<FAIcon icon={faPenNib} />}
-                            text="Query Editor"
-                        />
-                    </div>
-                    <div className="border-bottom" style={{ padding: 10 }}>
-                        <CompoundTag
-                            {...COMPOUND_TAG_PROPS}
-                            leftContent="Database"
-                            icon={
-                                <FAIcon
-                                    icon={ENTITY_TYPE_LOOKUP["database"].icon}
-                                />
-                            }
-                            intent={
-                                _.isEmpty(selectedDatabase)
-                                    ? REQUIRE_DATABASE
-                                        ? Intent.DANGER
-                                        : Intent.NONE
-                                    : Intent.SUCCESS
-                            }
-                        >
-                            <div
-                                style={{ width: 88.17 }}
-                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                            >
-                                {_.isEmpty(selectedDatabase)
-                                    ? "-"
-                                    : selectedDatabase}
-                            </div>
-                        </CompoundTag>
-                        <CompoundTag
-                            {...COMPOUND_TAG_PROPS}
-                            style={{ marginTop: 10 }}
-                            leftContent="Collection"
-                            icon={
-                                <FAIcon
-                                    icon={ENTITY_TYPE_LOOKUP["collection"].icon}
-                                />
-                            }
-                            intent={
-                                _.isEmpty(selectedCollection)
-                                    ? REQUIRE_COLLECTION
-                                        ? Intent.DANGER
-                                        : Intent.NONE
-                                    : Intent.SUCCESS
-                            }
-                        >
-                            <div
-                                style={{ width: 88.17 }}
-                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                            >
-                                {_.isEmpty(selectedCollection)
-                                    ? "-"
-                                    : selectedCollection}
-                            </div>
-                        </CompoundTag>
-                    </div>
-                    <div
-                        className={connecting ? Classes.SKELETON : null}
-                        style={{
-                            height: "calc(100% - 222px)",
-                            overflowY: "auto",
-                            borderRadius: 0,
-                        }}
-                    >
-                        <Tree
-                            contents={nodes}
-                            onNodeClick={(node) => {
-                                const { type, value, database, collection } =
-                                    node.nodeData;
-                                if (database) {
-                                    setSelectedDatabase(database);
-                                }
-                                if (collection) {
-                                    setSelectedCollection(collection);
-                                }
-                                if (type === "database") {
-                                    setSelectedDatabase(value);
-                                } else if (type === "collection") {
-                                    setSelectedCollection(value);
-                                } else if (type === "entity") {
-                                    setDefaultQuery(value);
-                                }
-                            }}
-                            onNodeDoubleClick={(node) => {
-                                const { type, value, database, collection } =
-                                    node.nodeData;
-                                if (database) {
-                                    setSelectedDatabase(database);
-                                }
-                                if (collection) {
-                                    setSelectedCollection(collection);
-                                }
-                                if (type === "entity") {
-                                    setDefaultQuery(value);
-                                    setTimeout(() => {
-                                        runQuery();
-                                    }, 0);
-                                }
-                            }}
-                            onNodeExpand={onNodeExpand}
-                            onNodeCollapse={onNodeCollapse}
-                        />
-                    </div>
-                </div>
-                <div
-                    className="full-parent-dimension"
-                    style={{
-                        overflowY: "auto",
-                        overflowX: "hidden",
-                        display: "flex",
-                        flexDirection: "column",
-                    }}
-                >
-                    <Allotment>
+                        </Allotment.Pane>
                         <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
                             <Allotment vertical defaultSizes={[100, 400]}>
                                 <Allotment.Pane minSize={100}>
@@ -914,4 +954,4 @@ function DatabaseBuilder({ width, height }) {
         </div>
     );
 }
-export default withAutoSizer(DatabaseBuilder);
+export default withAutoSizer(DatabaseExplorer);
