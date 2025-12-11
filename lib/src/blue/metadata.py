@@ -10,6 +10,73 @@ import os
 
 class MetaData(ServiceClient):
 
+    # ------------------------------------------------------------------
+    # Value Semantics type taxonomy (domain-agnostic, value-centric)
+    # ------------------------------------------------------------------
+    VALUE_SEMANTIC_TYPES = [
+        "UNKNOWN",
+
+        # structural
+        "BOOLEAN",
+        "INTEGER",
+        "FLOAT",
+        "NUMERIC_GENERAL",
+        "STRING",
+        "FREE_TEXT",
+
+        # temporal
+        "DATE",
+        "DATETIME",
+        "TIME",
+        "YEAR",
+        "MONTH",
+        "DAY_OF_WEEK",
+        "DURATION",
+
+        # location / codes
+        "US_STATE_CODE",
+        "US_STATE_NAME",
+        "COUNTRY_CODE_ISO2",
+        "COUNTRY_CODE_ISO3",
+        "CITY_NAME",
+        "POSTAL_CODE",
+        "ADDRESS_FREEFORM",
+
+        # financial / numeric semantics
+        "CURRENCY_AMOUNT",
+        "PERCENTAGE",
+        "RATIO",
+
+        # identity / ids
+        "ID_NUMERIC",
+        "ID_STRING",
+        "UUID",
+        "HASH",
+
+        # contact / web
+        "EMAIL",
+        "PHONE_NUMBER",
+        "URL",
+
+        # categories & labels
+        "ENUM_CATEGORY",
+        "TEXT_CATEGORY",
+        "TAG",
+        "LABEL",
+
+        # human / skills-ish / terms
+        "PERSON_NAME",
+        "ORG_NAME",
+        "JOB_TITLE",
+        "SKILL_TERM",
+        "CONTROLLED_TERM",
+
+        # demographic-ish but still value-level
+        "AGE",
+        "AGE_GROUP",
+        "DEMOGRAPHIC_TERM",
+    ]
+ 
     def __init__(self, properties=None):
         self.name = "metadata"
         super().__init__(self.name, properties=properties)
@@ -47,6 +114,8 @@ class MetaData(ServiceClient):
         self.properties['enable_collection_description_generation'] = True
 
         self.properties['enable_value_semantics_inference'] = True
+        self.properties['enable_semantic_discovery_inference'] = True
+        
         self.properties['enable_domain_concept_mapping'] = True
 
         self.properties["concept_taxonomy_path"] = "/blue_data/config/concept_taxonomy.json"
@@ -303,7 +372,9 @@ class MetaData(ServiceClient):
                     if existing and not rebuild:
                         continue
 
-                    inferred = self.infer_attribute_value_semantics(entity_name, attr_obj)
+                    #inferred = self.infer_attribute_value_semantics(entity_name, attr_obj)
+                    inferred = self.infer_attribute_vsi(entity_name, attr_obj)
+                    
                     if inferred:
                         data_registry.set_source_database_collection_entity_attribute_property(
                             source,
@@ -315,6 +386,15 @@ class MetaData(ServiceClient):
                             inferred,
                             rebuild=rebuild
                         )
+                    
+                    sdi = self.infer_attribute_sdi(entity_name, attr_obj)
+                    if sdi:
+                        data_registry.set_source_database_collection_entity_attribute_property(
+                            source, database, collection, entity_name, attr_name,
+                            "semantic_discovery", sdi, rebuild=rebuild
+                        )
+            
+
                 ### refresh attributes after value semantics inference
                 attributes = data_registry.get_source_database_collection_entity_attributes(
                     source, database, collection, entity_name
@@ -451,6 +531,104 @@ class MetaData(ServiceClient):
         prompt = self.build_database_description_prompt(database_name, collection_descriptions, database_metadata)
         return self.execute_api_call(prompt, properties=self.properties, additional_data={})
 
+    
+    def build_vsi_prompt(self, entity_name, attr_name, attr_properties):
+        """
+        VSI (Value Semantics Inference) — deterministic, bounded.
+        Uses stats + sample values + bounded semantic types.
+        """
+
+        stats = attr_properties.get("stats", {}) or {}
+        sample_values = stats.get("sample_values", [])[:10]
+        if not sample_values:
+            sample_values = ["<NO SAMPLE VALUES AVAILABLE>"]
+
+        attr_type = attr_properties.get("info", {}).get("type", "unknown")
+
+        stats_json = json.dumps(stats, indent=2)
+        samples_json = json.dumps(sample_values, indent=2)
+        allowed_json = json.dumps(self.VALUE_SEMANTIC_TYPES, indent=2)
+
+        schema_json = """{
+  "value_semantics": {
+    "primary_type": "<ONE_OF_ALLOWED_TYPES>",
+    "secondary_types": [],
+    "is_categorical": false,
+    "is_identifier": false,
+    "is_free_text": false,
+    "numeric": {
+      "is_numeric": false,
+      "is_continuous": false,
+      "is_discrete": false,
+      "min": null,
+      "max": null
+    },
+    "temporal": {
+      "is_date": false,
+      "is_datetime": false,
+      "is_duration": false,
+      "granularity": null
+    },
+    "normalization": {
+      "can_normalize": false,
+      "normalized_examples": [],
+      "normalization_strategy": null
+    },
+    "confidence": 0.0,
+    "examples_used": [],
+    "notes": []
+  }
+}"""
+
+        prompt = f"""
+You are performing Value Semantics Inference (VSI), a deterministic and bounded semantic classification
+module used by autonomous agents. You MUST infer WHAT THE VALUES *ARE*, not what they represent in the domain.
+
+Rules:
+- Use ONLY value patterns + statistics.
+- Use ONLY allowed semantic types.
+- You MUST be deterministic, safe, and predictable.
+- You MUST produce machine-usable semantics.
+- DO NOT invent new types. Stay within allowed types.
+- DO NOT infer business/domain meanings.
+
+───────────────────────────────
+ATTRIBUTE CONTEXT
+───────────────────────────────
+Entity: {entity_name}
+Attribute: {attr_name}
+Declared Type: {attr_type}
+
+ATTRIBUTE_STATS:
+{stats_json}
+
+SAMPLE_VALUES:
+{samples_json}
+
+ALLOWED_SEMANTIC_TYPES:
+{allowed_json}
+
+───────────────────────────────
+OUTPUT FORMAT (STRICT JSON ONLY)
+───────────────────────────────
+
+{schema_json}
+
+Return ONLY this JSON structure, filled in appropriately.
+"""
+        return prompt.strip()
+
+    
+    def build_sdi_prompt(self, entity_name, attr_name, attr_properties):
+        """
+        SDI (Semantic Discovery Inference) — 
+        This discovers fuzzy/emergent semantic concepts unconstrained by taxonomy.
+        """
+
+        # reuse your existing prompt EXACTLY:
+        return self.build_value_semantics_prompt(entity_name, attr_name, attr_properties)
+
+    
     
     def build_value_semantics_prompt(self, entity_name, attr_name, attr_properties):
         """
@@ -606,6 +784,48 @@ class MetaData(ServiceClient):
         return prompt.strip()
 
     
+    def infer_attribute_vsi(self, entity_name, attr):
+        attr_name = attr.get("name")
+        props = attr.get("properties", {})
+
+        prompt = self.build_vsi_prompt(entity_name, attr_name, props)
+        llm_output = self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+        try:
+            parsed = json_utils.safe_json_parse(llm_output)
+            if not parsed:
+                return None
+
+            # unwrap
+            if "value_semantics" in parsed:
+                vs = parsed["value_semantics"]
+            else:
+                vs = parsed
+
+            # ensure compatibility with old DCM (“semantic_type”)
+            if "primary_type" in vs:
+                vs["semantic_type"] = vs.get("primary_type")
+
+            return vs
+
+        except Exception:
+            logging.warning(f"Invalid VSI JSON for {entity_name}.{attr_name}")
+            return None
+
+    
+    def infer_attribute_sdi(self, entity_name, attr):
+        attr_name = attr.get("name")
+        props = attr.get("properties", {})
+
+        prompt = self.build_sdi_prompt(entity_name, attr_name, props)
+        llm_output = self.execute_api_call(prompt, properties=self.properties, additional_data={})
+
+        try:
+            parsed = json_utils.safe_json_parse(llm_output)
+            return parsed
+        except Exception:
+            logging.warning(f"Invalid SDI JSON for {entity_name}.{attr_name}")
+            return None
     
     def infer_attribute_value_semantics(self, entity_name, attr):
         attr_name = attr.get("name")
