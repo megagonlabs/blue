@@ -571,6 +571,7 @@ export default function SessionMessages({
             <AutoSizer>
                 {({ width, height }) => (
                     <VariableSizeList
+                        overscanCount={2}
                         itemData={{
                             setRowHeight,
                             sessionId,
