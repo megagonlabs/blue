@@ -1,4 +1,3 @@
-# os
 import os
 
 ###### Parsers, Formats, Utils
@@ -7,6 +6,7 @@ import copy
 
 ###### Source specific libs
 from pgmpy.inference import VariableElimination
+import networkx as nx
 
 ###### Blue
 from blue.data.source import DataSource
@@ -57,7 +57,6 @@ class BNSource(DataSource):
         self._cache.clear()
         return None
 
-    # database path
     def _get_source_directory(self):
         """
         Get the root directory containing database subdirectories.
@@ -125,19 +124,74 @@ class BNSource(DataSource):
         
         return model
 
+    def _build_graph_structure_from_model(self, model):
+        """Build graph_structure dictionary from a pgmpy model.
+        
+        Args:
+            model: A pgmpy BayesianNetwork model instance.
+            
+        Returns:
+            dict: Graph structure with nodes, edges, markov_blanket, and descriptions.
+        """
+        graph_structure = {
+            "description": "",
+            "nodes": {},
+            "edges": {},
+            "markov_blanket": {}
+        }
+        
+        # Extract nodes and their states
+        for node in model.nodes():
+            cpd = model.get_cpds(node)
+            node_states = cpd.state_names.get(node, [])
+            # Build states_description dict with empty strings
+            states_description = {state: "" for state in node_states}
+            graph_structure["nodes"][node] = {
+                "name": node,
+                "states": node_states,
+                "description": "",
+                "states_description": states_description
+            }
+        
+        # Extract edges from model
+        for edge in model.edges():
+            parent, child = edge
+            if parent not in graph_structure["edges"]:
+                graph_structure["edges"][parent] = []
+            graph_structure["edges"][parent].append(child)
+        
+        # Extract markov blankets from model
+        for node in model.nodes():
+            markov_blanket = model.get_markov_blanket(node)
+            # Convert set to list for JSON serialization
+            graph_structure["markov_blanket"][node] = list(markov_blanket) if markov_blanket else []
+        
+        return graph_structure
+
     def _load_graph_structure(self, database, collection):
-        """Load graph_structure.json for a collection, using cache if available."""
+        """Load graph_structure.json for a collection, using cache if available.
+        If graph_structure.json doesn't exist, builds it from the model."""
         if database not in self._cache:
             self._cache[database] = {}
         
         if collection in self._cache[database]:
-            return self._cache[database][collection]['graph_structure']
+            graph_structure = self._cache[database][collection].get('graph_structure')
+            if graph_structure:
+                return graph_structure
         
-        # If not cached, load model (which will also load and cache graph_structure)
-        self._load_model(database, collection)
+        # If not cached, load model (which will also load and cache graph_structure if file exists)
+        model = self._load_model(database, collection)
         
-        # Return the cached graph_structure
-        return self._cache[database][collection]['graph_structure']
+        # Check if graph_structure was loaded from file
+        graph_structure = self._cache[database][collection].get('graph_structure')
+        
+        # If graph_structure not available, build it from model
+        if not graph_structure:
+            graph_structure = self._build_graph_structure_from_model(model)
+            # Cache the built graph_structure
+            self._cache[database][collection]['graph_structure'] = graph_structure
+        
+        return graph_structure
 
     ######### source
     def fetch_metadata(self):
@@ -168,10 +222,6 @@ class BNSource(DataSource):
         """
         source_directory = self._get_source_directory()
         
-        # # Ensure default database exists
-        # default_db_path = os.path.join(source_directory, 'default')
-        # if not os.path.exists(default_db_path):
-        #     os.makedirs(default_db_path, exist_ok=True)
         
         dbs = []
         if not os.path.exists(source_directory):
@@ -355,13 +405,14 @@ class BNSource(DataSource):
         if database is None:
             database = 'default'
         
-        # Check cache first for graph_structure
+        # Load graph_structure (will build from model if needed)
         graph_structure = self._load_graph_structure(database, collection)
         
+        # Fallback: if _load_graph_structure somehow returns None, try to build from model
         if not graph_structure:
             # load model and build graph_structure
             if database in self._cache and collection in self._cache[database]:
-                model = self._cache[database][collection]['model']
+                model = self._cache[database][collection].get('model')
             else:
                 try:
                     model = self._load_model(database, collection)
@@ -369,37 +420,18 @@ class BNSource(DataSource):
                     self.logger.warning(f"Failed to load model for {collection}: {e}")
                     return {}
             
-            # Build graph_structure from model
-            graph_structure = {
-                "nodes": {},
-                "edges": {},
-                "markov_blanket": {}
-            }
-            for node in model.nodes():
-                cpd = model.get_cpds(node)
-                node_states = cpd.state_names.get(node, [])
-                graph_structure["nodes"][node] = {
-                    "name": node,
-                    "states": node_states
-                }
-            # Extract edges from model
-            for edge in model.edges():
-                parent, child = edge
-                if parent not in graph_structure["edges"]:
-                    graph_structure["edges"][parent] = []
-                graph_structure["edges"][parent].append(child)
-            
-            # Extract markov blankets from model
-            for node in model.nodes():
-                markov_blanket = model.get_markov_blanket(node)
-                graph_structure["markov_blanket"][node] = markov_blanket
-            
-            # Cache the graph_structure
-            if database not in self._cache:
-                self._cache[database] = {}
-            if collection not in self._cache[database]:
-                self._cache[database][collection] = {}
-            self._cache[database][collection]['graph_structure'] = graph_structure
+            if model:
+                # Build graph_structure from model using shared method
+                graph_structure = self._build_graph_structure_from_model(model)
+                # Cache the graph_structure
+                if database not in self._cache:
+                    self._cache[database] = {}
+                if collection not in self._cache[database]:
+                    self._cache[database][collection] = {}
+                self._cache[database][collection]['graph_structure'] = graph_structure
+            else:
+                self.logger.warning(f"Model not available for {collection}")
+                return {}
         
         schema = DataSchema()
         nodes = graph_structure.get("nodes", {})
@@ -663,11 +695,114 @@ class BNSource(DataSource):
                 state_probs[state] = float(query_result.values[i])
             result["all_state_probabilities"] = state_probs
             
+            # Add explanation if requested
+            explanation_requested = optional_properties.get('explanation', False)
+            if explanation_requested:
+                explanation = self._generate_explanation(
+                    database, collection, target_node, target_state, context,
+                    structured=optional_properties.get('structured_explanation', False),
+                    max_num_paths=optional_properties.get('max_num_paths', 50),
+                    probability=probability
+                )
+                result["explanation"] = explanation
+            
             return [result]
             
         except Exception as e:
             self.logger.error(f"Error during inference: {e}")
             raise Exception(f"Inference failed: {e}")
+
+    def _generate_explanation(self, database, collection, target_node, target_state, context, structured=False, max_num_paths=50, probability=None):
+        """Generate explanation by traversing graph structure to find reasoning paths.
+        
+        Parameters:
+            database (str): Database name.
+            collection (str): Collection name.
+            target_node (str): Target node being queried.
+            target_state (str): Target state.
+            context (dict): Context/evidence nodes and their states.
+            structured (bool): Whether to return structured explanation.
+            max_num_paths (int): Maximum number of reasoning paths to include (default: 50).
+            probability (float, optional): The calculated probability value to include in explanation.
+        
+        Returns:
+            str or dict: Natural language explanation or structured explanation.
+        """
+        graph_structure = self._load_graph_structure(database, collection)
+        if not graph_structure:
+            return "Explanation not available: graph structure not found."
+        
+        nodes = graph_structure.get("nodes", {})
+        edges = graph_structure.get("edges", {})
+        
+        # Build NetworkX directed graph from edges
+        G = nx.DiGraph()
+        for parent, children in edges.items():
+            for child in children:
+                G.add_edge(parent, child)
+        
+        # Find all reasoning paths from context nodes to target node using networkx
+        reasoning_paths = []
+        for context_node, context_state in context.items():
+            if context_node in G and target_node in G:
+                try:
+                    # Find all simple paths from context_node to target_node
+                    # Limit paths per context node to avoid explosion, but collect up to max_num_paths total
+                    paths = list(nx.all_simple_paths(G, context_node, target_node, cutoff=10))
+                    for path in paths:
+                        if len(reasoning_paths) >= max_num_paths:
+                            break
+                        reasoning_paths.append({
+                            "start_node": context_node,
+                            "start_state": context_state,
+                            "path": path,
+                            "target_node": target_node,
+                            "target_state": target_state
+                        })
+                    if len(reasoning_paths) >= max_num_paths:
+                        break
+                except (nx.NetworkXNoPath, nx.NodeNotFound):
+                    # No path found or node not in graph
+                    pass
+        
+        if structured:
+            result = {
+                "reasoning_paths": reasoning_paths,
+                "target_node": target_node,
+                "target_state": target_state,
+                "context": context
+            }
+            if probability is not None:
+                result["probability"] = probability
+                result["probability_percent"] = round(probability * 100, 2)
+            return result
+        else:
+            # Generate natural language explanation, currently template filling is used. In the future, we can use LLM to generate the explanation.
+            explanation_parts = []
+            
+            if context:
+                explanation_parts.append(f"Given the evidence:")
+                for ctx_node, ctx_state in context.items():
+                    node_desc = nodes.get(ctx_node, {}).get("description", ctx_node)
+                    explanation_parts.append(f"  - {ctx_node} ({node_desc}) is {ctx_state}")
+            
+            if reasoning_paths:
+                explanation_parts.append(f"\nThe probability of {target_node} being {target_state} is influenced through the following reasoning paths:")
+                # Limit displayed paths to max_num_paths (already limited during collection)
+                for i, path_info in enumerate(reasoning_paths[:max_num_paths], 1):
+                    path = path_info["path"]
+                    path_str = " → ".join(path)
+                    explanation_parts.append(f"  Path {i}: {path_str}")
+            
+            target_desc = nodes.get(target_node, {}).get("description", target_node)
+            if probability is not None:
+                prob_percent = round(probability * 100, 2)
+                explanation_parts.append(f"\nBased on the Bayesian Network structure and the provided evidence, the probability of {target_node} ({target_desc}) being {target_state} is {prob_percent}% ({probability:.6f}).")
+            else:
+                explanation_parts.append(f"\nBased on the Bayesian Network structure and the provided evidence, the probability of {target_node} ({target_desc}) being {target_state} is calculated.")
+            
+            return "\n".join(explanation_parts) if explanation_parts else "Explanation not available."
+    
 
     ######### stats
     def fetch_source_stats(self):

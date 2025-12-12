@@ -46,6 +46,19 @@
             "metadata": {}
         },
         "icon": null
+    },
+    {
+        "name": "bn_example",
+        "type": "source",
+        "scope": "/",
+        "description": "This is an example Bayesian Network source that contains a Bayesian Network hepar2 describing liver disease diagnosis and related clinical/lab factors..",
+        "properties": {
+            "connection": {
+                "protocol": "bn",
+                "variant": "pgmpy",
+                "source_directory": "/blue_data/data/bn/blue_bn_example"
+            }
+        },
+        "icon": null
     }
 ]
-
