@@ -1,1 +1,1 @@
-Please refer to the [user documentation](https://rit-git.github.io/blue/) 
+Please refer to the [user documentation](https://blue.megagon.info/latest/) 
