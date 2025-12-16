@@ -6,6 +6,8 @@ from fastapi import Depends, Request
 import pydash
 from authorizations.utils import account_id_header, acl_enforce
 from authorizations.constant import PermissionDenied
+from routers.utils import is_alphanumeric_underscore
+from routers.constant import NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
 
 ###### Parsers, Formats, Utils
 import re
@@ -102,6 +104,8 @@ def get_model(request: Request, model_name):
 
 @router.post("/model/{model_name}")
 def add_model(request: Request, model_name, model: ModelSchema):
+    if not is_alphanumeric_underscore(model_name):
+        return NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
     model_db = model_registry.get_model(model_name)
     # if model already exists, return 409 conflict error
     if not pydash.is_empty(model_db):
