@@ -1798,17 +1798,12 @@ class Agent(ErrorLoom):
             self.session_consumer.stop()
 
         # send stop to each worker
-        for input in self.workers:
-            workers_by_input = self.workers[input]
-            for worker_input_stream in workers_by_input:
-                worker = workers_by_input[worker_input_stream]
+        for workers_by_input in self.workers.values():
+            for worker in workers_by_input.values():
                 worker.stop()
+            workers_by_input.clear()
 
-            for worker_input_stream in list(workers_by_input.keys()):
-                del workers_by_input[worker_input_stream]
-
-        for input in self.workers:
-            del self.workers[input]
+        self.workers.clear()
 
     def wait(self):
         """Wait for the agent, its session consumer, and all its workers to finish."""
