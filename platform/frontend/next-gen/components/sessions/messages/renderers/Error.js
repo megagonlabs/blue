@@ -105,6 +105,7 @@ export default function Error({ content }) {
                     <tr>
                         <th className="padding-top-0 padding-left-0 padding-right-0">
                             <Button
+                                disabled={_.isEmpty(stackTrace)}
                                 alignText={Alignment.START}
                                 variant={ButtonVariant.MINIMAL}
                                 fill
