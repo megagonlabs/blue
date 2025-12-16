@@ -72,7 +72,7 @@ class AgentPerformanceTracker(PerformanceTracker):
         for input in self.agent.workers:
             workers_by_input = self.agent.workers[input]
             for stream_id in workers_by_input:
-                worker = self.agent.workers[stream_id]
+                worker = workers_by_input[stream_id]
                 stream = None
                 if worker.consumer:
                     if worker.consumer.stream:
