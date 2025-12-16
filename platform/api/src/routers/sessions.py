@@ -164,7 +164,7 @@ def pin_session(request: Request, session_id):
 
 
 @router.put('/session/{session_id}/unpin')
-def pin_session(request: Request, session_id):
+def unpin_session(request: Request, session_id):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), read=True)
     uid = request.state.user['uid']
@@ -272,7 +272,7 @@ def get_budget_use(request: Request, session_id):
 @router.post("/session/{session_id}/budget/allocation/cost/{cost}")
 def set_budget_allocation_cost(request: Request, session_id, cost):
     session = p.get_session(session_id)
-    session_acl_enforce(request, session.to_dict(), read=True)
+    session_acl_enforce(request, session.to_dict(), write=True)
     cost = float(cost)
     session.set_budget_allocation(cost=cost)
     return JSONResponse(content={"message": "Success"})
@@ -281,7 +281,7 @@ def set_budget_allocation_cost(request: Request, session_id, cost):
 @router.post("/session/{session_id}/budget/allocation/accuracy/{accuracy}")
 def set_budget_allocation_accuracy(request: Request, session_id, accuracy):
     session = p.get_session(session_id)
-    session_acl_enforce(request, session.to_dict(), read=True)
+    session_acl_enforce(request, session.to_dict(), write=True)
     accuracy = float(accuracy)
     session.set_budget_allocation(accuracy=accuracy)
     return JSONResponse(content={"message": "Success"})
@@ -290,7 +290,7 @@ def set_budget_allocation_accuracy(request: Request, session_id, accuracy):
 @router.post("/session/{session_id}/budget/allocation/latency/{latency}")
 def set_budget_allocation_latency(request: Request, session_id, latency):
     session = p.get_session(session_id)
-    session_acl_enforce(request, session.to_dict(), read=True)
+    session_acl_enforce(request, session.to_dict(), write=True)
     latency = float(latency)
     session.set_budget_allocation(latency=latency)
     return JSONResponse(content={"message": "Success"})
