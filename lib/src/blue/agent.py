@@ -1675,7 +1675,7 @@ class Agent(ErrorLoom):
         if unique:
             output = output + ":" + uuid_utils.create_uuid()
         worker = self.create_worker(None)
-        worker.write_control(ControlCode.ERROR, args=error.get_dict(), output=output)
+        worker.write_control(ControlCode.ERROR, args=error.get_dict(), output=output, tags=["ERROR"])
         if eos:
             worker.write_eos(output=output)
 
