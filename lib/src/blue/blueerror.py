@@ -74,14 +74,16 @@ class BlueError(StackContextMixin, Exception):
         if exc_traceback:
             frames = traceback.extract_tb(exc_traceback)
             for frame in frames:
-                structured_trace.append(
-                    {
-                        'file': frame.filename,
-                        'line_number': frame.lineno,
-                        'function': frame.name,
-                        'source_code': frame.line,
-                    }
-                )
+                file_name = frame.filename.split('/')[-1]
+                if not file_name == 'errorloom.py':
+                    structured_trace.append(
+                        {
+                            'file': frame.filename,
+                            'line_number': frame.lineno,
+                            'function': frame.name,
+                            'source_code': frame.line,
+                        }
+                    )
         self.stack_trace = structured_trace
 
     def set_intent(self, intent):
