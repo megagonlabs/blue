@@ -784,6 +784,7 @@ class BNSource(DataSource):
                 explanation_parts.append(f"Given the evidence:")
                 for ctx_node, ctx_state in context.items():
                     node_desc = nodes.get(ctx_node, {}).get("description", ctx_node)
+                    node_desc = node_desc.strip().strip(".")
                     explanation_parts.append(f"  - {ctx_node} ({node_desc}) is {ctx_state}")
             
             if reasoning_paths:
@@ -795,6 +796,7 @@ class BNSource(DataSource):
                     explanation_parts.append(f"  Path {i}: {path_str}")
             
             target_desc = nodes.get(target_node, {}).get("description", target_node)
+            target_desc = target_desc.strip().strip(".")
             if probability is not None:
                 prob_percent = round(probability * 100, 2)
                 explanation_parts.append(f"\nBased on the Bayesian Network structure and the provided evidence, the probability of {target_node} ({target_desc}) being {target_state} is {prob_percent}% ({probability:.6f}).")
