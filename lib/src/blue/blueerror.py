@@ -6,6 +6,36 @@ import pydash
 import inspect
 
 
+def get_instantiating_class_name():
+    """
+    Returns the name of the class where this object is being initialized.
+    Returns None if initialized in a module, standard function, or static method.
+    """
+    frame = None
+    try:
+        frame = inspect.currentframe()
+        if frame:
+            caller_frame = frame.f_back
+            if caller_frame:
+                context_frame = caller_frame.f_back
+                if context_frame:
+                    code_obj = context_frame.f_code
+                    arg_count = code_obj.co_argcount
+                    var_names = code_obj.co_varnames
+                    if arg_count > 0:
+                        first_arg_name = var_names[0]
+                        first_arg_value = context_frame.f_locals.get(first_arg_name)
+                        if hasattr(first_arg_value, '__class__') and not isinstance(first_arg_value, type):
+                            return type(first_arg_value).__name__
+                        if isinstance(first_arg_value, type):
+                            return first_arg_value.__name__
+    except Exception:
+        return None
+    finally:
+        del frame
+    return None
+
+
 class StackContextMixin:
     def get_calling_class_name(self, stack_depth=2):
         try:
@@ -47,7 +77,7 @@ class BlueError(StackContextMixin, Exception):
             self.log = existing_error.log[:]
             self.stack_trace = existing_error.stack_trace[:]
             if description is not None:
-                self.add_log(description)
+                self.add_log(description, caller=get_instantiating_class_name())
             if context:
                 pydash.objects.merge(self.context, context)
             return
@@ -66,9 +96,9 @@ class BlueError(StackContextMixin, Exception):
         self.context = context.copy() if context else {}
         self.log = []
         if description is not None:
-            self.add_log(description)
+            self.add_log(description, caller=get_instantiating_class_name())
         elif exception is not None:
-            self.add_log(str(exception))
+            self.add_log(str(exception), caller=get_instantiating_class_name())
         exc_type, exc_value, exc_traceback = sys.exc_info()
         structured_trace = []
         if exc_traceback:
@@ -92,9 +122,9 @@ class BlueError(StackContextMixin, Exception):
     def set_context(self, key, value):
         pydash.objects.set_(self.context, key, value)
 
-    def add_log(self, description):
+    def add_log(self, description, caller=None):
         caller_name = self.get_calling_class_name(stack_depth=2)
-        self.log.append({"timestamp": int(time.time() * 1000), "description": description, "caller": caller_name})
+        self.log.append({"timestamp": int(time.time() * 1000), "description": description, "caller": caller_name if caller is None else caller})
 
     def __str__(self):
         return json.dumps(self.get_dict())
