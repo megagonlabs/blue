@@ -21,7 +21,14 @@ import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useShallow } from "zustand/react/shallow";
 import MessageIcon from "../messages/MessageIcon";
-export default function MessageViewer({ sessionId, message }) {
+export default function MessageViewer({
+    sessionId,
+    message,
+    showFullContent = false,
+}) {
+    if (message === null) {
+        return null;
+    }
     const { session } = useSessionStore(
         useShallow((state) => ({
             session: _.get(state, ["sessions", sessionId], {}),
@@ -47,7 +54,15 @@ export default function MessageViewer({ sessionId, message }) {
                 }}
             >
                 <div style={{ maxWidth: 110, width: "fit-content" }}>
-                    <Tag size={Size.LARGE} minimal intent={Intent.PRIMARY}>
+                    <Tag
+                        size={Size.LARGE}
+                        minimal
+                        intent={
+                            message.contentType === "ERROR"
+                                ? Intent.DANGER
+                                : Intent.PRIMARY
+                        }
+                    >
                         {message.contentType}
                     </Tag>
                 </div>
@@ -146,7 +161,13 @@ export default function MessageViewer({ sessionId, message }) {
                             </td>
                             <td>{data.label}</td>
                             <td>
-                                <div className="multiline-ellipsis-5">
+                                <div
+                                    className={
+                                        showFullContent
+                                            ? null
+                                            : "multiline-ellipsis-5"
+                                    }
+                                >
                                     {JSON.stringify(data.content)}
                                 </div>
                             </td>

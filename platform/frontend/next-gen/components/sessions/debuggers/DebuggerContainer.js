@@ -602,7 +602,10 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                                 <Tag
                                                                     minimal
                                                                     intent={
-                                                                        Intent.PRIMARY
+                                                                        message.contentType ===
+                                                                        "ERROR"
+                                                                            ? Intent.DANGER
+                                                                            : Intent.PRIMARY
                                                                     }
                                                                 >
                                                                     {
