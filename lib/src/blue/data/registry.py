@@ -2234,7 +2234,10 @@ class DataRegistry(Registry):
         bm25_normalization=None,
         enable_schema=None,
         redis_search_limit=None,
-        enable_value_semantics=True
+        enable_value_semantics=True,
+        hierarchical_enabled=None,
+        hierarchical_database_types=None,
+        hierarchical_collection_types=None,
     ):
         """
         Search records using BM25 relevance, vector similarity, and optional schema-based scoring.
@@ -2326,6 +2329,7 @@ class DataRegistry(Registry):
                     page_limit=page_limit,
                     bm25_weight=bm25_weight,
                     vector_weight=vector_weight,
+                    value_weight=value_weight,
                     bm25_threshold=bm25_threshold,
                     vector_threshold=vector_threshold,
                     value_threshold=value_threshold,
@@ -2334,6 +2338,9 @@ class DataRegistry(Registry):
                     enable_schema=enable_schema,
                     redis_search_limit=redis_search_limit,
                     enable_value_semantics=enable_value_semantics,
+                    hierarchical_enabled=hierarchical_enabled,
+                    hierarchical_database_types=hierarchical_database_types,
+                    hierarchical_collection_types=hierarchical_collection_types,
                 )
             
         results = self._fetch_raw_results(params, search_types=None)
@@ -2466,6 +2473,7 @@ class DataRegistry(Registry):
         page_limit=10,
         bm25_weight=None,
         vector_weight=None,
+        value_weight=None,
         bm25_threshold=None,
         vector_threshold=None,
         value_threshold=None, 
@@ -2474,6 +2482,10 @@ class DataRegistry(Registry):
         bm25_normalization=None,
         redis_search_limit=None,
         enable_value_semantics=True, 
+        hierarchical_enabled=None,
+        hierarchical_database_types=None,
+        hierarchical_collection_types=None,
+        
     ):
         """
         Perform a hierarchical search over records, considering parent-child relationships for databases and collections.
@@ -2544,6 +2556,7 @@ class DataRegistry(Registry):
                 page_limit=page_limit,
                 bm25_weight=bm25_weight,
                 vector_weight=vector_weight,
+                value_weight=value_weight,
                 bm25_threshold=bm25_threshold,
                 vector_threshold=vector_threshold,
                 value_threshold=value_threshold,
@@ -2567,15 +2580,26 @@ class DataRegistry(Registry):
             combined_threshold=combined_threshold,
             enable_schema=enable_schema,
             redis_search_limit=redis_search_limit,
+            hierarchical_enabled=hierarchical_enabled,
+            hierarchical_database_types=hierarchical_database_types,
+            hierarchical_collection_types=hierarchical_collection_types,
         )
 
         # Determine search types for hierarchical search
-        if type == 'database':
-            search_types = self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
-        elif type == 'collection':
-            search_types = self.properties.get('search_hierarchical_collection_types', ['collection', 'entity'])
+        #if type == 'database':
+        #    search_types = self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
+        #elif type == 'collection':
+        #    search_types = self.properties.get('search_hierarchical_collection_types', ['collection', 'entity'])
+        #else:
+        #    search_types = [type]
+
+        if type == "database":
+            search_types = params["hierarchical_database_types"]
+        elif type == "collection":
+            search_types = params["hierarchical_collection_types"]
         else:
             search_types = [type]
+
 
         
 
