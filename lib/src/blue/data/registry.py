@@ -2402,9 +2402,27 @@ class DataRegistry(Registry):
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
 
-            # Apply thresholds on inverted score for consumer consistency
-            if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+            value_ok = (
+               enable_value_semantics
+               and result.type == "attribute"
+               and result.value_relevance_score >= params.get("value_threshold", 0.0)
+            )
+            
+            if (
+                not value_ok and (
+                    normalized_bm25 < params['bm25_threshold']
+                    or result.vector_score < params['vector_threshold']
+                )
+            ):
                 continue
+
+            if inverted_score > (1.0 - params['combined_threshold']):
+                continue
+            
+            
+            # Apply thresholds on inverted score for consumer consistency
+            #if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+            #    continue
 
             # Attach final scores to result object
             result.normalized_bm25 = normalized_bm25
@@ -2450,6 +2468,7 @@ class DataRegistry(Registry):
         vector_weight=None,
         bm25_threshold=None,
         vector_threshold=None,
+        value_threshold=None, 
         combined_threshold=None,
         enable_schema=None,
         bm25_normalization=None,
@@ -2527,6 +2546,7 @@ class DataRegistry(Registry):
                 vector_weight=vector_weight,
                 bm25_threshold=bm25_threshold,
                 vector_threshold=vector_threshold,
+                value_threshold=value_threshold,
                 combined_threshold=combined_threshold,
                 bm25_normalization=bm25_normalization,
                 enable_schema=enable_schema,
@@ -2543,6 +2563,7 @@ class DataRegistry(Registry):
             bm25_normalization=bm25_normalization,
             bm25_threshold=bm25_threshold,
             vector_threshold=vector_threshold,
+            value_threshold=value_threshold,
             combined_threshold=combined_threshold,
             enable_schema=enable_schema,
             redis_search_limit=redis_search_limit,
@@ -2778,7 +2799,20 @@ class DataRegistry(Registry):
             values = getattr(record, "most_relevant_values", [])
             value_score_norm = min(1.0, value_score)
 
-            combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * record.vector_score
+            value_norm = 0.0
+            value_ok = False
+
+            if record.type == "attribute" and hasattr(record, "value_relevance_score"):
+                value_norm = min(1.0, record.value_relevance_score)
+                value_ok = value_norm >= params.get("value_threshold", 0.0)
+
+            combined_score = (
+                params['bm25_weight'] * normalized_bm25 +
+                params['vector_weight'] * record.vector_score +
+                params['value_weight'] * value_norm
+            )
+
+            #combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * record.vector_score
 
             # full semantic combined score
             #combined_score = (
@@ -2790,9 +2824,22 @@ class DataRegistry(Registry):
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
 
-            # Apply thresholds same as search_records
-            if normalized_bm25 < params['bm25_threshold'] or record.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+            if (
+                not value_ok and (
+                    normalized_bm25 < params['bm25_threshold']
+                    or record.vector_score < params['vector_threshold']
+                )
+            ):
                 continue
+
+            if inverted_score > (1.0 - params['combined_threshold']):
+                continue
+
+
+
+            # Apply thresholds same as search_records
+            #if normalized_bm25 < params['bm25_threshold'] or record.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+            #    continue
 
             
             # Choose record:
