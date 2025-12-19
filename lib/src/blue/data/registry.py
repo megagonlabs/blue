@@ -58,6 +58,8 @@ class DataRegistry(Registry):
         # threshold
         self.properties['search_bm25_threshold'] = 0.0
         self.properties['search_vector_threshold'] = 0.5
+        self.properties['search_value_threshold'] = 0.3
+
         self.properties['search_combined_threshold'] = 0.36
 
         # hierarchical search by chain from children to parent
@@ -2015,6 +2017,7 @@ class DataRegistry(Registry):
         bm25_normalization=None,
         bm25_threshold=None,
         vector_threshold=None,
+        value_threshold=None, 
         combined_threshold=None,
         enable_schema=None,
         hierarchical_enabled=None,
@@ -2038,6 +2041,8 @@ class DataRegistry(Registry):
         # thresholds
         bm25_threshold = bm25_threshold if bm25_threshold is not None else self.properties.get('search_bm25_threshold', 0.0)
         vector_threshold = vector_threshold if vector_threshold is not None else self.properties.get('search_vector_threshold', 0.5)
+        value_threshold = value_threshold if value_threshold is not None else self.properties.get('search_value_threshold', 0.0)
+
         combined_threshold = combined_threshold if combined_threshold is not None else self.properties.get('search_combined_threshold', 0.36)
 
         # hierarchical search
@@ -2092,6 +2097,7 @@ class DataRegistry(Registry):
             'value_weight': value_weight,
             'bm25_threshold': bm25_threshold,
             'vector_threshold': vector_threshold,
+            'value_threshold': value_threshold,
             'combined_threshold': combined_threshold,
             'bm25_normalization': bm25_normalization,
             'enable_schema': enable_schema,
@@ -2223,11 +2229,15 @@ class DataRegistry(Registry):
         value_weight=None, 
         bm25_threshold=None,
         vector_threshold=None,
+        value_threshold=None,
         combined_threshold=None,
         bm25_normalization=None,
         enable_schema=None,
         redis_search_limit=None,
-        enable_value_semantics=True
+        enable_value_semantics=True,
+        hierarchical_enabled=None,
+        hierarchical_database_types=None,
+        hierarchical_collection_types=None,
     ):
         """
         Search records using BM25 relevance, vector similarity, and optional schema-based scoring.
@@ -2300,6 +2310,7 @@ class DataRegistry(Registry):
             value_weight=value_weight,
             bm25_threshold=bm25_threshold,
             vector_threshold=vector_threshold,
+            value_threshold=value_threshold,
             combined_threshold=combined_threshold,
             bm25_normalization=bm25_normalization,
             enable_schema=enable_schema,
@@ -2318,13 +2329,18 @@ class DataRegistry(Registry):
                     page_limit=page_limit,
                     bm25_weight=bm25_weight,
                     vector_weight=vector_weight,
+                    value_weight=value_weight,
                     bm25_threshold=bm25_threshold,
                     vector_threshold=vector_threshold,
+                    value_threshold=value_threshold,
                     combined_threshold=combined_threshold,
                     bm25_normalization=bm25_normalization,
                     enable_schema=enable_schema,
                     redis_search_limit=redis_search_limit,
                     enable_value_semantics=enable_value_semantics,
+                    hierarchical_enabled=hierarchical_enabled,
+                    hierarchical_database_types=hierarchical_database_types,
+                    hierarchical_collection_types=hierarchical_collection_types,
                 )
             
         results = self._fetch_raw_results(params, search_types=None)
@@ -2393,9 +2409,27 @@ class DataRegistry(Registry):
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
 
-            # Apply thresholds on inverted score for consumer consistency
-            if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+            value_ok = (
+               enable_value_semantics
+               and result.type == "attribute"
+               and result.value_relevance_score >= params.get("value_threshold", 0.0)
+            )
+            
+            if (
+                not value_ok and (
+                    normalized_bm25 < params['bm25_threshold']
+                    or result.vector_score < params['vector_threshold']
+                )
+            ):
                 continue
+
+            if inverted_score > (1.0 - params['combined_threshold']):
+                continue
+            
+            
+            # Apply thresholds on inverted score for consumer consistency
+            #if normalized_bm25 < params['bm25_threshold'] or result.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+            #    continue
 
             # Attach final scores to result object
             result.normalized_bm25 = normalized_bm25
@@ -2439,13 +2473,19 @@ class DataRegistry(Registry):
         page_limit=10,
         bm25_weight=None,
         vector_weight=None,
+        value_weight=None,
         bm25_threshold=None,
         vector_threshold=None,
+        value_threshold=None, 
         combined_threshold=None,
         enable_schema=None,
         bm25_normalization=None,
         redis_search_limit=None,
         enable_value_semantics=True, 
+        hierarchical_enabled=None,
+        hierarchical_database_types=None,
+        hierarchical_collection_types=None,
+        
     ):
         """
         Perform a hierarchical search over records, considering parent-child relationships for databases and collections.
@@ -2516,8 +2556,10 @@ class DataRegistry(Registry):
                 page_limit=page_limit,
                 bm25_weight=bm25_weight,
                 vector_weight=vector_weight,
+                value_weight=value_weight,
                 bm25_threshold=bm25_threshold,
                 vector_threshold=vector_threshold,
+                value_threshold=value_threshold,
                 combined_threshold=combined_threshold,
                 bm25_normalization=bm25_normalization,
                 enable_schema=enable_schema,
@@ -2534,18 +2576,30 @@ class DataRegistry(Registry):
             bm25_normalization=bm25_normalization,
             bm25_threshold=bm25_threshold,
             vector_threshold=vector_threshold,
+            value_threshold=value_threshold,
             combined_threshold=combined_threshold,
             enable_schema=enable_schema,
             redis_search_limit=redis_search_limit,
+            hierarchical_enabled=hierarchical_enabled,
+            hierarchical_database_types=hierarchical_database_types,
+            hierarchical_collection_types=hierarchical_collection_types,
         )
 
         # Determine search types for hierarchical search
-        if type == 'database':
-            search_types = self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
-        elif type == 'collection':
-            search_types = self.properties.get('search_hierarchical_collection_types', ['collection', 'entity'])
+        #if type == 'database':
+        #    search_types = self.properties.get('search_hierarchical_database_types', ['database', 'collection', 'entity'])
+        #elif type == 'collection':
+        #    search_types = self.properties.get('search_hierarchical_collection_types', ['collection', 'entity'])
+        #else:
+        #    search_types = [type]
+
+        if type == "database":
+            search_types = params["hierarchical_database_types"]
+        elif type == "collection":
+            search_types = params["hierarchical_collection_types"]
         else:
             search_types = [type]
+
 
         
 
@@ -2769,7 +2823,20 @@ class DataRegistry(Registry):
             values = getattr(record, "most_relevant_values", [])
             value_score_norm = min(1.0, value_score)
 
-            combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * record.vector_score
+            value_norm = 0.0
+            value_ok = False
+
+            if record.type == "attribute" and hasattr(record, "value_relevance_score"):
+                value_norm = min(1.0, record.value_relevance_score)
+                value_ok = value_norm >= params.get("value_threshold", 0.0)
+
+            combined_score = (
+                params['bm25_weight'] * normalized_bm25 +
+                params['vector_weight'] * record.vector_score +
+                params['value_weight'] * value_norm
+            )
+
+            #combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * record.vector_score
 
             # full semantic combined score
             #combined_score = (
@@ -2781,9 +2848,22 @@ class DataRegistry(Registry):
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
 
-            # Apply thresholds same as search_records
-            if normalized_bm25 < params['bm25_threshold'] or record.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+            if (
+                not value_ok and (
+                    normalized_bm25 < params['bm25_threshold']
+                    or record.vector_score < params['vector_threshold']
+                )
+            ):
                 continue
+
+            if inverted_score > (1.0 - params['combined_threshold']):
+                continue
+
+
+
+            # Apply thresholds same as search_records
+            #if normalized_bm25 < params['bm25_threshold'] or record.vector_score < params['vector_threshold'] or inverted_score > (1.0 - params['combined_threshold']):
+            #    continue
 
             
             # Choose record:
