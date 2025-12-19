@@ -26,9 +26,6 @@ export default function MessageViewer({
     message,
     showFullContent = false,
 }) {
-    if (message === null) {
-        return null;
-    }
     const { session } = useSessionStore(
         useShallow((state) => ({
             session: _.get(state, ["sessions", sessionId], {}),
@@ -40,6 +37,9 @@ export default function MessageViewer({
         .filter((tag) => tag[1])
         .map((tag) => tag[0]);
     const { appToaster } = useToaster();
+    if (message === null) {
+        return null;
+    }
     return (
         <div
             className="full-parent-dimension"
