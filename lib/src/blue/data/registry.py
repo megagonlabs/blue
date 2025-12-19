@@ -58,6 +58,8 @@ class DataRegistry(Registry):
         # threshold
         self.properties['search_bm25_threshold'] = 0.0
         self.properties['search_vector_threshold'] = 0.5
+        self.properties['search_value_threshold'] = 0.3
+
         self.properties['search_combined_threshold'] = 0.36
 
         # hierarchical search by chain from children to parent
@@ -2015,6 +2017,7 @@ class DataRegistry(Registry):
         bm25_normalization=None,
         bm25_threshold=None,
         vector_threshold=None,
+        value_threshold=None, 
         combined_threshold=None,
         enable_schema=None,
         hierarchical_enabled=None,
@@ -2038,6 +2041,8 @@ class DataRegistry(Registry):
         # thresholds
         bm25_threshold = bm25_threshold if bm25_threshold is not None else self.properties.get('search_bm25_threshold', 0.0)
         vector_threshold = vector_threshold if vector_threshold is not None else self.properties.get('search_vector_threshold', 0.5)
+        value_threshold = value_threshold if value_threshold is not None else self.properties.get('search_value_threshold', 0.0)
+
         combined_threshold = combined_threshold if combined_threshold is not None else self.properties.get('search_combined_threshold', 0.36)
 
         # hierarchical search
@@ -2092,6 +2097,7 @@ class DataRegistry(Registry):
             'value_weight': value_weight,
             'bm25_threshold': bm25_threshold,
             'vector_threshold': vector_threshold,
+            'value_threshold': value_threshold,
             'combined_threshold': combined_threshold,
             'bm25_normalization': bm25_normalization,
             'enable_schema': enable_schema,
@@ -2223,6 +2229,7 @@ class DataRegistry(Registry):
         value_weight=None, 
         bm25_threshold=None,
         vector_threshold=None,
+        value_threshold=None,
         combined_threshold=None,
         bm25_normalization=None,
         enable_schema=None,
@@ -2300,6 +2307,7 @@ class DataRegistry(Registry):
             value_weight=value_weight,
             bm25_threshold=bm25_threshold,
             vector_threshold=vector_threshold,
+            value_threshold=value_threshold,
             combined_threshold=combined_threshold,
             bm25_normalization=bm25_normalization,
             enable_schema=enable_schema,
@@ -2320,6 +2328,7 @@ class DataRegistry(Registry):
                     vector_weight=vector_weight,
                     bm25_threshold=bm25_threshold,
                     vector_threshold=vector_threshold,
+                    value_threshold=value_threshold,
                     combined_threshold=combined_threshold,
                     bm25_normalization=bm25_normalization,
                     enable_schema=enable_schema,
