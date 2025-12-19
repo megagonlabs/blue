@@ -31,15 +31,15 @@ export default function MessageViewer({
             session: _.get(state, ["sessions", sessionId], {}),
         }))
     );
+    const { appToaster } = useToaster();
+    if (message === null) {
+        return null;
+    }
     const stream = _.get(session, ["streams", message.stream], null);
     const streamData = _.get(stream, "data", []);
     const tags = _.entries(_.get(message, "metadata.tags", {}))
         .filter((tag) => tag[1])
         .map((tag) => tag[0]);
-    const { appToaster } = useToaster();
-    if (message === null) {
-        return null;
-    }
     return (
         <div
             className="full-parent-dimension"
