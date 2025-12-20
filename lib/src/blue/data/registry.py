@@ -2433,9 +2433,18 @@ class DataRegistry(Registry):
         for result in results:
             normalized_bm25 = result.normalized_bm25_score
 
+            #value_norm = 0.0
+            #if enable_value_semantics and result.type == "attribute":
+            #    value_norm = min(1.0, result.value_relevance_score)
+            # --- VALUE RELEVANCE (direct OR propagated, flat == hierarchical) ---
             value_norm = 0.0
-            if enable_value_semantics and result.type == "attribute":
-                value_norm = min(1.0, result.value_relevance_score)
+            if enable_value_semantics:
+                value_norm = max(
+                    getattr(result, "value_relevance_score", 0.0),
+                    getattr(result, "aggregated_value_relevance", 0.0),
+                )
+                value_norm = min(1.0, value_norm)
+
 
             # Compute combined score
             #combined_score = params['bm25_weight'] * normalized_bm25 + params['vector_weight'] * result.vector_score
@@ -2450,11 +2459,12 @@ class DataRegistry(Registry):
             # Invert combined score so lower = better
             inverted_score = 1.0 - combined_score
 
-            value_ok = (
-               enable_value_semantics
-               and result.type == "attribute"
-               and result.value_relevance_score >= params.get("value_threshold", 0.0)
-            )
+            #value_ok = (
+            #   enable_value_semantics
+            #   and result.type == "attribute"
+            #   and result.value_relevance_score >= params.get("value_threshold", 0.0)
+            #)
+            value_ok = value_norm >= params.get("value_threshold", 0.0)
             
             if (
                 not value_ok and (
