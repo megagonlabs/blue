@@ -64,8 +64,8 @@ class DataRegistry(Registry):
 
         # hierarchical search by chain from children to parent
         self.properties['search_hierarchical_enabled'] = True
-        self.properties['search_hierarchical_database_types'] = ['database', 'collection', 'entity']
-        self.properties['search_hierarchical_collection_types'] = ['collection', 'entity']
+        self.properties['search_hierarchical_database_types'] = ['database', 'collection', 'entity', 'attribute']
+        self.properties['search_hierarchical_collection_types'] = ['collection', 'entity', 'attribute']
 
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
@@ -2214,6 +2214,47 @@ class DataRegistry(Registry):
 
         return results
     
+    def _aggregate_value_scores(self, node_ids, hierarchy, mode="max", top_k=3, decay=0.9):
+        """
+        Aggregate value relevance scores from a set of nodes.
+        Uses direct OR propagated value relevance per node.
+        """
+
+        scores = []
+
+        for node_id in node_ids:
+            record = hierarchy[node_id]["record"]
+
+            # Use direct OR propagated value relevance
+            s = max(
+                getattr(record, "value_relevance_score", 0.0),
+                getattr(record, "aggregated_value_relevance", 0.0),
+            )
+
+            if s > 0:
+                scores.append(min(1.0, s))
+
+        if not scores:
+            return 0.0
+
+        if mode == "max":
+            return max(scores)
+
+        if mode == "sum":
+            return sum(scores)
+
+        if mode == "topk":
+            scores.sort(reverse=True)
+            k = min(top_k, len(scores))
+            return sum(scores[:k]) / k
+
+        if mode == "decayed":
+            scores.sort(reverse=True)
+            return sum((decay ** i) * s for i, s in enumerate(scores))
+
+        return max(scores)
+
+
     def search_records(
         self,
         input_query,
@@ -2573,6 +2614,7 @@ class DataRegistry(Registry):
             scope=scope,
             bm25_weight=bm25_weight,
             vector_weight=vector_weight,
+            value_weight=value_weight,
             bm25_normalization=bm25_normalization,
             bm25_threshold=bm25_threshold,
             vector_threshold=vector_threshold,
@@ -2673,8 +2715,9 @@ class DataRegistry(Registry):
         hierarchical_results = []
 
         for node_id in target_nodes:
-            best_score, best_record, best_values, best_value_score = self._update_node_score_with_children(node_id, hierarchy, params)
-            
+            #best_score, best_record, best_values, best_value_score = self._update_node_score_with_children(node_id, hierarchy, params)
+            parent_score, best_record, best_values, aggregated_value_score = self._update_node_score_with_children(node_id, hierarchy, params)
+
             if best_record is None:
                 continue
             
@@ -2684,7 +2727,8 @@ class DataRegistry(Registry):
             "scope": hierarchy[node_id]['record'].scope,
             "id": hierarchy[node_id]['record'].id,
             "description": hierarchy[node_id]['record'].description,
-            "score": best_score,
+            #"score": best_score,
+            "score": parent_score,  
             "bm25_score": best_record.bm25_score,
             "vector_score": best_record.vector_score,
             "normalized_bm25_score": best_record.normalized_bm25_score,
@@ -2692,11 +2736,13 @@ class DataRegistry(Registry):
             "best_record_name": best_record.name,
             "best_record_type": best_record.type,
             "best_record_scope": best_record.scope,
+            "best_values": best_values,
+            "aggregated_value_score": aggregated_value_score,
             }
 
             if best_values:
                 result_entry["most_relevant_values"] = best_values
-                result_entry["value_relevance_score"] = best_value_score
+                result_entry["value_relevance_score"] = aggregated_value_score
 
             #result_entry["semantic_combined_score"] = (
             #params['bm25_weight'] * best_record.normalized_bm25_score +
@@ -2773,10 +2819,45 @@ class DataRegistry(Registry):
         # Get all children (nested) including the node itself
         all_related_nodes = {node_id} | self._get_all_children_recursive(node_id, hierarchy)
 
-        # Find the best score among all related nodes
-        best_score, best_record, best_values, best_value_score = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
+        # 1. Aggregate semantic evidence
+        aggregated_value_score = self._aggregate_value_scores(
+            all_related_nodes,
+            hierarchy,
+            mode="topk",  # or "max"
+            top_k=3
+        )
 
-        return best_score, best_record, best_values, best_value_score
+        # 2. Compute parent score explicitly
+        record = hierarchy[node_id]["record"]
+
+        value_norm = min(1.0, aggregated_value_score)
+
+        # persist propagated value relevance on parent
+        record.aggregated_value_relevance = value_norm
+
+        combined_score = (
+            params["bm25_weight"] * record.normalized_bm25_score +
+            params["vector_weight"] * record.vector_score +
+            params["value_weight"] * value_norm
+        )
+
+        parent_score = 1.0 - combined_score
+
+        #best_child_score, best_record = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
+        
+        best_child_score, best_record, best_values, best_value_score = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
+        
+        #best_values = getattr(best_record, "most_relevant_values", []) if best_record else []
+        #best_value_score = getattr(best_record, "value_relevance_score", 0.0) if best_record else 0.0
+
+
+        
+        # Find the best score among all related nodes
+        #best_score, best_record, best_values, best_value_score = self._find_best_score_among_nodes(all_related_nodes, hierarchy, params)
+
+        #return best_score, best_record, best_values, best_value_score
+        return parent_score, best_record, best_values, aggregated_value_score
+
 
     def _get_all_children_recursive(self, node_id, hierarchy, visited=None):
         """Get all children (nested) of a node recursively using set for efficiency"""
@@ -2818,17 +2899,29 @@ class DataRegistry(Registry):
             record = hierarchy[node_id]['record']
             normalized_bm25 = record.normalized_bm25_score
 
+            value_norm = 0.0
+            value_ok = False
+
+             # --- VALUE RELEVANCE (direct OR propagated) ---
+            value_norm = max(
+                getattr(record, "value_relevance_score", 0.0),
+                getattr(record, "aggregated_value_relevance", 0.0),
+            )
+            value_norm = min(1.0, value_norm)
+            value_ok = value_norm >= params.get("value_threshold", 0.0)
+
+
             # Retrieve value semantics (may be zero)
             value_score = getattr(record, "value_relevance_score", 0.0)
             values = getattr(record, "most_relevant_values", [])
             value_score_norm = min(1.0, value_score)
 
-            value_norm = 0.0
-            value_ok = False
+            #value_norm = 0.0
+            #value_ok = False
 
-            if record.type == "attribute" and hasattr(record, "value_relevance_score"):
-                value_norm = min(1.0, record.value_relevance_score)
-                value_ok = value_norm >= params.get("value_threshold", 0.0)
+            #if record.type == "attribute" and hasattr(record, "value_relevance_score"):
+            #    value_norm = min(1.0, record.value_relevance_score)
+            #    value_ok = value_norm >= params.get("value_threshold", 0.0)
 
             combined_score = (
                 params['bm25_weight'] * normalized_bm25 +
@@ -2869,17 +2962,30 @@ class DataRegistry(Registry):
             # Choose record:
             #   1. Smaller score is better
             #   2. If tied, choose one with higher value_score
+            #better = (
+            #    best_record is None or
+            #    inverted_score < best_score or
+            #    (inverted_score == best_score and value_score > best_value_score)
+            #)
+
+            #if better:
+            #    best_score = inverted_score
+            #    best_record = record
+            #    best_values = values
+            #    best_value_score = value_score
+
             better = (
-                best_record is None or
-                inverted_score < best_score or
-                (inverted_score == best_score and value_score > best_value_score)
+            best_record is None or
+            inverted_score < best_score or
+            (inverted_score == best_score and value_norm > best_value_score)
             )
 
             if better:
                 best_score = inverted_score
                 best_record = record
-                best_values = values
-                best_value_score = value_score
+                best_values = getattr(record, "most_relevant_values", [])
+                best_value_score = value_norm
+
 
 
         return best_score, best_record, best_values, best_value_score
