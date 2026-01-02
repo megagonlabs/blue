@@ -23,6 +23,7 @@ import {
     faClipboard,
     faCompassDrafting,
     faDownload,
+    faXmarkLarge,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import {
     Background,
@@ -528,6 +529,16 @@ export default function StreamFlows({ sessionId }) {
                     visible={!_.isEmpty(nodeInfo)}
                     minSize={MIN_ALLOTMENT_PANE_SIZE}
                 >
+                    <div className="border-bottom" style={{ padding: 10 }}>
+                        <Button
+                            variant={ButtonVariant.MINIMAL}
+                            size={Size.LARGE}
+                            onClick={() => {
+                                setNodeInfo(null);
+                            }}
+                            icon={<FAIcon icon={faXmarkLarge} />}
+                        />
+                    </div>
                     <MessageViewer
                         sessionId={sessionId}
                         message={nodeInfo}
