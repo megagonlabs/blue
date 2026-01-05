@@ -421,6 +421,7 @@ class Worker:
             prefix = self.agent.cid
         else:
             prefix = self.prefix
+        output_name = output.split(":")[0]
 
         # TODO: This doesn't belong here..
         if message.getCode() in [
@@ -440,7 +441,7 @@ class Worker:
                     message.setArg("form_id", id)
 
                 # start stream
-                event_producer = Producer(name="EVENT", id=form_id, prefix=prefix, suffix="STREAM", properties=self.properties, metadata={'owner': self.agent.sid})
+                event_producer = Producer(name="EVENT", id=form_id, prefix=prefix, suffix="STREAM", properties=self.properties, metadata={'owner': self.agent.sid, 'output_name': output_name})
                 event_producer.start()
                 event_stream = event_producer.get_stream()
 
@@ -451,7 +452,12 @@ class Worker:
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
-                    event_stream, name=self.name, prefix=self.cid, listener=lambda message: self.listener(message, input="EVENT"), properties=self.properties, metadata={'owner': self.agent.sid}
+                    event_stream,
+                    name=self.name,
+                    prefix=self.cid,
+                    listener=lambda message: self.listener(message, input="EVENT"),
+                    properties=self.properties,
+                    metadata={'owner': self.agent.sid, 'output_name': output_name},
                 )
                 event_consumer.start()
             elif message.getCode() == ControlCode.UPDATE_FORM:
@@ -530,7 +536,7 @@ class Worker:
             listener=lambda message: self.listener(message, input=self.input),
             properties=self.properties,
             on_stop=lambda sid: self.on_consumer_stop_handler(sid),
-            metadata={'owner': self.agent.sid},
+            metadata={'owner': self.agent.sid, 'input_name': self.input},
         )
 
         self.consumer = consumer
@@ -558,7 +564,8 @@ class Worker:
             return self.producers[pid]
 
         # create producer for output
-        producer = Producer(name="OUTPUT", id=output, prefix=prefix, suffix="STREAM", properties=self.properties, metadata={'owner': self.agent.sid})
+        output_name = output.split(":")[0]
+        producer = Producer(name="OUTPUT", id=output, prefix=prefix, suffix="STREAM", properties=self.properties, metadata={'owner': self.agent.sid, "output_name": output_name})
         producer.start()
         self.producers[pid] = producer
 
@@ -575,7 +582,6 @@ class Worker:
             if tags:
                 all_tags = all_tags.union(set(tags))
             # add tags for specific output variable
-            output_name = output.split(":")[0]
             output_tags = self.agent.get_output_tags(output_name)
             if output_tags:
                 all_tags = all_tags.union(set(output_tags))
