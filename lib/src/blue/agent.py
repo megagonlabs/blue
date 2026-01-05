@@ -440,7 +440,7 @@ class Worker:
                     message.setArg("form_id", id)
 
                 # start stream
-                event_producer = Producer(name="EVENT", id=form_id, prefix=prefix, suffix="STREAM", properties=self.properties, owner=self.agent.sid)
+                event_producer = Producer(name="EVENT", id=form_id, prefix=prefix, suffix="STREAM", properties=self.properties, metadata={'owner': self.agent.sid})
                 event_producer.start()
                 event_stream = event_producer.get_stream()
 
@@ -451,7 +451,7 @@ class Worker:
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
-                    event_stream, name=self.name, prefix=self.cid, listener=lambda message: self.listener(message, input="EVENT"), properties=self.properties, owner=self.agent.sid
+                    event_stream, name=self.name, prefix=self.cid, listener=lambda message: self.listener(message, input="EVENT"), properties=self.properties, metadata={'owner': self.agent.sid}
                 )
                 event_consumer.start()
             elif message.getCode() == ControlCode.UPDATE_FORM:
@@ -529,8 +529,8 @@ class Worker:
             prefix=self.cid,
             listener=lambda message: self.listener(message, input=self.input),
             properties=self.properties,
-            owner=self.agent.sid,
             on_stop=lambda sid: self.on_consumer_stop_handler(sid),
+            metadata={'owner': self.agent.sid},
         )
 
         self.consumer = consumer
@@ -558,7 +558,7 @@ class Worker:
             return self.producers[pid]
 
         # create producer for output
-        producer = Producer(name="OUTPUT", id=output, prefix=prefix, suffix="STREAM", properties=self.properties, owner=self.agent.sid)
+        producer = Producer(name="OUTPUT", id=output, prefix=prefix, suffix="STREAM", properties=self.properties, metadata={'owner': self.agent.sid})
         producer.start()
         self.producers[pid] = producer
 
@@ -1783,7 +1783,9 @@ class Agent(ErrorLoom):
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.session_consumer = Consumer(session_stream, name=self.name, listener=lambda message: self.session_listener(message), properties=self.properties, owner=self.sid)
+                self.session_consumer = Consumer(
+                    session_stream, name=self.name, listener=lambda message: self.session_listener(message), properties=self.properties, metadata={'owner': self.sid}
+                )
                 self.session_consumer.start()
 
     def stop(self):
@@ -1991,7 +1993,9 @@ class AgentFactory:
         """Start the platform consumer to listen for join session instructions."""
         # platform stream
         stream = "PLATFORM:" + self.platform + ":STREAM"
-        self.platform_consumer = Consumer(stream, name=self._name + "_FACTORY", listener=lambda message: self.platform_listener(message), properties=self.properties, owner=self.sid)
+        self.platform_consumer = Consumer(
+            stream, name=self._name + "_FACTORY", listener=lambda message: self.platform_listener(message), properties=self.properties, metadata={'owner': self.sid}
+        )
         self.platform_consumer.start()
 
     def _extract_epoch(self, id):

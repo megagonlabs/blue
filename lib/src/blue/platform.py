@@ -343,7 +343,7 @@ class Platform:
         """Starts platform stream producer"""
         # start, if not started
         if self.producer == None:
-            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, owner=self.sid)
+            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, metadata={'owner': self.sid})
             producer.start()
             self.producer = producer
 

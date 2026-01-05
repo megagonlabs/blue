@@ -18,7 +18,6 @@ from blue.logging.searchable_logger import SearchableCustomLogger
 from blue.logging.redis_logstore import RedisLogStore
 
 
-
 ###############
 ### Session
 #
@@ -62,7 +61,6 @@ class Session(Entity):
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
         self.properties["logstore.type"] = "redis"
-        
 
     def _update_properties(self, properties=None):
         """Update session properties with provided values.
@@ -87,10 +85,10 @@ class Session(Entity):
 
     def _initialize_logger(self):
         """Initialize the session logger with SearchableCustomLogger."""
-        
+
         logstore = None
 
-        # If user passed logstore configs via properties 
+        # If user passed logstore configs via properties
         if "logstore.type" in self.properties:
             if self.properties["logstore.type"] == "redis":
                 logstore = RedisLogStore(
@@ -111,7 +109,6 @@ class Session(Entity):
         # NEW: set execution context for structured events
         self.logger.set_context(session=self.sid)
 
-    
     ###### AGENTS, NOTIFICATION
     def add_agent(self, agent):
         """
@@ -671,7 +668,7 @@ class Session(Entity):
         # start, if not started
         if self.producer == None:
 
-            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, owner=self.sid)
+            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties, metadata={'owner': self.sid})
             producer.start()
             self.producer = producer
 

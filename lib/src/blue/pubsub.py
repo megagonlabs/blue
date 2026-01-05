@@ -12,6 +12,7 @@ from redis.commands.json.path import Path
 
 ###### Threads
 import threading
+import pydash
 
 ###### Blue
 from blue.stream import Message, MessageType, ContentType, Stream
@@ -26,7 +27,7 @@ from blue.utils import uuid_utils, log_utils
 class Consumer:
     """Consumer class to read messages from a Redis stream using consumer groups."""
 
-    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, owner=None, listener=None, properties=None, on_stop=None):
+    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, listener=None, properties=None, on_stop=None, metadata={}):
         """Initialize the Consumer.
 
         Parameters:
@@ -37,7 +38,6 @@ class Consumer:
             cid (str): Canonical identifier for the consumer. If None, it will be generated from sid, prefix, and suffix.
             prefix (str): Optional prefix for the cid.
             suffix (str): Optional suffix for the cid.
-            owner: Owner of the consumer for metadata
             listener: Callback function to process each message.
             properties: Properties for the consumer. Defaults to None.
             on_stop (callable): Callback function to be called when the consumer stops.
@@ -66,7 +66,8 @@ class Consumer:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
-        self.owner = owner
+        self.owner = pydash.objects.get(metadata, 'owner', None)
+        self.metadata = metadata
 
         if properties is None:
             properties = {}
@@ -311,8 +312,8 @@ class Consumer:
 
                     # update stream metadata
                     if self.owner:
-                        metadata = {'message': id, 'time': self.last_processed}
-                        self.stream.set_metadata('consumers.' + self.owner, metadata)
+                        pydash.merge(self.metadata, {'message': id, 'time': self.last_processed})
+                        self.stream.set_metadata('consumers.' + self.owner, self.metadata)
 
                     # ack
                     r.xack(s, g, id)
@@ -342,8 +343,8 @@ class Consumer:
 
                 # update stream metadata
                 if self.owner:
-                    metadata = {'message': id, 'time': self.last_processed}
-                    self.stream.set_metadata('consumers.' + self.owner, metadata)
+                    pydash.merge(self.metadata, {'message': id, 'time': self.last_processed})
+                    self.stream.set_metadata('consumers.' + self.owner, self.metadata)
 
                 # occasionally throw exception (for testing failed threads)
                 # if random.random() > 0.5:
@@ -387,17 +388,7 @@ class Consumer:
 class Producer:
     """Producer class to write messages to a Redis stream."""
 
-    def __init__(
-        self,
-        name="STREAM",
-        id=None,
-        sid=None,
-        cid=None,
-        prefix=None,
-        suffix=None,
-        owner=None,
-        properties=None,
-    ):
+    def __init__(self, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties=None, metadata={}):
         """Initialize the Producer.
 
         Parameters:
@@ -407,7 +398,6 @@ class Producer:
             cid: Canonical identifier for the producer. If None, it will be generated from sid, prefix, and suffix.
             prefix: Optional prefix for the cid.
             suffix: Optional suffix for the cid.
-            owner: Owner of the producer for metadata
             properties: Properties for the producer. Defaults to None.
         """
         self.name = name
@@ -433,7 +423,8 @@ class Producer:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
-        self.owner = owner
+        self.owner = pydash.objects.get(metadata, 'owner', None)
+        self.metadata = metadata
 
         if properties is None:
             properties = {}
@@ -578,8 +569,8 @@ class Producer:
 
         # update stream metadata
         if self.owner:
-            metadata = {'message': id, 'time': int(time.time())}
-            self.stream.set_metadata('producers.' + self.owner, metadata)
+            pydash.merge(self.metadata, {'message': id, 'time': int(time.time())})
+            self.stream.set_metadata('producers.' + self.owner, self.metadata)
 
     def read_all(self):
         """Read all messages from the stream.
