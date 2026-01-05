@@ -13,6 +13,7 @@ from redis.commands.json.path import Path
 ###### Threads
 import threading
 import pydash
+import copy
 
 ###### Blue
 from blue.stream import Message, MessageType, ContentType, Stream
@@ -312,8 +313,9 @@ class Consumer:
 
                     # update stream metadata
                     if self.owner:
-                        pydash.merge(self.metadata, {'message': id, 'time': self.last_processed})
-                        self.stream.set_metadata('consumers.' + self.owner, self.metadata)
+                        metadata = copy.deepcopy(self.metadata)
+                        pydash.merge(metadata, {'message': id, 'time': self.last_processed})
+                        self.stream.set_metadata('consumers.' + self.owner, metadata)
 
                     # ack
                     r.xack(s, g, id)
@@ -343,8 +345,9 @@ class Consumer:
 
                 # update stream metadata
                 if self.owner:
-                    pydash.merge(self.metadata, {'message': id, 'time': self.last_processed})
-                    self.stream.set_metadata('consumers.' + self.owner, self.metadata)
+                    metadata = copy.deepcopy(self.metadata)
+                    pydash.merge(metadata, {'message': id, 'time': self.last_processed})
+                    self.stream.set_metadata('consumers.' + self.owner, metadata)
 
                 # occasionally throw exception (for testing failed threads)
                 # if random.random() > 0.5:
@@ -569,8 +572,9 @@ class Producer:
 
         # update stream metadata
         if self.owner:
-            pydash.merge(self.metadata, {'message': id, 'time': int(time.time())})
-            self.stream.set_metadata('producers.' + self.owner, self.metadata)
+            metadata = copy.deepcopy(self.metadata)
+            pydash.merge(metadata, {'message': id, 'time': int(time.time())})
+            self.stream.set_metadata('producers.' + self.owner, metadata)
 
     def read_all(self):
         """Read all messages from the stream.
