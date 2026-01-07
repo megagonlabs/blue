@@ -21,18 +21,25 @@ import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useShallow } from "zustand/react/shallow";
 import MessageIcon from "../messages/MessageIcon";
-export default function MessageViewer({ sessionId, message }) {
+export default function MessageViewer({
+    sessionId,
+    message,
+    showFullContent = false,
+}) {
     const { session } = useSessionStore(
         useShallow((state) => ({
             session: _.get(state, ["sessions", sessionId], {}),
         }))
     );
+    const { appToaster } = useToaster();
+    if (message === null) {
+        return null;
+    }
     const stream = _.get(session, ["streams", message.stream], null);
     const streamData = _.get(stream, "data", []);
     const tags = _.entries(_.get(message, "metadata.tags", {}))
         .filter((tag) => tag[1])
         .map((tag) => tag[0]);
-    const { appToaster } = useToaster();
     return (
         <div
             className="full-parent-dimension"
@@ -47,7 +54,15 @@ export default function MessageViewer({ sessionId, message }) {
                 }}
             >
                 <div style={{ maxWidth: 110, width: "fit-content" }}>
-                    <Tag size={Size.LARGE} minimal intent={Intent.PRIMARY}>
+                    <Tag
+                        size={Size.LARGE}
+                        minimal
+                        intent={
+                            message.contentType === "ERROR"
+                                ? Intent.DANGER
+                                : Intent.PRIMARY
+                        }
+                    >
                         {message.contentType}
                     </Tag>
                 </div>
@@ -146,7 +161,13 @@ export default function MessageViewer({ sessionId, message }) {
                             </td>
                             <td>{data.label}</td>
                             <td>
-                                <div className="multiline-ellipsis-5">
+                                <div
+                                    className={
+                                        showFullContent
+                                            ? null
+                                            : "multiline-ellipsis-5"
+                                    }
+                                >
                                     {JSON.stringify(data.content)}
                                 </div>
                             </td>

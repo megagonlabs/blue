@@ -77,71 +77,79 @@ export default function InputListens({
                     title="Listens"
                 />
             </div>
-            {!isEditing && _.isEmpty(listens) && "-"}
-            <div className="split-pane-container">
-                {["includes", "excludes"].map((type, index) => (
-                    <div className="pane-item" key={index}>
-                        <H5>{_.capitalize(type)}</H5>
-                        <div
-                            className={loading ? Classes.SKELETON : null}
-                            style={{
-                                marginTop: 10,
-                                display: "flex",
-                                gap: 10,
-                                flexWrap: "wrap",
-                            }}
-                        >
-                            {_.get(listens, type, []).map((tag) => (
-                                <Tag
-                                    key={tag}
-                                    size={Size.LARGE}
-                                    minimal
-                                    endIcon={
-                                        isEditing ? (
-                                            <div
-                                                onClick={() => {
-                                                    handleRemove(tag, type);
-                                                }}
-                                            >
-                                                {TAG_REMOVE_ICON}
-                                            </div>
-                                        ) : null
-                                    }
-                                >
-                                    {tag}
-                                </Tag>
-                            ))}
-                            {isEditing && (
-                                <div style={{ width: 165 }}>
-                                    <InputGroup
-                                        rightElement={ENTER_KEY_ICON}
-                                        placeholder="Press Enter to Add"
-                                        value={
-                                            _.isEqual(type, "includes")
-                                                ? includeEntry
-                                                : _.isEqual(type, "excludes")
-                                                ? excludeEntry
-                                                : null
+            {!isEditing && _.isEmpty(listens) ? (
+                "-"
+            ) : (
+                <div className="split-pane-container">
+                    {["includes", "excludes"].map((type, index) => (
+                        <div className="pane-item" key={index}>
+                            <H5>{_.capitalize(type)}</H5>
+                            <div
+                                className={loading ? Classes.SKELETON : null}
+                                style={{
+                                    marginTop: 10,
+                                    display: "flex",
+                                    gap: 10,
+                                    flexWrap: "wrap",
+                                }}
+                            >
+                                {_.get(listens, type, []).map((tag) => (
+                                    <Tag
+                                        key={tag}
+                                        size={Size.LARGE}
+                                        minimal
+                                        endIcon={
+                                            isEditing ? (
+                                                <div
+                                                    onClick={() => {
+                                                        handleRemove(tag, type);
+                                                    }}
+                                                >
+                                                    {TAG_REMOVE_ICON}
+                                                </div>
+                                            ) : null
                                         }
-                                        onValueChange={(value) => {
-                                            if (_.isEqual(type, "includes")) {
-                                                setIncludeEntry(value);
-                                            } else if (
-                                                _.isEqual(type, "excludes")
-                                            ) {
-                                                setExcludeEntry(value);
+                                    >
+                                        {tag}
+                                    </Tag>
+                                ))}
+                                {isEditing && (
+                                    <div style={{ width: 165 }}>
+                                        <InputGroup
+                                            rightElement={ENTER_KEY_ICON}
+                                            placeholder="Press Enter to Add"
+                                            value={
+                                                _.isEqual(type, "includes")
+                                                    ? includeEntry
+                                                    : _.isEqual(
+                                                          type,
+                                                          "excludes"
+                                                      )
+                                                    ? excludeEntry
+                                                    : null
                                             }
-                                        }}
-                                        onKeyDown={(event) => {
-                                            handleKeyDown(event, type);
-                                        }}
-                                    />
-                                </div>
-                            )}
+                                            onValueChange={(value) => {
+                                                if (
+                                                    _.isEqual(type, "includes")
+                                                ) {
+                                                    setIncludeEntry(value);
+                                                } else if (
+                                                    _.isEqual(type, "excludes")
+                                                ) {
+                                                    setExcludeEntry(value);
+                                                }
+                                            }}
+                                            onKeyDown={(event) => {
+                                                handleKeyDown(event, type);
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

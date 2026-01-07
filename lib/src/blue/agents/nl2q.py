@@ -814,7 +814,23 @@ Output:
 
         # output
         output = {'question': question, 'source': key, 'query': query, 'result': result, 'error': error, 'count': count}
-        self.logger.info(output)
+        #self.logger.info(output)
+
+        # *** STRUCTURED LOG EVENT ***
+        self.logger.record(
+            action="nl2sql_query_execution",
+            inputs={
+                "question": question,
+                "sql_query": query,
+                "source_key": key
+            },
+            outputs={
+                "result_count": count,
+                "result_preview": (result[:3] if isinstance(result, list) else result),
+            },
+            error=error,
+            result="success" if error is None else "failed"
+        )
 
         x = self._apply_filter(output)
         self.logger.info(str(x))

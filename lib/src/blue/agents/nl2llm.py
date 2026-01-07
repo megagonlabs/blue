@@ -284,6 +284,16 @@ class NL2LLMAgent(Agent):
         if self.selected_source is None:
             error = "No source selected. Please check data registry configuration."
             self.logger.error(error)
+
+            # STRUCTURED LOG (validation failure)
+            self.logger.record(
+                action="nl2llm_query_validation",
+                inputs={"question": question},
+                outputs=None,
+                error=error,
+                result="error"
+            )
+
             return self._apply_filter({'question': question, 'source': None, 'result': None, 'error': error}, properties=properties)
 
         try:
@@ -302,6 +312,32 @@ class NL2LLMAgent(Agent):
 
             self.logger.info("result: " + str(result))
 
+            # STRUCTURED LOG (execution success)
+            self.logger.record(
+                action="nl2llm_query_execution",
+                inputs={
+                    "agent": self.name,
+                    "question": question,
+                    "source": self.selected_source,
+                    "protocol": self.selected_source_protocol,
+                    "protocol_variant": self.selected_source_protocol_variant,
+                    "context": properties.get("nl2llm_context", []),
+                    "attr_names": properties.get("nl2llm_attr_names", []),
+                },
+                outputs={
+                    "result_type": type(result).__name__,
+                    "result_preview": (
+                        result[:3] if isinstance(result, list)
+                        else str(result)[:500] if result is not None
+                        else None
+                    ),
+                },
+                error=None,
+                result="success"
+            )
+
+            
+
             # apply output filters
             filtered_result = self._apply_filter({'question': question, 'source': self.selected_source, 'result': result, 'error': None}, properties=properties)
 
@@ -310,6 +346,21 @@ class NL2LLMAgent(Agent):
         except Exception as e:
             error = str(e)
             self.logger.error(f"Error executing query: {error}")
+
+            # STRUCTURED LOG (execution failure)
+            self.logger.record(
+                action="nl2llm_query_execution",
+                inputs={
+                    "agent": self.name,
+                    "question": question,
+                    "source": self.selected_source,
+                    "protocol": self.selected_source_protocol,
+                    "protocol_variant": self.selected_source_protocol_variant,
+                },
+                outputs=None,
+                error=error,
+                result="error"
+            )
 
             # apply output filters
             filtered_result = self._apply_filter({'question': question, 'source': self.selected_source, 'result': None, 'error': error}, properties=properties)

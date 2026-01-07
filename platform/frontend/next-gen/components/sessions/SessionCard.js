@@ -246,10 +246,10 @@ export default function SessionCard({ sessionId }) {
                 <Callout
                     icon={null}
                     intent={
-                        lastMessage.own
-                            ? Intent.PRIMARY
-                            : _.isEqual(lastMessage.contentType, "ERROR")
+                        lastMessage.contentType === "ERROR"
                             ? Intent.DANGER
+                            : lastMessage.own
+                            ? Intent.PRIMARY
                             : null
                     }
                     style={{

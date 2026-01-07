@@ -229,11 +229,6 @@ function SessionList({ width, height }) {
                     style={{ marginTop: 20 }}
                     className="responsive-grid-container"
                 >
-                    {allSessions.map((session, index) => (
-                        <div key={index} className="grid-item">
-                            <SessionCard sessionId={session} />
-                        </div>
-                    ))}
                     {permissions.canWriteSessions && (
                         <Button
                             className="session-list-new-session-button"
@@ -248,6 +243,11 @@ function SessionList({ width, height }) {
                             text="New session"
                         />
                     )}
+                    {allSessions.map((session, index) => (
+                        <div key={index} className="grid-item">
+                            <SessionCard sessionId={session} />
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

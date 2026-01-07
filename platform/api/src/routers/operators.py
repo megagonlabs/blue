@@ -6,6 +6,8 @@ from fastapi import Depends, Request
 import pydash
 from authorizations.utils import account_id_header, acl_enforce
 from authorizations.constant import PermissionDenied
+from routers.utils import is_alphanumeric_underscore
+from routers.constant import NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
 
 ###### Parsers, Formats, Utils
 import re
@@ -104,6 +106,8 @@ def get_server(request: Request, server_name):
 
 @router.post("/{server_name}")
 def add_server(request: Request, server_name, data: OperatorSchema):
+    if not is_alphanumeric_underscore(server_name):
+        return NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
     server = operator_registry.get_server(server_name)
     # if server already exists, return 409 conflict error
     if not pydash.is_empty(server):
@@ -190,6 +194,8 @@ def get_server_operator(request: Request, server_name, operator_name):
 
 @router.post("/{server_name}/operator/{operator_name}")
 def add_server_operator(request: Request, server_name, operator_name, data: OperatorSchema):
+    if not is_alphanumeric_underscore(operator_name):
+        return NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
     server = operator_registry.get_server(server_name)
     server_acl_enforce(request, server, write=True)
     # TODO: properties

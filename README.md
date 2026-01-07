@@ -18,18 +18,16 @@ To help facilitate ‘Agentic for Enterprise’ we are introducing several conce
 - **Tools** to interface with external sources and APIs
 - **Operators** to perform data-intenstive functions
 
-![Stream](./docs/images/concepts.png)
-
 # How does Blue work?
 
-![Architecture](./docs/images/architecture.png)
+![Architecture](./docs/images/blue_architecture.png)
 
 To get a glimpse of where we are heading with agentic architectures, read our papers:
 
 * [A Blueprint Architecture of Compound AI Systems for Enterprise](https://arxiv.org/abs/2406.00584) [Compound AI Systems Workshop](https://sites.google.com/view/compound-ai-systems-workshop/home)
 * [Orchestrating Agents and Data for Enterprise: A Blueprint Architecture for Compound AI](http://arxiv.org/abs/2504.08148) [Data-AI Systems Workshop at ICDE'25](https://dais-workshop-icde.github.io/)
 
-For more details refer to the [API Doc](https://rit-git.github.io/blue)
+For more details refer to the [API Doc](https://blue.megagon.info/latest/)
 </br>
 
 # What can you build with Blue?
@@ -50,7 +48,7 @@ You can try out a demos on our [blue-examples repository!](http://github.com/rit
 
 </br>
 
-Sounds interesting? Want to learn more? Read documentation below.
+Sounds interesting? Want to learn more? Read the documentation below.
 
 # Outline of the Documentation:
 
@@ -59,7 +57,7 @@ Sounds interesting? Want to learn more? Read documentation below.
   * [Local Installation](LOCAL-INSTALLATION.md) more suited for trying out and development 
   * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
 * [Quickstart Guide](QUICK-START.md) to learn basics of using blue web application.
-* [API Doc](https://rit-git.github.io/blue) to learn more about blue library, for development
+* [API Doc](https://blue.megagon.info/latest/) to learn more about blue library, for development
 * [Demos](https://github.com/rit-git/blue-examples/tree/v1.0) to try out agentic demos with base and experimental agents
 * [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
@@ -73,6 +71,12 @@ Blue has two python libraries that you can use:
 
 [blue-cli](https://pypi.org/project/blue-cli/) is a good starting point to install and try out blue!
 
+# Learn More
+
+Product overview: [What Blue is and  why it’s “agentic for enterprise](https://megagon.ai/blue/)
+Design principles: [The “Agentic for Enterprise” foundations](https://megagon.ai/blue-designing-agentic/)
+Streams deep-dive: [Why stream processing is the right abstraction for orchestration](https://megagon.ai/streams-orchestrating-work/)
+Blueprint architecture (paper): [A Blueprint Architecture of Compound AI Systems](https://megagon.ai/publications/a-blueprint-architecture-of-compound-ai-systems-for-enterprise/)
 
 </br>
 </br>

@@ -72,7 +72,7 @@ class AgentPerformanceTracker(PerformanceTracker):
         for input in self.agent.workers:
             workers_by_input = self.agent.workers[input]
             for stream_id in workers_by_input:
-                worker = self.agent.workers[stream_id]
+                worker = workers_by_input[stream_id]
                 stream = None
                 if worker.consumer:
                     if worker.consumer.stream:
@@ -421,6 +421,7 @@ class Worker:
             prefix = self.agent.cid
         else:
             prefix = self.prefix
+        output_name = output.split(":")[0]
 
         # TODO: This doesn't belong here..
         if message.getCode() in [
@@ -440,7 +441,7 @@ class Worker:
                     message.setArg("form_id", id)
 
                 # start stream
-                event_producer = Producer(name="EVENT", id=form_id, prefix=prefix, suffix="STREAM", properties=self.properties, owner=self.agent.sid)
+                event_producer = Producer(name="EVENT", id=form_id, prefix=prefix, suffix="STREAM", properties=self.properties, metadata={'owner': self.agent.sid, 'output_name': output_name})
                 event_producer.start()
                 event_stream = event_producer.get_stream()
 
@@ -451,7 +452,12 @@ class Worker:
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
-                    event_stream, name=self.name, prefix=self.cid, listener=lambda message: self.listener(message, input="EVENT"), properties=self.properties, owner=self.agent.sid
+                    event_stream,
+                    name=self.name,
+                    prefix=self.cid,
+                    listener=lambda message: self.listener(message, input="EVENT"),
+                    properties=self.properties,
+                    metadata={'owner': self.agent.sid, 'output_name': output_name},
                 )
                 event_consumer.start()
             elif message.getCode() == ControlCode.UPDATE_FORM:
@@ -529,8 +535,8 @@ class Worker:
             prefix=self.cid,
             listener=lambda message: self.listener(message, input=self.input),
             properties=self.properties,
-            owner=self.agent.sid,
             on_stop=lambda sid: self.on_consumer_stop_handler(sid),
+            metadata={'owner': self.agent.sid, 'input_name': self.input},
         )
 
         self.consumer = consumer
@@ -558,7 +564,8 @@ class Worker:
             return self.producers[pid]
 
         # create producer for output
-        producer = Producer(name="OUTPUT", id=output, prefix=prefix, suffix="STREAM", properties=self.properties, owner=self.agent.sid)
+        output_name = output.split(":")[0]
+        producer = Producer(name="OUTPUT", id=output, prefix=prefix, suffix="STREAM", properties=self.properties, metadata={'owner': self.agent.sid, "output_name": output_name})
         producer.start()
         self.producers[pid] = producer
 
@@ -575,7 +582,6 @@ class Worker:
             if tags:
                 all_tags = all_tags.union(set(tags))
             # add tags for specific output variable
-            output_name = output.split(":")[0]
             output_tags = self.agent.get_output_tags(output_name)
             if output_tags:
                 all_tags = all_tags.union(set(output_tags))
@@ -1665,7 +1671,6 @@ class Agent(ErrorLoom):
             worker.write_eos(output=output)
 
     def error_handler(self, error: BlueError, exception: Exception):
-        error.add_log("processed by base agent error handler")
         self.emit_error(error)
 
     def emit_error(self, error: BlueError, output="ERROR", unique=True, eos=True):
@@ -1675,7 +1680,7 @@ class Agent(ErrorLoom):
         if unique:
             output = output + ":" + uuid_utils.create_uuid()
         worker = self.create_worker(None)
-        worker.write_control(ControlCode.ERROR, args=error.get_dict(), output=output)
+        worker.write_control(ControlCode.ERROR, args=error.get_dict(), output=output, tags=["ERROR"])
         if eos:
             worker.write_eos(output=output)
 
@@ -1784,7 +1789,9 @@ class Agent(ErrorLoom):
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.session_consumer = Consumer(session_stream, name=self.name, listener=lambda message: self.session_listener(message), properties=self.properties, owner=self.sid)
+                self.session_consumer = Consumer(
+                    session_stream, name=self.name, listener=lambda message: self.session_listener(message), properties=self.properties, metadata={'owner': self.sid}
+                )
                 self.session_consumer.start()
 
     def stop(self):
@@ -1798,17 +1805,12 @@ class Agent(ErrorLoom):
             self.session_consumer.stop()
 
         # send stop to each worker
-        for input in self.workers:
-            workers_by_input = self.workers[input]
-            for worker_input_stream in workers_by_input:
-                worker = workers_by_input[worker_input_stream]
+        for workers_by_input in self.workers.values():
+            for worker in workers_by_input.values():
                 worker.stop()
+            workers_by_input.clear()
 
-            for worker_input_stream in list(workers_by_input.keys()):
-                del workers_by_input[worker_input_stream]
-
-        for input in self.workers:
-            del self.workers[input]
+        self.workers.clear()
 
     def wait(self):
         """Wait for the agent, its session consumer, and all its workers to finish."""
@@ -1997,7 +1999,9 @@ class AgentFactory:
         """Start the platform consumer to listen for join session instructions."""
         # platform stream
         stream = "PLATFORM:" + self.platform + ":STREAM"
-        self.platform_consumer = Consumer(stream, name=self._name + "_FACTORY", listener=lambda message: self.platform_listener(message), properties=self.properties, owner=self.sid)
+        self.platform_consumer = Consumer(
+            stream, name=self._name + "_FACTORY", listener=lambda message: self.platform_listener(message), properties=self.properties, metadata={'owner': self.sid}
+        )
         self.platform_consumer.start()
 
     def _extract_epoch(self, id):

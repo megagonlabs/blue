@@ -6,7 +6,8 @@ import pydash
 
 from authorizations.constant import PermissionDenied
 from authorizations.utils import account_id_header, acl_enforce
-
+from routers.utils import is_alphanumeric_underscore
+from routers.constant import NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
 
 ###### Parsers, Formats, Utils
 import logging
@@ -232,6 +233,8 @@ def get_agent(request: Request, agent_name):
 
 @router.post("/agent/{agent_name}")
 def add_agent(request: Request, agent_name, agent: AgentSchema):
+    if not is_alphanumeric_underscore(agent_name):
+        return NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
     agent_db = agent_registry.get_agent(agent_name)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_db):
@@ -323,6 +326,8 @@ def get_agent_input(request: Request, agent_name, param_name):
 
 @router.post("/agent/{agent_name}/input/{param_name}")
 def add_agent_input(request: Request, agent_name, param_name, parameter: ParameterSchema):
+    if not is_alphanumeric_underscore(param_name):
+        return NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
     input = agent_registry.get_agent_input(agent_name, param_name)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(input):
@@ -413,6 +418,8 @@ def get_agent_output(request: Request, agent_name, param_name):
 
 @router.post("/agent/{agent_name}/output/{param_name}")
 def add_agent_output(request: Request, agent_name, param_name, parameter: ParameterSchema):
+    if not is_alphanumeric_underscore(param_name):
+        return NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
     output = agent_registry.get_agent_output(agent_name, param_name)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(output):
@@ -551,6 +558,8 @@ def delete_agent_group(request: Request, group_name):
 
 @router.post("/agent_group/{group_name}")
 def add_agent_group(request: Request, group_name, group: AgentGroupSchema):
+    if not is_alphanumeric_underscore(group_name):
+        return NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
     agent_group_db = agent_registry.get_agent_group(group_name)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_group_db):

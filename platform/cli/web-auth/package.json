@@ -5,7 +5,7 @@
     "scripts": {
         "serve": "serve ../src/blue_cli/web/auth/out",
         "build": "next build",
-        "lint": "next lint",
+        "lint": "FORCE_COLOR=1 next lint 2>&1 | tee /dev/tty | awk '{gsub(/\\x1b\\[[0-9;]*m/,\"\")} $0 ~ / Error:/ {e++} $0 ~ / Warning:/ {w++} END {print \"\\n----------------\\nErrors:\", e+0, \"Warnings:\", w+0}'",
         "watch": "npm-watch"
     },
     "watch": {

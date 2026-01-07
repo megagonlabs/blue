@@ -6,6 +6,8 @@ from typing import Optional, Dict, Any
 from .logstore import LogStore
 from blue.connection import PooledConnectionFactory
 
+from typing import List
+
 from redis.commands.search.field import TextField, TagField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 
@@ -73,7 +75,7 @@ class RedisLogStore(LogStore):
         )
 
         self.redis.ft(self.index_name).create_index(schema, definition=definition)
-        print(f"Created RediSearch index {self.index_name}")
+        #print(f"Created RediSearch index {self.index_name}")
     
     # -----------------------------------------------------
     # Sanitization
@@ -84,7 +86,7 @@ class RedisLogStore(LogStore):
             val.replace(" ", "_")
             .replace(":", "_")
             .replace("/", "_")
-            .replace("-", "_")      # <— ADD THIS
+            .replace("-", "_")      
         )
 
 
@@ -136,3 +138,78 @@ class RedisLogStore(LogStore):
             raise RuntimeError(f"Failed to store log record ({key}): {e}")
 
         return key
+
+class LogSearchClient:
+    DEFAULT_PROPERTIES = {
+        "db.host": "localhost",
+        "db.port": 6379,
+        "platform.id": "default",
+    }
+
+    def __init__(
+        self,
+        properties: Optional[dict] = None,
+        index_name: str = "LOGS",
+    ):
+        self.properties = dict(self.DEFAULT_PROPERTIES)
+        if properties:
+            self.properties.update(properties)
+
+        self.index = index_name
+        self.connection_factory = PooledConnectionFactory(
+            properties=self.properties
+        )
+        self.redis = self.connection_factory.get_connection()
+
+
+    # ---- Simple semantic helpers ----
+
+    def by_action(self, action, **kwargs):
+        return self.search(f"@action:{action}", **kwargs)
+
+    def by_session(self, session_id, **kwargs):
+        return self.search(f"@session:{{{session_id}}}", **kwargs)
+
+    def by_agent(self, agent_prefix, **kwargs):
+        return self.search(f"@agent:{{{agent_prefix}*}}", **kwargs)
+
+    def text(self, keyword, **kwargs):
+        return self.search(keyword, **kwargs)
+
+    def recent(self, limit=20):
+        return self.search("*", limit=limit)
+
+    
+    def search(
+        self,
+        query: str,
+        limit: int = 10,
+        offset: int = 0,
+        return_fields: Optional[List[str]] = None,
+        sort_by: Optional[str] = None,
+        ascending: bool = False,
+    ) -> List[Dict]:
+        """
+        Generic FT.SEARCH wrapper
+        """
+        args = [self.index, query]
+
+        if sort_by:
+            args += ["SORTBY", sort_by, "ASC" if ascending else "DESC"]
+
+        if return_fields:
+            args += ["RETURN", len(return_fields), *return_fields]
+
+        args += ["LIMIT", offset, limit]
+
+        raw = self.redis.execute_command("FT.SEARCH", *args)
+
+        # raw format: [count, key1, doc1, key2, doc2, ...]
+        results = []
+        for i in range(1, len(raw), 2):
+            doc = raw[i + 1]
+            results.append(doc)
+
+        return results
+
+

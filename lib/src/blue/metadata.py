@@ -857,6 +857,11 @@ Return ONLY this JSON structure, filled in appropriately.
 
         semantics = attr_properties.get("value_semantics", {})
         semantic_type = semantics.get("semantic_type", "UNKNOWN")
+        
+        # incorporate SDI
+        sdi = attr_properties.get("semantic_discovery", {})
+        sdi_text = json.dumps(sdi, indent=2) if sdi else "None"
+        
         sample_values = semantics.get("examples", [])
         if not sample_values:
             sample_values = attr_properties.get("stats", {}).get("sample_values", [])[:5]
@@ -876,6 +881,9 @@ Return ONLY this JSON structure, filled in appropriately.
         - Entity: {entity_name}
         - Attribute Name: {attr_name}
         - Semantic Type: {semantic_type}
+
+        Semantic Discovery Output (SDI):
+        {sdi_text}
 
         Sample Values:
         {json.dumps(sample_values, indent=2)}

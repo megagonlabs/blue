@@ -13,13 +13,26 @@ WITH label AS label, apoc.coll.sortMaps(collect({property:property, type:type}),
 RETURN label, properties ORDER BY label
 """.strip()
 
+#APOC_META_REL_QUERY = """
+#CALL apoc.meta.data()
+#YIELD label, other, elementType, type, property
+#WHERE type = "RELATIONSHIP" AND elementType = "node"
+#UNWIND other AS other_node
+#RETURN label as start, property as type, other_node as end ORDER BY type, start, end
+#""".strip()
+
 APOC_META_REL_QUERY = """
 CALL apoc.meta.data()
-YIELD label, other, elementType, type, property
+YIELD label, other, elementType, type
 WHERE type = "RELATIONSHIP" AND elementType = "node"
 UNWIND other AS other_node
-RETURN label as start, property as type, other_node as end ORDER BY type, start, end
+RETURN
+  label      AS start,
+  label      AS type,
+  other_node AS end
+ORDER BY type, start, end
 """.strip()
+
 
 APOC_META_REL_PROPERTIES_QUERY = """
 CALL apoc.meta.data()
@@ -152,6 +165,16 @@ class NEO4JSource(DataSource):
         """
         return {}
 
+    def _json_safe(self, obj):
+        if isinstance(obj, set):
+            return list(obj)
+        if isinstance(obj, dict):
+            return {k: self._json_safe(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [self._json_safe(v) for v in obj]
+        return obj
+
+
     def extract_schema(self, nodes_result, relationships_result, rel_properties_result):
         """
         Build a DataSchema object from query results describing nodes, relationships, and relationship properties.
@@ -169,15 +192,27 @@ class NEO4JSource(DataSource):
         for node in nodes_result:
             schema.add_entity(node['label'])
             for prop in node['properties']:
-                schema.add_entity_property(node['label'], prop['property'], prop['type'])
+                schema.add_entity_property(
+                                          node['label'], 
+                                          prop['property'], 
+                                          {
+                                            "type": prop['type']
+                                          })
 
         rlabel2properties = {r['type']: r['properties'] for r in rel_properties_result}
 
         for relation in relationships_result:
             key = schema.add_relation(relation['start'], relation['type'], relation['end'])
             for prop in rlabel2properties.get(relation['type'], []):
-                schema.add_relation_property(key, prop['property'], prop['type'])
+                schema.add_relation_property(key, 
+                                            prop['property'], 
+                                            {
+                                            "type": prop['type']
+                                            })
 
+        schema.entities = self._json_safe(schema.entities)
+        schema.relations = self._json_safe(schema.relations)
+        
         return schema
 
     def fetch_database_collection_entities(self, database, collection):

@@ -6,6 +6,8 @@ from fastapi import Depends, Request
 import pydash
 from authorizations.constant import PermissionDenied
 from authorizations.utils import account_id_header, acl_enforce
+from routers.utils import is_alphanumeric_underscore
+from routers.constant import NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
 
 ###### Parsers, Formats, Utils
 import re
@@ -108,6 +110,8 @@ def get_data_source(request: Request, source_name):
 
 @router.post("/{source_name}")
 def add_source(request: Request, source_name, data: DataSchema):
+    if not is_alphanumeric_underscore(source_name):
+        return NOT_ALPHA_NUMERIC_UNDERSCORE_STRING_RESPONSE
     source_db = data_registry.get_source(source_name)
     # if source already exists, return 409 conflict error
     if not pydash.is_empty(source_db):
@@ -318,6 +322,7 @@ def sync_source_database_collection(request: Request, source_name, database_name
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
 
+
 @router.put("/{source_name}/database/{database_name}/collection/{collection_name}/entity/{entity_name}/sync")
 def sync_source_database_collection_entity(request: Request, source_name, database_name, collection_name, entity_name, recursive: bool = False):
     source = data_registry.get_source(source_name)
@@ -326,6 +331,7 @@ def sync_source_database_collection_entity(request: Request, source_name, databa
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
+
 
 @router.put("/{source_name}/database/{database_name}/collection/{collection_name}/relation/{relation_name}/sync")
 def sync_source_database_collection_relation(request: Request, source_name, database_name, collection_name, relation_name, recursive: bool = False):

@@ -1,3 +1,4 @@
+import { MIN_ALLOTMENT_PANE_SIZE } from "@/components/constants";
 import { ReactFlowCustomProvider } from "@/components/contexts/ReactFlowCustomContext";
 import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
@@ -22,6 +23,7 @@ import {
     faClipboard,
     faCompassDrafting,
     faDownload,
+    faXmarkLarge,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import {
     Background,
@@ -32,12 +34,14 @@ import {
     useStore,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { Allotment } from "allotment";
 import axios from "axios";
 import copy from "copy-to-clipboard";
 import _, { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/react/shallow";
+import MessageViewer from "./MessageViewer";
 import AgentNode from "./react-flow/AgentNode";
 import StreamNode from "./react-flow/StreamNode";
 import TagNode from "./react-flow/TagNode";
@@ -103,8 +107,16 @@ export default function StreamFlows({ sessionId }) {
     const { fitView, getNodes, getEdges, setViewport } = useReactFlow();
     const initialRender = useRef(true);
     const [lastViewport, setLastViewport] = useState(null);
+    const [nodeInfo, setNodeInfo] = useState(null);
     const onNodeClick = useCallback(
         (event, node) => {
+            if (node.type === "stream") {
+                setNodeInfo({
+                    type: node.type,
+                    ...node.data,
+                    stream: node.data.label,
+                });
+            }
             const targetNodeTypes = ["stream", "agent"];
             const foundEdges = traverseAndFindEdges(
                 node,
@@ -371,115 +383,169 @@ export default function StreamFlows({ sessionId }) {
     }, [messages, streamDebugger]);
     return (
         <div className="full-parent-dimension" style={{ position: "relative" }}>
-            {!layoutInitialized && (
-                <div
-                    className="full-parent-dimension"
-                    style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        backgroundColor: darkMode ? Colors.BLACK : Colors.WHITE,
-                        zIndex: 1,
-                    }}
-                >
-                    <NonIdealState
-                        title={_.isEmpty(nodes) ? "No Data" : "Rendering"}
-                        icon={
-                            <FAIcon
-                                size={50}
-                                className={!_.isEmpty(nodes) && "fa-fade"}
-                                icon={faCompassDrafting}
-                            />
-                        }
-                    />
-                </div>
-            )}
-            <ReactFlowCustomProvider
-                value={{ direction, selectedNodes, clickedNode }}
+            <Allotment
+                separator={!_.isEmpty(nodeInfo)}
+                defaultSizes={[800, 400]}
             >
-                <ReactFlow
-                    elevateEdgesOnSelect
-                    fitView
-                    onMove={handleViewportChange}
-                    nodesDraggable={false}
-                    nodesConnectable={false}
-                    nodesFocusable={false}
-                    edgesFocusable={false}
-                    nodes={nodesWithHandlers}
-                    onNodeClick={onNodeClick}
-                    onEdgeClick={onEdgeClick}
-                    edges={edges}
-                    nodeTypes={NODE_TYPES}
-                >
-                    <Background />
-                    <Panel position="top-left">
-                        <Card style={{ padding: 5 }}>
-                            <ButtonGroup
-                                size={Size.LARGE}
-                                vertical
-                                variant={ButtonVariant.MINIMAL}
-                            >
-                                <Tooltip content="Fit view" placement="right">
-                                    <Button
-                                        onClick={() => {
-                                            fitView({ duration: 300 });
-                                        }}
-                                        icon={
-                                            <FAIcon icon={faArrowsMaximize} />
+                <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
+                    {!layoutInitialized && (
+                        <div
+                            className="full-parent-dimension"
+                            style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                backgroundColor: darkMode
+                                    ? Colors.BLACK
+                                    : Colors.WHITE,
+                                zIndex: 1,
+                            }}
+                        >
+                            <NonIdealState
+                                title={
+                                    _.isEmpty(nodes) ? "No Data" : "Rendering"
+                                }
+                                icon={
+                                    <FAIcon
+                                        size={50}
+                                        className={
+                                            !_.isEmpty(nodes) && "fa-fade"
                                         }
+                                        icon={faCompassDrafting}
                                     />
-                                </Tooltip>
-                                <Tooltip content="Direction" placement="right">
-                                    <Button
-                                        onClick={() => {
-                                            setDirection(
-                                                _.isEqual(direction, "TB")
-                                                    ? "LR"
-                                                    : "TB"
-                                            );
-                                            setTimeout(() => {
-                                                fitView();
-                                            }, 0);
-                                        }}
-                                        icon={
-                                            <FAIcon
+                                }
+                            />
+                        </div>
+                    )}
+                    <ReactFlowCustomProvider
+                        value={{ direction, selectedNodes, clickedNode }}
+                    >
+                        <ReactFlow
+                            elevateEdgesOnSelect
+                            fitView
+                            onMove={handleViewportChange}
+                            nodesDraggable={false}
+                            nodesConnectable={false}
+                            nodesFocusable={false}
+                            edgesFocusable={false}
+                            nodes={nodesWithHandlers}
+                            onNodeClick={onNodeClick}
+                            onEdgeClick={onEdgeClick}
+                            edges={edges}
+                            nodeTypes={NODE_TYPES}
+                        >
+                            <Background />
+                            <Panel position="top-left">
+                                <Card style={{ padding: 5 }}>
+                                    <ButtonGroup
+                                        size={Size.LARGE}
+                                        vertical
+                                        variant={ButtonVariant.MINIMAL}
+                                    >
+                                        <Tooltip
+                                            content="Fit view"
+                                            placement="right"
+                                        >
+                                            <Button
+                                                onClick={() => {
+                                                    fitView({ duration: 300 });
+                                                }}
                                                 icon={
-                                                    _.isEqual(direction, "TB")
-                                                        ? faArrowUpArrowDown
-                                                        : faArrowLeftArrowRight
+                                                    <FAIcon
+                                                        icon={faArrowsMaximize}
+                                                    />
                                                 }
                                             />
-                                        }
-                                    />
-                                </Tooltip>
-                                <Divider />
-                                <Tooltip content="Export" placement="right">
-                                    <Button
-                                        onClick={() => {
-                                            copy(
-                                                JSON.stringify({
-                                                    nodes: nodesWithHandlers,
-                                                    edges,
-                                                })
-                                            );
-                                            appToaster.show({
-                                                icon: (
+                                        </Tooltip>
+                                        <Tooltip
+                                            content="Direction"
+                                            placement="right"
+                                        >
+                                            <Button
+                                                onClick={() => {
+                                                    setDirection(
+                                                        _.isEqual(
+                                                            direction,
+                                                            "TB"
+                                                        )
+                                                            ? "LR"
+                                                            : "TB"
+                                                    );
+                                                    setTimeout(() => {
+                                                        fitView();
+                                                    }, 0);
+                                                }}
+                                                icon={
                                                     <FAIcon
-                                                        icon={faClipboard}
+                                                        icon={
+                                                            _.isEqual(
+                                                                direction,
+                                                                "TB"
+                                                            )
+                                                                ? faArrowUpArrowDown
+                                                                : faArrowLeftArrowRight
+                                                        }
                                                     />
-                                                ),
-                                                message:
-                                                    "Copied nodes and edges",
-                                            });
-                                        }}
-                                        icon={<FAIcon icon={faDownload} />}
-                                    />
-                                </Tooltip>
-                            </ButtonGroup>
-                        </Card>
-                    </Panel>
-                </ReactFlow>
-            </ReactFlowCustomProvider>
+                                                }
+                                            />
+                                        </Tooltip>
+                                        <Divider />
+                                        <Tooltip
+                                            content="Export"
+                                            placement="right"
+                                        >
+                                            <Button
+                                                onClick={() => {
+                                                    copy(
+                                                        JSON.stringify({
+                                                            nodes: nodesWithHandlers,
+                                                            edges,
+                                                        })
+                                                    );
+                                                    appToaster.show({
+                                                        icon: (
+                                                            <FAIcon
+                                                                icon={
+                                                                    faClipboard
+                                                                }
+                                                            />
+                                                        ),
+                                                        message:
+                                                            "Copied nodes and edges",
+                                                    });
+                                                }}
+                                                icon={
+                                                    <FAIcon icon={faDownload} />
+                                                }
+                                            />
+                                        </Tooltip>
+                                    </ButtonGroup>
+                                </Card>
+                            </Panel>
+                        </ReactFlow>
+                    </ReactFlowCustomProvider>
+                </Allotment.Pane>
+                <Allotment.Pane
+                    visible={!_.isEmpty(nodeInfo)}
+                    minSize={MIN_ALLOTMENT_PANE_SIZE}
+                >
+                    <div className="border-bottom" style={{ padding: 10 }}>
+                        <Button
+                            variant={ButtonVariant.MINIMAL}
+                            size={Size.LARGE}
+                            onClick={() => {
+                                setNodeInfo(null);
+                            }}
+                            icon={<FAIcon icon={faXmarkLarge} />}
+                        />
+                    </div>
+                    <MessageViewer
+                        sessionId={sessionId}
+                        message={nodeInfo}
+                        showFullContent={true}
+                    />
+                </Allotment.Pane>
+            </Allotment>
         </div>
     );
 }
