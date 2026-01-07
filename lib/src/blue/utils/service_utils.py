@@ -6,8 +6,8 @@ import logging
 import pydash
 
 ###### Communication
+from websockets.asyncio.client import connect as async_connect
 from websockets.sync.client import connect
-
 
 ###### Blue
 from blue.agent import Agent
@@ -337,4 +337,21 @@ class ServiceClient(ErrorLoom):
         with connect(url) as websocket:
             websocket.send(json.dumps({'data': data}))
             message = websocket.recv()
+            return message
+
+    async def async_call_service(self, url, data):
+        """Call the service at the given URL with the provided data (asynchronous).
+
+        Parameters:
+            url: Service URL.
+            data: Data to send to the service.
+
+        Returns:
+            Response from the service.
+        """
+        logging.info("sending data to:" + str(url))
+        logging.info(str(data))
+        async with async_connect(url) as websocket:
+            await websocket.send(json.dumps({"data": data}))
+            message = await websocket.recv()
             return message
