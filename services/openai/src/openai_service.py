@@ -39,6 +39,9 @@ class OpenAIService(Service):
         if api == 'ChatCompletion':
             # response = client.chat.completions.create(**data, extra_headers={"x-indeed-redact-allow": "LOCATION,PERSON,PHONE"})
             response = await client.chat.completions.create(**data)
+        elif api == 'ImageGeneration':
+            # DALL-E image generation
+            response = await client.images.generate(**data)
         else:
             error = BlueError()
             error.add_log('Unknown API')
