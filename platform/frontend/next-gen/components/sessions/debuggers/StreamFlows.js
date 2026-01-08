@@ -65,7 +65,8 @@ const traverseAndFindEdges = (
     while (queue.length > 0) {
         const currentNode = queue.shift();
         const connectedEdges = getConnectedEdges([currentNode], allEdges);
-        connectedEdges.forEach((edge) => {
+        for (let i = 0; i < _.size(connectedEdges); i++) {
+            const edge = connectedEdges[i];
             if (!visitedEdges.has(edge.id)) {
                 const nextNodeId = _.isEqual(edge.source, currentNode.id)
                     ? edge.target
@@ -82,7 +83,7 @@ const traverseAndFindEdges = (
                     queue.push(nextNode);
                 }
             }
-        });
+        }
     }
     setSelectedNodes(selectedNodes);
     return Array.from(visitedEdges);
@@ -245,6 +246,19 @@ export default function StreamFlows({ sessionId }) {
         const seenNodeIds = new Set();
         const seenEdges = new Set();
         const nodeIndex = {};
+        const addPortToNode = (nodeId, portType, portName) => {
+            if (nodeIndex[nodeId] !== undefined) {
+                const currentNode = nodes[nodeIndex[nodeId]];
+                const currentPorts = _.get(currentNode, ["data", portType], []);
+                if (!currentPorts.includes(portName)) {
+                    _.set(
+                        nodes,
+                        [nodeIndex[nodeId], "data", portType],
+                        [...currentPorts, portName]
+                    );
+                }
+            }
+        };
         for (let i = 0; i < _.size(messages); i++) {
             const { stream, timestamp, metadata, contentType } = messages[i];
             const streamNodeId = `stream_${stream}`;
@@ -264,20 +278,31 @@ export default function StreamFlows({ sessionId }) {
                 nodeIndex[streamNodeId] = _.size(nodes) - 1;
             }
             // consumers
-            const consumers = _.keys(
-                _.merge(
-                    _.get(metadata, "consumers", {}),
-                    _.get(streamDebugger, [stream, "consumers"], {})
-                )
-            ).filter((key) => !_.startsWith(key, "OBSERVER:"));
+            const rawConsumers = _.merge(
+                _.get(metadata, "consumers", {}),
+                _.get(streamDebugger, [stream, "consumers"], {})
+            );
+            const consumers = _.keys(rawConsumers).filter(
+                (key) => !_.startsWith(key, "OBSERVER:")
+            );
             for (let j = 0; j < _.size(consumers); j++) {
                 const agent = consumers[j];
                 const agentNodeId = `agent_${agent}`;
+                const inputName = _.get(
+                    rawConsumers,
+                    [agent, "input_name"],
+                    "DEFAULT"
+                );
                 if (!seenNodeIds.has(agentNodeId)) {
                     nodes.push({
                         id: agentNodeId,
                         type: "agent",
-                        data: { label: agent, consumer: true },
+                        data: {
+                            label: agent,
+                            consumer: true,
+                            inputs: [inputName],
+                            outputs: [],
+                        },
                     });
                     seenNodeIds.add(agentNodeId);
                     nodeIndex[agentNodeId] = _.size(nodes) - 1;
@@ -287,6 +312,7 @@ export default function StreamFlows({ sessionId }) {
                         [nodeIndex[agentNodeId], "data", "consumer"],
                         true
                     );
+                    addPortToNode(agentNodeId, "inputs", inputName);
                 }
                 // create edge: stream -> consumer
                 const edge = `edge_${streamNodeId}_${agentNodeId}`;
@@ -309,6 +335,7 @@ export default function StreamFlows({ sessionId }) {
                         id: `edge_${transitionNodeId}_${agentNodeId}`,
                         source: transitionNodeId,
                         target: agentNodeId,
+                        targetHandle: inputName,
                         animated: true,
                         type: "smoothstep",
                         style: { strokeWidth: 2 },
@@ -322,20 +349,29 @@ export default function StreamFlows({ sessionId }) {
                 }
             }
             // producers
-            const producers = _.keys(
-                _.merge(
-                    _.get(metadata, "producers", {}),
-                    _.get(streamDebugger, [stream, "producers"], {})
-                )
+            const rawProducers = _.merge(
+                _.get(metadata, "producers", {}),
+                _.get(streamDebugger, [stream, "producers"], {})
             );
+            const producers = _.keys(rawProducers);
             for (let j = 0; j < _.size(producers); j++) {
                 const agent = producers[j];
                 const agentNodeId = `agent_${agent}`;
+                const outputName = _.get(
+                    rawProducers,
+                    [agent, "output_name"],
+                    "DEFAULT"
+                );
                 if (!seenNodeIds.has(agentNodeId)) {
                     nodes.push({
                         id: agentNodeId,
                         type: "agent",
-                        data: { label: agent, producer: true },
+                        data: {
+                            label: agent,
+                            producer: true,
+                            inputs: [],
+                            outputs: [outputName],
+                        },
                     });
                     seenNodeIds.add(agentNodeId);
                     nodeIndex[agentNodeId] = _.size(nodes) - 1;
@@ -345,6 +381,7 @@ export default function StreamFlows({ sessionId }) {
                         [nodeIndex[agentNodeId], "data", "producer"],
                         true
                     );
+                    addPortToNode(agentNodeId, "outputs", outputName);
                 }
                 // create edge: producer -> stream
                 const edge = `edge_${agentNodeId}_${streamNodeId}`;
@@ -358,6 +395,7 @@ export default function StreamFlows({ sessionId }) {
                     edges.push({
                         id: `edge_${agentNodeId}_${transitionNodeId}`,
                         source: agentNodeId,
+                        sourceHandle: outputName,
                         target: transitionNodeId,
                         animated: true,
                         type: "smoothstep",
@@ -473,7 +511,7 @@ export default function StreamFlows({ sessionId }) {
                                                     );
                                                     setTimeout(() => {
                                                         fitView();
-                                                    }, 0);
+                                                    }, 300);
                                                 }}
                                                 icon={
                                                     <FAIcon
