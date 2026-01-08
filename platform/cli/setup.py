@@ -1,5 +1,6 @@
 import setuptools
 import os
+
 version = os.getenv("BLUE_DEPLOY_VERSION")
 
 setuptools.setup(
@@ -11,7 +12,7 @@ setuptools.setup(
         "click==8.2.1",
         "tabulate==0.9.0",
         "requests==2.31.0",
-        "websockets==11.0.3",
+        "websockets==15.0.1",
         "nest_asyncio==1.6.0",
         "traitlets==5.14.3",
         "pydash==7.0.6",

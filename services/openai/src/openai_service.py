@@ -14,7 +14,7 @@ from blue.service import Service
 from blue.blueerror import BlueError
 
 ##### Agent specifc
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 
 class OpenAIService(Service):
@@ -23,7 +23,7 @@ class OpenAIService(Service):
             kwargs['name'] = "OPENAI"
         super().__init__(**kwargs)
 
-    def default_handler(self, message, properties=None, websocket=None):
+    async def default_handler(self, message, properties=None, websocket=None):
         data = pydash.objects.get(message, 'data', {})
         api = data['api']
         pydash.objects.unset(data, 'api')
@@ -32,13 +32,16 @@ class OpenAIService(Service):
 
         # API Client
         if 'OPENAI_BASE_URL' in os.environ:
-            client = OpenAI(base_url=os.environ.get('OPENAI_BASE_URL'))
+            client = AsyncOpenAI(base_url=os.environ.get('OPENAI_BASE_URL'))
         else:
-            client = OpenAI()
+            client = AsyncOpenAI()
 
         if api == 'ChatCompletion':
             # response = client.chat.completions.create(**data, extra_headers={"x-indeed-redact-allow": "LOCATION,PERSON,PHONE"})
-            response = client.chat.completions.create(**data)
+            response = await client.chat.completions.create(**data)
+        elif api == 'ImageGeneration':
+            # DALL-E image generation
+            response = await client.images.generate(**data)
         else:
             error = BlueError()
             error.add_log('Unknown API')
