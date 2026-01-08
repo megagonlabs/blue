@@ -35,9 +35,11 @@ const renderHandles = (handles, type, position, isVertical) => {
                 style={handleStyle}
             >
                 <Handle id={handleName} type={type} position={position} />
-                <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
-                    {handleName}
-                </div>
+                <Tooltip className="full-parent-width" content={handleName}>
+                    <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
+                        {handleName}
+                    </div>
+                </Tooltip>
             </div>
         );
     });
@@ -133,13 +135,13 @@ export default function AgentNode({ id, data }) {
                           }}
                       >
                           <div
-                              className="full-parent-width"
                               style={{
-                                  width: "50%",
+                                  maxWidth: 135,
                                   display: "flex",
                                   gap: 5,
                                   flexDirection: "column",
                                   alignItems: "flex-start",
+                                  flex: "1 0 auto",
                               }}
                           >
                               {!_.isEmpty(inputs) && (
@@ -163,11 +165,12 @@ export default function AgentNode({ id, data }) {
                           </div>
                           <div
                               style={{
-                                  width: "50%",
+                                  maxWidth: 135,
                                   display: "flex",
                                   gap: 5,
                                   flexDirection: "column",
                                   alignItems: "flex-end",
+                                  flex: "1 0 auto",
                               }}
                           >
                               {!_.isEmpty(outputs) && (
