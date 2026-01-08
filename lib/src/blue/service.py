@@ -1,8 +1,9 @@
 ###### Parsers, Formats, Utils
-import logging
-import time
+from functools import partial
 import json
+import logging
 import pydash
+import time
 
 ##### Communication
 import asyncio
@@ -183,10 +184,15 @@ class Service(ErrorLoom):
         self._initialize(properties=properties)
 
         # override, if necessary
-        if handler is not None:
-            self.handler = lambda *args, **kwargs: handler(*args, **kwargs, properties=self.properties)
+        _handler = handler if handler is not None else self.default_handler
+
+        # Preserve async nature when injecting properties
+        if asyncio.iscoroutinefunction(_handler):
+            async def async_wrapper(*args, **kwargs):
+                return await _handler(*args, **kwargs, properties=self.properties)
+            self.handler = async_wrapper
         else:
-            self.handler = lambda *args, **kwargs: self.default_handler(*args, **kwargs, properties=self.properties)
+            self.handler = partial(_handler, properties=self.properties)
 
         self._start()
 
@@ -403,7 +409,11 @@ class Service(ErrorLoom):
 
                     ### process message
                     start = time.time()
-                    response = self.handler(message, websocket=websocket)
+                    # Check if handler is async and await if necessary
+                    if asyncio.iscoroutinefunction(self.handler):
+                        response = await self.handler(message, websocket=websocket)
+                    else:
+                        response = self.handler(message, websocket=websocket)
                     end = time.time()
                     self.set_socket_stat(websocket, "response_time", end - start)
 

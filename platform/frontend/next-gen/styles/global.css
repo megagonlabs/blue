@@ -18,6 +18,9 @@
 .visibility-hidden {
     visibility: hidden;
 }
+.position-relative {
+    position: relative;
+}
 .pointer-events-none {
     pointer-events: none;
 }

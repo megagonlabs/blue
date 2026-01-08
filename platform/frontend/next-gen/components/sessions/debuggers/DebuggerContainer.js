@@ -2,7 +2,6 @@ import {
     EMPTY_OBJECT,
     MIN_ALLOTMENT_PANE_SIZE,
     POPOVER_CONTENT_MAX_WIDTH,
-    REACT_FLOW_NODE,
 } from "@/components/constants";
 import { useToaster } from "@/components/contexts/ToasterContext";
 import { FAIcon } from "@/components/FAIcon";
@@ -54,6 +53,10 @@ const FOLDER_CLOSED_ICON = (
 const FOLDER_OPEN_ICON = (
     <FAIcon icon={faFolderOpen} size={18} style={{ marginRight: 7 }} />
 );
+const NODE_PROPS = {
+    className: classNames(Classes.CARD, "interactive-card-border"),
+    style: { padding: 10, borderRadius: 5 },
+};
 function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
     const newTree = [...previousTree]; // Start with a copy of the previous tree
     const newNodeMap = {}; // Map for new nodes based on their ID
@@ -418,7 +421,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                             highlights its immediate neighbors,
                                             and illuminates all edges directly
                                             connected to it.
-                                            <div style={{ marginTop: 10 }}>
+                                            <div style={{ margin: "10px 0px" }}>
                                                 Nodes:
                                             </div>
                                             <div
@@ -428,15 +431,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                     gap: 10,
                                                 }}
                                             >
-                                                <div
-                                                    className="custom-card"
-                                                    style={{
-                                                        padding:
-                                                            REACT_FLOW_NODE[
-                                                                "padding"
-                                                            ],
-                                                    }}
-                                                >
+                                                <div {...NODE_PROPS}>
                                                     <Tag
                                                         intent={Intent.PRIMARY}
                                                         minimal
@@ -451,15 +446,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                         PLATFORM:...
                                                     </div>
                                                 </div>
-                                                <div
-                                                    className="custom-card"
-                                                    style={{
-                                                        padding:
-                                                            REACT_FLOW_NODE[
-                                                                "padding"
-                                                            ],
-                                                    }}
-                                                >
+                                                <div {...NODE_PROPS}>
                                                     <Tag
                                                         intent={Intent.PRIMARY}
                                                         minimal
