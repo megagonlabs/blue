@@ -5,4 +5,4 @@ pymongo==4.6.1
 pandas==2.2.3
 numpy==1.25.2
 pgmpy==1.0.0
-pyparsing=3.2.5
+pyparsing==3.2.5
