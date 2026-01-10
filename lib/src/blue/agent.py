@@ -432,9 +432,11 @@ class Worker:
             if message.getCode() == ControlCode.CREATE_FORM:
                 form_id = message.getArg('form_id')
 
-                # create a new form id
-                if id == None:
-                    id = uuid_utils.create_uuid()
+                if id is None:
+                    if form_id is not None:
+                        id = form_id
+                    else:
+                        id = uuid_utils.create_uuid()
 
                 if form_id is None:
                     form_id = id
