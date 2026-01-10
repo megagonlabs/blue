@@ -577,11 +577,13 @@ export default function StreamFlows({ sessionId }) {
                             icon={<FAIcon icon={faXmarkLarge} />}
                         />
                     </div>
-                    <MessageViewer
-                        sessionId={sessionId}
-                        message={nodeInfo}
-                        showFullContent={true}
-                    />
+                    <div style={{ height: "calc(100% - 61px)" }}>
+                        <MessageViewer
+                            sessionId={sessionId}
+                            message={nodeInfo}
+                            showFullContent={true}
+                        />
+                    </div>
                 </Allotment.Pane>
             </Allotment>
         </div>
