@@ -175,7 +175,7 @@ export default function MessageViewer({
                         </tr>
                     ))}
                 </tbody>
-                {stream.complete && (
+                {_.get(stream, "complete", false) && (
                     <tfoot>
                         <tr>
                             <td colSpan={4}>

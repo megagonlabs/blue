@@ -70,7 +70,7 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
             style={{
                 width: "auto",
                 height: "auto",
-                minWidth: 1,
+                minWidth: 95.27,
                 minHeight: 1,
                 padding: 0,
                 display: "inline-block",

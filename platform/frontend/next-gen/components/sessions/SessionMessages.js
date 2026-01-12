@@ -258,7 +258,13 @@ const Row = ({ index, data, style }) => {
                                     : MESSAGE_OVERFLOW_THRESHOLD,
                             }}
                         >
-                            <div ref={resizeRef}>
+                            <div
+                                ref={resizeRef}
+                                style={{
+                                    padding:
+                                        contentType === "JSON_FORM" ? 1 : null,
+                                }}
+                            >
                                 <MessageContent
                                     contentType={contentType}
                                     streamData={streamData}

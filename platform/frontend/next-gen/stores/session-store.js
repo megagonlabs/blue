@@ -288,10 +288,7 @@ export const useSessionStore = create((set, get) => ({
                     null
                 );
                 const formId = _.get(messageContentsArgs, "form_id", null);
-                if (
-                    _.isEqual(messageContentsCode, "BOS")
-                    // && !_.endsWith(stream, "PROGRESS:STREAM")
-                ) {
+                if (_.isEqual(messageContentsCode, "BOS")) {
                     considerWorkspace = true;
                     messages.push(baseMessage);
                     let streams = _.get(
@@ -337,12 +334,22 @@ export const useSessionStore = create((set, get) => ({
                     }
                     streamData.push({
                         ...baseData,
-                        content: { form_id: formId },
+                        content: {
+                            form_id: formId,
+                            form_content: messageContentsArgs,
+                        },
                     });
                     // create or update forms
                     _.set(newForms, [formId, "content"], messageContentsArgs);
                 } else if (_.isEqual(messageContentsCode, "CLOSE_FORM")) {
                     _.set(newForms, [formId, "closed"], true);
+                    streamData.push({
+                        ...baseData,
+                        content: {
+                            form_id: formId,
+                            form_content: "CLOSE_FORM",
+                        },
+                    });
                 } else if (_.isEqual(messageContentsCode, "PROGRESS")) {
                     const { progress_id: progressId, value } =
                         messageContentsArgs;
