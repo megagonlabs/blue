@@ -21,7 +21,12 @@ export default function StreamNode({ id, data }) {
     const streamData = _.get(stream, "data", []);
     return (
         <BaseNode id={id} data={data}>
-            <div style={{ padding: 10, maxWidth: POPOVER_CONTENT_MAX_WIDTH }}>
+            <div
+                style={{
+                    padding: "10px 10px 5px",
+                    maxWidth: POPOVER_CONTENT_MAX_WIDTH,
+                }}
+            >
                 <Tag
                     intent={Intent.PRIMARY}
                     minimal
@@ -52,9 +57,11 @@ export default function StreamNode({ id, data }) {
                     {streamData.map((data, index) => (
                         <div
                             key={index}
+                            style={{ paddingTop: 5, marginBottom: 5 }}
                             className={classNames(
                                 "multiline-ellipsis-5",
-                                Classes.TEXT_MUTED
+                                Classes.TEXT_MUTED,
+                                "border-top"
                             )}
                         >
                             {JSON.stringify(data.content)}
