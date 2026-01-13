@@ -54,6 +54,14 @@ import MessageIcon from "./messages/MessageIcon";
 import MessageMetadata from "./messages/MessageMetadata";
 import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
+const POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_0 = {
+    ...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+};
+_.set(
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_0,
+    "modifiers.preventOverflow.options.padding",
+    0
+);
 const Row = ({ index, data, style }) => {
     const {
         setRowHeight,
@@ -149,6 +157,7 @@ const Row = ({ index, data, style }) => {
     useEffect(() => {
         handleResize();
     }, [expanded, detailedMessage]);
+    const elementRef = useRef(null);
     if (!message) {
         return null;
     }
@@ -174,6 +183,7 @@ const Row = ({ index, data, style }) => {
             }}
         >
             <div
+                ref={elementRef}
                 className="full-parent-width"
                 style={{
                     display: "flex",
@@ -185,7 +195,8 @@ const Row = ({ index, data, style }) => {
                     style={{
                         borderRadius: 2,
                         position: "absolute",
-                        right: detailedMessage ? 70 : 20,
+                        left: !own ? (detailedMessage ? 70 : 20) : null,
+                        right: own ? (detailedMessage ? 70 : 20) : null,
                         top: detailedMessage ? 40 : 10,
                         display: showActions ? null : "none",
                     }}
@@ -193,7 +204,8 @@ const Row = ({ index, data, style }) => {
                     <ButtonGroup size={Size.LARGE}>
                         {!_.isEqual(contentType, "ERROR") && (
                             <Tooltip
-                                placement="bottom"
+                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_0}
+                                boundary={elementRef.current}
                                 content="Add to Workspace"
                             >
                                 <Button
@@ -209,7 +221,11 @@ const Row = ({ index, data, style }) => {
                                 />
                             </Tooltip>
                         )}
-                        <Tooltip placement="bottom-end" content="Inspect">
+                        <Tooltip
+                            {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_0}
+                            boundary={elementRef.current}
+                            content="Inspect"
+                        >
                             <Button
                                 onClick={() => {
                                     addInspectionContainer();
