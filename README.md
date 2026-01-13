@@ -58,7 +58,7 @@ Sounds interesting? Want to learn more? Read documentation below.
   * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
 * [Quickstart Guide](QUICK-START.md) to learn basics of using blue web application.
 * [API Doc](https://rit-git.github.io/blue) to learn more about blue library, for development
-* [Demos](https://github.com/rit-git/blue-examples/tree/v1.0) to try out agentic demos with base and experimental agents
+* [Demos](https://github.com/megagonlabs/blue-examples) to try out agentic demos with base and experimental agents
 * [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
 * [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles
