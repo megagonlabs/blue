@@ -28,6 +28,7 @@ import {
 import {
     Background,
     getConnectedEdges,
+    MarkerType,
     Panel,
     ReactFlow,
     useReactFlow,
@@ -338,6 +339,9 @@ export default function StreamFlows({ sessionId }) {
                         targetHandle: inputName,
                         animated: true,
                         type: "smoothstep",
+                        markerEnd: {
+                            type: MarkerType.ArrowClosed,
+                        },
                         style: { strokeWidth: 2 },
                     });
                     seenEdges.add(edge);
@@ -407,6 +411,9 @@ export default function StreamFlows({ sessionId }) {
                         target: streamNodeId,
                         animated: true,
                         type: "smoothstep",
+                        markerEnd: {
+                            type: MarkerType.ArrowClosed,
+                        },
                         style: { strokeWidth: 2 },
                     });
                     seenEdges.add(edge);

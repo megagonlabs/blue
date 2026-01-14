@@ -17,6 +17,9 @@ const renderHandles = (handles, type, position, isVertical) => {
         paddingLeft: !isVertical && type === "target" ? 7 : null,
         paddingBottom: isVertical && type === "source" ? 5 : null,
         paddingRight: !isVertical && type === "source" ? 7 : null,
+        display: "flex",
+        alignItems: "center",
+        maxWidth: isVertical || type === "target" ? 125 : null,
     };
     if (!isVertical) {
         if (type === "target") {
@@ -55,7 +58,7 @@ export default function AgentNode({ id, data }) {
                 <div
                     style={{
                         display: "flex",
-                        padding: "10px 10px 5px",
+                        padding: "20px 10px 5px",
                         justifyContent: "space-evenly",
                         gap: 10,
                         backgroundColor: `${Colors.GRAY5}${HEX_TRANSPARENCY[15]}`,
@@ -154,12 +157,19 @@ export default function AgentNode({ id, data }) {
                                       >
                                           INPUTS
                                       </div>
-                                      {renderHandles(
-                                          inputs,
-                                          "target",
-                                          Position.Left,
-                                          false
-                                      )}
+                                      <div
+                                          className="full-parent-dimension"
+                                          style={{
+                                              padding: "0px 0px 0px 10px",
+                                          }}
+                                      >
+                                          {renderHandles(
+                                              inputs,
+                                              "target",
+                                              Position.Left,
+                                              false
+                                          )}
+                                      </div>
                                   </>
                               )}
                           </div>
