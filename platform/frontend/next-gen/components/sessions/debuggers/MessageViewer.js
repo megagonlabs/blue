@@ -141,39 +141,49 @@ export default function MessageViewer({
                     </tr>
                 </thead>
                 <tbody>
-                    {streamData.map((data, index) => (
-                        <tr key={index}>
-                            <td>
-                                <div style={{ maxWidth: 200 }}>
-                                    <div>
-                                        {new Date(
-                                            data.timestamp
-                                        ).toLocaleTimeString()}
-                                        &nbsp;at&nbsp;
-                                        {new Date(
-                                            data.timestamp
-                                        ).toLocaleDateString()}
+                    {streamData.map((data, index) => {
+                        const controlCode = _.get(data, "controlCode", null);
+                        return (
+                            <tr key={index}>
+                                <td>
+                                    <div style={{ maxWidth: 200 }}>
+                                        <div>
+                                            {new Date(
+                                                data.timestamp
+                                            ).toLocaleTimeString()}
+                                            &nbsp;at&nbsp;
+                                            {new Date(
+                                                data.timestamp
+                                            ).toLocaleDateString()}
+                                        </div>
+                                        <div className={Classes.TEXT_MUTED}>
+                                            {data.id}
+                                        </div>
                                     </div>
-                                    <div className={Classes.TEXT_MUTED}>
-                                        {data.id}
+                                </td>
+                                <td>
+                                    {data.label}
+                                    {!_.isEmpty(controlCode) && (
+                                        <div style={{ marginTop: 5.5 }}>
+                                            <Tag minimal>{controlCode}</Tag>
+                                        </div>
+                                    )}
+                                </td>
+                                <td>
+                                    <div
+                                        className={
+                                            showFullContent
+                                                ? null
+                                                : "multiline-ellipsis-5"
+                                        }
+                                    >
+                                        {JSON.stringify(data.content)}
                                     </div>
-                                </div>
-                            </td>
-                            <td>{data.label}</td>
-                            <td>
-                                <div
-                                    className={
-                                        showFullContent
-                                            ? null
-                                            : "multiline-ellipsis-5"
-                                    }
-                                >
-                                    {JSON.stringify(data.content)}
-                                </div>
-                            </td>
-                            <td>{data.dataType}</td>
-                        </tr>
-                    ))}
+                                </td>
+                                <td>{data.dataType}</td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
                 {_.get(stream, "complete", false) && (
                     <tfoot>

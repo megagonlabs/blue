@@ -569,105 +569,106 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {messages.map((message) => (
-                                                    <tr
-                                                        key={message.stream}
-                                                        onClick={() => {
-                                                            setFocusStream(
-                                                                message.stream
-                                                            );
-                                                        }}
-                                                    >
-                                                        <td>
-                                                            <div
-                                                                style={{
-                                                                    ...CELL_CONTENT_STYLES,
-                                                                    width: 80,
-                                                                    paddingLeft: 9,
-                                                                }}
-                                                            >
-                                                                <Tag
-                                                                    minimal
-                                                                    intent={
-                                                                        message.contentType ===
-                                                                        "ERROR"
-                                                                            ? Intent.DANGER
-                                                                            : Intent.PRIMARY
+                                                {!_.isEmpty(messages) &&
+                                                    messages.map((message) => (
+                                                        <tr
+                                                            key={message.stream}
+                                                            onClick={() => {
+                                                                setFocusStream(
+                                                                    message.stream
+                                                                );
+                                                            }}
+                                                        >
+                                                            <td>
+                                                                <div
+                                                                    style={{
+                                                                        ...CELL_CONTENT_STYLES,
+                                                                        width: 80,
+                                                                        paddingLeft: 9,
+                                                                    }}
+                                                                >
+                                                                    <Tag
+                                                                        minimal
+                                                                        intent={
+                                                                            message.contentType ===
+                                                                            "ERROR"
+                                                                                ? Intent.DANGER
+                                                                                : Intent.PRIMARY
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            message.contentType
+                                                                        }
+                                                                    </Tag>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <Tooltip
+                                                                    placement="bottom"
+                                                                    boundary={
+                                                                        elementRef.current
+                                                                    }
+                                                                    content={
+                                                                        <div
+                                                                            style={{
+                                                                                maxWidth:
+                                                                                    POPOVER_CONTENT_MAX_WIDTH,
+                                                                                wordBreak:
+                                                                                    "break-all",
+                                                                            }}
+                                                                        >
+                                                                            {
+                                                                                message.stream
+                                                                            }
+                                                                        </div>
                                                                     }
                                                                 >
-                                                                    {
-                                                                        message.contentType
-                                                                    }
-                                                                </Tag>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <Tooltip
-                                                                placement="bottom"
-                                                                boundary={
-                                                                    elementRef.current
-                                                                }
-                                                                content={
                                                                     <div
+                                                                        className={classNames(
+                                                                            "full-parent-width",
+                                                                            Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                                        )}
                                                                         style={{
-                                                                            maxWidth:
-                                                                                POPOVER_CONTENT_MAX_WIDTH,
-                                                                            wordBreak:
-                                                                                "break-all",
+                                                                            lineHeight:
+                                                                                "22px",
+                                                                            width: `${
+                                                                                tableWidth -
+                                                                                66 -
+                                                                                180
+                                                                            }px`,
                                                                         }}
                                                                     >
                                                                         {
                                                                             message.stream
                                                                         }
                                                                     </div>
-                                                                }
-                                                            >
+                                                                </Tooltip>
+                                                            </td>
+                                                            <td>
                                                                 <div
-                                                                    className={classNames(
-                                                                        "full-parent-width",
-                                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                                    )}
                                                                     style={{
-                                                                        lineHeight:
-                                                                            "22px",
-                                                                        width: `${
-                                                                            tableWidth -
-                                                                            66 -
-                                                                            180
-                                                                        }px`,
+                                                                        ...CELL_CONTENT_STYLES,
+                                                                        width: 100,
+                                                                        paddingRight: 9,
+                                                                        justifyContent:
+                                                                            "end",
+                                                                        textAlign:
+                                                                            Alignment.END,
                                                                     }}
                                                                 >
-                                                                    {
-                                                                        message.stream
-                                                                    }
+                                                                    <Timestamp
+                                                                        boundary={
+                                                                            elementRef.current
+                                                                        }
+                                                                        placement="bottom"
+                                                                        epoch={
+                                                                            message.timestamp
+                                                                        }
+                                                                    />
                                                                 </div>
-                                                            </Tooltip>
-                                                        </td>
-                                                        <td>
-                                                            <div
-                                                                style={{
-                                                                    ...CELL_CONTENT_STYLES,
-                                                                    width: 100,
-                                                                    paddingRight: 9,
-                                                                    justifyContent:
-                                                                        "end",
-                                                                    textAlign:
-                                                                        Alignment.END,
-                                                                }}
-                                                            >
-                                                                <Timestamp
-                                                                    boundary={
-                                                                        elementRef.current
-                                                                    }
-                                                                    placement="bottom"
-                                                                    epoch={
-                                                                        message.timestamp
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
                                             </tbody>
                                         </HTMLTable>
                                     )}

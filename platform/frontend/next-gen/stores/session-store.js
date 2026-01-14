@@ -1,3 +1,4 @@
+import { EMPTY_OBJECT } from "@/components/constants";
 import SessionContainer from "@/components/sessions/SessionContainer";
 import SessionDisplayName from "@/components/sessions/SessionDisplayName";
 import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
@@ -241,7 +242,7 @@ export const useSessionStore = create((set, get) => ({
             order,
             stream,
         } = data;
-        const tags = _.entries(_.get(data, "metadata.tags", {}));
+        const tags = _.entries(_.get(data, "metadata.tags", EMPTY_OBJECT));
         const { sessions, forms, progress, sessionIds } = get();
         let newSessions = _.cloneDeep(sessions),
             newForms = _.cloneDeep(forms),
@@ -311,7 +312,7 @@ export const useSessionStore = create((set, get) => ({
                     );
                 } else if (
                     _.includes(
-                        ["CREATE_FORM", "UPDATE_FORM"],
+                        ["CREATE_FORM", "UPDATE_FORM", "CLOSE_FORM"],
                         messageContentsCode
                     )
                 ) {
@@ -332,23 +333,27 @@ export const useSessionStore = create((set, get) => ({
                             break;
                         }
                     }
+                    let formContent = {};
+                    if (
+                        _.includes(
+                            ["CREATE_FORM", "UPDATE_FORM"],
+                            messageContentsCode
+                        )
+                    ) {
+                        _.set(
+                            newForms,
+                            [formId, "content"],
+                            messageContentsArgs
+                        );
+                        formContent = messageContentsArgs;
+                    } else if (messageContentsCode === "CLOSE_FORM") {
+                        _.set(newForms, [formId, "closed"], true);
+                        formContent = "CLOSE_FORM";
+                    }
                     streamData.push({
                         ...baseData,
-                        content: {
-                            form_id: formId,
-                            form_content: messageContentsArgs,
-                        },
-                    });
-                    // create or update forms
-                    _.set(newForms, [formId, "content"], messageContentsArgs);
-                } else if (_.isEqual(messageContentsCode, "CLOSE_FORM")) {
-                    _.set(newForms, [formId, "closed"], true);
-                    streamData.push({
-                        ...baseData,
-                        content: {
-                            form_id: formId,
-                            form_content: "CLOSE_FORM",
-                        },
+                        controlCode: messageContentsCode,
+                        content: { form_id: formId, content: formContent },
                     });
                 } else if (_.isEqual(messageContentsCode, "PROGRESS")) {
                     const { progress_id: progressId, value } =
