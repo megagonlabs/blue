@@ -56,6 +56,7 @@ const PANE_BUTTON_PROPS = {
     variant: ButtonVariant.MINIMAL,
     style: { fontWeight: 600 },
 };
+const MIN_PANE_SIZE = 200;
 function FormDesigner({ width, height }) {
     const addContainer = useGridStore((state) => state.addContainer);
     const darkMode = useAppStore((state) => state.dark_mode);
@@ -101,6 +102,14 @@ function FormDesigner({ width, height }) {
         } catch {}
     }, [gridContainerId]);
     const elementRef = useRef(null);
+    const allotmentRef = useRef(null);
+    const expandFull = (index) => {
+        if (allotmentRef.current) {
+            let sizes = [MIN_PANE_SIZE, MIN_PANE_SIZE];
+            _.set(sizes, index, sizes[index] * 4);
+            allotmentRef.current.resize(sizes);
+        }
+    };
     return (
         <div ref={elementRef} style={{ width, height }}>
             <div className="border-bottom" style={{ padding: 10 }}>
@@ -183,8 +192,8 @@ function FormDesigner({ width, height }) {
             >
                 <Allotment>
                     <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
-                        <Allotment vertical>
-                            <Allotment.Pane minSize={200}>
+                        <Allotment vertical ref={allotmentRef}>
+                            <Allotment.Pane minSize={MIN_PANE_SIZE}>
                                 <div
                                     className="border-bottom"
                                     style={{ padding: 10 }}
@@ -196,6 +205,9 @@ function FormDesigner({ width, height }) {
                                                 icon={faArrowsFromDottedLine}
                                             />
                                         }
+                                        onClick={() => {
+                                            expandFull(0);
+                                        }}
                                         text="UI Schema"
                                     />
                                 </div>
@@ -220,7 +232,7 @@ function FormDesigner({ width, height }) {
                                     />
                                 </div>
                             </Allotment.Pane>
-                            <Allotment.Pane minSize={200}>
+                            <Allotment.Pane minSize={MIN_PANE_SIZE}>
                                 <div
                                     className="border-bottom"
                                     style={{ padding: 10 }}
@@ -232,6 +244,9 @@ function FormDesigner({ width, height }) {
                                                 icon={faArrowsFromDottedLine}
                                             />
                                         }
+                                        onClick={() => {
+                                            expandFull(1);
+                                        }}
                                         text="Data Schema"
                                     />
                                 </div>
@@ -297,7 +312,7 @@ function FormDesigner({ width, height }) {
                             <div
                                 className="border-bottom"
                                 style={{
-                                    height: 200,
+                                    height: MIN_PANE_SIZE,
                                     overflow: "hidden",
                                     display: showData ? null : "none",
                                 }}
@@ -315,7 +330,7 @@ function FormDesigner({ width, height }) {
                                     padding: 20,
                                     overflowY: "scroll",
                                     height: `calc(100% - ${
-                                        showData ? 200 : 0
+                                        showData ? MIN_PANE_SIZE : 0
                                     }px)`,
                                 }}
                             >
