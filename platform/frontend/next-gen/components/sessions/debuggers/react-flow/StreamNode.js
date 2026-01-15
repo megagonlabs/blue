@@ -3,8 +3,9 @@ import {
     POPOVER_CONTENT_MAX_WIDTH,
 } from "@/components/constants";
 import { useReactFlowCustomContext } from "@/components/contexts/ReactFlowCustomContext";
+import { useAppStore } from "@/stores/app-store";
 import { useSessionStore } from "@/stores/session-store";
-import { Classes, Intent, Tag, Tooltip } from "@blueprintjs/core";
+import { Classes, Colors, Intent, Tag, Tooltip } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
 import classNames from "classnames";
 import _ from "lodash";
@@ -19,6 +20,10 @@ export default function StreamNode({ id, data }) {
     );
     const stream = _.get(session, ["streams", data.label], null);
     const streamData = _.get(stream, "data", []);
+    const contentType = _.get(data, "contentType", null);
+    const darkMode = useAppStore((state) => state.dark_mode);
+    const textColor =
+        contentType === "ERROR" ? (darkMode ? Colors.RED5 : Colors.RED3) : null;
     return (
         <BaseNode id={id} data={data}>
             <div
@@ -28,7 +33,9 @@ export default function StreamNode({ id, data }) {
                 }}
             >
                 <Tag
-                    intent={Intent.PRIMARY}
+                    intent={
+                        contentType === "ERROR" ? Intent.DANGER : Intent.PRIMARY
+                    }
                     minimal
                     style={{ marginBottom: 10 }}
                 >
@@ -48,7 +55,10 @@ export default function StreamNode({ id, data }) {
                             </div>
                         }
                     >
-                        <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
+                        <div
+                            className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            style={{ color: textColor }}
+                        >
                             {data.label}
                         </div>
                     </Tooltip>
