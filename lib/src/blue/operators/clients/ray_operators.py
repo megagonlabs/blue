@@ -137,6 +137,11 @@ from blue.operators.semantic_transform_operator import SemanticTransformOperator
 semantic_transform_operator = SemanticTransformOperator()
 operators_dict[semantic_transform_operator.name] = semantic_transform_operator
 
+from blue.operators.semantic_join_operator import SemanticJoinOperator
+
+semantic_join_operator = SemanticJoinOperator()
+operators_dict[semantic_join_operator.name] = semantic_join_operator
+
 ## QUERY/COMPOUND OPERATORS
 from blue.operators.nl2query_router_operator import NL2QueryRouterOperator
 
