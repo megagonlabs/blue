@@ -418,8 +418,8 @@ class Message:
         """
         d = deepcopy(self.__dict__)
         # remove id, stream
-        del d['id']
-        del d['stream']
+        d.pop('id')
+        d.pop('stream')
         # convert types to str, when necessary
         d['label'] = str(self.label)
         d['content_type'] = str(self.content_type)
@@ -427,11 +427,10 @@ class Message:
             contents = d['contents']
             contents['code'] = str(contents['code'])
             d['contents'] = json.dumps(contents, cls=ConstantEncoder)
+        elif self.content_type == ContentType.JSON:
+            d['contents'] = json.dumps(self.contents, cls=ConstantEncoder)
         else:
-            if self.content_type == ContentType.JSON:
-                d['contents'] = json.dumps(self.contents, cls=ConstantEncoder)
-            else:
-                d['contents'] = self.contents
+            d['contents'] = self.contents
 
         # convert to JSON
         return json.dumps(d, cls=ConstantEncoder)

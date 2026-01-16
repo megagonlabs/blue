@@ -417,26 +417,15 @@ class Worker:
             scope: Scope of the stream, agent or worker (default: worker).
         """
         # set prefix, based on scope
-        if scope == "agent":
-            prefix = self.agent.cid
-        else:
-            prefix = self.prefix
+        prefix = self.agent.cid if scope == "agent" else self.prefix
         output_name = output.split(":")[0]
-
+        code = message.getCode()
         # TODO: This doesn't belong here..
-        if message.getCode() in [
-            ControlCode.CREATE_FORM,
-            ControlCode.UPDATE_FORM,
-            ControlCode.CLOSE_FORM,
-        ]:
-            if message.getCode() == ControlCode.CREATE_FORM:
-                form_id = message.getArg('form_id')
-
+        if code in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM]:
+            form_id = message.getArg('form_id')
+            if code == ControlCode.CREATE_FORM:
                 if id is None:
-                    if form_id is not None:
-                        id = form_id
-                    else:
-                        id = uuid_utils.create_uuid()
+                    id = form_id if form_id else uuid_utils.create_uuid()
 
                 if form_id is None:
                     form_id = id
@@ -462,30 +451,9 @@ class Worker:
                     metadata={'owner': self.agent.sid, 'output_name': output_name},
                 )
                 event_consumer.start()
-            elif message.getCode() == ControlCode.UPDATE_FORM:
-                form_id = message.getArg('form_id')
-
-                if form_id is None:
-                    raise Exception('missing form_id in UPDATE_FORM')
-
-                event_producer = None
-                if form_id in self.agent.event_producers:
-                    event_producer = self.agent.event_producers[form_id]
-
-                if event_producer is None:
-                    raise Exception("no matching event producer for form")
-                id = form_id
-
-                event_stream = event_producer.get_stream()
-
-                # inject stream and form id into ui
-                self._update_form_ids(message.getArg("uischema"), event_stream, form_id)
-
             else:
-                form_id = message.getArg('form_id')
-
                 if form_id is None:
-                    raise Exception('missing form_id in CLOSE_FORM')
+                    raise Exception(f'missing form_id in {code}')
 
                 event_producer = None
                 if form_id in self.agent.event_producers:
@@ -494,6 +462,11 @@ class Worker:
                 if event_producer is None:
                     raise Exception("no matching event producer for form")
                 id = form_id
+
+                if code == ControlCode.UPDATE_FORM:
+                    event_stream = event_producer.get_stream()
+                    # inject stream and form id into ui
+                    self._update_form_ids(message.getArg("uischema"), event_stream, form_id)
 
         # append output variable with id, if not None
         if id is not None:
@@ -504,14 +477,12 @@ class Worker:
         producer.write(message)
 
         # close consumer, if end of stream
-        if message.isEOS():
+        if message.isEOS() and self.consumer:
             # done, stop listening to input stream
-            if self.consumer:
-                self.consumer.stop()
+            self.consumer.stop()
 
         # return stream
-        stream = producer.get_stream()
-        return stream
+        return producer.get_stream()
 
     def _start(self):
         """Start the worker by initializing the consumer for the input stream."""
