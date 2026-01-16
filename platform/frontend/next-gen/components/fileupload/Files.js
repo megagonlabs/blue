@@ -84,6 +84,7 @@ export default function Files({ bucketId, uploadCallback, uploadUrl }) {
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 20,
+                                padding: "10px 20px",
                             }}
                         >
                             <EntityTitle
@@ -152,17 +153,19 @@ export default function Files({ bucketId, uploadCallback, uploadUrl }) {
                                     </Tag>
                                 }
                             />
-                            <Tooltip content="Remove file">
-                                <Button
-                                    intent={Intent.DANGER}
-                                    icon={<FAIcon icon={faTrash} />}
-                                    variant={ButtonVariant.MINIMAL}
-                                    disabled={isUploading}
-                                    onClick={() =>
-                                        removeFile(bucketId, item.id)
-                                    }
-                                />
-                            </Tooltip>
+                            {status !== "COMPLETED" && (
+                                <Tooltip content="Remove file">
+                                    <Button
+                                        intent={Intent.DANGER}
+                                        icon={<FAIcon icon={faTrash} />}
+                                        variant={ButtonVariant.MINIMAL}
+                                        disabled={isUploading}
+                                        onClick={() =>
+                                            removeFile(bucketId, item.id)
+                                        }
+                                    />
+                                </Tooltip>
+                            )}
                         </Card>
                     );
                 })}
