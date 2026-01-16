@@ -2,6 +2,7 @@ import { useAppStore } from "@/stores/app-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
+import { useSocketStore } from "@/stores/socket-store";
 import {
     Button,
     ButtonGroup,
@@ -29,6 +30,7 @@ import _ from "lodash";
 import { useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
+import { EMPTY_OBJECT } from "../constants";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { useToaster } from "../contexts/ToasterContext";
 import SessionContainer from "./SessionContainer";
@@ -92,16 +94,26 @@ export default function SessionCard({ sessionId }) {
         },
         [handleClose, darkMode, menu]
     );
-    const filteredMessages = messages.filter((message) => {
-        const stream = _.get(message, "stream", null);
-        if (
-            _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
-            _.endsWith(stream, "PROGRESS:STREAM")
-        ) {
-            return false;
-        }
-        return true;
-    });
+    const { sessionAttributes } = useSocketStore(
+        useShallow((state) => ({
+            sessionAttributes: state.sessionAttributes,
+        }))
+    );
+    const attributes = _.get(sessionAttributes, sessionId, EMPTY_OBJECT);
+    const filteredMessages = useMemo(() => {
+        const debugMode = _.get(attributes, "debug_mode", false);
+        return messages.filter((message) => {
+            const stream = _.get(message, "stream", null);
+            if (
+                _.get(message, "metadata.tags.WORKSPACE_ONLY", false) ||
+                (_.get(message, "metadata.tags.HIDDEN", false) && !debugMode) ||
+                _.endsWith(stream, "PROGRESS:STREAM")
+            ) {
+                return false;
+            }
+            return true;
+        });
+    }, [messages, attributes]);
     const user = useAuthStore((state) => state.user);
     const pinned = _.get(details, ["pinned", owner], false);
     const [loading, setLoading] = useState(false);

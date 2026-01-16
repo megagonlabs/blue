@@ -3,6 +3,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useDedupStore } from "@/stores/dedup-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
+import { useSocketStore } from "@/stores/socket-store";
 import {
     Alignment,
     Button,
@@ -353,11 +354,19 @@ export default function SessionMessages({
         }))
     );
     const filterTags = _.get(messageFilterTags, sessionId, EMPTY_ARRAY);
+    const { sessionAttributes } = useSocketStore(
+        useShallow((state) => ({
+            sessionAttributes: state.sessionAttributes,
+        }))
+    );
+    const attributes = _.get(sessionAttributes, sessionId, EMPTY_OBJECT);
     const filteredMessages = useMemo(() => {
+        const debugMode = _.get(attributes, "debug_mode", false);
         return messages.filter((message) => {
             const stream = _.get(message, "stream", null);
             if (
-                _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
+                _.get(message, "metadata.tags.WORKSPACE_ONLY", false) ||
+                (_.get(message, "metadata.tags.HIDDEN", false) && !debugMode) ||
                 _.endsWith(stream, "PROGRESS:STREAM")
             ) {
                 return false;
@@ -371,7 +380,7 @@ export default function SessionMessages({
             }
             return _.isEmpty(filterTags) || include;
         });
-    }, [messages, filterTags]);
+    }, [messages, filterTags, attributes]);
     function getRowHeight(index) {
         let height = 81;
         return rowHeights.current[index] || height;

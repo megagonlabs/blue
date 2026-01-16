@@ -304,7 +304,7 @@ export const useSessionStore = create((set, get) => ({
                     });
                     _.set(newSessions, [sessionId, "messages"], messages);
                     _.set(newSessions, [sessionId, "streams"], streams);
-                } else if (_.isEqual(messageContentsCode, "EOS")) {
+                } else if (messageContentsCode === "EOS") {
                     _.set(
                         newSessions,
                         [sessionId, "streams", stream, "complete"],
@@ -355,7 +355,7 @@ export const useSessionStore = create((set, get) => ({
                         controlCode: messageContentsCode,
                         content: { form_id: formId, content: formContent },
                     });
-                } else if (_.isEqual(messageContentsCode, "PROGRESS")) {
+                } else if (messageContentsCode === "PROGRESS") {
                     const { progress_id: progressId, value } =
                         messageContentsArgs;
                     let sessionProgress = _.get(newProgress, sessionId, {});
@@ -374,19 +374,26 @@ export const useSessionStore = create((set, get) => ({
                         ...baseData,
                         content: messageContentsArgs,
                     });
-                } else if (_.isEqual(messageContentsCode, "ERROR")) {
+                } else if (
+                    _.includes(["ERROR", "EXECUTE_AGENT"], messageContentsCode)
+                ) {
                     for (let i = _.size(messages) - 1; i >= 0; i--) {
                         if (_.isEqual(messages[i].stream, stream)) {
-                            _.set(messages, [i, "contentType"], "ERROR");
+                            _.set(
+                                messages,
+                                [i, "contentType"],
+                                messageContentsCode
+                            );
                             break;
                         }
                     }
                     streamData.push({
                         ...baseData,
+                        controlCode: messageContentsCode,
                         content: messageContentsArgs,
                     });
                 }
-            } else if (_.isEqual(messageLabel, "DATA")) {
+            } else if (messageLabel === "DATA") {
                 for (let i = _.size(messages) - 1; i >= 0; i--) {
                     if (_.isEqual(messages[i].stream, stream)) {
                         _.set(messages, [i, "contentType"], contentType);

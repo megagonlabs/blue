@@ -107,6 +107,7 @@ class ObserverAgent(Agent):
             "order": int(id.split("-")[1]),
             "id": id,
         }
+        visible_controls = [ControlCode.EXECUTE_AGENT, ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM, ControlCode.PROGRESS, ControlCode.ERROR]
         if message.isEOS():
             # compute stream data
             if worker:
@@ -149,7 +150,7 @@ class ObserverAgent(Agent):
                     worker.append_data(stream, str(data))
                 elif mode == 'streaming':
                     self.response_handler(stream=stream, message=base_message)
-        elif message.getCode() in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM, ControlCode.PROGRESS, ControlCode.ERROR]:
+        elif message.getCode() in visible_controls:
             # special format messages
             self.response_handler(stream=stream, message=base_message)
 

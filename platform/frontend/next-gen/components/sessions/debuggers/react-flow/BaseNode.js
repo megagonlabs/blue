@@ -18,11 +18,8 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
     const { selectedNodes, clickedNode } = useReactFlowCustomContext();
     const nodeRef = useRef(null);
     const updateNodeInternals = useUpdateNodeInternals();
-    const [currentDimensions, setCurrentDimensions] = useState({
-        width: null,
-        height: null,
-    });
     const [mapPinTarget, setMapPinTarget] = useState(null);
+    const dimensionsRef = useRef({ width: null, height: null });
     useEffect(() => {
         if (!nodeRef.current) return;
         const pinElement = nodeRef.current.querySelector(".map-pin");
@@ -32,15 +29,17 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
                 if (_.isEqual(entry.target, nodeRef.current)) {
                     const { width, height } = entry.contentRect;
                     if (
-                        width !== currentDimensions.width ||
-                        height !== currentDimensions.height
+                        width !== dimensionsRef.current.width ||
+                        height !== dimensionsRef.current.height
                     ) {
-                        setCurrentDimensions({ width, height });
+                        dimensionsRef.current = { width, height };
                         setTimeout(() => {
-                            updateNodeInternals(id);
-                            if (_.isFunction(data.onDimensionsChange)) {
-                                data.onDimensionsChange(id, width, height);
-                            }
+                            requestAnimationFrame(() => {
+                                updateNodeInternals(id);
+                                if (_.isFunction(data.onDimensionsChange)) {
+                                    data.onDimensionsChange(id, width, height);
+                                }
+                            });
                         }, 0);
                     }
                 }
@@ -50,13 +49,7 @@ const BaseNode = memo(({ id, data, children, card = true }) => {
         return () => {
             resizeObserver.disconnect();
         };
-    }, [
-        id,
-        data.onDimensionsChange,
-        updateNodeInternals,
-        currentDimensions,
-        children,
-    ]);
+    }, [id, data.onDimensionsChange, updateNodeInternals]);
     const showLocationIcon =
         _.isEqual(clickedNode?.id, id) && !_.isEqual(clickedNode?.type, "tag");
     return (

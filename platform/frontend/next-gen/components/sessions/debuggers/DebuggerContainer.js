@@ -242,18 +242,18 @@ function DebuggerContainer({ width, height, sessionId }) {
             setFocusStream(current);
         }
     }, [inspection]);
-    const setConnectionSessionAttributes = useSocketStore(
-        (state) => state.setConnectionSessionAttributes
+    const setConnectionSessionAttribute = useSocketStore(
+        (state) => state.setConnectionSessionAttribute
     );
     useEffect(() => {
-        setConnectionSessionAttributes({
+        setConnectionSessionAttribute({
             session_id: sessionId,
             key: "debug_mode",
             value: true,
             reObserve: true,
         });
         return () => {
-            setConnectionSessionAttributes({
+            setConnectionSessionAttribute({
                 session_id: sessionId,
                 key: "debug_mode",
                 value: false,

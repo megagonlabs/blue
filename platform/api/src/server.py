@@ -248,8 +248,8 @@ async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
             data = await websocket.receive_text()
             json_data = json.loads(data)
             connection_id = web_socket_connection_manager.find_connection_id(websocket)
-            if json_data['type'] == 'CONNECTION_SESSION_ATTRIBUTES':
-                web_socket_connection_manager.set_connection_session_attributes(connection_id, json_data["session_id"], json_data)
+            if json_data['type'] == 'CONNECTION_SESSION_ATTRIBUTE':
+                web_socket_connection_manager.set_connection_session_attribute(connection_id, json_data["session_id"], json_data)
             elif json_data["type"] == "OBSERVE_SESSION":
                 web_socket_connection_manager.observe_session(connection_id, json_data["session_id"])
             elif json_data["type"] == "REQUEST_USER_AGENT_ID":

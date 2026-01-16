@@ -96,7 +96,7 @@ class WebSocketConnectionManager:
         if single_use:
             pydash.objects.unset(self.tickets, ticket)
 
-    def set_connection_session_attributes(self, connection_id: str, session_sid: str, data: dict):
+    def set_connection_session_attribute(self, connection_id: str, session_sid: str, data: dict):
         key = pydash.objects.get(data, 'key', None)
         value = pydash.objects.get(data, 'value', None)
         re_observe = pydash.objects.get(data, 'reObserve', False)

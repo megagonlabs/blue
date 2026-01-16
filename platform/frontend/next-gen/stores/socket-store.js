@@ -4,13 +4,17 @@ import { create } from "zustand";
 export const useSocketStore = create((set, get) => ({
     socket: null,
     connectionId: null,
+    sessionAttributes: {},
     setState: ({ key, value }) => set({ [key]: value }),
-    setConnectionSessionAttributes: (attributes) => {
-        const { sendMessage } = get();
+    setConnectionSessionAttribute: (payload) => {
+        const { sendMessage, sessionAttributes } = get();
+        let newAttributes = _.cloneDeep(sessionAttributes);
+        _.set(newAttributes, [payload.session_id, payload.key], payload.value);
+        set({ sessionAttributes: newAttributes });
         sendMessage(
             JSON.stringify({
-                type: "CONNECTION_SESSION_ATTRIBUTES",
-                ...attributes,
+                type: "CONNECTION_SESSION_ATTRIBUTE",
+                ...payload,
             })
         );
     },
