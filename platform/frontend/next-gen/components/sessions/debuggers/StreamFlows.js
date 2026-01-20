@@ -154,11 +154,7 @@ export default function StreamFlows({ sessionId }) {
                 return {
                     ...edge,
                     style: isSelected
-                        ? {
-                              ...defaultStyle,
-                              stroke: "#2D72D2",
-                              strokeWidth: 4,
-                          }
+                        ? { ...defaultStyle, stroke: "#2D72D2", strokeWidth: 4 }
                         : defaultStyle,
                     zIndex: isSelected ? 1000 : null,
                     markerEnd: updatedMarker,
