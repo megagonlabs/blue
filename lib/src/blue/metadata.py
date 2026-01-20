@@ -275,10 +275,22 @@ class MetaData(ServiceClient):
         collections = data_registry.get_source_database_collections(source, database)
         collection_descriptions = {}
 
+        if recursive:
+            for collection in collections:
+                collection_name = collection.get("name")
+                self.collect_source_database_collection_metadata(
+                    data_registry,
+                    source,
+                    database,
+                    collection_name,
+                    recursive=True,
+                    rebuild=rebuild
+                )
+
+        
         if self.properties.get('enable_database_description_generation', True):
             current_description = data_registry.get_source_database_description(source, database)
-            if not current_description or current_description.strip() == "":
-
+            if rebuild or not current_description or current_description.strip() == "":
                 database_metadata = data_registry.get_source_database_property(source, database, "metadata")
 
                 if not database_metadata:
@@ -292,10 +304,6 @@ class MetaData(ServiceClient):
                 database_desc = self.enrich_database_description(database, collection_descriptions, database_metadata)
 
                 data_registry.set_source_database_description(source, database, database_desc, rebuild=rebuild)
-
-        if recursive:
-            for collection in collections:
-                self.collect_source_database_collection_metadata(data_registry, source, database, collection, recursive=recursive, rebuild=rebuild)
 
         return
 
