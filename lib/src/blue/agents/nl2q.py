@@ -609,31 +609,33 @@ Output:
         return schemas
 
     def _format_schema(self, schema):
-        """Format the schema into a list of tables with their columns and types.
-
-        Parameters:
-            schema: The schema dictionary to format.
-
-        Returns:
-            A list of formatted tables with their columns and types.
-        """
+        """Format the schema into a list of tables with their columns, types, and descriptions."""
         res = []
-        entities = schema['entities']
+        entities = schema.get('entities', [])
 
         for entity in entities:
-            table_name = entity['name']
-            attributes = entity['attributes']
+            table_entry = {
+                "table_name": entity.get("name"),
+                "description": entity.get("description"), 
+                "columns": []
+            }
 
-            columns = []
-            for col_info in attributes:
-                col_entry = {"name": col_info.get("name"), "type": "unknown"}
+            for col_info in entity.get("attributes", []):
+                col_entry = {
+                    "name": col_info.get("name"),
+                    "type": "unknown",
+                    "description": col_info.get("description")  # 
+                }
 
                 if isinstance(col_info, dict):
                     props = col_info.get("properties", {})
                     info = props.get("info", {})
 
-                    col_entry["type"] = info.get("attr_type", col_info.get("type", "unknown"))
-
+                    col_entry["type"] = info.get(
+                        "attr_type",
+                        col_info.get("type", "unknown")
+                    )
+                    
                     if "enum" in info:
                         col_entry["enum"] = info["enum"]
 
@@ -643,9 +645,9 @@ Output:
                     if "stats" in props:
                         col_entry["stats"] = props["stats"]
 
-                columns.append(col_entry)
+                table_entry["columns"].append(col_entry)
 
-            res.append({"table_name": table_name, "columns": columns})
+            res.append(table_entry)
 
         return res
 
