@@ -136,13 +136,32 @@ export default function StreamFlows({ sessionId }) {
         setEdges((prevEdges) =>
             prevEdges.map((edge) => {
                 const isSelected = selectedEdges.has(edge.id);
-                const defaultStyle = { strokeWidth: 2 };
+                const defaultStyle = { strokeWidth: 2, strokeLinecap: "round" };
+                let updatedMarker = edge.markerEnd;
+                if (updatedMarker) {
+                    updatedMarker = {
+                        ...updatedMarker,
+                        width: isSelected ? 6.25 : 12.5,
+                        height: isSelected ? 6.25 : 12.5,
+                        padding: isSelected ? 20 : 0,
+                    };
+                    if (isSelected) {
+                        _.set(updatedMarker, "color", "#2D72D2");
+                    } else {
+                        _.unset(updatedMarker, "color");
+                    }
+                }
                 return {
                     ...edge,
                     style: isSelected
-                        ? { ...defaultStyle, stroke: "#2D72D2", strokeWidth: 4 }
+                        ? {
+                              ...defaultStyle,
+                              stroke: "#2D72D2",
+                              strokeWidth: 4,
+                          }
                         : defaultStyle,
                     zIndex: isSelected ? 1000 : null,
+                    markerEnd: updatedMarker,
                 };
             })
         );
