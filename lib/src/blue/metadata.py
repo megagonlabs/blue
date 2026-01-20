@@ -362,6 +362,8 @@ class MetaData(ServiceClient):
                     if not current_description or current_description.strip() == "":
                         data_registry.set_source_database_collection_entity_attribute_description(source, database, collection, entity_name, attr, desc, rebuild=rebuild)
 
+            self.current_entity_attributes = attributes
+
             if self.properties.get("enable_value_semantics_inference", True):
                 for attr_obj in attributes:
                     attr_name = attr_obj.get("name")
@@ -540,7 +542,105 @@ class MetaData(ServiceClient):
         return self.execute_api_call(prompt, properties=self.properties, additional_data={})
 
     
-    def build_vsi_prompt(self, entity_name, attr_name, attr_properties):
+    def build_attribute_context(self, attributes, target_attr_name):
+        """
+        Build lightweight cross-attribute context for VSI / SDI.
+
+        Design principles:
+        - Descriptive, not prescriptive
+        - Distributional, not role-based
+        - Column-attached, not joint inference
+        - Safe for first-pass VSI / SDI
+        """
+
+        context = {
+            "sibling_attributes": [],
+            "numeric_distributions": {},
+            "temporal_hints": [],
+            "co_occurrence_hints": [],
+            "relative_behavior": []   # distributional semantics
+        }
+
+        for attr in attributes:
+            name = attr.get("name")
+            if name == target_attr_name:
+                continue
+
+            props = attr.get("properties", {}) or {}
+            stats = props.get("stats", {}) or {}
+            sem = props.get("value_semantics", {}) or {}
+
+            samples = stats.get("sample_values", [])[:5]
+
+            # -------------------------------------------------
+            # Sibling attribute names
+            # -------------------------------------------------
+            context["sibling_attributes"].append(name)
+
+            # -------------------------------------------------
+            # Robust numeric detection (NO VSI DEPENDENCY)
+            # -------------------------------------------------
+            min_val = stats.get("min")
+            max_val = stats.get("max")
+
+            is_numeric = (
+                isinstance(min_val, (int, float))
+                or isinstance(max_val, (int, float))
+            )
+
+            if is_numeric:
+                context["numeric_distributions"][name] = {
+                    "min": min_val,
+                    "max": max_val,
+                    "distinct": stats.get("distinct_count")
+                }
+
+                # -------------------------------------------------
+                # Distributional role hints (NOT semantic roles)
+                # Skip identifiers — they distort scale semantics
+                # -------------------------------------------------
+                if not sem.get("is_identifier"):
+                    magnitude = max_val
+                    if isinstance(magnitude, (int, float)):
+                        context["relative_behavior"].append({
+                            "attribute": name,
+                            "scale_hint": (
+                                "small_range" if magnitude < 100
+                                else "medium_range" if magnitude < 10000
+                                else "large_range"
+                            )
+                        })
+
+            # -------------------------------------------------
+            # Temporal hints (weak, non-binding)
+            # -------------------------------------------------
+            if sem.get("semantic_type") in ("DATE", "DATETIME", "DURATION"):
+                context["temporal_hints"].append(name)
+
+            # -------------------------------------------------
+            # Co-occurrence hints (cheap evidence only)
+            # -------------------------------------------------
+            if samples:
+                context["co_occurrence_hints"].append({
+                    "attribute": name,
+                    "sample_values": samples
+                })
+
+        # -------------------------------------------------
+        # OPTIONAL: relative scale comparison across attributes
+        # (strengthens distributional semantics without roles)
+        # -------------------------------------------------
+        if len(context["relative_behavior"]) >= 2:
+            context["relative_behavior_summary"] = {
+                "comparison": [
+                    (rb["attribute"], rb["scale_hint"])
+                    for rb in context["relative_behavior"]
+                ]
+            }
+
+        return context
+    
+    def build_vsi_prompt(self, entity_name, attr_name, attr_properties, context=None):
         """
         VSI (Value Semantics Inference) — deterministic, bounded.
         Uses stats + sample values + bounded semantic types.
@@ -556,6 +656,8 @@ class MetaData(ServiceClient):
         stats_json = json.dumps(stats, indent=2)
         samples_json = json.dumps(sample_values, indent=2)
         allowed_json = json.dumps(self.VALUE_SEMANTIC_TYPES, indent=2)
+        context_json = json.dumps(context or {}, indent=2)
+
 
         schema_json = """{
   "value_semantics": {
@@ -594,6 +696,11 @@ module used by autonomous agents. You MUST infer WHAT THE VALUES *ARE*, not what
 
 Rules:
 - Use ONLY value patterns + statistics.
+- You MAY use other attributes ONLY for structural AND distributional disambiguation
+  (e.g., distinguishing durations vs counts, identifiers vs categories,
+   event times vs boundaries).
+- You MUST NOT infer business, policy, or domain concepts from context.
+- Cross-attribute context is evidence, not ground truth.
 - Use ONLY allowed semantic types.
 - You MUST be deterministic, safe, and predictable.
 - You MUST produce machine-usable semantics.
@@ -613,6 +720,10 @@ ATTRIBUTE_STATS:
 SAMPLE_VALUES:
 {samples_json}
 
+OTHER_ATTRIBUTES_IN_ENTITY (contextual structural hints only):
+{context_json}
+
+
 ALLOWED_SEMANTIC_TYPES:
 {allowed_json}
 
@@ -627,18 +738,17 @@ Return ONLY this JSON structure, filled in appropriately.
         return prompt.strip()
 
     
-    def build_sdi_prompt(self, entity_name, attr_name, attr_properties):
+    def build_sdi_prompt(self, entity_name, attr_name, attr_properties, context=None):
         """
         SDI (Semantic Discovery Inference) — 
         This discovers fuzzy/emergent semantic concepts unconstrained by taxonomy.
         """
 
-        # reuse your existing prompt EXACTLY:
-        return self.build_value_semantics_prompt(entity_name, attr_name, attr_properties)
+        return self.build_value_semantics_prompt(entity_name, attr_name, attr_properties, context=context)
 
     
     
-    def build_value_semantics_prompt(self, entity_name, attr_name, attr_properties):
+    def build_value_semantics_prompt(self, entity_name, attr_name, attr_properties, context=None):
         """
         Build a generalized and production-grade prompt for Value Semantics Inference (VST).
         This design supports: open-world semantic categories, linguistic and structural inference,
@@ -787,6 +897,16 @@ Return ONLY this JSON structure, filled in appropriately.
         Sample Values:
         {json.dumps(sample_values, indent=2)}
 
+        ───────────────────────────────
+        CROSS-ATTRIBUTE CONTEXT (OPTIONAL EVIDENCE)
+        ───────────────────────────────
+        {json.dumps(context or {}, indent=2)}
+
+        Guidelines:
+        - Use this context ONLY to discover latent groupings, thresholds,
+        or fuzzy categories.
+        - Do NOT assign roles or enforce consistency across columns.
+
         Now infer the most accurate semantics and return ONLY valid JSON.
         """
         return prompt.strip()
@@ -796,7 +916,11 @@ Return ONLY this JSON structure, filled in appropriately.
         attr_name = attr.get("name")
         props = attr.get("properties", {})
 
-        prompt = self.build_vsi_prompt(entity_name, attr_name, props)
+        context = self.build_attribute_context(
+            self.current_entity_attributes, attr_name
+        )
+
+        prompt = self.build_vsi_prompt(entity_name, attr_name, props, context=context)
         llm_output = self.execute_api_call(prompt, properties=self.properties, additional_data={})
 
         try:
@@ -825,7 +949,11 @@ Return ONLY this JSON structure, filled in appropriately.
         attr_name = attr.get("name")
         props = attr.get("properties", {})
 
-        prompt = self.build_sdi_prompt(entity_name, attr_name, props)
+        context = self.build_attribute_context(
+            self.current_entity_attributes, attr_name
+        )
+
+        prompt = self.build_sdi_prompt(entity_name, attr_name, props, context=context)
         llm_output = self.execute_api_call(prompt, properties=self.properties, additional_data={})
 
         try:
