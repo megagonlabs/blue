@@ -145,14 +145,12 @@ if __name__ == "__main__":
 
     ## Example 1: Basic argmin (Records)
     attributes = {"argmin_key": "salary"}
-    # Expected: record 6 (salary "50000" converted to 50000)
     result = argmin_operator_function(input_data, attributes)
     print("\n=== ARGMIN RESULT (records) ===")
     print(result)
 
     ## Example 2: Return Indices
     attributes = {"argmin_key": "salary", "return_index": True}
-    # Expected: index 5
     result = argmin_operator_function(input_data, attributes)
     print("\n=== ARGMIN RESULT (indices) ===")
     print(result)

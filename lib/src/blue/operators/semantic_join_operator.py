@@ -9,6 +9,10 @@ from blue.operators.operator import Operator, default_operator_validator, defaul
 from blue.utils.service_utils import ServiceClient
 from blue.properties import PROPERTIES
 
+# Constants for cost estimation
+COST_PER_1K_TOKENS_USD = 0.04
+CHARS_PER_TOKEN = 4
+
 # Lazy import for SentenceTransformer (only when embedding filter is used)
 _SentenceTransformer = None
 
@@ -109,7 +113,8 @@ def semantic_join_operator_function(input_data: List[List[Dict[str, Any]]], attr
 
     result = _perform_semantic_join_optimized(
         left_data, right_data, join_predicate, join_type, left_fields, right_fields, 
-        join_suffix, keep_keys, context, demonstrations, service_client, properties,
+        attributes.get('left_suffix', '_left'), attributes.get('right_suffix', '_right'),
+        keep_keys, context, demonstrations, service_client, properties,
         batch_size, cache, use_embedding_filter, embedding_threshold
     )
 
@@ -137,26 +142,24 @@ def semantic_join_operator_validator(input_data: List[List[Dict[str, Any]]], att
     join_type = attributes.get('join_type', 'inner')
     left_fields = attributes.get('left_fields', [])
     right_fields = attributes.get('right_fields', [])
-    join_suffix = attributes.get('join_suffix', [])
+
     keep_keys = attributes.get('keep_keys', 'left')
 
-    if not isinstance(join_predicate, str) or not join_predicate.strip():
+    if join_predicate and not isinstance(join_predicate, str):
         return False
 
     if join_type not in ['inner', 'left', 'right', 'outer']:
         return False
 
-    if left_fields and not isinstance(left_fields, list):
+    if left_fields is None or not isinstance(left_fields, list):
         return False
-    if right_fields and not isinstance(right_fields, list):
+    if right_fields is None or not isinstance(right_fields, list):
         return False
 
-    if join_suffix:
-        if not isinstance(join_suffix, list):
-            return False
-        # Suffix length must match input data length (typically 2 for semantic join)
-        if len(join_suffix) != len(input_data):
-            return False
+    if attributes.get('left_suffix') and not isinstance(attributes.get('left_suffix'), str):
+        return False
+    if attributes.get('right_suffix') and not isinstance(attributes.get('right_suffix'), str):
+        return False
 
     if keep_keys not in ['left', 'both']:
         return False
@@ -222,16 +225,16 @@ def _estimate_join_cost(
     
     # Estimate tokens (1 token ≈ 4 characters)
     prompt_overhead = 500
-    predicate_tokens = len(join_predicate) // 4
-    context_tokens = len(context) // 4
-    demonstrations_tokens = len(demonstrations) // 4
-    tokens_per_pair = (len(json.dumps(sample_left)) + len(json.dumps(sample_right))) // 4
+    predicate_tokens = len(join_predicate) // CHARS_PER_TOKEN
+    context_tokens = len(context) // CHARS_PER_TOKEN
+    demonstrations_tokens = len(demonstrations) // CHARS_PER_TOKEN
+    tokens_per_pair = (len(json.dumps(sample_left)) + len(json.dumps(sample_right))) // CHARS_PER_TOKEN
     
     tokens_per_batch = prompt_overhead + predicate_tokens + context_tokens + demonstrations_tokens + (tokens_per_pair * batch_size)
     max_total_tokens = max_llm_calls * tokens_per_batch
     
     # Estimate cost (GPT-4: ~$0.04 per 1K tokens average)
-    max_cost_usd = (max_total_tokens / 1000) * 0.04
+    max_cost_usd = (max_total_tokens / 1000) * COST_PER_1K_TOKENS_USD
     
     return {
         'n_left': n_left,
@@ -495,7 +498,8 @@ def _perform_semantic_join_optimized(
     join_type: str,
     left_fields: List[str],
     right_fields: List[str],
-    join_suffix: List[str],
+    left_suffix: str,
+    right_suffix: str,
     keep_keys: str,
     context: str,
     demonstrations: str,
@@ -507,7 +511,10 @@ def _perform_semantic_join_optimized(
     embedding_threshold: float,
 ) -> List[Dict[str, Any]]:
     """Perform semantic join with optimizations: batch processing, caching, and optional embedding pre-filtering."""
-    left_suffix, right_suffix = join_suffix[0], join_suffix[1]
+    
+    # Set default join predicate if not provided
+    if not join_predicate or not join_predicate.strip():
+        join_predicate = "Determine if the two records are semantically equivalent based on the provided fields."
     
     # Determine which fields to consider from each dataset
     if not left_fields:
@@ -630,21 +637,7 @@ def _perform_semantic_join_optimized(
                         candidate_pairs.append((r, c))
                     # else: Auto-Reject
             
-            # Note: We need to pass auto_matches to the next stage or add them to results directly.
-            # The function structure evaluates 'candidate_pairs' using LLM.
-            # We can leave auto_matches to be added to results later?
-            # Or we can treat them as "cached" true?
-            # Easier: Add them to 'candidate_pairs' but Pre-Fill the cache with True!
-            
-            # Actually, `candidate_pairs` are evaluated. 
-            # If we add auto-matches to candidate_pairs, they will be sent to LLM unless cached.
-            # So, let's pre-fill the cache with auto-matches.
-            
-            if cache is None and auto_matches:
-               # If no cache provided, we can't easily skip LLM for these unless we do it here.
-               # Does _evaluate_join_predicate_batch use cache? No, the loop calling it does.
-               # So we can pass cache=True to this function usually?
-               pass
+            # Note: auto_matches are pre-filled into the results cache/results dict later.
                
         except Exception as e:
             # Fallback
@@ -747,70 +740,6 @@ def _perform_semantic_join_optimized(
     
     return result
 
-
-def _perform_semantic_join(
-    left_data: List[Dict[str, Any]],
-    right_data: List[Dict[str, Any]],
-    join_predicate: str,
-    join_type: str,
-    left_fields: List[str],
-    right_fields: List[str],
-    join_suffix: List[str],
-    keep_keys: str,
-    context: str,
-    demonstrations: str,
-    service_client: ServiceClient,
-    properties: Dict[str, Any],
-) -> List[Dict[str, Any]]:
-    """Perform semantic join using LLM to evaluate join predicate."""
-    left_suffix, right_suffix = join_suffix[0], join_suffix[1]
-
-    # Determine which fields to consider from each dataset
-    if not left_fields:
-        # If not specified, use all fields from first record
-        if left_data:
-            left_fields = list(left_data[0].keys())
-        else:
-            left_fields = []
-    if not right_fields:
-        # If not specified, use all fields from first record
-        if right_data:
-            right_fields = list(right_data[0].keys())
-        else:
-            right_fields = []
-
-    # Build index of right records for efficient matching
-    right_index = list(range(len(right_data)))
-
-    # Determine output schema (which fields to include)
-    left_all_fields = set()
-    right_all_fields = set()
-    for record in left_data:
-        left_all_fields.update(record.keys())
-    for record in right_data:
-        right_all_fields.update(record.keys())
-
-    # Determine field conflicts
-    field_conflicts = set()
-    if keep_keys == 'both':
-        field_conflicts.update(left_all_fields.intersection(right_all_fields))
-    else:  # keep_keys == 'left'
-        # Only conflict on non-join fields (since we don't have explicit join keys in semantic join)
-        # But if we treat 'right_fields' as join keys to be dropped, then they don't cause conflicts
-        field_conflicts.update(left_all_fields.intersection(right_all_fields))
-        if right_fields:
-            field_conflicts.difference_update(right_fields)
-
-    result = []
-
-    if join_type == 'inner':
-        result = _semantic_inner_join(left_data, right_data, right_index, join_predicate, left_fields, right_fields, field_conflicts, left_suffix, right_suffix, keep_keys, context, demonstrations, service_client, properties)
-    elif join_type == 'left':
-        result = _semantic_left_join(left_data, right_data, right_index, join_predicate, left_fields, right_fields, field_conflicts, left_suffix, right_suffix, keep_keys, context, demonstrations, service_client, properties)
-    elif join_type == 'right':
-        result = _semantic_right_join(left_data, right_data, right_index, join_predicate, left_fields, right_fields, field_conflicts, left_suffix, right_suffix, keep_keys, context, demonstrations, service_client, properties)
-    elif join_type == 'outer':
-        result = _semantic_outer_join(left_data, right_data, right_index, join_predicate, left_fields, right_fields, field_conflicts, left_suffix, right_suffix, keep_keys, context, demonstrations, service_client, properties)
 
     return result
 
@@ -931,53 +860,6 @@ def _semantic_outer_join_from_matches(
     return result
 
 
-def _evaluate_join_predicate(
-    left_record: Dict[str, Any],
-    right_record: Dict[str, Any],
-    join_predicate: str,
-    left_fields: List[str],
-    right_fields: List[str],
-    context: str,
-    demonstrations: str,
-    service_client: ServiceClient,
-    properties: Dict[str, Any],
-) -> bool:
-    """Use LLM to evaluate if two records should be joined based on the predicate."""
-    # Prepare left record fields (only specified fields or all if empty)
-    left_record_filtered = {}
-    if left_fields:
-        for field in left_fields:
-            if field in left_record:
-                left_record_filtered[field] = left_record[field]
-    else:
-        left_record_filtered = left_record
-
-    # Prepare right record fields (only specified fields or all if empty)
-    right_record_filtered = {}
-    if right_fields:
-        for field in right_fields:
-            if field in right_record:
-                right_record_filtered[field] = right_record[field]
-    else:
-        right_record_filtered = right_record
-
-    additional_data = {
-        'left_record': left_record_filtered,
-        'right_record': right_record_filtered,
-        'join_predicate': join_predicate,
-        'context': context,
-        'demonstrations': demonstrations,
-    }
-
-    result = service_client.execute_api_call({}, properties=properties, additional_data=additional_data)
-
-    # Convert string results to proper boolean
-    if isinstance(result, str):
-        result = result.lower().strip() in ['true', 'yes', '1', 'match', 'join']
-    elif not isinstance(result, bool):
-        result = bool(result)
-
-    return result
 
 
 def _importance_sampling(
@@ -1068,44 +950,47 @@ def _calculate_recall(
     neg_threshold: float,
     sorted_pairs: List[Tuple[float, bool, float]],
 ) -> float:
-    """Calculate recall for given thresholds on weighted samples.
+    """Calculate recall for given cascade thresholds on weighted samples.
+    
+    Recall measures the fraction of true positive pairs that are found by the cascade.
+    In the cascade approach (inspired by Lotus), pairs are handled as follows:
+    - score >= pos_threshold: Auto-accepted by helper (embedding filter)
+    - neg_threshold < score < pos_threshold: Sent to oracle (language model)
+    - score <= neg_threshold: Auto-rejected by helper
+    
+    Recall = (True Positives Found) / (Total True Positives)
+    where True Positives Found includes:
+    1. Auto-accepted pairs that are actually true
+    2. Oracle-handled pairs that are true (oracle is assumed perfect in learning phase)
 
     Parameters:
-        pos_threshold: Positive threshold (auto-accept).
-        neg_threshold: Negative threshold (auto-reject).
-        sorted_pairs: List of tuples (score, label, weight).
+        pos_threshold: Positive threshold for auto-accept (tau_pos).
+        neg_threshold: Negative threshold for auto-reject (tau_neg).
+        sorted_pairs: List of tuples (score, label, weight) where:
+            - score: Similarity score from helper model
+            - label: True if pair is a true match, False otherwise
+            - weight: Importance weight for this sample (from importance sampling)
 
     Returns:
-        Calculated recall.
+        Calculated recall value in [0, 1]. Returns 1.0 if no true positives exist.
     """
-    # Helper accepted (Auto-True or Auto-False are "handled" by helper)
-    # But recall is about FINDING the True positives.
-    # The 'helper' in Lotus context is the filter.
-    # helper_accepted means decided by thresholds (either > pos or < neg).
-    # But for RECALL, we care about: (True Positives Found) / (Total True Positives)
-    
-    # True Positives Found = (Auto-Accepted & True) + (Sent to Oracle & True)
-    # Note: Auto-Accepted are assumed True? In learning phase we treat them based on labels?
-    # Actually in learning phase we have labels for everything in sample.
-    
-    # Actually, Lotus definition:
-    # helper_accepted = [x for x in sorted_pairs if x[0] >= pos_threshold or x[0] <= neg_threshold]
-    # sent_to_oracle = [x for x in sorted_pairs if x[0] < pos_threshold and x[0] > neg_threshold]
-    
-    # True Positives = sum(weight * label) for all pairs
+    # Total true positives in the dataset (weighted)
     total_correct = sum(pair[1] * pair[2] for pair in sorted_pairs)
     
     if total_correct <= 0:
-        return 1.0 # Edge case: no positives exist, so we found all 0 of them
+        # Edge case: no positives exist, so we found all 0 of them (recall = 1.0)
+        return 1.0
         
     found_correct = 0.0
     
-    # 1. From Auto-Accept (>= pos_threshold)
-    # We count them as found if they are indeed True. (If we auto-accept a False, it hurts Precision, not Recall)
+    # Count true positives found by auto-accept (score >= pos_threshold)
+    # Only count pairs that are actually true (label=True)
     found_correct += sum(x[1] * x[2] for x in sorted_pairs if x[0] >= pos_threshold)
     
-    # 2. From Oracle (neg < x < pos)
-    # We assume Oracle is perfect, so we find all True positives in this range
+    # Count true positives found by oracle (neg_threshold < score < pos_threshold)
+    # In learning phase, we have labels for all pairs, so we can count true positives
+    # that would be sent to oracle. Oracle is assumed perfect, so all true positives
+    # in this range are found.
     found_correct += sum(x[1] * x[2] for x in sorted_pairs if x[0] < pos_threshold and x[0] > neg_threshold)
     
     return found_correct / total_correct
@@ -1115,21 +1000,46 @@ def _calculate_precision(
     neg_threshold: float,
     sorted_pairs: List[Tuple[float, bool, float]],
 ) -> float:
-    """Calculate precision for given thresholds.
+    """Calculate precision for the auto-accept bucket at given thresholds.
+    
+    Precision measures the fraction of auto-accepted pairs that are actually true matches.
+    This function evaluates the precision of the auto-accept bucket only (score >= pos_threshold).
+    Pairs sent to oracle or auto-rejected are not included in precision calculation.
+    
+    Precision = (True Positives in Auto-Accept) / (All Auto-Accepted Pairs)
+    
+    This metric is used during threshold learning to ensure that auto-accepted pairs
+    meet the target precision requirement, minimizing false positives in the final results.
 
     Parameters:
-        pos_threshold: Positive threshold (auto-accept).
-        neg_threshold: Negative threshold (auto-reject).
-        sorted_pairs: List of tuples (score, label, weight).
+        pos_threshold: Positive threshold for auto-accept (tau_pos).
+        neg_threshold: Negative threshold for auto-reject (tau_neg). 
+        sorted_pairs: List of tuples (score, label, weight) where:
+            - score: Similarity score from helper model
+            - label: True if pair is a true match, False otherwise
+            - weight: Importance weight for this sample (from importance sampling)
 
     Returns:
-        Calculated precision.
+        Calculated precision value in [0, 1]. Returns 1.0 if no pairs are auto-accepted
+        (edge case: perfect precision when nothing is accepted).
     """
-    # Precision of Auto-Accept bucket
+    # Get all pairs that would be auto-accepted (score >= pos_threshold)
     accepted = [x for x in sorted_pairs if x[0] >= pos_threshold]
+    
     if not accepted:
+        # Edge case: no pairs auto-accepted, so precision is perfect (1.0)
         return 1.0
-        
+    
+    # Predicted positives: all pairs that would be auto-accepted (weighted)
+    predicted_positives = sum(x[2] for x in accepted)
+    
+    # True positives: auto-accepted pairs that are actually true matches (weighted)
+    true_positives = sum(x[1] * x[2] for x in accepted)
+    
+    if predicted_positives == 0:
+        # Edge case: all accepted pairs have zero weight
+        return 1.0
+    
     return true_positives / predicted_positives
 
 def _calculate_tau_neg(
@@ -1215,9 +1125,6 @@ def _learn_thresholds(
         
         # Calculate Precision LB for auto-accepting >= t
         # Z = indicator of true for those >= t
-        # Note: Precision calculation in Lotus snippets seemed unweighted? 
-        # "LB(mean_z, std_z, len(Z)...)" implies using the count of samples in the bin, not weights?
-        # Let's assume unweighted for precision as per snippet.
         
         # Z = samples with score >= t. Value is 1 if True, 0 if False.
         Z_samples = [int(x[1]) for x in sorted_pairs if x[0] >= t]
@@ -1275,159 +1182,6 @@ def _merge_records(left_record: Dict[str, Any], right_record: Dict[str, Any], fi
     return merged
 
 
-def _semantic_inner_join(
-    left_data: List[Dict[str, Any]],
-    right_data: List[Dict[str, Any]],
-    right_index: List[int],
-    join_predicate: str,
-    left_fields: List[str],
-    right_fields: List[str],
-    field_conflicts: set,
-    left_suffix: str,
-    right_suffix: str,
-    keep_keys: str,
-    context: str,
-    demonstrations: str,
-    service_client: ServiceClient,
-    properties: Dict[str, Any],
-) -> List[Dict[str, Any]]:
-    """Perform inner join using semantic predicate."""
-    result = []
-    matched_right_indices = set()
-
-    for left_record in left_data:
-        for right_idx in right_index:
-            right_record = right_data[right_idx]
-            if _evaluate_join_predicate(left_record, right_record, join_predicate, left_fields, right_fields, context, demonstrations, service_client, properties):
-                matched_right_indices.add(right_idx)
-                merged = _merge_records(left_record, right_record, field_conflicts, left_suffix, right_suffix, keep_keys, right_fields)
-                result.append(merged)
-
-    return result
-
-
-def _semantic_left_join(
-    left_data: List[Dict[str, Any]],
-    right_data: List[Dict[str, Any]],
-    right_index: List[int],
-    join_predicate: str,
-    left_fields: List[str],
-    right_fields: List[str],
-    field_conflicts: set,
-    left_suffix: str,
-    right_suffix: str,
-    keep_keys: str,
-    context: str,
-    demonstrations: str,
-    service_client: ServiceClient,
-    properties: Dict[str, Any],
-) -> List[Dict[str, Any]]:
-    """Perform left join using semantic predicate."""
-    result = []
-    matched_right_indices = set()
-
-    for left_record in left_data:
-        matched = False
-        for right_idx in right_index:
-            right_record = right_data[right_idx]
-            if _evaluate_join_predicate(left_record, right_record, join_predicate, left_fields, right_fields, context, demonstrations, service_client, properties):
-                matched = True
-                matched_right_indices.add(right_idx)
-                merged = _merge_records(left_record, right_record, field_conflicts, left_suffix, right_suffix, keep_keys, right_fields)
-                result.append(merged)
-
-        if not matched:
-            # Left record with no match
-            merged = _merge_records(left_record, {}, field_conflicts, left_suffix, right_suffix, keep_keys, right_fields)
-            result.append(merged)
-
-    return result
-
-
-def _semantic_right_join(
-    left_data: List[Dict[str, Any]],
-    right_data: List[Dict[str, Any]],
-    right_index: List[int],
-    join_predicate: str,
-    left_fields: List[str],
-    right_fields: List[str],
-    field_conflicts: set,
-    left_suffix: str,
-    right_suffix: str,
-    keep_keys: str,
-    context: str,
-    demonstrations: str,
-    service_client: ServiceClient,
-    properties: Dict[str, Any],
-) -> List[Dict[str, Any]]:
-    """Perform right join using semantic predicate."""
-    result = []
-    matched_right_indices = set()
-
-    # First, find all matches
-    for left_record in left_data:
-        for right_idx in right_index:
-            right_record = right_data[right_idx]
-            if _evaluate_join_predicate(left_record, right_record, join_predicate, left_fields, right_fields, context, demonstrations, service_client, properties):
-                matched_right_indices.add(right_idx)
-                merged = _merge_records(left_record, right_record, field_conflicts, left_suffix, right_suffix, keep_keys, right_fields)
-                result.append(merged)
-
-    # Add unmatched right records
-    for right_idx in right_index:
-        if right_idx not in matched_right_indices:
-            right_record = right_data[right_idx]
-            merged = _merge_records({}, right_record, field_conflicts, left_suffix, right_suffix, keep_keys, right_fields)
-            result.append(merged)
-
-    return result
-
-
-def _semantic_outer_join(
-    left_data: List[Dict[str, Any]],
-    right_data: List[Dict[str, Any]],
-    right_index: List[int],
-    join_predicate: str,
-    left_fields: List[str],
-    right_fields: List[str],
-    field_conflicts: set,
-    left_suffix: str,
-    right_suffix: str,
-    keep_keys: str,
-    context: str,
-    demonstrations: str,
-    service_client: ServiceClient,
-    properties: Dict[str, Any],
-) -> List[Dict[str, Any]]:
-    """Perform outer join using semantic predicate."""
-    result = []
-    matched_left_indices = set()
-    matched_right_indices = set()
-
-    # Find all matches
-    for left_idx, left_record in enumerate(left_data):
-        for right_idx in right_index:
-            right_record = right_data[right_idx]
-            if _evaluate_join_predicate(left_record, right_record, join_predicate, left_fields, right_fields, context, demonstrations, service_client, properties):
-                matched_left_indices.add(left_idx)
-                matched_right_indices.add(right_idx)
-                merged = _merge_records(left_record, right_record, field_conflicts, left_suffix, right_suffix, keep_keys, right_fields)
-                result.append(merged)
-
-    # Add unmatched left records
-    for left_idx, left_record in enumerate(left_data):
-        if left_idx not in matched_left_indices:
-            merged = _merge_records(left_record, {}, field_conflicts, left_suffix, right_suffix, keep_keys, right_fields)
-            result.append(merged)
-
-    # Add unmatched right records
-    for right_idx in right_index:
-        if right_idx not in matched_right_indices:
-            right_record = right_data[right_idx]
-            merged = _merge_records({}, right_record, field_conflicts, left_suffix, right_suffix, keep_keys, right_fields)
-            result.append(merged)
-
-    return result
 
 
 class SemanticJoinOperator(Operator, ServiceClient):
@@ -1452,6 +1206,13 @@ class SemanticJoinOperator(Operator, ServiceClient):
     | `use_cache`          | bool            |     | True    | Enable result caching to avoid re-evaluating similar pairs                |
     | `use_embedding_filter` | bool         |     | False   | Use embedding pre-filtering to reduce candidate pairs (requires sentence-transformers)     |
     | `embedding_threshold` | float         |     | 0.7     | Similarity threshold for embedding pre-filtering (0.0-1.0, maps to cosine similarity [-1,1])                |
+    | `max_llm_calls`        | int          |     | 1000    | Maximum allowed LLM calls (None = no limit). Prevents accidental expensive operations.    |
+    | `estimate_cost`        | bool         |     | True    | Show cost estimate and warnings before execution                                            |
+    | `optimize_thresholds` | bool         |     | False   | Enable dynamic threshold learning (Cascade Optimization)                                    |
+    | `recall_target`        | float        |     | 0.8     | Target recall for optimization (0.0-1.0)                                                  |
+    | `precision_target`     | float        |     | 0.8     | Target precision for auto-acceptance (0.0-1.0)                                              |
+    | `sampling_percentage`  | float        |     | 0.1     | Fraction of data to sample for learning (0.0-1.0)                                          |
+    | `failure_probability`  | float        |     | 0.2     | Statistical failure probability (delta) for threshold learning                             |
     """
 
     JOIN_PROMPT = """## Task
@@ -1549,11 +1310,12 @@ ${demonstrations}
     name = "semantic_join"
     description = "Joins two datasets based on natural language join predicate using LLM models"
     default_attributes = {
-        "join_predicate": {"type": "str", "description": "Natural language description of when records should be joined", "required": True},
+        "left_fields": {"type": "list[str]", "description": "Fields from left dataset to consider", "required": True},
+        "right_fields": {"type": "list[str]", "description": "Fields from right dataset to consider", "required": True},
+        "join_predicate": {"type": "str", "description": "Natural language description of when records should be joined", "required": False, "default": ""},
         "join_type": {"type": "str", "description": "Type of join: 'inner', 'left', 'right', 'outer'", "required": False, "default": "inner"},
-        "left_fields": {"type": "list[str]", "description": "Fields from left dataset to consider (empty = all fields)", "required": False, "default": []},
-        "right_fields": {"type": "list[str]", "description": "Fields from right dataset to consider (empty = all fields)", "required": False, "default": []},
-        "join_suffix": {"type": "list[str]", "description": "Suffixes for field name conflicts (default: ['_left', '_right'])", "required": False, "default": []},
+        "left_suffix": {"type": "str", "description": "Suffix for field name conflicts from left dataset", "required": False, "default": "_left"},
+        "right_suffix": {"type": "str", "description": "Suffix for field name conflicts from right dataset", "required": False, "default": "_right"},
         "keep_keys": {"type": "str", "description": "'left' to keep left keys only, 'both' to keep both", "required": False, "default": "left"},
         "context": {"type": "str", "description": "Optional context to provide domain knowledge or additional instructions", "required": False, "default": ""},
         "demonstrations": {"type": "str", "description": "Optional demonstrations to help in-context learning", "required": False, "default": ""},
@@ -1561,14 +1323,14 @@ ${demonstrations}
         "use_cache": {"type": "bool", "description": "Enable result caching to avoid re-evaluating similar pairs", "required": False, "default": True},
         "use_embedding_filter": {"type": "bool", "description": "Use embedding pre-filtering to reduce candidate pairs (requires sentence-transformers package)", "required": False, "default": False},
         "embedding_threshold": {"type": "float", "description": "Similarity threshold for embedding pre-filtering (0.0-1.0, maps to cosine similarity [-1,1])", "required": False, "default": 0.7},
-        "max_llm_calls": {"type": "int", "description": "Maximum allowed LLM calls (None = no limit). Prevents accidental expensive operations.", "required": False, "default": None},
+        "max_llm_calls": {"type": "int", "description": "Maximum allowed LLM calls (None = no limit). Prevents accidental expensive operations.", "required": False, "default": 1000},
         "estimate_cost": {"type": "bool", "description": "Show cost estimate and warnings before execution", "required": False, "default": True},
         # Cascade Optimization properties
         "optimize_thresholds": {"type": "bool", "description": "Enable dynamic threshold learning (Cascade Optimization)", "required": False, "default": False},
         "recall_target": {"type": "float", "description": "Target recall for optimization (0.0-1.0)", "required": False, "default": 0.8},
         "precision_target": {"type": "float", "description": "Target precision for auto-acceptance (0.0-1.0)", "required": False, "default": 0.8},
         "sampling_percentage": {"type": "float", "description": "Fraction of data to sample for learning (0.0-1.0)", "required": False, "default": 0.1},
-        "failure_probability": {"type": "float", "description": "Statistical failure probability (delta)", "required": False, "default": 0.2},
+        "failure_probability": {"type": "float", "description": "Statistical failure probability (delta) for threshold learning", "required": False, "default": 0.2},
     }
 
     def __init__(self, description: str = None, properties: Dict[str, Any] = None):
@@ -1595,14 +1357,15 @@ if __name__ == "__main__":
     # Test data - job postings and applicants
     input_data = [
         [
-            {"job_id": 1, "job_title": "Software Engineer", "company": "Tech Corp", "location": "San Francisco"}, # Matches "Coder"
-            {"job_id": 2, "job_title": "Data Scientist", "company": "Data Inc", "location": "New York City"}, # Matches "Data Analyst" somewhat, "NYC" location
+            {"job_id": 1, "job_title": "Software Engineer", "company": "Tech Corp", "location": "San Francisco"},
+            {"job_id": 2, "job_title": "Data Scientist", "company": "Data Inc", "location": "New York City"},
             {"job_id": 3, "job_title": "Marketing Manager", "company": "Creative Ltd", "location": "Remote"}, 
         ],
         [
-            {"applicant_id": 1, "name": "John Doe", "current_title": "Python Coder", "skills": ["Python", "React"], "location": "SF"}, # "Coder" <-> "Software Engineer"
-            {"applicant_id": 2, "name": "Jane Smith", "current_title": "Data Analyst", "skills": ["Python", "SQL"], "location": "NYC"}, # "NYC" <-> "New York City"
+            {"applicant_id": 1, "name": "John Doe", "current_title": "Python Coder", "skills": ["Python", "React"], "location": "SF"},
+            {"applicant_id": 2, "name": "Jane Smith", "current_title": "Data Analyst", "skills": ["Python", "SQL"], "location": "NYC"},
             {"applicant_id": 3, "name": "Bob Johnson", "current_title": "Accountant", "skills": ["Excel"], "location": "Chicago"},
+            {"applicant_id": 4, "name": "Alice Johnson", "current_title": "Senior Software Engineer", "skills": ["Python", "Java", "React"], "location": "NewYork"},
         ],
     ]
 
@@ -1611,9 +1374,10 @@ if __name__ == "__main__":
     # Initialize operator
     semantic_join_operator = SemanticJoinOperator()
     properties = semantic_join_operator.properties
+    
     # Ensure usage of local service
     properties['service_url'] = 'ws://localhost:8001'
-    properties['openai.model'] = 'gpt-4o' # Explicitly set model if needed
+    properties['openai.model'] = 'gpt-4o-mini' # Explicitly set model if needed
 
     print(f"=== Semantic Join PROPERTIES ===")
     # print(properties) # Reduce noise
@@ -1621,38 +1385,59 @@ if __name__ == "__main__":
     # Example 1: Inner join - similar job titles
     print("\n=== Example 1: Inner join - similar job titles ===")
     attributes = {
-        "join_predicate": "The job title is semantically equivalent to the applicant's current title (e.g. Coder == Engineer)",
-        "join_type": "inner",
         "left_fields": ["job_title"],
         "right_fields": ["current_title"],
-        "context": "We are matching jobs. 'Coder', 'Developer', and 'Engineer' are considered the same.",
+        "join_type": "inner",
         "keep_keys": "both"
     }
-    print(f"Join Predicate: {attributes['join_predicate']}")
     result = semantic_join_operator_function(input_data, attributes, properties)
     print("=== Semantic Join RESULT (inner) ===")
-    for row in result[0]:
-        print(f"Match: {row['job_title']} <-> {row.get('current_title', row.get('current_title_right'))}")
-        # print(row)
+    print(result)
 
     # Example 2: Left join - same location
     print("\n=== Example 2: Left join - same location ===")
     attributes = {
-        "join_predicate": "The locations refer to the same city (abbreviations allowed, e.g. SF == San Francisco, NYC == New York City)",
-        "join_type": "left",
         "left_fields": ["location"],
         "right_fields": ["location"],
-        "context": "Match cities. Handle abbreviations like SF, NYC, LA.",
+        "join_predicate": "The locations refer to the same city (abbreviations allowed)",
+        "join_type": "left",
+        "left_suffix": "_l", # Custom suffix
+        "right_suffix": "_r", # Custom suffix
         "keep_keys": "both"
     }
     print(f"Join Predicate: {attributes['join_predicate']}")
     result = semantic_join_operator_function(input_data, attributes, properties)
     print("=== Semantic Join RESULT (left) ===")
-    for row in result[0]:
-        # checking if valid match found (right side fields present)
-        right_loc = row.get('location_right')
-        if right_loc:
-             print(f"Match: {row.get('location_left', row.get('location'))} <-> {right_loc}")
-        else:
-             print(f"No match for: {row.get('location_left', row.get('location'))}")
+    print(result)
 
+    # Example 3: Full Record Join (Empty Fields)
+    print("\n=== Example 3: Full Record Join (Empty Fields) ===")
+    attributes = {
+        "left_fields": [], # Empty = use all fields
+        "right_fields": [], # Empty = use all fields
+        "join_predicate": "Match if the job title and current title are semantically equivalent",
+        "join_type": "inner",
+        "keep_keys": "both"
+    }
+    print(f"Join Predicate: {attributes['join_predicate']}")
+    result = semantic_join_operator_function(input_data, attributes, properties)
+    print(result)
+
+    # Example 4: Cascade Optimization (Lotus Mode)
+    print("\n=== Example 4: Cascade Optimization (Lotus Mode) ===")
+    attributes = {
+        "left_fields": ["job_title"],
+        "right_fields": ["current_title"],
+        "join_predicate": "Match if job titles are semantically similar",
+        "join_type": "inner",
+        "keep_keys": "both",
+        # Enable Cascade Optimization
+        "optimize_thresholds": True,
+        "recall_target": 1.0,    # Target 100% recall
+        "precision_target": 0.9, # Target 90% precision
+    }
+    print(f"Join Predicate: {attributes['join_predicate']}")
+    print("Optimization: ON (Recall=1.0, Precision=0.9)")
+    result = semantic_join_operator_function(input_data, attributes, properties)
+    print("=== Semantic Join RESULT (Optimized) ===")
+    print(result)
