@@ -15,7 +15,6 @@ import pydash
 from constant import END_OF_EVENT_SIGNAL, RESPONSE_501
 from authorizations.constant import PermissionDenied
 from authorizations.utils import account_id_header, acl_enforce
-from server import should_stop
 
 
 ###### Parsers, Formats, Utils
@@ -485,7 +484,7 @@ def shutdown_service_container(request: Request, service_name):
 
 
 @router.get('/agents/container/{container_id}')
-async def stream_log(container_id: str, filter: Optional[str] = Query(None)):
+async def stream_log(request: Request, container_id: str, filter: Optional[str] = Query(None)):
     filter_data = {}
     try:
         filter_data = json.loads(filter)
@@ -501,6 +500,7 @@ async def stream_log(container_id: str, filter: Optional[str] = Query(None)):
     except docker.errors.NotFound:
         client.close()
         return StreamingResponse(f"event: error\ndata: No such container: {container_id}\n\n", media_type="text/event-stream")
+    should_stop = request.app.state.should_stop
 
     async def generate():
         queue = asyncio.Queue()
@@ -537,7 +537,7 @@ async def stream_log(container_id: str, filter: Optional[str] = Query(None)):
                     pass
                 data = {'epoch': time.time(), 'line': line}
                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.1)
         log_thread.join(timeout=3)
 
     client.close()

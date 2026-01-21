@@ -1,7 +1,5 @@
 ###### OS / Systems
 import asyncio
-
-should_stop = asyncio.Event()
 import signal
 from contextlib import asynccontextmanager
 from curses import noecho
@@ -10,6 +8,7 @@ import copy
 import logging
 import pydash
 import redis
+import os
 
 
 ###### Parsers, Formats, Utils
@@ -109,10 +108,6 @@ allowed_origins = [
 ]
 
 
-def handle_signal(signum, frame):
-    should_stop.set()
-
-
 # global system tracker
 system_tracker_properties = copy.deepcopy(PROPERTIES)
 system_tracker_properties["tracker.perf.system.autostart"] = True
@@ -122,6 +117,23 @@ system_tracker = SystemPerformanceTracker(properties=system_tracker_properties)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    app.state.should_stop = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    original_handlers = {}
+
+    def intercept_signal(signum, frame):
+        loop.call_soon_threadsafe(app.state.should_stop.set)
+        original_handler = original_handlers.get(signum)
+        if callable(original_handler):
+            original_handler(signum, frame)
+        elif original_handler == signal.SIG_DFL:
+            signal.signal(signum, signal.SIG_DFL)
+            os.kill(os.getpid(), signum)
+
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        original_handlers[sig] = signal.getsignal(sig)
+        signal.signal(sig, intercept_signal)
+
     # start platform performance tracker
     p._start_tracker()
 
@@ -132,15 +144,12 @@ async def lifespan(app: FastAPI):
 
     p._init_session_cleanup_scheduler(callback=session_cleanup)
     p._start_session_cleanup_job()
-    signal.signal(signal.SIGINT, handle_signal)
-    signal.signal(signal.SIGTERM, handle_signal)
     yield
+    app.state.should_stop.set()
     # stop platform performance tracker
     p._terminate_tracker()
     p._stop_session_cleanup_job()
     system_tracker._terminate_tracker()
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
 
 app = FastAPI(lifespan=lifespan)
