@@ -632,7 +632,7 @@ Output:
                     info = props.get("info", {})
 
                     col_entry["type"] = info.get(
-                        "attr_type",
+                        "type",
                         col_info.get("type", "unknown")
                     )
                     
