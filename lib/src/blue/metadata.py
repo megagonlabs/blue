@@ -1129,3 +1129,142 @@ Return ONLY this JSON structure, filled in appropriately.
 
         except Exception:
             return False
+
+    def grouped_distribution_signal_row_aligned(self, group_attr, value_attr,row_samples):
+        """
+        Row-grounded version of grouped_distribution_signal.
+        Uses real co-occurrence, not column samples.
+        """
+
+        g_name = group_attr["name"]
+        v_name = value_attr["name"]
+
+        g_vals = []
+        v_vals = []
+
+        for row in row_samples:
+            if g_name not in row or v_name not in row:
+                continue
+
+            g = row.get(g_name)
+            v = row.get(v_name)
+
+            if g is None or v is None:
+                continue
+
+            try:
+                v = float(v)
+            except Exception:
+                continue
+
+            g_vals.append(g)
+            v_vals.append(v)
+
+        if len(g_vals) < 5:
+            return False
+
+        return self.grouped_distribution_signal(
+            {"properties": {"stats": {"sample_values": g_vals}}},
+            {"properties": {"stats": {"sample_values": v_vals}}},
+        )
+
+    def infer_semantic_links(self, attributes):
+        """
+        Find candidate semantic relationships between attributes.
+        Returns a list of {source, target, signal}.
+        """
+        links = []
+
+        for a in attributes:
+            for b in attributes:
+                if a["name"] == b["name"]:
+                    continue
+
+                # SEGMENTATION (distributional, data-driven)
+                if self.grouped_distribution_signal(a, b):
+                    links.append({
+                        "source": a["name"],
+                        "target": b["name"],
+                        "signal": "grouped_distribution",
+                        "row_support": False
+                    })
+
+                # DERIVATION (numeric dependency hint)
+                if (
+                    a.get("properties", {}).get("value_semantics", {}).get("semantic_type")
+                    == "CURRENCY_AMOUNT"
+                    and b.get("properties", {}).get("value_semantics", {}).get("semantic_type")
+                    == "CURRENCY_AMOUNT"
+                ):
+                    links.append({
+                        "source": a["name"],
+                        "target": b["name"],
+                        "signal": "numeric_dependency"
+                    })
+
+                # EVIDENCE (temporal grounding)
+                if (
+                    a.get("properties", {}).get("value_semantics", {}).get("semantic_type")
+                    == "DURATION"
+                    and b.get("properties", {}).get("value_semantics", {}).get("semantic_type")
+                    == "SKILL_TERM"
+                ):
+                    links.append({
+                        "source": a["name"],
+                        "target": b["name"],
+                        "signal": "temporal_evidence"
+                    })
+
+        return links
+
+    def validate_semantic_link(self, source, target, signal):
+        """
+        Validate a semantic link between two attributes.
+        """
+        src_props = source.get("properties", {})
+        tgt_props = target.get("properties", {})
+
+        src_vs = src_props.get("value_semantics", {})
+        tgt_vs = tgt_props.get("value_semantics", {})
+
+        src_semantic_type = src_vs.get("semantic_type", "UNKNOWN")
+        tgt_semantic_type = tgt_vs.get("semantic_type", "UNKNOWN")
+
+        # ---- Prompt ------------------------------------------------------
+        prompt = f"""
+    You are validating a semantic relationship between two attributes.
+
+    Source attribute:
+    - Name: {source.get('name', 'UNKNOWN')}
+    - Semantic type: {src_semantic_type}
+
+    Target attribute:
+    - Name: {target.get('name', 'UNKNOWN')}
+    - Semantic type: {tgt_semantic_type}
+
+    Observed signal: {signal}
+
+    Choose ONE relationship:
+    - SEGMENTS
+    - DERIVES
+    - EVIDENCES
+    - UNRELATED
+
+    If semantic types are UNKNOWN, rely primarily on the observed signal.
+
+    Return JSON ONLY:
+    {{
+    "relationship": "...",
+    "confidence": 0.0,
+    "rationale": "short explanation"
+    }}
+    """
+
+        out = self.execute_api_call(
+            prompt,
+            properties=self.properties,
+            additional_data={}
+        )
+
+        return json_utils.safe_json_parse(out)
+
