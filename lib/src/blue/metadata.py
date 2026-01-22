@@ -10,6 +10,20 @@ import os
 
 class MetaData(ServiceClient):
 
+    SEMANTIC_ROLES = [
+        "IDENTIFIER",            # IDs, UUIDs
+        "EVENT_TIME",             # e.g. transaction_time, crash_time
+        "LIFECYCLE_START",        # start_date
+        "LIFECYCLE_END",          # end_date
+        "STATE",                  # e.g. account_balance
+        "ACCUMULATION",           # experience_years
+        "EXPOSURE",               # e.g. loan_amount, credit_limit
+        "DERIVED_MEASURE",        # monthly_payment
+        "EVIDENCE",               # e.g. skill_months
+        "SEGMENTATION_DRIVER",    # e.g. country of high-value customers
+        "DESCRIPTIVE"             # weak explanatory power
+    ]
+
     # ------------------------------------------------------------------
     # Value Semantics type taxonomy (domain-agnostic, value-centric)
     # ------------------------------------------------------------------
@@ -117,6 +131,9 @@ class MetaData(ServiceClient):
         self.properties['enable_semantic_discovery_inference'] = True
         
         self.properties['enable_domain_concept_mapping'] = True
+
+        self.properties['enable_value_axis_inference'] = True
+        self.properties['enable_semantic_links_inference'] = True
 
         self.properties["concept_taxonomy_path"] = "/blue_data/config/concept_taxonomy.json"
         self.properties["concept_taxonomy"] = self._load_concept_taxonomy()
@@ -1058,5 +1075,57 @@ Return ONLY this JSON structure, filled in appropriately.
             return None
 
 
+    def grouped_distribution_signal(self, group_attr, value_attr):
+        """
+        Detect whether grouping by group_attr produces
+        meaningfully different distributions of value_attr.
 
+        This version is calibrated for small sample_values and
+        enables SEGMENTATION_DRIVER to emerge without hallucination.
+        """
 
+        g_vals = group_attr.get("properties", {}).get("stats", {}).get("sample_values", [])
+        v_vals = value_attr.get("properties", {}).get("stats", {}).get("sample_values", [])
+
+        if not g_vals or not v_vals:
+            return False
+
+        try:
+            groups = {}
+
+            for g, v in zip(g_vals, v_vals):
+                try:
+                    v = float(v)
+                except Exception:
+                    continue
+                groups.setdefault(g, []).append(v)
+
+            # Require enough groups and per-group support
+            min_groups = 2   # instead of 3
+            if len(groups) < min_groups:
+                return False
+    
+            supported_groups = [vals for vals in groups.values() if len(vals) >= 2]
+            if len(supported_groups) < 2:
+                return False
+
+            means = [sum(vals) / len(vals) for vals in groups.values()]
+
+            max_mean = max(abs(m) for m in means) if means else 0.0
+            if max_mean == 0:
+                return False
+
+            spread = max(means) - min(means)
+            avg_mean = sum(abs(m) for m in means) / len(means)
+            relative_spread = spread / avg_mean if avg_mean > 0 else 0.0
+
+            # Two-tier acceptance:
+            # 1. Absolute spread (classic signal)
+            # 2. Relative spread (robust for small/noisy samples)
+            return (
+                spread > 0.12 * max_mean
+                or relative_spread > 0.18
+            )
+
+        except Exception:
+            return False
