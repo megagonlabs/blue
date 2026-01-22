@@ -538,18 +538,66 @@ class PostgresDBSource(DataSource):
 
         return stats
 
-    def fetch_entity_stats(self, database, collection, entity):
+    def fetch_entity_stats(self, database, collection, entity,  row_sample_size=100):
 
         conn = self._db_connect(database)
         cursor = conn.cursor()
 
-        stats = {}
+        stats = {
+        "row_count": None,
+        "row_samples": [],
+        "row_sample_size": 0,
+        "row_samples_aligned": False
+        }
 
         try:
             query = f'SELECT COUNT(*) FROM "{collection}"."{entity}";'
             cursor.execute(query)
             stats["row_count"] = cursor.fetchone()[0]
 
+            if stats["row_count"] and stats["row_count"] > 0:
+                try:
+                    # Fast page-based sampling
+                    cursor.execute(
+                        f'''
+                        SELECT *
+                        FROM "{collection}"."{entity}"
+                        TABLESAMPLE SYSTEM (1)
+                        LIMIT {row_sample_size};
+                        '''
+                    )
+                    rows = cursor.fetchall()
+
+                    # Fallback if TABLESAMPLE returns nothing
+                    if not rows:
+                        cursor.execute(
+                            f'''
+                            SELECT *
+                            FROM "{collection}"."{entity}"
+                            ORDER BY RANDOM()
+                            LIMIT {row_sample_size};
+                            '''
+                        )
+                        rows = cursor.fetchall()
+
+                    if rows:
+                        columns = [desc[0] for desc in cursor.description]
+
+                        stats["row_samples"] = [
+                            {columns[i]: row[i] for i in range(len(columns))}
+                            for row in rows
+                        ]
+                        stats["row_sample_size"] = len(stats["row_samples"])
+                        stats["row_samples_aligned"] = (
+                            len(columns) >= 2 and len(rows) >= 2
+                        )
+
+                except Exception as e:
+                    logging.warning(
+                        f"Failed to fetch row samples for {collection}.{entity}: {e}"
+                    )
+
+          
         except psycopg2.Error as e:
             logging.warning(f"Failed to get row count for {collection}.{entity}: {e}")
             stats["row_count"] = None
