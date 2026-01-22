@@ -456,6 +456,107 @@ class MetaData(ServiceClient):
                             rebuild=rebuild
                         )
             
+            if self.properties.get("enable_semantic_links_inference", True):
+                # -------------------------------------------------
+                # 3. SEMANTIC LINK DISCOVERY (STRUCTURAL + SOFT LLM)
+                # -------------------------------------------------
+                semantic_links = self.infer_semantic_links(attributes)
+
+                row_links = self.infer_row_based_links(
+                    attributes,
+                    self.current_entity_row_samples
+                )
+
+                # TAG row-grounded links
+                for l in row_links:
+                    l["row_support"] = True
+
+                semantic_links = semantic_links + row_links
+
+                validated_links = []
+
+                for link in semantic_links:
+                    try:
+                        src = next(a for a in attributes if a["name"] == link["source"])
+                        tgt = next(a for a in attributes if a["name"] == link["target"])
+                    except StopIteration:
+                        continue
+
+                    result = self.validate_semantic_link(src, tgt, link["signal"])
+
+                    # -------------------------------------------------
+                    # SOFT ACCEPT LOGIC
+                    # -------------------------------------------------
+                    relationship = result.get("relationship") if result else None
+
+                    # If LLM rejects but structure is strong, keep link
+                    if relationship == "UNRELATED" and link["signal"] in {
+                        "grouped_distribution",
+                        "numeric_dependency",
+                        "temporal_evidence",
+                    }:
+                        relationship = {
+                            "grouped_distribution": "SEGMENTS",
+                            "numeric_dependency": "DERIVES",
+                            "temporal_evidence": "EVIDENCES",
+                        }[link["signal"]]
+
+                    # -------------------------------------------------
+                    # FINALIZE LINK
+                    # -------------------------------------------------
+                    if relationship:
+                        if link.get("row_support"):
+                            # Row-grounded links dominate LLM disagreement
+                            confidence = max(
+                                0.7,
+                                result.get("confidence", 0.7) if result else 0.7
+                            )
+                        else:
+                            confidence = (
+                                result.get("confidence", 0.55)
+                                if result and relationship == result.get("relationship")
+                                else 0.55
+                            )
+
+                        validated_links.append({
+                            "source": link["source"],
+                            "target": link["target"],
+                            "relationship": relationship,
+                            "confidence": confidence,
+                            "rationale": (
+                                result.get("rationale")
+                                if result else "Structure-backed semantic signal"
+                            ),
+                        })
+
+                # Persist links
+                if validated_links:
+                    data_registry.set_source_database_collection_entity_property(
+                        source,
+                        database,
+                        collection,
+                        entity_name,
+                        "semantic_links",
+                        validated_links,
+                        rebuild=rebuild
+                    )
+                # -------------------------------------------------
+                # 4. SEMANTIC ROLE INFERENCE (LINK-DRIVEN)
+                # -------------------------------------------------
+                for attr in attributes:
+                    attr_name = attr["name"]
+
+                    role = self.infer_semantic_role(
+                        attr,
+                        attributes,
+                        semantic_links=(validated_links or semantic_links)
+                    )
+
+                    if role:
+                        data_registry.set_source_database_collection_entity_attribute_property(
+                            source, database, collection, entity_name,
+                            attr_name, "semantic_role", role, rebuild=rebuild
+                        )
         
         if self.properties.get('enable_collection_description_generation', True):
             current_description = data_registry.get_source_database_collection_description(source, database, collection)
@@ -1267,4 +1368,159 @@ Return ONLY this JSON structure, filled in appropriately.
         )
 
         return json_utils.safe_json_parse(out)
+
+
+    def infer_semantic_role(self, target_attr, all_attrs, semantic_links=None):
+        """
+        Infer the semantic role of a target attribute based on its relationships.
+        """
+
+        semantic_links = semantic_links or []
+
+        attr_name = target_attr["name"]
+        vsi = target_attr.get("properties", {}).get("value_semantics", {})
+        primary_type = vsi.get("semantic_type", "UNKNOWN")
+
+        # -------------------------------------------------
+        # 1. IDENTIFIER (hard rule)
+        # -------------------------------------------------
+        if vsi.get("is_identifier"):
+            return {
+                "primary_role": "IDENTIFIER",
+                "confidence": 0.95,
+                "role_arguments": {},
+                "justification": {
+                    "rule": "identifier_flag"
+                }
+            }
+
+        outgoing = [l for l in semantic_links if l["source"] == attr_name]
+        incoming = [l for l in semantic_links if l["target"] == attr_name]
+
+        # -------------------------------------------------
+        # 2. SEGMENTATION DRIVER
+        # -------------------------------------------------
+        segment_links = [l for l in outgoing if l["relationship"] == "SEGMENTS"]
+        if segment_links:
+            return {
+                "primary_role": "SEGMENTATION_DRIVER",
+                "confidence": min(
+                    0.95,
+                    sum(l.get("confidence", 0.7) for l in segment_links) / len(segment_links)
+                ),
+                "role_arguments": {
+                    "segments": [l["target"] for l in segment_links]
+                },
+                "justification": {
+                    "signals": ["SEGMENTS"],
+                    "link_count": len(segment_links)
+                }
+            }
+
+        # -------------------------------------------------
+        # 3. DERIVED MEASURE
+        # -------------------------------------------------
+        derive_links = [l for l in incoming if l["relationship"] == "DERIVES"]
+        if derive_links:
+            return {
+                "primary_role": "DERIVED_MEASURE",
+                "confidence": min(
+                    0.95,
+                    sum(l.get("confidence", 0.7) for l in derive_links) / len(derive_links)
+                ),
+                "role_arguments": {
+                    "derived_from": [l["source"] for l in derive_links]
+                },
+                "justification": {
+                    "signals": ["DERIVES"],
+                    "link_count": len(derive_links)
+                }
+            }
+
+        # -------------------------------------------------
+        # 4. EVIDENCE
+        # -------------------------------------------------
+        evidence_links = [l for l in outgoing if l["relationship"] == "EVIDENCES"]
+        if evidence_links:
+            return {
+                "primary_role": "EVIDENCE",
+                "confidence": min(
+                    0.95,
+                    sum(l.get("confidence", 0.7) for l in evidence_links) / len(evidence_links)
+                ),
+                "role_arguments": {
+                    "evidences": [l["target"] for l in evidence_links]
+                },
+                "justification": {
+                    "signals": ["EVIDENCES"],
+                    "link_count": len(evidence_links)
+                }
+            }
+
+        # -------------------------------------------------
+        # 5. CORRELATION-BASED FALLBACK
+        # -------------------------------------------------
+        if not semantic_links or all(l.get("confidence", 0) < 0.6 for l in semantic_links):
+            target_nums = self.get_numeric_samples(target_attr)
+            correlated = []
+
+            for other in all_attrs:
+                if other["name"] == attr_name:
+                    continue
+
+                other_nums = self.get_numeric_samples(other)
+                if not target_nums or not other_nums:
+                    continue
+
+                if abs(self.safe_pearson(target_nums, other_nums)) > 0.5:
+                    correlated.append(other["name"])
+
+            if primary_type == "DURATION" and correlated:
+                return {
+                    "primary_role": "ACCUMULATION",
+                    "confidence": min(0.9, 0.6 + 0.1 * len(correlated)),
+                    "role_arguments": {
+                        "accumulates_with": correlated
+                    },
+                    "justification": {
+                        "correlation": True
+                    }
+                }
+
+            if primary_type == "CURRENCY_AMOUNT" and correlated:
+                return {
+                    "primary_role": "EXPOSURE",
+                    "confidence": min(0.9, 0.6 + 0.1 * len(correlated)),
+                    "role_arguments": {
+                        "exposure_with": correlated
+                    },
+                    "justification": {
+                        "correlation": True
+                    }
+                }
+
+        # -------------------------------------------------
+        # 6. WEAK TYPE PRIOR
+        # -------------------------------------------------
+        if primary_type in ("DATE", "DATETIME"):
+            return {
+                "primary_role": "EVENT_TIME",
+                "confidence": 0.55,
+                "role_arguments": {},
+                "justification": {
+                    "type_prior": primary_type
+                }
+            }
+
+        # -------------------------------------------------
+        # 7. FALLBACK
+        # -------------------------------------------------
+        return {
+            "primary_role": "DESCRIPTIVE",
+            "confidence": 0.4,
+            "role_arguments": {},
+            "justification": {
+                "reason": "no causal or statistical signals detected"
+            }
+        }
 
