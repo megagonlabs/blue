@@ -138,6 +138,37 @@ class MetaData(ServiceClient):
         self.properties["concept_taxonomy_path"] = "/blue_data/config/concept_taxonomy.json"
         self.properties["concept_taxonomy"] = self._load_concept_taxonomy()
 
+    @staticmethod
+    def mean_safe(vals):
+        return sum(vals) / len(vals) if vals else None
+
+    @staticmethod
+    def safe_pearson(x, y):
+        if len(x) < 5 or len(y) < 5:
+            return 0.0
+        mx, my = sum(x)/len(x), sum(y)/len(y)
+        num = sum((a-mx)*(b-my) for a,b in zip(x,y))
+        denx = math.sqrt(sum((a-mx)**2 for a in x))
+        deny = math.sqrt(sum((b-my)**2 for b in y))
+        if denx == 0 or deny == 0:
+            return 0.0
+        return num / (denx * deny)
+
+
+    @staticmethod
+    def get_numeric_samples(attr):
+        stats = attr.get("properties", {}).get("stats", {})
+        samples = stats.get("sample_values", [])
+        nums = []
+        for v in samples:
+            try:
+                nums.append(float(v))
+            except Exception:
+                pass
+        return nums
+
+    
+    
     def _load_concept_taxonomy(self):
         """
         Load domain concept taxonomy from the shared /blue_data/config folder.
