@@ -1,8 +1,8 @@
 import functools, inspect
-from redis import ConnectionPool, Redis
 import pydash
 import time
 from redlock import Redlock
+from blue.connection import PooledConnectionFactory
 
 
 class Bluelock:
@@ -16,9 +16,9 @@ class Bluelock:
         self.retry_delay = pydash.objects.get(properties, 'retry_delay', 1)
 
         self.redlock_client = Redlock([{"host": self.host, "port": self.port, "db": self.db}], retry_count=self.retry_count, retry_delay=self.retry_delay)
-
-        connection_pool = ConnectionPool(host=self.host, port=self.port, decode_responses=True)
-        self.connection = Redis(connection_pool=connection_pool)
+        self.properties = properties
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     def __lock_tree(self, resource):
         # lock time in milliseconds
