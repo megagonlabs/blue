@@ -1555,3 +1555,46 @@ Return ONLY this JSON structure, filled in appropriately.
             }
         }
 
+    def infer_row_based_links(self, attributes, row_samples):
+        links = []
+
+        if not row_samples:
+            return links
+
+        for a in attributes:
+            for b in attributes:
+                if a["name"] == b["name"]:
+                    continue
+
+                a_type = a.get("properties", {}).get("value_semantics", {}).get("semantic_type")
+                b_type = b.get("properties", {}).get("value_semantics", {}).get("semantic_type")
+
+                # ----------------------------------
+                # SEGMENTATION (row-grounded)
+                # ----------------------------------
+                if self.grouped_distribution_signal_row_aligned(a, b, row_samples):
+                    links.append({
+                        "source": a["name"],
+                        "target": b["name"],
+                        "signal": "grouped_distribution",
+                        "row_support": True
+                    })
+                    logging.info(f"Row-grounded grouped_distribution link: {a['name']} -> {b['name']}")
+
+                # ----------------------------------
+                # TEMPORAL EVIDENCE (row-grounded)
+                # ----------------------------------
+                if (
+                    a_type in ("DATE", "DATETIME")
+                    and b_type in ("DURATION", "SKILL_TERM")
+                ):
+                    links.append({
+                        "source": a["name"],
+                        "target": b["name"],
+                        "signal": "temporal_evidence",
+                        "row_support": True
+                    })
+
+        return links
+
+
