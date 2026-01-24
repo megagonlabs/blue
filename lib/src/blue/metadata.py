@@ -1598,3 +1598,258 @@ Return ONLY this JSON structure, filled in appropriately.
         return links
 
 
+    def is_value_axis_eligible(self, attr):
+        """
+        Decide whether an attribute is eligible for value-axis inference.
+        This is a SEMANTIC gate, not a statistical one.
+        """
+
+        props = attr.get("properties", {})
+        vsi = props.get("value_semantics", {}) or {}
+
+        semantic_type = vsi.get("semantic_type", "UNKNOWN")
+
+        # ---- HARD EXCLUSIONS ----------------------------------
+        # Identifiers, opaque codes, labels, join keys
+        if vsi.get("is_identifier"):
+            return False
+
+        if semantic_type in {
+            "ID_STRING",
+            "ID_NUMERIC",
+            "UUID",
+            "HASH",
+            "CODE",
+            "TAG",
+            "LABEL",
+            "ENUM_CATEGORY",   # default ENUMs are NOMINAL unless proven otherwise
+            "TEXT_CATEGORY"
+        }:
+            return False
+
+        # ---- ALLOWED NUMERIC AXES -----------------------------
+        if semantic_type in {
+            "CURRENCY_AMOUNT",
+            "INTEGER",
+            "FLOAT",
+            "NUMERIC_GENERAL",
+            "PERCENTAGE",
+            "RATIO",
+            "DURATION"
+        }:
+            return True
+
+        return False
+
+    
+    def infer_numeric_value_axis(self, attr, row_samples):
+        """
+        Infer magnitude-based axis for numeric attributes
+        """
+
+        name = attr["name"]
+        values = []
+
+        for row in row_samples:
+            try:
+                values.append(float(row.get(name)))
+            except Exception:
+                pass
+
+        if len(values) < 20:
+            return None
+
+        p10 = np.percentile(values, 10)
+        p90 = np.percentile(values, 90)
+
+        return {
+            "axis_type": "CONTINUOUS",
+            "polarity": {
+                "direction": "increasing",
+                "meaning": "magnitude"
+            },
+            "extreme_regions": {
+                "small": f"< {round(p10, 2)}",
+                "large": f"> {round(p90, 2)}"
+            },
+            "confidence": 0.7,
+            "rationale": "Distributional extremes inferred via quantiles"
+        }
+
+
+    def infer_value_axis(self, attributes, row_samples):
+        """
+        Infer value axes for attributes when supported.
+        Returns dict: {attr_name: axis_metadata}
+        """
+
+        axes = {}
+        
+        # -------------------------------------------------
+        # 1. NUMERIC MAGNITUDE AXES (UNCHANGED)
+        # -------------------------------------------------
+        for attr in attributes:
+            if not self.is_value_axis_eligible(attr):
+                continue
+
+            semantic_type = (
+                attr.get("properties", {})
+                    .get("value_semantics", {})
+                    .get("semantic_type")
+            )
+
+            if semantic_type in (
+                "CURRENCY_AMOUNT",
+                "INTEGER",
+                "FLOAT",
+                "NUMERIC_GENERAL",
+                "PERCENTAGE",
+                "RATIO",
+                "DURATION"
+            ):
+                axis = self.infer_numeric_value_axis(attr, row_samples)
+                if axis:
+                    axes[attr["name"]] = axis
+
+        # -------------------------------------------------
+        # 2. ORDINAL AXES FROM IVS (NEW, EXPLICIT)
+        # -------------------------------------------------
+        for attr in attributes:
+            name = attr["name"]
+
+            if name in axes:
+                continue  # never overwrite numeric axes
+
+            if not self.is_ivs_promotable_to_value_axis(attr):
+                continue
+
+            ivs = attr["properties"]["interpretive_semantics"]
+
+            axis = {
+                "axis_type": "ORDINAL",
+                "ordering": ivs.get("ordering", []),
+                "polarity": ivs.get("polarity", {}),
+                "extreme_regions": {
+                    "low": ivs.get("ordering", [])[:1],
+                    "high": ivs.get("ordering", [])[-1:]
+                },
+                "confidence": ivs.get("confidence", 0.7),
+                "rationale": (
+                    "Promoted from interpretive semantics "
+                    "after confidence and semantic eligibility checks"
+                ),
+                "source": "interpretive_semantics"
+            }
+
+            axes[name] = axis
+
+            logging.info(
+                f"[ValueAxis] Promoted IVS → ORDINAL axis for {name}: {axis}"
+            )
+
+        return axes
+
+    def is_ivs_promotable_to_value_axis(self, attr):
+        """
+        Decide whether interpretive semantics may be promoted
+        to a VALUE AXIS (ORDINAL).
+
+        This is a STRICT gate.
+        """
+
+        props = attr.get("properties", {})
+        ivs = props.get("interpretive_semantics", {})
+        vsi = props.get("value_semantics", {})
+
+        if not ivs:
+            return False
+
+        if ivs.get("interpretation_type") not in ("ORDINAL", "TIER", "SEVERITY"):
+            return False
+
+        if ivs.get("confidence", 0.0) < 0.7:
+            return False
+
+        # Identifiers never qualify
+        if vsi.get("is_identifier"):
+            return False
+
+        # Only categorical value types may enter this path
+        if vsi.get("semantic_type") not in (
+            "ENUM_CATEGORY",
+            "TEXT_CATEGORY",
+            "LABEL"
+        ):
+            return False
+
+        return True
+
+    def build_interpretive_semantics_prompt(
+        self,
+        entity_name,
+        attr_name,
+        attr_properties
+    ):
+        stats = attr_properties.get("stats", {})
+        samples = stats.get("sample_values", [])[:10]
+
+        sdi = attr_properties.get("semantic_discovery", {})
+        vsi = attr_properties.get("value_semantics", {})
+
+        return f"""
+    You are performing INTERPRETIVE VALUE SEMANTICS (IVS).
+
+    Your task:
+    Infer WHETHER the categorical values imply an ORDERING, SEVERITY, or TIER
+    that an intelligent agent *might* use when reasoning.
+
+    IMPORTANT SAFETY RULES:
+    - Do NOT assume meaning unless strongly implied.
+    - If ordering is ambiguous, return interpretation_type = "NONE".
+    - This output is OPTIONAL and MUST NOT be treated as ground truth.
+    - Use SDI and linguistic signals as evidence, not authority.
+
+    ────────────────────────────
+    ATTRIBUTE CONTEXT
+    ────────────────────────────
+    Entity: {entity_name}
+    Attribute: {attr_name}
+
+    Sample Values:
+    {json.dumps(samples, indent=2)}
+
+    Value Semantics (VSI):
+    {json.dumps(vsi, indent=2)}
+
+    Semantic Discovery (SDI):
+    {json.dumps(sdi, indent=2)}
+
+    ────────────────────────────
+    INTERPRETATION TYPES
+    ────────────────────────────
+    ORDINAL   → ordered categories (A < B < C)
+    SEVERITY  → worse/better progression
+    TIER      → product / quality levels
+    NONE      → no safe interpretation
+
+    ────────────────────────────
+    OUTPUT FORMAT (STRICT JSON)
+    ────────────────────────────
+    {{
+    "interpretation_type": "ORDINAL | SEVERITY | TIER | NONE",
+    "ordering": [],
+    "polarity": {{
+        "direction": "increasing | decreasing",
+        "meaning": "risk | severity | quality | preference | level"
+    }},
+    "confidence": 0.0,
+    "rationale": "short explanation",
+    "evidence": {{
+        "examples": [],
+        "source": "labels | SDI | linguistic"
+    }}
+    }}
+    """
+
+
+
