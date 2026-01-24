@@ -134,6 +134,7 @@ class MetaData(ServiceClient):
 
         self.properties['enable_value_axis_inference'] = True
         self.properties['enable_semantic_links_inference'] = True
+        self.properties['enable_interpretive_semantics'] = True
 
         self.properties["concept_taxonomy_path"] = "/blue_data/config/concept_taxonomy.json"
         self.properties["concept_taxonomy"] = self._load_concept_taxonomy()
@@ -1851,5 +1852,46 @@ Return ONLY this JSON structure, filled in appropriately.
     }}
     """
 
+    def infer_interpretive_semantics(self, entity_name, attr):
+        attr_name = attr["name"]
+        props = attr.get("properties", {})
 
+        # Hard gate: numeric & identifiers NEVER qualify
+        vsi = props.get("value_semantics", {})
+        if vsi.get("is_identifier"):
+            return None
 
+        semantic_type = vsi.get("semantic_type")
+        if semantic_type not in ("ENUM_CATEGORY", "TEXT_CATEGORY"):
+            return None
+
+        prompt = self.build_interpretive_semantics_prompt(
+            entity_name, attr_name, props
+        )
+
+        out = self.execute_api_call(
+            prompt,
+            properties=self.properties,
+            additional_data={}
+        )
+
+        try:
+            parsed = json_utils.safe_json_parse(out)
+
+            if not parsed:
+                return None
+
+            # Strong safety filter
+            if parsed.get("interpretation_type") == "NONE":
+                return None
+
+            if parsed.get("confidence", 0) < 0.6:
+                return None
+
+            return parsed
+
+        except Exception:
+            logging.warning(
+                f"[IVS] Invalid interpretive semantics for {entity_name}.{attr_name}"
+            )
+            return None
