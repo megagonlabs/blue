@@ -18,7 +18,7 @@ from blue.utils import json_utils
 class LocalToolClient(ToolClient):
     """A LocalToolClient connects to local tools and interfaces with them"""
 
-    def __init__(self, name, tools={}, properties={}):
+    def __init__(self, name, tools={}, properties={}, context=None):
         """Initialize a LocalToolClient instance.
 
         Parameters:
@@ -100,13 +100,14 @@ class LocalToolClient(ToolClient):
         return metadata
 
     ######### execute tool
-    def execute_tool(self, tool, args, kwargs):
-        """Execute a specific tool on local client.
+    def execute_tool(self, tool, args, kwargs, context: dict = None):
+        """Execute a specific tool on local client, injecting context automatically.
 
         Parameters:
             tool: Name of the tool
             args: Arguments for the tool function
             kwargs: Keyword arguments for the tool function
+            context: Execution context dictionary (injected here)
 
         Raises:
             Exception: If no tool matches the given name
@@ -120,8 +121,11 @@ class LocalToolClient(ToolClient):
         result = None
 
         if tool in self.tools:
-            tool_obj = self.tools[tool]
-
+            tool_obj: Tool = self.tools[tool]
+            parameters = tool_obj.get_parameters()
+            if parameters:
+                if 'context' in parameters and tool_obj.is_parameter_required('context'):
+                    kwargs['context'] = context
             valid = tool_obj.validator(**kwargs)
             if valid:
                 return tool_obj.function(**kwargs)

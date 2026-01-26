@@ -140,7 +140,7 @@ class ToolClient:
         """
         return {}
 
-    def execute_tool(self, tool, args, kwargs):
+    def execute_tool(self, tool, args, kwargs, context=None):
         """Execute a specific tool on the tool server.
 
         Parameters:
