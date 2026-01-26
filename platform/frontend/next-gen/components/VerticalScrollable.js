@@ -1,4 +1,4 @@
-import { Alignment } from "@blueprintjs/core";
+import { Alignment, Tooltip } from "@blueprintjs/core";
 import {
     faCaretDown,
     faCaretUp,
@@ -99,7 +99,9 @@ function VerticalScrollable({
                         alignItems: "center",
                     }}
                 >
-                    <FAIcon icon={faCaretUp} />
+                    <Tooltip minimal content="Scroll up" placement="bottom">
+                        <FAIcon icon={faCaretUp} />
+                    </Tooltip>
                 </div>
             )}
             {showBottom && visibleBottom && (
@@ -123,7 +125,9 @@ function VerticalScrollable({
                         alignItems: "center",
                     }}
                 >
-                    <FAIcon icon={faCaretDown} />
+                    <Tooltip minimal content="Scroll down" placement="top">
+                        <FAIcon icon={faCaretDown} />
+                    </Tooltip>
                 </div>
             )}
         </div>
