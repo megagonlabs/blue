@@ -18,7 +18,7 @@ from blue.utils import json_utils
 class LocalToolClient(ToolClient):
     """A LocalToolClient connects to local tools and interfaces with them"""
 
-    def __init__(self, name, tools={}, properties={}, context=None):
+    def __init__(self, name, tools={}, properties={}):
         """Initialize a LocalToolClient instance.
 
         Parameters:
