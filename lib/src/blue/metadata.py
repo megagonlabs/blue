@@ -6,6 +6,10 @@ from blue.properties import PROPERTIES
 import logging
 import json
 import os
+import math
+import numpy as np
+
+
 
 
 class MetaData(ServiceClient):
@@ -13,12 +17,6 @@ class MetaData(ServiceClient):
     SEMANTIC_ROLES = [
         "IDENTIFIER",            # IDs, UUIDs
         "EVENT_TIME",             # e.g. transaction_time, crash_time
-        "LIFECYCLE_START",        # start_date
-        "LIFECYCLE_END",          # end_date
-        "STATE",                  # e.g. account_balance
-        "ACCUMULATION",           # experience_years
-        "EXPOSURE",               # e.g. loan_amount, credit_limit
-        "DERIVED_MEASURE",        # monthly_payment
         "EVIDENCE",               # e.g. skill_months
         "SEGMENTATION_DRIVER",    # e.g. country of high-value customers
         "DESCRIPTIVE"             # weak explanatory power
@@ -167,6 +165,43 @@ class MetaData(ServiceClient):
             except Exception:
                 pass
         return nums
+
+    def has_row_cooccurrence(self, a, b, row_samples, min_rows=5):
+        a_name = a["name"]
+        b_name = b["name"]
+
+        count = 0
+        for row in row_samples:
+            if row.get(a_name) is not None and row.get(b_name) is not None:
+                count += 1
+                if count >= min_rows:
+                    return True
+        return False
+
+    def functional_dependency_signal(self, a, b):
+        """
+        Detect potential functional / monotonic dependency between two attributes.
+        """
+        a_vals = self.get_numeric_samples(a)
+        b_vals = self.get_numeric_samples(b)
+
+        if len(a_vals) < 5 or len(b_vals) < 5:
+            return False
+
+        corr = abs(self.safe_pearson(a_vals, b_vals))
+        return corr > 0.7
+
+    def temporal_alignment_signal(self, a, b):
+        """
+        Detect weak temporal alignment without semantic commitment.
+        """
+        a_type = a.get("properties", {}).get("value_semantics", {}).get("semantic_type")
+        b_type = b.get("properties", {}).get("value_semantics", {}).get("semantic_type")
+
+        temporal_types = {"DATE", "DATETIME", "TIME", "DURATION"}
+        return a_type in temporal_types and b_type not in temporal_types
+
+
 
     
     
@@ -488,6 +523,52 @@ class MetaData(ServiceClient):
                             rebuild=rebuild
                         )
             
+            if self.properties.get("enable_interpretive_semantics", True):
+                logging.info(f"[MetaData] Inferring interpretive semantics for entity: {entity_name}")
+                for attr in attributes:
+                    ivs = self.infer_interpretive_semantics(entity_name, attr)
+                    if ivs:
+                        data_registry.set_source_database_collection_entity_attribute_property(
+                            source,
+                            database,
+                            collection,
+                            entity_name,
+                            attr["name"],
+                            "interpretive_semantics",
+                            ivs,
+                            rebuild=rebuild
+                        )
+
+                        logging.info(
+                            f"[IVS] Inferred interpretive semantics for "
+                            f"{entity_name}.{attr['name']}: {ivs}"
+                        )
+            
+            # Refresh attributes after IVS
+            attributes = data_registry.get_source_database_collection_entity_attributes(
+                source, database, collection, entity_name
+            )
+            
+            if self.properties.get("enable_value_axis_inference", True):
+                logging.info(f"[MetaData] Inferring value axes for entity: {entity_name}")
+                axes = self.infer_value_axis(
+                    attributes,
+                    self.current_entity_row_samples
+                )
+
+                logging.info(f"[MetaData] Inferred value axes for entity {entity_name}: {axes}")
+                
+                for attr_name, axis in axes.items():
+                    data_registry.set_source_database_collection_entity_attribute_property(
+                        source, database, collection, entity_name,
+                        attr_name, "value_axis", axis, rebuild=rebuild
+                    )
+
+                    logging.info(
+                        f"[MetaData] Inferred VALUE_AXIS for {entity_name}.{attr_name}: {axis}"
+                    )
+            
+
             if self.properties.get("enable_semantic_links_inference", True):
                 # -------------------------------------------------
                 # 3. SEMANTIC LINK DISCOVERY (STRUCTURAL + SOFT LLM)
@@ -521,17 +602,23 @@ class MetaData(ServiceClient):
                     # -------------------------------------------------
                     relationship = result.get("relationship") if result else None
 
-                    # If LLM rejects but structure is strong, keep link
-                    if relationship == "UNRELATED" and link["signal"] in {
+                    signal_type = (
+                        link["signal"].get("type")
+                        if isinstance(link["signal"], dict)
+                        else link["signal"]
+                    )
+
+                    if relationship == "UNRELATED" and signal_type in {
                         "grouped_distribution",
-                        "numeric_dependency",
-                        "temporal_evidence",
+                        "functional_dependency",
+                        "temporal_alignment",
                     }:
                         relationship = {
                             "grouped_distribution": "SEGMENTS",
-                            "numeric_dependency": "DERIVES",
-                            "temporal_evidence": "EVIDENCES",
-                        }[link["signal"]]
+                            "functional_dependency": "DERIVES",
+                            "temporal_alignment": "SUPPORTS",
+                        }[signal_type]
+
 
                     # -------------------------------------------------
                     # FINALIZE LINK
@@ -1322,30 +1409,17 @@ Return ONLY this JSON structure, filled in appropriately.
                         "row_support": False
                     })
 
-                # DERIVATION (numeric dependency hint)
-                if (
-                    a.get("properties", {}).get("value_semantics", {}).get("semantic_type")
-                    == "CURRENCY_AMOUNT"
-                    and b.get("properties", {}).get("value_semantics", {}).get("semantic_type")
-                    == "CURRENCY_AMOUNT"
-                ):
+                # ----------------------------------
+                # FUNCTIONAL DEPENDENCY (numeric)
+                # ----------------------------------
+                if self.functional_dependency_signal(a, b):
                     links.append({
                         "source": a["name"],
                         "target": b["name"],
-                        "signal": "numeric_dependency"
-                    })
-
-                # EVIDENCE (temporal grounding)
-                if (
-                    a.get("properties", {}).get("value_semantics", {}).get("semantic_type")
-                    == "DURATION"
-                    and b.get("properties", {}).get("value_semantics", {}).get("semantic_type")
-                    == "SKILL_TERM"
-                ):
-                    links.append({
-                        "source": a["name"],
-                        "target": b["name"],
-                        "signal": "temporal_evidence"
+                        "signal": {
+                            "type": "functional_dependency",
+                            "strength": 0.7
+                        }
                     })
 
         return links
@@ -1380,7 +1454,8 @@ Return ONLY this JSON structure, filled in appropriately.
     Choose ONE relationship:
     - SEGMENTS
     - DERIVES
-    - EVIDENCES
+    - SUPPORTS
+    - ASSOCIATED
     - UNRELATED
 
     If semantic types are UNKNOWN, rely primarily on the observed signal.
@@ -1432,7 +1507,26 @@ Return ONLY this JSON structure, filled in appropriately.
         # -------------------------------------------------
         # 2. SEGMENTATION DRIVER
         # -------------------------------------------------
-        segment_links = [l for l in outgoing if l["relationship"] == "SEGMENTS"]
+        #segment_links = [l for l in outgoing if l["relationship"] == "SEGMENTS"]
+        
+        segment_links = []
+        for l in outgoing:
+            if l["relationship"] != "SEGMENTS":
+                continue
+
+            target = next(
+                (a for a in all_attrs if a["name"] == l["target"]),
+                None
+            )
+            if not target:
+                continue
+
+            target_vsi = target.get("properties", {}).get("value_semantics", {})
+            if target_vsi.get("is_identifier"):
+                continue  
+
+            segment_links.append(l)
+        
         if segment_links:
             return {
                 "primary_role": "SEGMENTATION_DRIVER",
@@ -1450,89 +1544,48 @@ Return ONLY this JSON structure, filled in appropriately.
             }
 
         # -------------------------------------------------
-        # 3. DERIVED MEASURE
+        # RELATIONSHIP-DRIVEN FALLBACK (GENERIC)
         # -------------------------------------------------
-        derive_links = [l for l in incoming if l["relationship"] == "DERIVES"]
-        if derive_links:
-            return {
-                "primary_role": "DERIVED_MEASURE",
-                "confidence": min(
-                    0.95,
-                    sum(l.get("confidence", 0.7) for l in derive_links) / len(derive_links)
-                ),
-                "role_arguments": {
-                    "derived_from": [l["source"] for l in derive_links]
-                },
-                "justification": {
-                    "signals": ["DERIVES"],
-                    "link_count": len(derive_links)
-                }
-            }
+        supports = [l for l in outgoing if l["relationship"] == "SUPPORTS"]
 
-        # -------------------------------------------------
-        # 4. EVIDENCE
-        # -------------------------------------------------
-        evidence_links = [l for l in outgoing if l["relationship"] == "EVIDENCES"]
-        if evidence_links:
+        if supports:
             return {
                 "primary_role": "EVIDENCE",
                 "confidence": min(
-                    0.95,
-                    sum(l.get("confidence", 0.7) for l in evidence_links) / len(evidence_links)
+                    0.9,
+                    sum(l.get("confidence", 0.7) for l in supports) / len(supports)
                 ),
                 "role_arguments": {
-                    "evidences": [l["target"] for l in evidence_links]
+                    "supports": [l["target"] for l in supports]
                 },
                 "justification": {
-                    "signals": ["EVIDENCES"],
-                    "link_count": len(evidence_links)
+                    "signals": ["SUPPORTS"]
                 }
             }
 
         # -------------------------------------------------
-        # 5. CORRELATION-BASED FALLBACK
+        # DERIVED MEASURE
         # -------------------------------------------------
-        if not semantic_links or all(l.get("confidence", 0) < 0.6 for l in semantic_links):
-            target_nums = self.get_numeric_samples(target_attr)
-            correlated = []
+        #derive_links = [l for l in incoming if l["relationship"] == "DERIVES"]
+        #if derive_links:
+        #    return {
+        #        "primary_role": "DERIVED_MEASURE",
+        #        "confidence": min(
+        #            0.95,
+        #            sum(l.get("confidence", 0.7) for l in derive_links) / len(derive_links)
+        #        ),
+        #        "role_arguments": {
+        #            "derived_from": [l["source"] for l in derive_links]
+        #        },
+        #        "justification": {
+        #            "signals": ["DERIVES"],
+        #            "link_count": len(derive_links)
+        #        }
+        #    }
 
-            for other in all_attrs:
-                if other["name"] == attr_name:
-                    continue
-
-                other_nums = self.get_numeric_samples(other)
-                if not target_nums or not other_nums:
-                    continue
-
-                if abs(self.safe_pearson(target_nums, other_nums)) > 0.5:
-                    correlated.append(other["name"])
-
-            if primary_type == "DURATION" and correlated:
-                return {
-                    "primary_role": "ACCUMULATION",
-                    "confidence": min(0.9, 0.6 + 0.1 * len(correlated)),
-                    "role_arguments": {
-                        "accumulates_with": correlated
-                    },
-                    "justification": {
-                        "correlation": True
-                    }
-                }
-
-            if primary_type == "CURRENCY_AMOUNT" and correlated:
-                return {
-                    "primary_role": "EXPOSURE",
-                    "confidence": min(0.9, 0.6 + 0.1 * len(correlated)),
-                    "role_arguments": {
-                        "exposure_with": correlated
-                    },
-                    "justification": {
-                        "correlation": True
-                    }
-                }
-
+        
         # -------------------------------------------------
-        # 6. WEAK TYPE PRIOR
+        # WEAK TYPE PRIOR
         # -------------------------------------------------
         if primary_type in ("DATE", "DATETIME"):
             return {
@@ -1545,7 +1598,7 @@ Return ONLY this JSON structure, filled in appropriately.
             }
 
         # -------------------------------------------------
-        # 7. FALLBACK
+        # FALLBACK
         # -------------------------------------------------
         return {
             "primary_role": "DESCRIPTIVE",
@@ -1582,20 +1635,23 @@ Return ONLY this JSON structure, filled in appropriately.
                     })
                     logging.info(f"Row-grounded grouped_distribution link: {a['name']} -> {b['name']}")
 
-                # ----------------------------------
-                # TEMPORAL EVIDENCE (row-grounded)
-                # ----------------------------------
+                
+                # TEMPORAL ALIGNMENT (row-grounded, generic)
                 if (
-                    a_type in ("DATE", "DATETIME")
-                    and b_type in ("DURATION", "SKILL_TERM")
+                a_type in ("DATE", "DATETIME", "TIME", "DURATION")
+                and b_type not in ("DATE", "DATETIME", "TIME", "DURATION")
+                and self.has_row_cooccurrence(a, b, row_samples)
                 ):
                     links.append({
                         "source": a["name"],
                         "target": b["name"],
-                        "signal": "temporal_evidence",
-                        "row_support": True
+                        "signal": {
+                            "type": "temporal_alignment",
+                            "strength": 0.6,
+                            "row_support": True
+                        }
                     })
-
+                
         return links
 
 
