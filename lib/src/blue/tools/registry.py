@@ -335,7 +335,7 @@ class ToolRegistry(Registry):
 
         return connection
 
-    def execute_tool(self, tool, server, args, kwargs, context=None):
+    def execute_tool(self, tool, server, args, kwargs):
         """Execute a specific tool on a specific registered tool server.
 
         Parameters:
@@ -349,7 +349,7 @@ class ToolRegistry(Registry):
         """
         connection = self.connect_server(server)
         if connection:
-            return connection.execute_tool(tool, args, kwargs, context=context)
+            return connection.execute_tool(tool, args, kwargs)
         else:
             return None
 

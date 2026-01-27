@@ -100,7 +100,7 @@ class LocalToolClient(ToolClient):
         return metadata
 
     ######### execute tool
-    def execute_tool(self, tool, args, kwargs, context: dict = None):
+    def execute_tool(self, tool, args, kwargs):
         """Execute a specific tool on local client, injecting context automatically.
 
         Parameters:
@@ -122,10 +122,6 @@ class LocalToolClient(ToolClient):
 
         if tool in self.tools:
             tool_obj: Tool = self.tools[tool]
-            parameters = tool_obj.get_parameters()
-            if parameters:
-                if 'context' in parameters and tool_obj.is_parameter_required('context'):
-                    kwargs['context'] = context
             valid = tool_obj.validator(**kwargs)
             if valid:
                 return tool_obj.function(**kwargs)
