@@ -101,13 +101,12 @@ class LocalToolClient(ToolClient):
 
     ######### execute tool
     def execute_tool(self, tool, args, kwargs):
-        """Execute a specific tool on local client, injecting context automatically.
+        """Execute a specific tool on local client.
 
         Parameters:
             tool: Name of the tool
             args: Arguments for the tool function
             kwargs: Keyword arguments for the tool function
-            context: Execution context dictionary (injected here)
 
         Raises:
             Exception: If no tool matches the given name
@@ -122,6 +121,7 @@ class LocalToolClient(ToolClient):
 
         if tool in self.tools:
             tool_obj: Tool = self.tools[tool]
+
             valid = tool_obj.validator(**kwargs)
             if valid:
                 return tool_obj.function(**kwargs)
