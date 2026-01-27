@@ -49,10 +49,29 @@ def create_session_memory_tools(session_memory: SessionMemory) -> Dict[str, Tool
         result = session_memory.retrieve_session_memory_by_id(session_id, id)
         return result if result else None
 
-    retrieve_by_id_tool = Tool("retrieve_session_memory_by_id", retrieve_session_memory_by_id, description="Fast memory retrieval by key.", validator=lambda params: 'key' in params)
+    retrieve_by_id_tool = Tool("retrieve_session_memory_by_id", retrieve_session_memory_by_id, description="Fast memory retrieval by id.", validator=lambda params: 'id' in params)
     retrieve_by_id_tool.set_parameter_required('context', True)
     retrieve_by_id_tool.set_parameter_hidden('context', True)
     memory_tools_dict["retrieve_session_memory_by_id"] = retrieve_by_id_tool
+
+    def retrieve_session_memory_by_key(key: str, context: dict) -> Dict:
+        """
+        Retrieves a session memory entry by custom key.
+
+        Parameters:
+            key: The custom key.
+            context: The execution context.
+        """
+        session_id = context.get('session_id')
+        if not session_id:
+            raise ValueError("No session context.")
+        result = session_memory.retrieve_session_memory_by_key(session_id, key)
+        return result if result else None
+
+    retrieve_by_key_tool = Tool("retrieve_session_memory_by_key", retrieve_session_memory_by_key, description="Fast memory retrieval by custom key.", validator=lambda params: 'key' in params)
+    retrieve_by_key_tool.set_parameter_required('context', True)
+    retrieve_by_key_tool.set_parameter_hidden('context', True)
+    memory_tools_dict["retrieve_session_memory_by_key"] = retrieve_by_key_tool
 
     def retrieve_session_memory_by_time(minutes_ago: int, context: dict) -> List[Dict]:
         """
