@@ -1,4 +1,4 @@
-import { Alignment } from "@blueprintjs/core";
+import { Alignment, Tooltip } from "@blueprintjs/core";
 import {
     faCaretLeft,
     faCaretRight,
@@ -52,7 +52,9 @@ function HorizontalScrollable({ width, height, children, backgroundColor }) {
                         background: `linear-gradient(to right, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
                     }}
                 >
-                    <FAIcon icon={faCaretLeft} />
+                    <Tooltip minimal content="Scroll left" placement="right">
+                        <FAIcon icon={faCaretLeft} />
+                    </Tooltip>
                 </div>
             )}
             <div
@@ -82,7 +84,9 @@ function HorizontalScrollable({ width, height, children, backgroundColor }) {
                         background: `linear-gradient(to left, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
                     }}
                 >
-                    <FAIcon icon={faCaretRight} />
+                    <Tooltip minimal content="Scroll right" placement="left">
+                        <FAIcon icon={faCaretRight} />
+                    </Tooltip>
                 </div>
             )}
         </div>
