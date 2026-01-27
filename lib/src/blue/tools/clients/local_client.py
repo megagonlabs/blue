@@ -120,7 +120,7 @@ class LocalToolClient(ToolClient):
         result = None
 
         if tool in self.tools:
-            tool_obj: Tool = self.tools[tool]
+            tool_obj = self.tools[tool]
 
             valid = tool_obj.validator(**kwargs)
             if valid:
