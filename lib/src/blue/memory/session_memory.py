@@ -2,6 +2,7 @@ import time
 from typing import List, Dict, Any, Optional
 from blue.memory.memory import Memory
 from blue.utils import uuid_utils
+from blue.memory.memory_store import MemoryStore
 
 
 class SessionMemory(Memory):
@@ -10,8 +11,8 @@ class SessionMemory(Memory):
     Stores data under keys: ...:MEMORY:SESSION:{session_id}
     """
 
-    def __init__(self, properties: Dict, prefix: str):
-        super().__init__(properties, prefix)
+    def __init__(self, prefix: str, properties: Dict, store: MemoryStore = None):
+        super().__init__(prefix, properties, store)
 
     def _get_session_memory_key(self, session_id: str) -> str:
         return self._get_scoped_key("SESSION", session_id)
@@ -57,4 +58,5 @@ class SessionMemory(Memory):
         return results
 
     def retrieve_session_memory_by_similarity(self, session_id: str, query_text: str, limit: int = 3) -> List[Dict]:
+        # TODO: Implement vector search logic here
         return None

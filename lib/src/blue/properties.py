@@ -20,6 +20,7 @@ PROPERTIES["operator_registry.name"] = os.getenv("BLUE_OPERATOR_REGISTRY")
 PROPERTIES["tool_registry.name"] = os.getenv("BLUE_TOOL_REGISTRY")
 PROPERTIES["embeddings_model"] = os.getenv("BLUE_AGENT_REGISTRY_MODEL")
 PROPERTIES["services.openai.service_url"] = os.getenv("BLUE_SERVICE_OPENAI_URL")
+PROPERTIES['memory_store.protocol'] = os.getenv('BLUE_MEMORY_STORE_PROTOCOL')
 PROPERTIES["db.host"] = 'blue_db_redis'  # private network ip never changes
 PROPERTIES["db.port"] = '6379'
 PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
