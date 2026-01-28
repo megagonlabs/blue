@@ -1951,3 +1951,63 @@ Return ONLY this JSON structure, filled in appropriately.
                 f"[IVS] Invalid interpretive semantics for {entity_name}.{attr_name}"
             )
             return None
+
+    def infer_conditional_distributions(self, group_attr, value_attr, row_samples):
+        """
+        Discover conditional distribution semantics:
+        P(value | group)
+        """
+
+        g_name = group_attr["name"]
+        v_name = value_attr["name"]
+
+        groups = {}
+
+        for row in row_samples:
+            g = row.get(g_name)
+            v = row.get(v_name)
+
+            if g is None or v is None:
+                continue
+
+            try:
+                v = float(v)
+            except Exception:
+                continue
+
+            groups.setdefault(g, []).append(v)
+
+        profiles = {}
+        for g, vals in groups.items():
+            if len(vals) < 10:
+                continue
+
+            p50 = np.percentile(vals, 50)
+            p90 = np.percentile(vals, 90)
+            p99 = np.percentile(vals, 99)
+
+            profiles[str(g)] = {   
+                "count": len(vals),
+                "p50": round(p50, 2),
+                "p90": round(p90, 2),
+                "p99": round(p99, 2),
+                "typical_range": [round(np.min(vals), 2), round(p90, 2)],
+                "extreme_range": [round(p90, 2), round(np.max(vals), 2)],
+            }
+
+
+        if len(profiles) < 2:
+            return None
+
+        MAX_GROUPS = 10
+        if len(profiles) > MAX_GROUPS:
+            return None
+
+        return {
+            "group_attribute": g_name,
+            "value_attribute": v_name,
+            "profiles": profiles,
+            "recommended_stat": "p99",
+            "confidence": 0.7,
+            "rationale": "Conditional distributions inferred from row-aligned numeric behavior"
+        }
