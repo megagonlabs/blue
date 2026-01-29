@@ -18,7 +18,7 @@ class SessionMemory(Memory):
         return self._get_scoped_key("SESSION", session_id)
 
     def store_session_memory(self, session_id: str, agent_id: str, data: Any, tags: List[str] = None, key: str = None) -> str:
-        entry_id = f"mem_{uuid_utils.create_uuid()}_{agent_id}"
+        entry_id = f"memory_{uuid_utils.create_uuid()}_{agent_id}"
         timestamp = time.time()
         entry = {
             "id": entry_id,

@@ -31,7 +31,7 @@ class Memory:
             self.store = store
         else:
             # default to 'in-memory' if not specified, falling back safely if properties is None
-            protocol = pydash.objects.get(properties, 'memory_store.protocol', 'in-memory')
+            protocol = pydash.objects.get(properties, ['memory_store.protocol'], 'in-memory')
             if protocol == 'redis':
                 self.store = RedisMemoryStore(properties)
             elif protocol == 'in-memory':
