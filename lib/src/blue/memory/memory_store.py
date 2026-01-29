@@ -14,7 +14,7 @@ class MemoryStore(ABC):
         """Initialize connections or structures."""
         pass
 
-    # list Methods
+    # list methods
     @abstractmethod
     def append_to_list(self, key: str, entry: Dict) -> bool:
         """Append an entry to a list at the given key."""
