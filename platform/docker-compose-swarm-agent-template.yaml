@@ -1,52 +1,48 @@
 ---
-version: '3.8'
-x-blue-common:
-  &blue-common
-  # build: .
-  image: python:3.10.12
-  environment:
-    &blue-common-env
-    BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
-    BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
-    BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
-    BLUE_MODEL_REGISTRY: "${BLUE_MODEL_REGISTRY}"
-    BLUE_OPERATOR_REGISTRY: "${BLUE_OPERATOR_REGISTRY}"
-    BLUE_TOOL_REGISTRY: "${BLUE_TOOL_REGISTRY}"
-    BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
-    BLUE_DATA_REGISTRY_MODEL: "${BLUE_DATA_REGISTRY_MODEL}"
-    BLUE_MODEL_REGISTRY_MODEL: "${BLUE_MODEL_REGISTRY_MODEL}"
-    BLUE_OPERATOR_REGISTRY_MODEL: "${BLUE_OPERATOR_REGISTRY_MODEL}"
-    BLUE_TOOL_REGISTRY_MODEL: "${BLUE_TOOL_REGISTRY_MODEL}"
-    BLUE_SERVICE_OPENAI_URL: "${BLUE_SERVICE_OPENAI_URL}"
-  depends_on:
-    &blue-common-depends-on
-    redis:
-      condition: service_healthy
+version: "3.8"
+x-blue-common: &blue-common # build: .
+    image: python:3.10.12
+    environment: &blue-common-env
+        BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
+        BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
+        BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
+        BLUE_MODEL_REGISTRY: "${BLUE_MODEL_REGISTRY}"
+        BLUE_OPERATOR_REGISTRY: "${BLUE_OPERATOR_REGISTRY}"
+        BLUE_TOOL_REGISTRY: "${BLUE_TOOL_REGISTRY}"
+        BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
+        BLUE_DATA_REGISTRY_MODEL: "${BLUE_DATA_REGISTRY_MODEL}"
+        BLUE_MODEL_REGISTRY_MODEL: "${BLUE_MODEL_REGISTRY_MODEL}"
+        BLUE_OPERATOR_REGISTRY_MODEL: "${BLUE_OPERATOR_REGISTRY_MODEL}"
+        BLUE_TOOL_REGISTRY_MODEL: "${BLUE_TOOL_REGISTRY_MODEL}"
+        BLUE_SERVICE_OPENAI_URL: "${BLUE_SERVICE_OPENAI_URL}"
+        BLUE_MEMORY_STORE_PROTOCOL: "${BLUE_MEMORY_STORE_PROTOCOL}"
+    depends_on: &blue-common-depends-on
+        redis:
+            condition: service_healthy
 
 services:
-  ${AGENT_LOWERCASE}:
-    image: ${IMAGE}
-    hostname: blue_agent_${REGISTRY}_${AGENT}
-    deploy:
-      placement:
-        constraints:
-          - node.labels.target == agent
-    networks:
-      - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay
-    volumes:
-      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
-    command: --serve ${AGENT} --properties '''${PROPERTIES}'''
-    labels:
-      blue.agent: "${BLUE_DEPLOY_PLATFORM}.${REGISTRY}.${AGENT}"
-    environment:
-      <<: *blue-common-env
-    restart: always
+    ${AGENT_LOWERCASE}:
+        image: ${IMAGE}
+        hostname: blue_agent_${REGISTRY}_${AGENT}
+        deploy:
+            placement:
+                constraints:
+                    - node.labels.target == agent
+        networks:
+            - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay
+        volumes:
+            - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+        command: --serve ${AGENT} --properties '''${PROPERTIES}'''
+        labels:
+            blue.agent: "${BLUE_DEPLOY_PLATFORM}.${REGISTRY}.${AGENT}"
+        environment:
+            <<: *blue-common-env
+        restart: always
 
 networks:
-  blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay:
-      external: true
+    blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay:
+        external: true
 
 volumes:
-  blue_${BLUE_DEPLOY_PLATFORM}_data:
-      external: true
-
+    blue_${BLUE_DEPLOY_PLATFORM}_data:
+        external: true
