@@ -137,6 +137,11 @@ from blue.operators.semantic_transform_operator import SemanticTransformOperator
 semantic_transform_operator = SemanticTransformOperator()
 operators_dict[semantic_transform_operator.name] = semantic_transform_operator
 
+from blue.operators.semantic_join_operator import SemanticJoinOperator
+
+semantic_join_operator = SemanticJoinOperator()
+operators_dict[semantic_join_operator.name] = semantic_join_operator
+
 ## QUERY/COMPOUND OPERATORS
 from blue.operators.nl2query_router_operator import NL2QueryRouterOperator
 
@@ -158,5 +163,34 @@ operators_dict[nl2sql_operator.name] = nl2sql_operator
 ## VECTOR OPERATORS
 
 ## ARITHMETIC OPERATORS
+from blue.operators.sum_operator import SumOperator
+
+sum_operator = SumOperator()
+operators_dict[sum_operator.name] = sum_operator
+
+from blue.operators.avg_operator import AvgOperator
+
+avg_operator = AvgOperator()
+operators_dict[avg_operator.name] = avg_operator
+
+from blue.operators.max_operator import MaxOperator
+
+max_operator = MaxOperator()
+operators_dict[max_operator.name] = max_operator
+
+from blue.operators.min_operator import MinOperator
+
+min_operator = MinOperator()
+operators_dict[min_operator.name] = min_operator
+
+from blue.operators.argmax_operator import ArgmaxOperator
+
+argmax_operator = ArgmaxOperator()
+operators_dict[argmax_operator.name] = argmax_operator
+
+from blue.operators.argmin_operator import ArgminOperator
+
+argmin_operator = ArgminOperator()
+operators_dict[argmin_operator.name] = argmin_operator
 
 ## CUSTOM OPERATORS
