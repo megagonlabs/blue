@@ -3,6 +3,7 @@ from typing import List
 
 ###### Blue
 from blue.tools.tool import Tool
+from blue.tools.clients import blue_tools
 
 ###############
 ### Local Tools Registry
@@ -62,3 +63,5 @@ multiply_tool = Tool(
 # example to hide a parameter
 multiply_tool.set_parameter_hidden('x', True)
 tools_dict["multiply"] = multiply_tool
+
+tools_dict.update(blue_tools.tools_dict)

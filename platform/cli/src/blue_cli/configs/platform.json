@@ -227,5 +227,11 @@
         "prompt": "Example Postgres DB password",
         "required": false,
         "cast": "str"
+    },
+    "BLUE_MEMORY_STORE_PROTOCOL": {
+        "default": "redis",
+        "prompt": "Memory Store Protocol",
+        "required": true,
+        "cast": "str"
     }
 }
