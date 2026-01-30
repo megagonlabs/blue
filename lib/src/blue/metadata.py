@@ -659,6 +659,88 @@ class MetaData(ServiceClient):
                         validated_links,
                         rebuild=rebuild
                     )
+                
+                 # -------------------------------------------------
+                # CONDITIONAL VALUE DISTRIBUTIONS 
+                # -------------------------------------------------
+                # Only infer conditional distributions for validated SEGMENTS links
+                if validated_links and self.current_entity_row_samples:
+
+                    for link in validated_links:
+                        if link.get("relationship") != "SEGMENTS":
+                            continue
+
+                        try:
+                            group_attr = next(
+                                a for a in attributes if a["name"] == link["source"]
+                            )
+                            value_attr = next(
+                                a for a in attributes if a["name"] == link["target"]
+                            )
+                
+                        except StopIteration:
+                            continue
+
+                        group_role = (
+                                group_attr
+                                .get("properties", {})
+                                .get("semantic_role", {})
+                            )
+
+                        if group_role.get("primary_role") != "SEGMENTATION_DRIVER":
+                            continue
+        
+
+                        group_vsi = group_attr.get("properties", {}).get("value_semantics", {})
+                        value_vsi = value_attr.get("properties", {}).get("value_semantics", {})
+
+                        # Hard safety gate
+                        if value_vsi.get("semantic_type") not in {
+                            "CURRENCY_AMOUNT",
+                            "INTEGER",
+                            "FLOAT",
+                            "NUMERIC_GENERAL",
+                            "PERCENTAGE",
+                            "RATIO",
+                            "DURATION"
+                        }:
+                            continue
+
+                        cds = self.infer_conditional_distributions(
+                            group_attr,
+                            value_attr,
+                            self.current_entity_row_samples
+                        )
+
+                        if not cds:
+                            continue
+
+                        logging.info(
+                            f"[MetaData] Inferred conditional distributions: "
+                            f"{entity_name}.{value_attr['name']} | grouped by {group_attr['name']}"
+                        )
+
+                        existing = data_registry.get_source_database_collection_entity_attribute_property(
+                            source, database, collection, entity_name,
+                            value_attr["name"], "conditional_value_distribution"
+                            ) or {}
+
+                        existing[group_attr["name"]] = cds
+
+                        data_registry.set_source_database_collection_entity_attribute_property(
+                            source,
+                            database,
+                            collection,
+                            entity_name,
+                            value_attr["name"],
+                            "conditional_value_distribution",
+                            existing,
+                            rebuild=rebuild
+                        )
+
+                       
+                logging.info("-------------------------------------------------")   
+                
                 # -------------------------------------------------
                 # SEMANTIC ROLE INFERENCE (LINK-DRIVEN)
                 # -------------------------------------------------
@@ -1737,6 +1819,29 @@ Return ONLY this JSON structure, filled in appropriately.
         if len(values) < 20:
             return None
 
+        # semantic gate
+        if self.is_sparse_count_axis(attr, values):
+            threshold = self.infer_tail_threshold(values)
+            if threshold is None:
+                threshold = 1
+
+            return {
+                "axis_type": "DISCRETE_COUNT",
+                "polarity": {
+                    "direction": "increasing",
+                    "meaning": "severity"
+                },
+                "extreme_regions": {
+                    "large": f">= {threshold}"
+                },
+                "confidence": 0.85,
+                "rationale": (
+                    "Sparse, zero-inflated discrete counts detected; "
+                    "extremes inferred via tail-regime semantics instead of percentiles"
+                )
+            }
+
+
         p10 = np.percentile(values, 10)
         p90 = np.percentile(values, 90)
 
@@ -2043,3 +2148,91 @@ Return ONLY this JSON structure, filled in appropriately.
             "confidence": 0.7,
             "rationale": "Conditional distributions inferred from row-aligned numeric behavior"
         }
+
+    def is_sparse_count_axis(self, attr, values):
+        """
+        Detect sparse, zero-inflated, discrete count variables
+        where percentile-based extremes are semantically invalid.
+        """
+
+        if not values:
+            return False
+
+        vsi = attr.get("properties", {}).get("value_semantics", {})
+        semantic_type = vsi.get("semantic_type")
+
+        # ---- semantic gate ---------------------------------
+        if semantic_type not in {"INTEGER", "NUMERIC_GENERAL"}:
+            return False
+
+        # ---- hard exclude spatial / continuous numerics ----
+        name = attr.get("name", "").lower()
+        if name in {"latitude", "longitude", "lat", "lon", "lng"}:
+            return False
+
+        numeric = vsi.get("numeric", {}) or {}
+        if not numeric.get("is_discrete", True):
+            return False
+
+        # ---- distributional signals ------------------------
+        n = len(values)
+        zero_frac = sum(v == 0 for v in values) / n
+        non_zero = [v for v in values if v > 0]
+
+        #if not non_zero:
+        #    return False
+
+        max_val = max(values)
+        distinct = len(set(values))
+
+        # High zero mass + discrete support => sparse count
+        if zero_frac >= 0.7 and distinct <= 10:
+            return True
+
+        if zero_frac >= 0.4 and max_val >= 5:
+            return True
+
+        return False
+
+    def infer_tail_threshold(self, values):
+        """
+        Given a numeric column that has already been classified as a sparse discrete count, 
+        infer a threshold that marks the beginning of the “extreme” tail.
+        Automatically find a cutoff that separates:
+        normal / common values from rare, extreme, or regime-changing values.
+        This is classic long-tail / power-law count data behavior:
+        many zeros, many small counts, very few large counts, but those large counts are semantically important (e.g., mass casualty events)
+        """
+
+        values = sorted(values)
+        n = len(values)
+
+        non_zero = [v for v in values if v > 0]
+        if not non_zero:
+            return None
+
+        # ---- Case 1: binary-tail  ---------------
+        ## “Presence vs absence is the meaningful distinction.”
+        if max(non_zero) <= 3:
+            return 1
+
+        # ---- Case 2: scalable long-tail discrete counts ---------------------
+        # Extreme tail detection
+        # We search for the smallest interpretable count threshold t
+        # such that only a very small fraction of rows (e.g., <1%)
+        # reach or exceed t. This identifies a regime change where
+        # values transition from common occurrences to rare, extreme events.
+        # Unlike percentiles, this tail-frequency criterion remains stable
+        # under heavy zero-inflation and preserves integer semantics.
+        for t in [5, 10, 15, 20]:
+            frac = sum(v >= t for v in values) / n
+            if frac < 0.01:
+                return t
+
+        # Fallback: just take the extreme
+        return max(values)
+
+
+
+    
+
