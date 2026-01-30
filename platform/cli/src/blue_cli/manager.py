@@ -142,7 +142,7 @@ class ProfileManager:
         # activate selected profiile
         self.__activate_selected_profile()
 
-    def authenticate(self, profile_name=None):
+    def authenticate_profile(self, profile_name=None):
         if profile_name is None:
             profile_name = self.get_selected_profile_name()
 
@@ -1532,7 +1532,7 @@ class ServiceName(click.Group):
 
 class AgentRegistryManager:
     def __init__(self, profile_name=None):
-        profile_mgr = ProfileManager()
+        profile_mgr: ProfileManager = ProfileManager()
         profile_mgr.authenticate(profile_name=profile_name)
         self.cookies = profile_mgr.get_selected_profile_cookie()
         platform = PlatformManager()
