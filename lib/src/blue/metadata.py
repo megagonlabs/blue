@@ -138,10 +138,10 @@ class MetaData(ServiceClient):
         self.properties["concept_taxonomy"] = self._load_concept_taxonomy()
 
     
-    def mean_safe(vals):
+    def mean_safe(self, vals):
         return sum(vals) / len(vals) if vals else None
 
-    def safe_pearson(x, y):
+    def safe_pearson(self, x, y):
         if len(x) < 5 or len(y) < 5:
             return 0.0
         mx, my = sum(x)/len(x), sum(y)/len(y)
@@ -153,7 +153,7 @@ class MetaData(ServiceClient):
         return num / (denx * deny)
 
 
-    def get_numeric_samples(attr):
+    def get_numeric_samples(self, attr):
         stats = attr.get("properties", {}).get("stats", {})
         samples = stats.get("sample_values", [])
         nums = []
