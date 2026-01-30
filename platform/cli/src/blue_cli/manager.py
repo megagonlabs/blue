@@ -181,7 +181,7 @@ class ProfileManager:
                 current = profile_attributes[profile_attribute]
             if current:
                 value = current
-                
+
             required = False
             if 'required' in profile_attribute_config:
                 required = profile_attribute_config['required']
@@ -1135,7 +1135,10 @@ class ServiceManager:
             service_name = self.get_default_service_name()
 
         service = self.get_service(service_name)
-        service_attributes = dict(service)
+        if service is None:
+            service_attributes = None
+        else:
+            service_attributes = dict(service)
 
         if service_attributes is None:
             service_attributes = {}
