@@ -137,11 +137,10 @@ class MetaData(ServiceClient):
         self.properties["concept_taxonomy_path"] = "/blue_data/config/concept_taxonomy.json"
         self.properties["concept_taxonomy"] = self._load_concept_taxonomy()
 
-    @staticmethod
+    
     def mean_safe(vals):
         return sum(vals) / len(vals) if vals else None
 
-    @staticmethod
     def safe_pearson(x, y):
         if len(x) < 5 or len(y) < 5:
             return 0.0
@@ -154,7 +153,6 @@ class MetaData(ServiceClient):
         return num / (denx * deny)
 
 
-    @staticmethod
     def get_numeric_samples(attr):
         stats = attr.get("properties", {}).get("stats", {})
         samples = stats.get("sample_values", [])
@@ -167,6 +165,10 @@ class MetaData(ServiceClient):
         return nums
 
     def has_row_cooccurrence(self, a, b, row_samples, min_rows=5):
+        """
+        Check if two attributes co-occur in at least min_rows sample rows.
+        """
+
         a_name = a["name"]
         b_name = b["name"]
 
@@ -202,9 +204,6 @@ class MetaData(ServiceClient):
         return a_type in temporal_types and b_type not in temporal_types
 
 
-
-    
-    
     def _load_concept_taxonomy(self):
         """
         Load domain concept taxonomy from the shared /blue_data/config folder.
@@ -419,6 +418,11 @@ class MetaData(ServiceClient):
 
             attributes = data_registry.get_source_database_collection_entity_attributes(source, database, collection, entity_name)
 
+            entity_stats = entity.get("properties", {}).get("stats", {})
+            row_samples = entity_stats.get("row_samples", [])
+
+            self.current_entity_row_samples = row_samples
+            
             entity_attribute_description = self.enrich_entity(entity, attributes)
 
             try:
@@ -524,7 +528,6 @@ class MetaData(ServiceClient):
                         )
             
             if self.properties.get("enable_interpretive_semantics", True):
-                logging.info(f"[MetaData] Inferring interpretive semantics for entity: {entity_name}")
                 for attr in attributes:
                     ivs = self.infer_interpretive_semantics(entity_name, attr)
                     if ivs:
@@ -571,7 +574,7 @@ class MetaData(ServiceClient):
 
             if self.properties.get("enable_semantic_links_inference", True):
                 # -------------------------------------------------
-                # 3. SEMANTIC LINK DISCOVERY (STRUCTURAL + SOFT LLM)
+                # SEMANTIC LINK DISCOVERY (STRUCTURAL + SOFT LLM)
                 # -------------------------------------------------
                 semantic_links = self.infer_semantic_links(attributes)
 
@@ -597,9 +600,6 @@ class MetaData(ServiceClient):
 
                     result = self.validate_semantic_link(src, tgt, link["signal"])
 
-                    # -------------------------------------------------
-                    # SOFT ACCEPT LOGIC
-                    # -------------------------------------------------
                     relationship = result.get("relationship") if result else None
 
                     signal_type = (
@@ -660,7 +660,7 @@ class MetaData(ServiceClient):
                         rebuild=rebuild
                     )
                 # -------------------------------------------------
-                # 4. SEMANTIC ROLE INFERENCE (LINK-DRIVEN)
+                # SEMANTIC ROLE INFERENCE (LINK-DRIVEN)
                 # -------------------------------------------------
                 for attr in attributes:
                     attr_name = attr["name"]
@@ -784,12 +784,14 @@ class MetaData(ServiceClient):
         Build lightweight cross-attribute context for VSI / SDI.
 
         Design principles:
-        - Descriptive, not prescriptive
+        - Descriptive, not prescriptive (no hard semantic claims)
         - Distributional, not role-based
-        - Column-attached, not joint inference
+        - Column-attached, not joint inference (no relationships inferred)
         - Safe for first-pass VSI / SDI
         """
 
+        # Context object passed downstream to VSI / SDI.
+        # Each field captures a different *type* of weak signal.
         context = {
             "sibling_attributes": [],
             "numeric_distributions": {},
@@ -835,6 +837,8 @@ class MetaData(ServiceClient):
                 # -------------------------------------------------
                 # Distributional role hints (NOT semantic roles)
                 # Skip identifiers — they distort scale semantics
+                # Provide very coarse magnitude hints to support
+                # relative scale reasoning (e.g., thresholds, extremes).
                 # -------------------------------------------------
                 if not sem.get("is_identifier"):
                     magnitude = max_val
@@ -850,6 +854,9 @@ class MetaData(ServiceClient):
 
             # -------------------------------------------------
             # Temporal hints (weak, non-binding)
+            # Record presence of time-like attributes nearby.
+            # This does NOT imply that the target attribute
+            # participates in temporal reasoning.
             # -------------------------------------------------
             if sem.get("semantic_type") in ("DATE", "DATETIME", "DURATION"):
                 context["temporal_hints"].append(name)
@@ -1150,6 +1157,9 @@ Return ONLY this JSON structure, filled in appropriately.
 
     
     def infer_attribute_vsi(self, entity_name, attr):
+        """
+        Infer value semantics for an attribute."""
+
         attr_name = attr.get("name")
         props = attr.get("properties", {})
 
@@ -1183,6 +1193,9 @@ Return ONLY this JSON structure, filled in appropriately.
 
     
     def infer_attribute_sdi(self, entity_name, attr):
+        """
+        Infer semantic discovery information for an attribute.
+        """
         attr_name = attr.get("name")
         props = attr.get("properties", {})
 
@@ -1201,6 +1214,9 @@ Return ONLY this JSON structure, filled in appropriately.
             return None
     
     def infer_attribute_value_semantics(self, entity_name, attr):
+        """
+        Infer value semantics for an attribute.
+        """
         attr_name = attr.get("name")
         attr_properties = attr.get("properties", {})
 
@@ -1273,6 +1289,9 @@ Return ONLY this JSON structure, filled in appropriately.
         return prompt.strip()
 
     def infer_domain_concept(self, entity_name, attr):
+        """
+        Infer a domain concept for an attribute.
+        """
         attr_name = attr.get("name")
         attr_properties = attr.get("properties", {})
 
@@ -1507,8 +1526,6 @@ Return ONLY this JSON structure, filled in appropriately.
         # -------------------------------------------------
         # 2. SEGMENTATION DRIVER
         # -------------------------------------------------
-        #segment_links = [l for l in outgoing if l["relationship"] == "SEGMENTS"]
-        
         segment_links = []
         for l in outgoing:
             if l["relationship"] != "SEGMENTS":
@@ -1610,6 +1627,11 @@ Return ONLY this JSON structure, filled in appropriately.
         }
 
     def infer_row_based_links(self, attributes, row_samples):
+        """
+        Infer semantic links using row-grounded evidence.
+         Returns a list of {source, target, signal}.
+         """
+
         links = []
 
         if not row_samples:
@@ -1633,8 +1655,7 @@ Return ONLY this JSON structure, filled in appropriately.
                         "signal": "grouped_distribution",
                         "row_support": True
                     })
-                    logging.info(f"Row-grounded grouped_distribution link: {a['name']} -> {b['name']}")
-
+                  
                 
                 # TEMPORAL ALIGNMENT (row-grounded, generic)
                 if (
@@ -1679,7 +1700,7 @@ Return ONLY this JSON structure, filled in appropriately.
             "CODE",
             "TAG",
             "LABEL",
-            "ENUM_CATEGORY",   # default ENUMs are NOMINAL unless proven otherwise
+            "ENUM_CATEGORY",   
             "TEXT_CATEGORY"
         }:
             return False
@@ -1743,7 +1764,7 @@ Return ONLY this JSON structure, filled in appropriately.
         axes = {}
         
         # -------------------------------------------------
-        # 1. NUMERIC MAGNITUDE AXES (UNCHANGED)
+        # 1. NUMERIC MAGNITUDE AXES 
         # -------------------------------------------------
         for attr in attributes:
             if not self.is_value_axis_eligible(attr):
@@ -1769,18 +1790,21 @@ Return ONLY this JSON structure, filled in appropriately.
                     axes[attr["name"]] = axis
 
         # -------------------------------------------------
-        # 2. ORDINAL AXES FROM IVS (NEW, EXPLICIT)
+        # 2. ORDINAL AXES FROM IVS 
         # -------------------------------------------------
         for attr in attributes:
             name = attr["name"]
 
             if name in axes:
-                continue  # never overwrite numeric axes
+                continue  
 
             if not self.is_ivs_promotable_to_value_axis(attr):
                 continue
 
-            ivs = attr["properties"]["interpretive_semantics"]
+            #ivs = attr["properties"]["interpretive_semantics"]
+            ivs = attr.get("properties", {}).get("interpretive_semantics")
+            if not ivs:
+                continue
 
             axis = {
                 "axis_type": "ORDINAL",
@@ -1847,6 +1871,10 @@ Return ONLY this JSON structure, filled in appropriately.
         attr_name,
         attr_properties
     ):
+        """
+        Build a prompt for inferring interpretive semantics.
+        """
+        
         stats = attr_properties.get("stats", {})
         samples = stats.get("sample_values", [])[:10]
 
@@ -1909,6 +1937,10 @@ Return ONLY this JSON structure, filled in appropriately.
     """
 
     def infer_interpretive_semantics(self, entity_name, attr):
+        """
+        Infer interpretive semantics for an attribute.
+        Returns interpretive semantics dict or None.
+        """
         attr_name = attr["name"]
         props = attr.get("properties", {})
 
