@@ -181,8 +181,14 @@ class ProfileManager:
                 current = profile_attributes[profile_attribute]
             if current:
                 value = current
-            required = profile_attribute_config['required']
-            encode = profile_attribute_config['encode']
+                
+            required = False
+            if 'required' in profile_attribute_config:
+                required = profile_attribute_config['required']
+            encode = False
+            if 'encode' in profile_attribute_config:
+                encode = profile_attribute_config['encode']
+
             if required:
                 profile_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required, encode=encode)
             else:
@@ -427,12 +433,14 @@ class PlatformManager:
                 current = platform_attributes[platform_attribute]
             if current:
                 value = current
+
             required = False
             if 'required' in platform_attribute_config:
                 required = platform_attribute_config['required']
             encode = False
             if 'encode' in platform_attribute_config:
                 encode = platform_attribute_config['encode']
+
             if required:
                 platform_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required, encode=encode)
             else:
@@ -1143,8 +1151,14 @@ class ServiceManager:
                 current = service_attributes[service_attribute]
             if current:
                 value = current
-            required = service_attribute_config['required']
-            encode = service_attribute_config['encode']
+
+            required = False
+            if 'required' in service_attribute_config:
+                required = service_attribute_config['required']
+            encode = False
+            if 'encode' in service_attribute_config:
+                encode = service_attribute_config['encode']
+
             if required:
                 service_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required, encode=encode)
             else:
