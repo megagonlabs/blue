@@ -1536,7 +1536,7 @@ class ServiceName(click.Group):
 class AgentRegistryManager:
     def __init__(self, profile_name=None):
         profile_mgr: ProfileManager = ProfileManager()
-        profile_mgr.authenticate(profile_name=profile_name)
+        profile_mgr.authenticate_profile(profile_name=profile_name)
         self.cookies = profile_mgr.get_selected_profile_cookie()
         platform = PlatformManager()
         self.base_api_path = platform.get_selected_platform_base_api_path()
