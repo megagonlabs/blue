@@ -52,6 +52,22 @@ class Authentication:
     def __start_servers(self):
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform
+        # get platform
+        platform = platform = PlatformManager().get_selected_platform()
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        BLUE_PUBLIC_WEB_SERVER = config["BLUE_PUBLIC_WEB_SERVER"]
+
         try:
             self.process = subprocess.Popen(
                 [
@@ -59,8 +75,6 @@ class Authentication:
                     "-m",
                     "http.server",
                     str(self.__WEB_PORT),
-                    "-b",
-                    "localhost",
                     "-d",
                     f"{path}/blue_cli/web/auth/out",
                 ],
@@ -68,7 +82,8 @@ class Authentication:
                 stderr=subprocess.STDOUT,
             )
             time.sleep(2)
-            webbrowser.open(f"http://localhost:{self.__WEB_PORT}")
+            http_server_url = f"http://{BLUE_PUBLIC_WEB_SERVER}:{self.__WEB_PORT}"
+            webbrowser.open(http_server_url)
             self.stop = asyncio.Future()
 
             async def handler(websocket):
@@ -93,7 +108,7 @@ class Authentication:
                 self.stop.set_result(json_data)
 
             async def main():
-                async with websockets.serve(handler, "", self.__SOCKET_PORT):
+                async with websockets.serve(handler, f"{BLUE_PUBLIC_WEB_SERVER}", self.__SOCKET_PORT):
                     result = await self.stop
                     self.__set_cookie(result['cookie'])
                     self.__set_uid(result['uid'])
