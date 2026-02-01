@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[104],{6720:function(n,t,e){e.d(t,{getIconPaths:function(){return f}});var u=e(7764),c=e(5886),r=e(8054),s=e(8389);function f(n,t){let e=(0,u.Ho)(n);return t===s.J.STANDARD?c[e]:r[e]}}}]);

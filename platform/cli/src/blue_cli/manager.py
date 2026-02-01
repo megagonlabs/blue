@@ -1,12 +1,14 @@
 import curses
 import os
 import string
+import secrets
 import asyncio
 import subprocess
 import sys
 import time
 import json
 
+import urllib.parse
 import configparser
 import click
 import pydash
@@ -66,7 +68,9 @@ class Authentication:
 
         config = profile | platform
 
-        BLUE_PUBLIC_WEB_SERVER = config["BLUE_PUBLIC_WEB_SERVER"]
+        BLUE_PUBLIC_API_SERVER = config["BLUE_PUBLIC_API_SERVER"]
+        BLUE_DEPLOY_SECURE = str(pydash.objects.get(config, 'BLUE_DEPLOY_SECURE', 'False')).lower() == "true"
+        secret_code = secrets.token_urlsafe(10)
 
         try:
             self.process = subprocess.Popen(
@@ -75,6 +79,8 @@ class Authentication:
                     "-m",
                     "http.server",
                     str(self.__WEB_PORT),
+                    "-b",
+                    "localhost",
                     "-d",
                     f"{path}/blue_cli/web/auth/out",
                 ],
@@ -82,36 +88,47 @@ class Authentication:
                 stderr=subprocess.STDOUT,
             )
             time.sleep(2)
-            http_server_url = f"http://{BLUE_PUBLIC_WEB_SERVER}:{self.__WEB_PORT}"
-            webbrowser.open(http_server_url)
+            query_params = {'code': secret_code, 'secure': str(BLUE_DEPLOY_SECURE).lower(), 'ip': BLUE_PUBLIC_API_SERVER}
+            encoded_query = urllib.parse.urlencode(query_params)
+            url_template = f"http://{{0}}:{self.__WEB_PORT}?{encoded_query}"
+            webbrowser.open(url_template.format(BLUE_PUBLIC_API_SERVER))
+            print("Please open the following URL in your local browser (if a browser was not successfully launched):")
+            print(url_template.format(BLUE_PUBLIC_API_SERVER))
             self.stop = asyncio.Future()
 
             async def handler(websocket):
-                data = None
                 while True:
                     try:
                         data = await websocket.recv()
                         json_data = json.loads(data)
                         if pydash.is_equal(json_data, "REQUEST_CONNECTION_INFO"):
-                            current_profile = ProfileManager().get_selected_profile()
                             current_platform = PlatformManager().get_selected_platform()
-                            message = dict(current_profile) | dict(current_platform)
+                            full_config = dict(current_platform)
+                            allowed_keys = {'BLUE_PUBLIC_API_SERVER', 'BLUE_PUBLIC_API_SERVER_PORT', 'BLUE_DEPLOY_SECURE', 'BLUE_DEPLOY_PLATFORM', 'BLUE_FIREBASE_APP_CONFIG'}
+                            message = {k: full_config[k] for k in allowed_keys if k in full_config}
                             await websocket.send(json.dumps({"type": "REQUEST_CONNECTION_INFO", "message": message}))
                         else:
-                            await websocket.send(json.dumps("DONE"))
+                            action = pydash.objects.get(json_data, 'action', None)
+                            code = pydash.objects.get(json_data, 'code', None)
+                            # session fixation prevention
+                            if action == 'SET_COOKIE' and secret_code == code:
+                                await websocket.send(json.dumps("DONE"))
+                                if json_data and not self.stop.done():
+                                    self.stop.set_result(json_data)
                     except ws_exceptions.ConnectionClosedOK:
                         break
                     except ws_exceptions.ConnectionClosedError:
                         break
                     except Exception as ex:
                         await websocket.send(json.dumps({"error": str(ex)}))
-                self.stop.set_result(json_data)
 
             async def main():
-                async with websockets.serve(handler, f"{BLUE_PUBLIC_WEB_SERVER}", self.__SOCKET_PORT):
+                async with websockets.serve(handler, "", self.__SOCKET_PORT):
                     result = await self.stop
-                    self.__set_cookie(result['cookie'])
-                    self.__set_uid(result['uid'])
+                    result_cookie = pydash.objects.get(result, 'cookie', None)
+                    result_uid = pydash.objects.get(result, 'uid', None)
+                    self.__set_cookie(cookie=result_cookie)
+                    self.__set_uid(uid=result_uid)
                     if self.process is not None:
                         self.process.terminate()
 

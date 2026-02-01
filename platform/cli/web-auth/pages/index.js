@@ -68,10 +68,17 @@ export default function Index() {
     const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT", null);
     const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
     const baseURL = `http${secure ? "s" : ""}://${server}:${port}`;
+    const [code, setCode] = useState(null);
     useEffect(() => {
         setLoading(true);
-        const server = "localhost:25831";
-        const socket = new WebSocket(`ws://${server}`);
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        setCode(code);
+        const secure = _.toLower(_.toString(params.get("secure"))) == "true";
+        const ip = params.get("ip");
+        const server = `${ip}:25831`;
+        const socketAddress = `ws${secure ? "s" : ""}://${server}`;
+        const socket = new WebSocket(socketAddress);
         socket.onopen = () => {
             socket.send(JSON.stringify("REQUEST_CONNECTION_INFO"));
             setLoading(false);
@@ -92,7 +99,9 @@ export default function Index() {
                     setProfile(message);
                     try {
                         const firebaseConfig = JSON.parse(
-                            atob(_.get(message, "BLUE_FIREBASE_APP_CONFIG", null))
+                            atob(
+                                _.get(message, "BLUE_FIREBASE_APP_CONFIG", null)
+                            )
                         );
                         setAppAuth(getAuth(initializeApp(firebaseConfig)));
                     } catch (error) {
@@ -131,7 +140,7 @@ export default function Index() {
             if (appToaster) {
                 appToaster.show({
                     intent: Intent.DANGER,
-                    message: `WebSocket connection to 'ws://${server}' failed`,
+                    message: `WebSocket connection to '${socketAddress}' failed`,
                 });
             }
         };
@@ -156,7 +165,14 @@ export default function Index() {
                         .then((response) => {
                             const cookie = _.get(response, "data.cookie", null),
                                 uid = _.get(response, "data.uid", null);
-                            ws.send(JSON.stringify({ cookie, uid }));
+                            ws.send(
+                                JSON.stringify({
+                                    action: "SET_COOKIE",
+                                    code,
+                                    cookie,
+                                    uid,
+                                })
+                            );
                             setPopupOpen(false);
                         })
                         .catch(() => {
@@ -175,7 +191,7 @@ export default function Index() {
                     });
                 }
             });
-    }, [appAuth, baseURL]);
+    }, [appAuth, baseURL, code]);
     return (
         <>
             <Head>
@@ -206,7 +222,7 @@ export default function Index() {
                     }
                     isOpen
                 >
-                    {_.isNil(ws) ? (
+                    {(_.isNil(ws) || ws.readyState !== WebSocket.OPEN) && (
                         <Callout
                             style={{ borderRadius: 0, padding: 20 }}
                             intent={Intent.DANGER}
@@ -214,8 +230,8 @@ export default function Index() {
                         >
                             Unable to connect to Blue CLI
                         </Callout>
-                    ) : null}
-                    {_.isNil(appAuth) ? (
+                    )}
+                    {_.isNil(appAuth) && (
                         <Callout
                             style={{ borderRadius: 0, padding: 20 }}
                             intent={Intent.DANGER}
@@ -223,7 +239,7 @@ export default function Index() {
                         >
                             Failed to initialize Firebase authentication
                         </Callout>
-                    ) : null}
+                    )}
                     <DialogBody style={{ padding: 20 }}>
                         <Button
                             style={{ borderRadius: 10 }}
