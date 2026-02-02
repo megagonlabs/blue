@@ -27,7 +27,7 @@ PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
 
 #####
 DEVELOPMENT = os.getenv("BLUE_DEPLOY_DEVELOPMENT", "False").lower() == "true"
-SECURE_COOKIE = os.getenv("BLUE_DEPLOY_SECURE", "True").lower() == "true"
+SECURE_COOKIE = str(os.getenv("BLUE_DEPLOY_SECURE", "True")).lower() == "true"
 EMAIL_DOMAIN_WHITE_LIST = os.getenv("BLUE_EMAIL_DOMAIN_WHITE_LIST", "")
 DISABLE_AUTHENTICATION = os.getenv('DISABLE_AUTHENTICATION', 'False').lower() == 'true'
 FIREBASE_SERVICE_CRED = os.getenv("BLUE_FIREBASE_SERVICE_CRED", "").strip()

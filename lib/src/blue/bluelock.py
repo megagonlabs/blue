@@ -6,7 +6,40 @@ from blue.connection import PooledConnectionFactory
 
 
 class Bluelock:
+    """
+    A distributed hierarchical lock manager backed by Redis.
+
+    This class provides a mechanism to lock resources hierarchically (e.g., locking "a"
+    prevents locking "a.b", and locking "a.b" prevents locking "a"). It utilizes
+    Redlock for the internal mutex and a Redis Set to track the lock index.
+
+    Attributes:
+        host (str): The Redis host address.
+        port (int): The Redis port.
+        db (int): The Redis database index.
+        retry_count (int): Number of retries for the internal Redlock.
+        retry_delay (int): Delay between retries for the internal Redlock.
+        redlock_client (Redlock): The Redlock client instance.
+        connection_factory (PooledConnectionFactory): Factory for Redis connections.
+        connection (redis.Redis): The active Redis connection.
+        prefix (str): Prefix used for all Redis keys (e.g., "PLATFORM:default:BLUELOCK").
+        resource (str): The resource identifier, default is 'BLUEPRINT'.
+    """
+
     def __init__(self, properties):
+        """
+        Initializes the Bluelock instance with connection properties.
+
+        Parameters:
+            properties (dict): A dictionary containing configuration properties.
+                Expected keys include:
+                - `db.host` (str): Redis host (default: 'blue_db_redis').
+                - `db.port` (int): Redis port (default: 6379).
+                - `db.db` (int): Redis db index (default: 0).
+                - `retry_count` (int): Redlock retry attempts (default: 3).
+                - `retry_delay` (int): Redlock retry delay (default: 1).
+                - `platform.name` (str): Platform identifier (default: 'default').
+        """
         self.host = pydash.objects.get(properties, 'db.host', 'blue_db_redis')
         self.port = pydash.objects.get(properties, 'db.port', '6379')
         self.db = pydash.objects.get(properties, 'db.db', 0)
@@ -23,12 +56,39 @@ class Bluelock:
         self.resource = 'BLUEPRINT'
 
     def __lock_tree_mutex(self):
+        """
+        Acquires a short-lived mutex on the entire resource tree/index.
+
+        This ensures that operations checking for ancestors or descendants in the
+        index are atomic.
+
+        Returns:
+            Lock: A Redlock lock object if acquired, False otherwise.
+        """
         # lock time in milliseconds
         # ops for locking/checking/updating/releasing resource tree should be done within 1 second
         return self.redlock_client.lock(f'{self.prefix}:MUTEX:{self.resource}', 1000)
 
     # expiration in seconds
     def lock(self, path, expiration=10):
+        """
+        Attempts to acquire a distributed lock on a specific path.
+
+        This method performs a hierarchical check:
+        1. Checks if any ancestor of the path is currently locked.
+        2. Checks if any descendant of the path is currently locked.
+        3. Checks if the path itself is locked.
+
+        If any conflict is found, the lock is denied. If accepted, the lock is
+        recorded in the Redis index.
+
+        Args:
+            path (str): The dot-separated resource path to lock (e.g., "user.first_name").
+            expiration (int, optional): The TTL for the lock in seconds. Defaults to 10.
+
+        Returns:
+            bool: True if the lock was successfully acquired, False otherwise.
+        """
         locked = False
         tree_mutex = self.__lock_tree_mutex(self.resource)
         if not tree_mutex:
@@ -91,6 +151,17 @@ class Bluelock:
         return locked
 
     def __get_arg_values(self, func, *args, **kwargs):
+        """
+        Binds arguments to a function's signature to extract values by parameter name.
+
+        Args:
+            func (callable): The function to inspect.
+            *args: Positional arguments passed to the function.
+            **kwargs: Keyword arguments passed to the function.
+
+        Returns:
+            dict: A dictionary mapping parameter names to their provided values.
+        """
         signature = inspect.signature(func)
         bound_arguments = signature.bind(*args, **kwargs)
         bound_arguments.apply_defaults()
@@ -98,6 +169,28 @@ class Bluelock:
 
     # decorator (helper)
     def with_json_lock(self, expiration=10, timeout=5, namespace_param="namespace", key_param="key", namespace_value=None, key_value=None):
+        """
+        A decorator that wraps a function execution in a distributed lock.
+
+        The lock path is constructed as `{namespace}:{key}`. These values can be extracted
+        dynamically from the decorated function's arguments or provided explicitly.
+
+        Args:
+            expiration (int, optional): Lock TTL in seconds. Defaults to 10.
+            timeout (int, optional): Maximum time to wait to acquire the lock in seconds. Defaults to 5.
+            namespace_param (str, optional): The name of the argument in the decorated function that holds the namespace. Defaults to "namespace".
+            key_param (str, optional): The name of the argument in the decorated function that holds the key. Defaults to "key".
+            namespace_value (str, optional): Explicit value for the namespace. Overrides `namespace_param` if set.
+            key_value (str, optional): Explicit value for the key. Overrides `key_param` if set.
+
+        Returns:
+            callable: The decorated function.
+
+        Raises:
+            ValueError: If the required parameters are missing from the function arguments.
+            Exception: If the lock cannot be acquired within the timeout.
+        """
+
         def with_args(task_func):
             @functools.wraps(task_func)
             def wrapper(*args, **kwargs):
@@ -137,6 +230,15 @@ class Bluelock:
         return with_args
 
     def unlock(self, path):
+        """
+        Releases the lock for the specified path.
+
+        This removes the lock key and removes the path from the global index
+        to allow subsequent locks.
+
+        Args:
+            path (str): The dot-separated resource path to unlock (e.g., "user.first_name").
+        """
         lock_path = path.replace(".", ":")
         full_lock_key = f'{self.prefix}:LOCK:{self.resource}:{lock_path}'
         index_key = f'{self.prefix}:INDEX:{self.resource}'
