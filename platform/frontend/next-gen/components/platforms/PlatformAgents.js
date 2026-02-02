@@ -23,9 +23,9 @@ import {
 } from "@blueprintjs/table";
 import {
     faArrowDownToLine,
-    faCircleA,
     faRectangleTerminal,
     faRefresh,
+    faRobot,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
@@ -362,7 +362,7 @@ function PlatformAgents({ width, height }) {
                 {_.isEmpty(list) ? (
                     <NonIdealState
                         title="No Agent"
-                        icon={<FAIcon icon={faCircleA} size={50} />}
+                        icon={<FAIcon icon={faRobot} size={50} />}
                     />
                 ) : (
                     <Table

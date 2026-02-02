@@ -27,13 +27,13 @@ import {
     Tree,
 } from "@blueprintjs/core";
 import {
-    faCircleA,
     faDiagramSuccessor,
     faFolder,
     faFolderOpen,
     faFolderTree,
     faList,
     faMessages,
+    faRobot,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Allotment } from "allotment";
@@ -383,7 +383,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                         setVisibleSection("agents");
                                     }}
                                     active={_.isEqual(visibleSection, "agents")}
-                                    icon={<FAIcon icon={faCircleA} />}
+                                    icon={<FAIcon icon={faRobot} />}
                                 />
                             </Tooltip>
                             <Tooltip content="Stream flows" placement="bottom">

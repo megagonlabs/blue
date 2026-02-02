@@ -17,9 +17,9 @@ import {
     TextArea,
 } from "@blueprintjs/core";
 import {
-    faCircleA,
     faFiles,
     faPlus,
+    faRobot,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Allotment } from "allotment";
 import _ from "lodash";
@@ -296,7 +296,7 @@ function SessionContainer({ width, height, sessionId }) {
                                             onClick={() => {
                                                 setShowAddSessionAgent(true);
                                             }}
-                                            icon={<FAIcon icon={faCircleA} />}
+                                            icon={<FAIcon icon={faRobot} />}
                                             text="Agents"
                                         />
                                         <MenuItem

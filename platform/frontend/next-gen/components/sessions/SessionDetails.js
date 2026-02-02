@@ -6,9 +6,9 @@ import {
     Size,
 } from "@blueprintjs/core";
 import {
-    faCircleA,
     faCog,
     faDatabase,
+    faRobot,
     faSquareInfo,
     faUserGroup,
     faWallet,
@@ -47,7 +47,7 @@ export default function SessionDetails({ sessionId }) {
                             setFocusTab("agents");
                         }}
                         active={_.isEqual(focusTab, "agents")}
-                        icon={<FAIcon icon={faCircleA} />}
+                        icon={<FAIcon icon={faRobot} />}
                     />
                     <Button
                         text="Members"
