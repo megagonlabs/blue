@@ -96,9 +96,9 @@ class BlockingAgent(Agent):
                         # remove extrat input per configuration
                         # concatenate data in stream
                         if not self.include_extra_input:
-                            input_dict = {k: ' '.join(v) for k, v in input_dict.items() if k.strip("FROM_") in self.wait_for_inputs}
+                            input_dict = {k: ' '.join(v) if type(v) == list else str(v) for k, v in input_dict.items() if k.strip("FROM_") in self.wait_for_inputs}
                         else:
-                            input_dict = {k: ' '.join(v) for k, v in input_dict.items()}
+                            input_dict = {k: ' '.join(v) if type(v) == list else str(v) for k, v in input_dict.items()}
 
                         return [self.process_logic(input_dict, worker), Message.EOS]
 
