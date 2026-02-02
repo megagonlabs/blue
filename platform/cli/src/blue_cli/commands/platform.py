@@ -65,7 +65,7 @@ def show():
             if not pydash.is_empty(value):
                 value = f'{bcolors.OKGREEN}\u2714{bcolors.ENDC}'
             else:
-                value = f'{bcolors.FAIL}\u274c{bcolors.ENDC}'
+                value = f'{bcolors.FAIL}\u2718{bcolors.ENDC}'
         if output == "table":
             data.append([key, value])
         else:
