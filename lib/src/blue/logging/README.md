@@ -106,13 +106,15 @@ LogSearchClient
 
 A lightweight wrapper around FT.SEARCH for querying logs.
 
-search = LogSearchClient()
+```python
 
+search = LogSearchClient()
 search.by_session("sess_123")
 search.by_agent("NL2SQL")
 search.by_action("fallback")
 search.text("mass casualty")
 search.recent(limit=50)
+```
 
 SearchableCustomLogger
 
@@ -120,11 +122,13 @@ Extends CustomLogger with structured event emission.
 
 Context Management
 
+```python
 logger.set_context(
     session="sess_123",
     agent="NL2SQLAgent",
     operator="infer_value_axis"
 )
+```
 
 Context persists across log records and is automatically stored and indexed.
 
@@ -153,6 +157,7 @@ logger.record(
     error=error,
     result="success" if error is None else "failed"
 )
+```
 
 What This Records
 
@@ -186,6 +191,7 @@ All fields are stored verbatim as structured JSON, not flattened strings.
 
 Stored Log Record (Simplified)
 
+```
 {
   "timestamp": "2026-02-02T21:41:18Z",
   "action": "nl2sql_query_execution",
@@ -208,6 +214,7 @@ Stored Log Record (Simplified)
     "operator": "execute_query"
   }
 }
+```
 
 Why This Matters
 
