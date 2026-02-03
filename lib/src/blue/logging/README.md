@@ -191,7 +191,7 @@ All fields are stored verbatim as structured JSON, not flattened strings.
 }
 ```
 
-**Why This Matters
+**Why This Matters**
 
 Because the event is structured and indexed, you can later ask questions like:
 
