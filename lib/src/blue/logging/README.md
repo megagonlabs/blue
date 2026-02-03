@@ -32,6 +32,8 @@ This enables:
 - Analyzing failures and fallbacks
 - Offline evaluation and observability
 
+---
+
 ## Core Components
 
 ### LogStore (Abstract Interface)
@@ -41,6 +43,7 @@ class LogStore(ABC):
     @abstractmethod
     def write(self, record: Dict[str, Any]):
         pass
+
 
 Defines a pluggable backend contract
 
