@@ -65,19 +65,22 @@ Users must create and supply the taxonomy file using one of the following method
 
 Provide a custom taxonomy path when initializing the metadata service:
 
+```python
 MetaData(properties={
     "concept_taxonomy_path": "/path/to/my_concept_taxonomy.json"
 })
-
+```
 **Option 2:** Create the default path manually
 
 Create /blue_data/config/concept_taxonomy.json
 
 Here is an example minimal concept taxonomy.json for HR domain. 
 
+```json
+
 { "version": "1.0", "concepts": [ "CONCEPT.LOCATION.STATE", "CONCEPT.LOCATION.CITY", "CONCEPT.LOCATION.COUNTRY", "CONCEPT.COMPENSATION.SALARY", "CONCEPT.COMPENSATION.RATE", "CONCEPT.CANDIDATE.EXPERIENCE", "CONCEPT.CANDIDATE.START_DATE", "CONCEPT.CANDIDATE.END_DATE", "CONCEPT.JOB.TITLE", "CONCEPT.SKILL.NAME", "CONCEPT.ID", "CONCEPT.DATE", "CONCEPT.TEXT", "CONCEPT.UNKNOWN" ] }
 
-
+```
 
 
 
