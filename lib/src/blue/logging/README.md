@@ -43,6 +43,7 @@ class LogStore(ABC):
     @abstractmethod
     def write(self, record: Dict[str, Any]):
         pass
+```
 
 
 Defines a pluggable backend contract
