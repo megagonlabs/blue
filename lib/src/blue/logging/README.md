@@ -46,11 +46,11 @@ class LogStore(ABC):
 ```
 
 
-Defines a pluggable backend contract
+- Defines a pluggable backend contract
 
-Decouples logging from storage
+- Decouples logging from storage
 
-Enables future backends (Postgres, S3, OpenTelemetry)
+- Enables future backends (Postgres, S3, OpenTelemetry)
 
 ### RedisLogStore
 
@@ -62,11 +62,11 @@ A Redis-backed implementation using:
 
 **Key Features**
 
-Automatic index creation on startup
+- Automatic index creation on startup
 
-Namespaced Redis keys by platform, context, and date
+- Namespaced Redis keys by platform, context, and date
 
-Catch-all _blob field for semantic full-text search
+- Catch-all _blob field for semantic full-text search
 
 **Redis Key Format**
 
@@ -78,13 +78,13 @@ PLATFORM:{platform_id}:LOGS:DATA:
 
 This supports both:
 
-Prefix-based key lookup
+- Prefix-based key lookup
 
-Full-text and faceted search
+- Full-text and faceted search
 
-RediSearch Index Schema
+- RediSearch Index Schema
 
-Indexed fields:
+**Indexed fields:**
 
 | Field      | Type | Purpose                   |
 | ---------- | ---- | ------------------------- |
@@ -111,8 +111,8 @@ A lightweight wrapper around FT.SEARCH for querying logs.
 search = LogSearchClient()
 search.by_session("sess_123")
 search.by_agent("NL2SQL")
-search.by_action("fallback")
-search.text("mass casualty")
+search.by_action("nl2sql_query_execution")
+search.text("python skill")
 search.recent(limit=50)
 ```
 
@@ -126,7 +126,7 @@ Extends CustomLogger with structured event emission.
 logger.set_context(
     session="sess_123",
     agent="NL2SQLAgent",
-    operator="infer_value_axis"
+    operator="data discovery"
 )
 ```
 
@@ -163,25 +163,25 @@ logger.record(
 
 This single call produces a fully structured log event that captures:
 
-Action
+**Action**
 
 action: Logical name of the event (nl2sql_query_execution)
 
-Inputs
+**Inputs**
 
 Natural language question
 
-Generated SQL query
+**Generated SQL query**
 
 Data source identifier
 
-Outputs
+**Outputs**
 
 Number of rows returned
 
 A small preview of the result (safe for inspection)
 
-Outcome
+**Outcome**
 
 result: success / failed
 
@@ -189,16 +189,16 @@ error: captured error object or message (if any)
 
 All fields are stored verbatim as structured JSON, not flattened strings.
 
-Stored Log Record (Simplified)
+**Stored Log Record (Simplified)**
 
 ```
 {
   "timestamp": "2026-02-02T21:41:18Z",
   "action": "nl2sql_query_execution",
   "inputs": {
-    "question": "Show me severe collisions",
-    "sql_query": "SELECT * FROM collisions WHERE number_of_persons_injured >= 10",
-    "source_key": "nyc_collisions"
+    "question": "find java developers",
+    "sql_query": "SELECT * FROM jobs WHERE LOWER(short_job_title) = 'java developer'",
+    "source_key": "postgres"
   },
   "outputs": {
     "result_count": 12,
@@ -216,7 +216,7 @@ Stored Log Record (Simplified)
 }
 ```
 
-Why This Matters
+**Why This Matters
 
 Because the event is structured and indexed, you can later ask questions like:
 
@@ -235,6 +235,6 @@ All without parsing logs or reproducing runs.
 ```python
 search.by_action("nl2sql_query_execution")
 search.by_agent("NL2SQLAgent")
-search.text("number_of_persons_injured")
+search.text("java developers")
 ```
 
