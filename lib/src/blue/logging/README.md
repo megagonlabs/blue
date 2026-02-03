@@ -132,13 +132,13 @@ logger.set_context(
 
 Context persists across log records and is automatically stored and indexed.
 
-Recording Structured Events
+## Recording Structured Events
 
-## Example: NL2SQL Query Execution Logging
+**Example: NL2SQL Query Execution Logging**
 
 Below is a realistic example of how the `SearchableCustomLogger` is used to record a structured NL2SQL execution event.
 
-### Code Example
+**Code Example**
 
 ```python
 logger.record(
