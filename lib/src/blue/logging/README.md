@@ -52,15 +52,15 @@ Decouples logging from storage
 
 Enables future backends (Postgres, S3, OpenTelemetry)
 
-RedisLogStore
+### RedisLogStore
 
 A Redis-backed implementation using:
 
-RedisJSON for structured storage
+**RedisJSON** for structured storage
 
-RediSearch for indexing and search
+**RediSearch** for indexing and search
 
-Key Features
+**Key Features**
 
 Automatic index creation on startup
 
@@ -68,7 +68,7 @@ Namespaced Redis keys by platform, context, and date
 
 Catch-all _blob field for semantic full-text search
 
-Redis Key Format
+**Redis Key Format**
 
 PLATFORM:{platform_id}:LOGS:DATA:
   SESSION:{session_id}:
@@ -102,7 +102,7 @@ Indexed fields:
 Example query:
 @agent:{NL2SQLAgent} @operator:{infer_value_axis}
 
-LogSearchClient
+### LogSearchClient
 
 A lightweight wrapper around FT.SEARCH for querying logs.
 
@@ -116,11 +116,11 @@ search.text("mass casualty")
 search.recent(limit=50)
 ```
 
-SearchableCustomLogger
+### SearchableCustomLogger
 
 Extends CustomLogger with structured event emission.
 
-Context Management
+### Context Management
 
 ```python
 logger.set_context(
@@ -159,7 +159,7 @@ logger.record(
 )
 ```
 
-What This Records
+**What This Records**
 
 This single call produces a fully structured log event that captures:
 
@@ -230,10 +230,11 @@ Because the event is structured and indexed, you can later ask questions like:
 
 All without parsing logs or reproducing runs.
 
-Search Examples
+**Search Examples**
 
+```python
 search.by_action("nl2sql_query_execution")
 search.by_agent("NL2SQLAgent")
 search.text("number_of_persons_injured")
-
+```
 
