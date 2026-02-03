@@ -18,7 +18,7 @@ The structure of the various data entities across of different sources is:
 
 ## Data Registry
 
-In the data registry any data entity has metadata such as `name`, `type`, `scope`, `description`, `properties` and `contents`. `properties` includes various metadata such as statistics, etc. For an attribute, properties also include various metadata about attribute values such as `value_semantics`, `semantic_discovery`, `domain_concept`, `semantic_roles`. `contents` is for entities under the hierarchy.
+In the data registry any data entity has metadata such as `name`, `type`, `scope`, `description`, `properties` and `contents`. `properties` includes various metadata such as statistics, etc. For an attribute, properties also include various metadata about attribute values such as `value_semantics`, `semantic_discovery`, `semantic_roles`, `value_axis`. `contents` is for entities under the hierarchy.
 
 
 ### Synchronization
@@ -42,7 +42,8 @@ A bounded, deterministic classification of what the values are, inferred from st
 This inference is explicitly value-centric and avoids domain or business assumptions.
 
 **Semantic Discovery (SDI)** (attribute-level)
-Open-world, fuzzy semantic signals that capture emergent patterns not covered by fixed taxonomies (e.g., latent categories, thresholds, or value groupings).
+Open-world, fuzzy semantic signals that capture emergent patterns not covered by fixed taxonomies (e.g., latent categories, thresholds, or value groupings). 
+
 
 **Interpretive Semantics (IVS)** (attribute-level)
 Optional ordinal or tiered interpretations for categorical attributes when strongly supported by evidence (e.g., severity levels, ordered tiers), with strict confidence and safety gating.
