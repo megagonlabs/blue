@@ -8,30 +8,6 @@ This module extends `CustomLogger` with:
 - Full-text and faceted search via Redis + RediSearch
 - First-class support for agent, plan, operator, and session context
 
-
-
-## Why This Exists
-
-Traditional logs are:
-- Free-text
-- Grep-based
-- Host-centric
-- Hard to aggregate or analyze
-
-**Agentic systems need more.**
-
-The Searchable Custom Logger makes logs:
-- **Structured**
-- **Searchable**
-- **Context-aware**
-- **Evaluation-ready**
-
-This enables:
-- Debugging agent behavior
-- Tracing plans and operators
-- Analyzing failures and fallbacks
-- Offline evaluation and observability
-
 ---
 
 ## Core Components
@@ -44,7 +20,6 @@ class LogStore(ABC):
     def write(self, record: Dict[str, Any]):
         pass
 ```
-
 
 - Defines a pluggable backend contract
 
