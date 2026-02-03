@@ -18,7 +18,7 @@ The structure of the various data entities across of different sources is:
 
 ## Data Registry
 
-In the data registry any data entity has metadata such as `name`, `type`, `scope`, `description`, `properties` and `contents`. `properties` includes various metadata such as statistics, etc. `contents` is for entities under the hierarchy.
+In the data registry any data entity has metadata such as `name`, `type`, `scope`, `description`, `properties` and `contents`. `properties` includes various metadata such as statistics, etc. For an attribute, properties also include various metadata about attribute values such as `value_semantics`, `semantic_discovery`, `domain_concept`, `semantic_roles`. `contents` is for entities under the hierarchy.
 
 
 ### Synchronization
@@ -27,11 +27,35 @@ In the data registry you can at any point synchronize a data entity. As a result
 
 ### Stats
 
-You can collect stats about any data entity. For example, for an entity (e.g. postgres table) stats include `row_count`, For an attribute stats collected includes `distinct_count`, `null_count`, `sample_values`, `min`, `max`, `most_common_vals`, etc. These stats can be utilized by any agent (or component) to make choices for example, nl2sql can use them to enrich context for sql translation.
+You can collect stats about any data entity. For example, for an entity (e.g. postgres table) stats include `row_count`, `row_samples`. For an attribute stats collected includes `distinct_count`, `null_count`, `sample_values`, `min`, `max`, `most_common_vals`, etc. These stats can be utilized by any agent (or component) to make choices for example, nl2sql can use them to enrich context for sql translation.
 
 ### Enrichment
 
 While you can manually write descriptions for any data entity, beyond the top levels, this quickly becomes very cumbersome. Automatic enrichment helps in these cases to use LLMs to write descriptions. You can enrich data entities at any level in the data registry.
+
+Crucially, enrichment in Blue goes far beyond generating natural-language descriptions. 
+It enriches attributes and entities with structured value semantics, turning raw schema into machine-interpretable metadata that agents can reason over.
+Specifically, enrichment operates at the attribute level and incrementally infers and attaches:
+
+**Value Semantics (VSI)** (attribute-level)
+A bounded, deterministic classification of what the values are, inferred from statistics, sample values, and weak cross-attribute context (e.g., CURRENCY_AMOUNT, DURATION, ENUM_CATEGORY, ID_STRING).
+This inference is explicitly value-centric and avoids domain or business assumptions.
+
+**Semantic Discovery (SDI)** (attribute-level)
+Open-world, fuzzy semantic signals that capture emergent patterns not covered by fixed taxonomies (e.g., latent categories, thresholds, or value groupings).
+
+**Interpretive Semantics (IVS)** (attribute-level)
+Optional ordinal or tiered interpretations for categorical attributes when strongly supported by evidence (e.g., severity levels, ordered tiers), with strict confidence and safety gating.
+
+**Value Axes** (attribute-level)
+Explicit comparative structure over values—continuous (e.g., magnitude-based numeric axes) or ordinal—derived from distributions or promoted from high-confidence interpretive semantics.
+These axes capture extremes, thresholds, and polarity (e.g., “large vs. small”, “high vs. low”).
+
+**Semantic Links** (entity-level)
+Data-driven relationships between attributes (e.g., SEGMENTS, DERIVES, SUPPORTS), inferred using both column-level statistics and row-aligned co-occurrence evidence, and validated with semantic type constraints.
+
+**Semantic Roles** (attribute-level)
+Functional analytical roles (e.g., IDENTIFIER, EVENT_TIME, SEGMENTATION_DRIVER, EVIDENCE) inferred from value semantics and semantic links, rather than from schema names alone.
 
 ## Data Pipeline
 

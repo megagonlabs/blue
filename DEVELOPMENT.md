@@ -22,3 +22,7 @@ To learn more about developing services that agents can interface with, go to [s
 # Utilities 
 
 To learn more about utilities that come with blue in your development go to [utils](lib/src/blue/utils) for more details.
+
+# Logging 
+
+To learn more about logging functionalities of blue go to [logging](lib/src/blue/logging) for more details.
