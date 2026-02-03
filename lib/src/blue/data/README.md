@@ -33,28 +33,28 @@ You can collect stats about any data entity. For example, for an entity (e.g. po
 
 While you can manually write descriptions for any data entity, beyond the top levels, this quickly becomes very cumbersome. Automatic enrichment helps in these cases to use LLMs to write descriptions. You can enrich data entities at any level in the data registry.
 
-Crucially, enrichment in Blue goes far beyond generating natural-language descriptions. It enriches attributes with structured value semantics, turning raw schema into machine-interpretable metadata that agents can reason over.
-
+Crucially, enrichment in Blue goes far beyond generating natural-language descriptions. 
+It enriches attributes and entities with structured value semantics, turning raw schema into machine-interpretable metadata that agents can reason over.
 Specifically, enrichment operates at the attribute level and incrementally infers and attaches:
 
-Value Semantics (VSI)
+**Value Semantics (VSI)** (attribute-level)
 A bounded, deterministic classification of what the values are, inferred from statistics, sample values, and weak cross-attribute context (e.g., CURRENCY_AMOUNT, DURATION, ENUM_CATEGORY, ID_STRING).
 This inference is explicitly value-centric and avoids domain or business assumptions.
 
-Semantic Discovery (SDI)
+**Semantic Discovery (SDI)** (attribute-level)
 Open-world, fuzzy semantic signals that capture emergent patterns not covered by fixed taxonomies (e.g., latent categories, thresholds, or value groupings).
 
-Interpretive Semantics (IVS)
+**Interpretive Semantics (IVS)** (attribute-level)
 Optional ordinal or tiered interpretations for categorical attributes when strongly supported by evidence (e.g., severity levels, ordered tiers), with strict confidence and safety gating.
 
-Value Axes
+**Value Axes** (attribute-level)
 Explicit comparative structure over values—continuous (e.g., magnitude-based numeric axes) or ordinal—derived from distributions or promoted from high-confidence interpretive semantics.
 These axes capture extremes, thresholds, and polarity (e.g., “large vs. small”, “high vs. low”).
 
-Semantic Links
+**Semantic Links** (entity-level)
 Data-driven relationships between attributes (e.g., SEGMENTS, DERIVES, SUPPORTS), inferred using both column-level statistics and row-aligned co-occurrence evidence, and validated with semantic type constraints.
 
-Semantic Roles
+**Semantic Roles** (attribute-level)
 Functional analytical roles (e.g., IDENTIFIER, EVENT_TIME, SEGMENTATION_DRIVER, EVIDENCE) inferred from value semantics and semantic links, rather than from schema names alone.
 
 ## Data Pipeline
