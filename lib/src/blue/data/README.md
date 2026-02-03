@@ -51,17 +51,17 @@ Domain concept mapping is taxonomy-driven and optional; if no taxonomy is provid
 Domain concept mapping relies on a concept taxonomy file supplied by the user. This file is not created automatically during Blue installation.
 If it does not exist, domain concept mapping is skipped and attributes default to CONCEPT.UNKNOWN.
 
-Default taxonomy path
+**Default taxonomy path**
 
 By default, Blue looks for the taxonomy at:
 
 /blue_data/config/concept_taxonomy.json
 
-Providing a Concept Taxonomy
+**Providing a Concept Taxonomy**
 
 Users must create and supply the taxonomy file using one of the following methods.
 
-Option 1: Override via configuration (recommended)
+**Option 1:** Override via configuration (recommended)
 
 Provide a custom taxonomy path when initializing the metadata service:
 
@@ -69,7 +69,7 @@ MetaData(properties={
     "concept_taxonomy_path": "/path/to/my_concept_taxonomy.json"
 })
 
-Option 2: Create the default path manually
+**Option 2:** Create the default path manually
 
 Create /blue_data/config/concept_taxonomy.json
 
