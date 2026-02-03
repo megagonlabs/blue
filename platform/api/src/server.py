@@ -100,10 +100,10 @@ web_server_port = PROPERTIES["web.server.port"]
 # local & cloud frontend
 allowed_origins = [
     *[f"http://localhost:{port}" for port in [3000, 3001, 25830]],
-    *[f"http://127.0.0.1:{port}" for port in [3000, 3001, 25830]],
-    "https://" + web_server,
-    "http://" + web_server + ":" + web_server_port,
-    "https://" + web_server + ":" + web_server_port,
+    f"https://{web_server}:25830",
+    f"https://{web_server}",
+    f"http://{web_server}:{web_server_port}",
+    f"https://{web_server}:{web_server_port}",
 ]
 
 
@@ -171,7 +171,19 @@ app.database_connection_manager = database_connection_manager
 @app.middleware("http")
 async def session_verification(request: Request, call_next):
     session_cookie = request.cookies.get("session")
-    if request.method == "OPTIONS" or request.url.path in ["/docs", "/redoc", "/openapi.json", *[f'{PLATFORM_PREFIX}/accounts/{path}' for path in ['sign-out', 'sign-in']]]:
+    if request.method == "OPTIONS" or request.url.path in [
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        *[
+            f'{PLATFORM_PREFIX}/accounts{path}'
+            for path in [
+                '/sign-out',
+                '/sign-in',
+                '/sign-in/cli',
+            ]
+        ],
+    ]:
         return await call_next(request)
     if not DISABLE_AUTHENTICATION:
         if not session_cookie:
