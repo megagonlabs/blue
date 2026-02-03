@@ -52,18 +52,15 @@ def ws_ticket(request: Request):
 @router.post("/sign-out")
 def signout(request: Request):
     session_cookie = request.cookies.get("session")
-    try:
-        if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+    if session_cookie and not pydash.is_empty(FIREBASE_SERVICE_CRED):
+        try:
             decoded_claims = auth.verify_session_cookie(session_cookie)
             auth.revoke_refresh_tokens(decoded_claims["sub"])
-        response = JSONResponse(content={"message": "Success"})
-        response.set_cookie("session", expires=0, path="/")
-        return response
-    except auth.InvalidSessionCookieError:
-        return JSONResponse(
-            content={"message": "Session cookie is invalid, epxpired or revoked."},
-            status_code=401,
-        )
+        except (auth.InvalidSessionCookieError, ValueError):
+            pass
+    response = JSONResponse(content={"message": "Signed out successfully"})
+    response.delete_cookie(key="session", path="/")
+    return response
 
 
 @router.post("/sign-in")
