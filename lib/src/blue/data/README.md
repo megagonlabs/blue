@@ -18,7 +18,7 @@ The structure of the various data entities across of different sources is:
 
 ## Data Registry
 
-In the data registry any data entity has metadata such as `name`, `type`, `scope`, `description`, `properties` and `contents`. `properties` includes various metadata such as statistics, etc. For an attribute, properties also include various metadata about attribute values such as `value_semantics`, `semantic_discovery`, `semantic_roles`, `value_axis`. `contents` is for entities under the hierarchy.
+In the data registry any data entity has metadata such as `name`, `type`, `scope`, `description`, `properties` and `contents`. `properties` includes various metadata such as statistics, etc. For an attribute, properties also include various metadata about attribute values such as `value_semantics`, `semantic_discovery`, `semantic_roles`, `semantic_roles`, `value_axis`. `contents` is for entities under the hierarchy.
 
 
 ### Synchronization
@@ -43,6 +43,42 @@ This inference is explicitly value-centric and avoids domain or business assumpt
 
 **Semantic Discovery (SDI)** (attribute-level)
 Open-world, fuzzy semantic signals that capture emergent patterns not covered by fixed taxonomies (e.g., latent categories, thresholds, or value groupings). 
+
+**Domain Concepts** (attribute-level)
+Canonical domain meanings inferred by mapping value semantics and semantic discovery signals onto a user-provided concept taxonomy (e.g., CONCEPT.LOCATION.CITY, CONCEPT.JOB_TITLE, CONCEPT.SKILL).
+Domain concept mapping is taxonomy-driven and optional; if no taxonomy is provided, attributes default to CONCEPT.UNKNOWN.
+
+Domain concept mapping relies on a concept taxonomy file supplied by the user. This file is not created automatically during Blue installation.
+If it does not exist, domain concept mapping is skipped and attributes default to CONCEPT.UNKNOWN.
+
+Default taxonomy path
+
+By default, Blue looks for the taxonomy at:
+
+/blue_data/config/concept_taxonomy.json
+
+Providing a Concept Taxonomy
+
+Users must create and supply the taxonomy file using one of the following methods.
+
+Option 1: Override via configuration (recommended)
+
+Provide a custom taxonomy path when initializing the metadata service:
+
+MetaData(properties={
+    "concept_taxonomy_path": "/path/to/my_concept_taxonomy.json"
+})
+
+Option 2: Create the default path manually
+
+Create /blue_data/config/concept_taxonomy.json
+
+Here is an example minimal concept taxonomy.json for HR domain. 
+
+{ "version": "1.0", "concepts": [ "CONCEPT.LOCATION.STATE", "CONCEPT.LOCATION.CITY", "CONCEPT.LOCATION.COUNTRY", "CONCEPT.COMPENSATION.SALARY", "CONCEPT.COMPENSATION.RATE", "CONCEPT.CANDIDATE.EXPERIENCE", "CONCEPT.CANDIDATE.START_DATE", "CONCEPT.CANDIDATE.END_DATE", "CONCEPT.JOB.TITLE", "CONCEPT.SKILL.NAME", "CONCEPT.ID", "CONCEPT.DATE", "CONCEPT.TEXT", "CONCEPT.UNKNOWN" ] }
+
+
+
 
 
 **Interpretive Semantics (IVS)** (attribute-level)
