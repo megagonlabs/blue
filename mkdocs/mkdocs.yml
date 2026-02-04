@@ -60,7 +60,7 @@ markdown_extensions:
 extra_css:
     - stylesheets/extra.css
 extra:
-    canonical_version: v1.0
+    canonical_version: v1.1
     version:
         provider: mike
         alias: true
