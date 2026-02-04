@@ -100,6 +100,7 @@ class BlueError(StackContextMixin, Exception):
 
     `BlueError` is designed to wrap existing exceptions or create new ones with
     rich context, including:
+
     - **Intent**: How the system should react (e.g., 'fatal', 'retry').
     - **Context**: Arbitrary dictionary data attached to the error.
     - **Logs**: A timeline of messages added to the error as it bubbles up.
@@ -121,7 +122,7 @@ class BlueError(StackContextMixin, Exception):
         """
         Initialize the BlueError.
 
-        Paramters:
+        Parameters:
             exception (Optional[Union[Exception, BlueError]]): The original exception to wrap.
                 If it is already a `BlueError`, this acts as a copy/update constructor.
             description (Optional[str]): A human-readable description or log message

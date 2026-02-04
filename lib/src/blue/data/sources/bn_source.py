@@ -28,7 +28,7 @@ class BNSource(DataSource):
 
         # set host, port, protocol
         self.properties['connection']['host'] = 'localhost'
-        self.properties['connection']['port'] = 0 # not used
+        self.properties['connection']['port'] = 0  # not used
         self.properties['connection']['protocol'] = 'bn'
         self.properties['connection']['variant'] = 'pgmpy'
         self.properties['connection']['source_directory'] = '.'
@@ -41,15 +41,11 @@ class BNSource(DataSource):
         if 'database' in connection:
             database = connection['database']
             database_path = self._get_database_path(database)
-            
+
             # Load collections from database path
             collections = self._get_database_collections(database)
-            
-            return {
-                'database': database,
-                'database_path': database_path,
-                'collections': collections
-            }
+
+            return {'database': database, 'database_path': database_path, 'collections': collections}
         else:
             return {}
 
@@ -63,7 +59,7 @@ class BNSource(DataSource):
         This is the source root directory.
         """
         connection_properties = self.properties['connection']
-        source_directory = connection_properties.get('source_directory', '.') 
+        source_directory = connection_properties.get('source_directory', '.')
         absolute_source_directory = os.path.abspath(source_directory)
         # make sure it exists, create if not
         os.makedirs(absolute_source_directory, exist_ok=True)
@@ -97,75 +93,62 @@ class BNSource(DataSource):
         """Load BN model for a collection, using cache if available."""
         if database not in self._cache:
             self._cache[database] = {}
-        
+
         if collection in self._cache[database]:
             return self._cache[database][collection]['model']
-        
+
         collection_path = self._get_collection_path(database, collection)
-        
+
         if not os.path.exists(collection_path):
             raise FileNotFoundError(f"BN model not found: {collection_path}")
-        
+
         # Load model
         model = load_pgmpy_model(collection_path)
-        
+
         # Load graph_structure
         graph_structure_path = os.path.join(collection_path, 'graph_structure.json')
         graph_structure = None
         if os.path.exists(graph_structure_path):
             with open(graph_structure_path, 'r') as f:
                 graph_structure = json.load(f)
-        
+
         # Cache both model and graph_structure together
-        self._cache[database][collection] = {
-            'model': model,
-            'graph_structure': graph_structure
-        }
-        
+        self._cache[database][collection] = {'model': model, 'graph_structure': graph_structure}
+
         return model
 
     def _build_graph_structure_from_model(self, model):
         """Build graph_structure dictionary from a pgmpy model.
-        
-        Args:
+
+        Parameters:
             model: A pgmpy BayesianNetwork model instance.
-            
+
         Returns:
             dict: Graph structure with nodes, edges, markov_blanket, and descriptions.
         """
-        graph_structure = {
-            "description": "",
-            "nodes": {},
-            "edges": {},
-            "markov_blanket": {}
-        }
-        
+        graph_structure = {"description": "", "nodes": {}, "edges": {}, "markov_blanket": {}}
+
         # Extract nodes and their states
         for node in model.nodes():
             cpd = model.get_cpds(node)
             node_states = cpd.state_names.get(node, [])
             # Build states_description dict with empty strings
             states_description = {state: "" for state in node_states}
-            graph_structure["nodes"][node] = {
-                "name": node,
-                "states": node_states,
-                "description": "",
-                "states_description": states_description
-            }
-        
+            graph_structure["nodes"][node] = {"name": node, "states": node_states, "description": "", "states_description": states_description}
+
         # Extract edges from model
         for edge in model.edges():
             parent, child = edge
             if parent not in graph_structure["edges"]:
                 graph_structure["edges"][parent] = []
             graph_structure["edges"][parent].append(child)
-        
+
         # Extract markov blankets from model
         for node in model.nodes():
             markov_blanket = model.get_markov_blanket(node)
             # Convert set to list for JSON serialization
             graph_structure["markov_blanket"][node] = list(markov_blanket) if markov_blanket else []
-        
+
         return graph_structure
 
     def _load_graph_structure(self, database, collection):
@@ -173,24 +156,24 @@ class BNSource(DataSource):
         If graph_structure.json doesn't exist, builds it from the model."""
         if database not in self._cache:
             self._cache[database] = {}
-        
+
         if collection in self._cache[database]:
             graph_structure = self._cache[database][collection].get('graph_structure')
             if graph_structure:
                 return graph_structure
-        
+
         # If not cached, load model (which will also load and cache graph_structure if file exists)
         model = self._load_model(database, collection)
-        
+
         # Check if graph_structure was loaded from file
         graph_structure = self._cache[database][collection].get('graph_structure')
-        
+
         # If graph_structure not available, build it from model
         if not graph_structure:
             graph_structure = self._build_graph_structure_from_model(model)
             # Cache the built graph_structure
             self._cache[database][collection]['graph_structure'] = graph_structure
-        
+
         return graph_structure
 
     ######### source
@@ -221,21 +204,20 @@ class BNSource(DataSource):
             list[str]: Names of database directories, including 'default'.
         """
         source_directory = self._get_source_directory()
-        
-        
+
         dbs = []
         if not os.path.exists(source_directory):
             return dbs
-        
+
         for item in os.listdir(source_directory):
             item_path = os.path.join(source_directory, item)
             if os.path.isdir(item_path):
                 dbs.append(item)
-        
+
         # Ensure 'default' is in the list
         if 'default' not in dbs:
             dbs.append('default')
-        
+
         return sorted(dbs)
 
     def fetch_database_metadata(self, database):
@@ -249,17 +231,17 @@ class BNSource(DataSource):
             dict: Metadata dictionary containing database name, collection count, database path, and description.
         """
         database_path = self._get_database_path(database)
-        
+
         if not os.path.exists(database_path):
             return {}
-        
+
         collections = self.fetch_database_collections(database)
-        
+
         return {
             "database": database,
             "collection_count": len(collections),
             "database_path": database_path,
-            "description": f"Bayesian Network database '{database}' containing {len(collections)} BN model collection(s): {', '.join(collections)} for causal/probabilistic reasoning"
+            "description": f"Bayesian Network database '{database}' containing {len(collections)} BN model collection(s): {', '.join(collections)} for causal/probabilistic reasoning",
         }
 
     def fetch_database_schema(self, database):
@@ -289,19 +271,20 @@ class BNSource(DataSource):
         """
         if database is None:
             database = 'default'
-        
+
         database_path = self._get_database_path(database)
-        
+
         if os.path.exists(database_path):
             if overwrite:
                 import shutil
+
                 shutil.rmtree(database_path)
                 # Invalidate cache when overwriting
                 if database in self._cache:
                     del self._cache[database]
             else:
                 return {"status": "skipped", "message": f"Database '{database}' already exists"}
-        
+
         os.makedirs(database_path, exist_ok=True)
         return {"status": "success", "message": f"Database '{database}' created"}
 
@@ -319,15 +302,15 @@ class BNSource(DataSource):
         """
         if database is None:
             database = 'default'
-        
+
         # Get collections from cache (already loaded) and directory scan (all collections)
         cached_collections = set()
         if database in self._cache:
             cached_collections = set(self._cache[database].keys())
-        
+
         # Scan directory for all collections (including unloaded ones)
         all_collections = set(self._get_database_collections(database))
-        
+
         # Return union of cached and scanned collections, sorted
         return sorted(cached_collections | all_collections)
 
@@ -362,7 +345,7 @@ class BNSource(DataSource):
         if database is None:
             database = 'default'
         graph_structure = self._load_graph_structure(database, collection)
-        
+
         if graph_structure:
             nodes = graph_structure.get("nodes", {})
             edges = graph_structure.get("edges", {})
@@ -379,14 +362,10 @@ class BNSource(DataSource):
                 "graph_structure": graph_structure,
             }
             return metadata
-        
+
         try:
             model = self._load_model(database, collection)
-            return {
-                "collection": collection,
-                "node_count": len(model.nodes()),
-                "edge_count": len(model.edges())
-            }
+            return {"collection": collection, "node_count": len(model.nodes()), "edge_count": len(model.edges())}
         except Exception:
             return {}
 
@@ -404,10 +383,10 @@ class BNSource(DataSource):
         """
         if database is None:
             database = 'default'
-        
+
         # Load graph_structure (will build from model if needed)
         graph_structure = self._load_graph_structure(database, collection)
-        
+
         # Fallback: if _load_graph_structure somehow returns None, try to build from model
         if not graph_structure:
             # load model and build graph_structure
@@ -419,7 +398,7 @@ class BNSource(DataSource):
                 except Exception as e:
                     self.logger.warning(f"Failed to load model for {collection}: {e}")
                     return {}
-            
+
             if model:
                 # Build graph_structure from model using shared method
                 graph_structure = self._build_graph_structure_from_model(model)
@@ -432,43 +411,43 @@ class BNSource(DataSource):
             else:
                 self.logger.warning(f"Model not available for {collection}")
                 return {}
-        
+
         schema = DataSchema()
         nodes = graph_structure.get("nodes", {})
         edges = graph_structure.get("edges", {})
         markov_blankets = graph_structure.get("markov_blanket", {})
-        
+
         for node_name, node_info in nodes.items():
             if not schema.has_entity(node_name):
                 schema.add_entity(node_name)
-            
+
             entity_obj = schema.entities[node_name]
-            
+
             if "description" in node_info:
                 entity_obj["description"] = node_info["description"]
-            
+
             # Add graph structure knowledge to entity properties
             graph_knowledge = {}
-            
+
             # Add parent nodes
             parents = [parent for parent, children in edges.items() if node_name in children]
             if parents:
                 graph_knowledge["parents"] = parents
-            
+
             # Add child nodes
             if node_name in edges:
                 graph_knowledge["children"] = edges[node_name]
-            
+
             # Add Markov blanket
             if node_name in markov_blankets:
                 graph_knowledge["markov_blanket"] = markov_blankets[node_name]
-            
+
             # Store graph knowledge in properties
             if graph_knowledge:
                 entity_obj["properties"]["graph_structure"] = graph_knowledge
-            
+
             # Attributes (states) are not exposed in this version
-        
+
         return schema.get_entities()
 
     def fetch_database_collection_relations(self, database, collection):
@@ -501,7 +480,7 @@ class BNSource(DataSource):
         if database is None:
             database = 'default'
         graph_structure = self._load_graph_structure(database, collection)
-        
+
         if graph_structure:
             nodes = graph_structure.get("nodes", {})
             if entity in nodes:
@@ -515,7 +494,7 @@ class BNSource(DataSource):
                 if "states_description" in node_info:
                     metadata["states_description"] = node_info["states_description"]
                 return metadata
-        
+
         return {}
 
     def fetch_database_collection_entity_attributes(self, database, collection, entity):
@@ -627,94 +606,89 @@ class BNSource(DataSource):
         """
         if database is None:
             database = 'default'
-        
+
         if collection is None:
             raise Exception("No collection (BN model) provided")
-        
+
         try:
             query_dict = json.loads(query) if isinstance(query, str) else query
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid query JSON: {e}")
-        
+
         target_node = query_dict.get("target_node")
         target_state = query_dict.get("target_state")
         context = query_dict.get("context", {})
-        
+
         if not target_node:
             raise ValueError("Query must include 'target_node'")
         if not target_state:
             raise ValueError("Query must include 'target_state'")
-        
+
         try:
             model = self._load_model(database, collection)
         except FileNotFoundError as e:
             raise Exception(f"BN model not found: {e}")
-        
+
         model_nodes = set(model.nodes())
         if target_node not in model_nodes:
             raise ValueError(f"Target node '{target_node}' not found in model. Available nodes: {sorted(model_nodes)}")
-        
+
         evidence = {}
-        
+
         for node_name, state_name in context.items():
             if node_name not in model_nodes:
                 raise ValueError(f"Context node '{node_name}' not found in model. Available nodes: {sorted(model_nodes)}")
-            
+
             cpd = model.get_cpds(node_name)
             node_states = cpd.state_names.get(node_name, [])
             if state_name not in node_states:
                 raise ValueError(f"State '{state_name}' not found in node '{node_name}'. Available states: {node_states}")
-            
+
             evidence[node_name] = state_name
-        
+
         try:
             inference = VariableElimination(model)
-            query_result = inference.query(
-                variables=[target_node],
-                evidence=evidence if evidence else None
-            )
-            
+            query_result = inference.query(variables=[target_node], evidence=evidence if evidence else None)
+
             state_names = list(query_result.state_names[target_node])
-            
+
             if target_state not in state_names:
                 raise ValueError(f"State '{target_state}' not found in node '{target_node}'. Available states: {state_names}")
-            
+
             state_index = state_names.index(target_state)
             probability = float(query_result.values[state_index])
-            
-            result = {
-                "target_node": target_node,
-                "target_state": target_state,
-                "probability": probability,
-                "probability_percent": round(probability * 100, 2),
-                "context": context
-            }
-            
+
+            result = {"target_node": target_node, "target_state": target_state, "probability": probability, "probability_percent": round(probability * 100, 2), "context": context}
+
             state_probs = {}
             for i, state in enumerate(state_names):
                 state_probs[state] = float(query_result.values[i])
             result["all_state_probabilities"] = state_probs
-            
+
             # Add explanation if requested
             explanation_requested = optional_properties.get('explanation', False)
             if explanation_requested:
                 explanation = self._generate_explanation(
-                    database, collection, target_node, target_state, context,
+                    database,
+                    collection,
+                    target_node,
+                    target_state,
+                    context,
                     structured=optional_properties.get('structured_explanation', False),
                     max_num_paths=optional_properties.get('max_num_paths', 50),
-                    probability=probability
+                    probability=probability,
                 )
                 result["explanation"] = explanation
-            
+
             return [result]
-            
+
         except Exception as e:
             self.logger.error(f"Error during inference: {e}")
             raise Exception(f"Inference failed: {e}")
 
     def _generate_explanation(self, database, collection, target_node, target_state, context, structured=False, max_num_paths=50, probability=None):
         """Generate explanation by traversing graph structure to find reasoning paths.
-        
+
         Parameters:
             database (str): Database name.
             collection (str): Collection name.
@@ -724,23 +698,23 @@ class BNSource(DataSource):
             structured (bool): Whether to return structured explanation.
             max_num_paths (int): Maximum number of reasoning paths to include (default: 50).
             probability (float, optional): The calculated probability value to include in explanation.
-        
+
         Returns:
             str or dict: Natural language explanation or structured explanation.
         """
         graph_structure = self._load_graph_structure(database, collection)
         if not graph_structure:
             return "Explanation not available: graph structure not found."
-        
+
         nodes = graph_structure.get("nodes", {})
         edges = graph_structure.get("edges", {})
-        
+
         # Build NetworkX directed graph from edges
         G = nx.DiGraph()
         for parent, children in edges.items():
             for child in children:
                 G.add_edge(parent, child)
-        
+
         # Find all reasoning paths from context nodes to target node using networkx
         reasoning_paths = []
         for context_node, context_state in context.items():
@@ -752,26 +726,15 @@ class BNSource(DataSource):
                     for path in paths:
                         if len(reasoning_paths) >= max_num_paths:
                             break
-                        reasoning_paths.append({
-                            "start_node": context_node,
-                            "start_state": context_state,
-                            "path": path,
-                            "target_node": target_node,
-                            "target_state": target_state
-                        })
+                        reasoning_paths.append({"start_node": context_node, "start_state": context_state, "path": path, "target_node": target_node, "target_state": target_state})
                     if len(reasoning_paths) >= max_num_paths:
                         break
                 except (nx.NetworkXNoPath, nx.NodeNotFound):
                     # No path found or node not in graph
                     pass
-        
+
         if structured:
-            result = {
-                "reasoning_paths": reasoning_paths,
-                "target_node": target_node,
-                "target_state": target_state,
-                "context": context
-            }
+            result = {"reasoning_paths": reasoning_paths, "target_node": target_node, "target_state": target_state, "context": context}
             if probability is not None:
                 result["probability"] = probability
                 result["probability_percent"] = round(probability * 100, 2)
@@ -779,14 +742,14 @@ class BNSource(DataSource):
         else:
             # Generate natural language explanation, currently template filling is used. In the future, we can use LLM to generate the explanation.
             explanation_parts = []
-            
+
             if context:
                 explanation_parts.append(f"Given the evidence:")
                 for ctx_node, ctx_state in context.items():
                     node_desc = nodes.get(ctx_node, {}).get("description", ctx_node)
                     node_desc = node_desc.strip().strip(".")
                     explanation_parts.append(f"  - {ctx_node} ({node_desc}) is {ctx_state}")
-            
+
             if reasoning_paths:
                 explanation_parts.append(f"\nThe probability of {target_node} being {target_state} is influenced through the following reasoning paths:")
                 # Limit displayed paths to max_num_paths (already limited during collection)
@@ -794,17 +757,20 @@ class BNSource(DataSource):
                     path = path_info["path"]
                     path_str = " → ".join(path)
                     explanation_parts.append(f"  Path {i}: {path_str}")
-            
+
             target_desc = nodes.get(target_node, {}).get("description", target_node)
             target_desc = target_desc.strip().strip(".")
             if probability is not None:
                 prob_percent = round(probability * 100, 2)
-                explanation_parts.append(f"\nBased on the Bayesian Network structure and the provided evidence, the probability of {target_node} ({target_desc}) being {target_state} is {prob_percent}% ({probability:.6f}).")
+                explanation_parts.append(
+                    f"\nBased on the Bayesian Network structure and the provided evidence, the probability of {target_node} ({target_desc}) being {target_state} is {prob_percent}% ({probability:.6f})."
+                )
             else:
-                explanation_parts.append(f"\nBased on the Bayesian Network structure and the provided evidence, the probability of {target_node} ({target_desc}) being {target_state} is calculated.")
-            
+                explanation_parts.append(
+                    f"\nBased on the Bayesian Network structure and the provided evidence, the probability of {target_node} ({target_desc}) being {target_state} is calculated."
+                )
+
             return "\n".join(explanation_parts) if explanation_parts else "Explanation not available."
-    
 
     ######### stats
     def fetch_source_stats(self):
@@ -872,4 +838,3 @@ class BNSource(DataSource):
             dict: Empty dict - stats not applicable for BN source.
         """
         return {}
-

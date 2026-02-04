@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 
+
 class LogStore(ABC):
     """
     Abstract base class for pluggable structured log storage backends.
@@ -14,7 +15,7 @@ class LogStore(ABC):
         """
         Persist a structured record.
 
-        Args:
+        Parameters:
             record (dict): A structured event emitted by SearchableCustomLogger.
 
         Returns:

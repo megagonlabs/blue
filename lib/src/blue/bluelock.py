@@ -82,7 +82,7 @@ class Bluelock:
         If any conflict is found, the lock is denied. If accepted, the lock is
         recorded in the Redis index.
 
-        Args:
+        Parameters:
             path (str): The dot-separated resource path to lock (e.g., "user.first_name").
             expiration (int, optional): The TTL for the lock in seconds. Defaults to 10.
 
@@ -154,7 +154,7 @@ class Bluelock:
         """
         Binds arguments to a function's signature to extract values by parameter name.
 
-        Args:
+        Parameters:
             func (callable): The function to inspect.
             *args: Positional arguments passed to the function.
             **kwargs: Keyword arguments passed to the function.
@@ -175,7 +175,7 @@ class Bluelock:
         The lock path is constructed as `{namespace}:{key}`. These values can be extracted
         dynamically from the decorated function's arguments or provided explicitly.
 
-        Args:
+        Parameters:
             expiration (int, optional): Lock TTL in seconds. Defaults to 10.
             timeout (int, optional): Maximum time to wait to acquire the lock in seconds. Defaults to 5.
             namespace_param (str, optional): The name of the argument in the decorated function that holds the namespace. Defaults to "namespace".
@@ -236,7 +236,7 @@ class Bluelock:
         This removes the lock key and removes the path from the global index
         to allow subsequent locks.
 
-        Args:
+        Parameters:
             path (str): The dot-separated resource path to unlock (e.g., "user.first_name").
         """
         lock_path = path.replace(".", ":")

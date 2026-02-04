@@ -95,7 +95,7 @@ class Memory:
 
         Delegates to the underlying `MemoryStore`.
 
-        Args:
+        Parameters:
             key (str): The fully qualified key of the list.
 
         Returns:
@@ -113,7 +113,7 @@ class Memory:
         2. Updating a secondary index for `custom_key` lookups.
         3. Updating a sorted set for time-range lookups.
 
-        Args:
+        Parameters:
             base_key (str): The base key for the collection.
             entry_id (str): Unique ID for the specific entry.
             entry (Dict): The data payload to store.
@@ -131,7 +131,7 @@ class Memory:
 
         Delegates to the underlying `MemoryStore`.
 
-        Args:
+        Parameters:
             base_key (str): The base key for the collection.
             entry_id (str): The unique ID of the entry.
 
@@ -146,7 +146,7 @@ class Memory:
 
         Delegates to the underlying `MemoryStore`.
 
-        Args:
+        Parameters:
             base_key (str): The base key for the collection.
             custom_key (str): The secondary lookup key.
 
@@ -161,7 +161,7 @@ class Memory:
 
         Delegates to the underlying `MemoryStore`.
 
-        Args:
+        Parameters:
             base_key (str): The base key for the collection.
             start (float): The start timestamp (inclusive).
             end (float): The end timestamp (inclusive).
