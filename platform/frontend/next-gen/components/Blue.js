@@ -22,12 +22,12 @@ import {
 import { Omnibar } from "@blueprintjs/select";
 import {
     faBellConcierge,
-    faCircleA,
     faDatabase,
     faInboxFull,
     faInboxOut,
     faMonitorWaveform,
     faPencilRuler,
+    faRobot,
     faScrewdriverWrench,
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -188,7 +188,7 @@ export default function Blue({ children }) {
         agents: {
             title: "Platform Agents",
             text: "Agents",
-            icon: faCircleA,
+            icon: faRobot,
             content: <PlatformAgents />,
             visible: permissions.canReadPlatformAgents,
         },

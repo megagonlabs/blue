@@ -100,10 +100,11 @@ web_server_port = PROPERTIES["web.server.port"]
 # local & cloud frontend
 allowed_origins = [
     *[f"http://localhost:{port}" for port in [3000, 3001, 25830]],
-    *[f"http://127.0.0.1:{port}" for port in [3000, 3001, 25830]],
-    "https://" + web_server,
-    "http://" + web_server + ":" + web_server_port,
-    "https://" + web_server + ":" + web_server_port,
+    *[f"http://{host}:25830" for host in [api_server, web_server]],
+    *[f"https://{host}:25830" for host in [api_server, web_server]],
+    f"https://{web_server}",
+    f"http://{web_server}:{web_server_port}",
+    f"https://{web_server}:{web_server_port}",
 ]
 
 
@@ -171,16 +172,27 @@ app.database_connection_manager = database_connection_manager
 @app.middleware("http")
 async def session_verification(request: Request, call_next):
     session_cookie = request.cookies.get("session")
-    if request.method == "OPTIONS" or request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+    if request.method == "OPTIONS" or request.url.path in [
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        *[
+            f'{PLATFORM_PREFIX}/accounts{path}'
+            for path in [
+                '/sign-out',
+                '/sign-in',
+                '/sign-in/cli',
+            ]
+        ],
+    ]:
         return await call_next(request)
     if not DISABLE_AUTHENTICATION:
         if not session_cookie:
-            if not request.url.path.startswith(f"{PLATFORM_PREFIX}/accounts/sign-in"):
-                # session cookie is unavailable. force user to login.
-                return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable"})
-        # verify the session cookie. In this case an additional check is added to detect
-        # if the user's firebase session was revoked, user deleted/disabled, etc.
+            # session cookie is unavailable. force user to login.
+            return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable"})
         else:
+            # verify the session cookie. In this case an additional check is added to detect
+            # if the user's firebase session was revoked, user deleted/disabled, etc.
             try:
                 if not pydash.is_empty(FIREBASE_SERVICE_CRED):
                     decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
@@ -201,12 +213,12 @@ async def session_verification(request: Request, call_next):
                 user_role = p.get_metadata(f'users.{profile["uid"]}.role')
                 profile['role'] = user_role
                 request.state.user = profile
+                return await call_next(request)
             except (auth.InvalidSessionCookieError, jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError):
                 # session cookie is invalid, expired or revoked. force user to login.
                 response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked"}, status_code=401)
                 response.set_cookie("session", expires=0, path="/")
                 return response
-        return await call_next(request)
     else:
         # when authentication is disabled: upstream needs to handle all identity and access verifications
         # all requests operate with administrator role

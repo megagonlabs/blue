@@ -80,7 +80,7 @@ class Authentication:
                     "http.server",
                     str(self.__WEB_PORT),
                     "-b",
-                    "localhost",
+                    "0.0.0.0",
                     "-d",
                     f"{path}/blue_cli/web/auth/out",
                 ],

@@ -76,7 +76,7 @@ def show():
             if not pydash.is_empty(value):
                 value = f'{bcolors.OKGREEN}\u2714{bcolors.ENDC}'
             else:
-                value = f'{bcolors.FAIL}\u274C{bcolors.ENDC}'
+                value = f'{bcolors.FAIL}\u2718{bcolors.ENDC}'
         if output == "table":
             data.append([key, value])
         else:
@@ -140,7 +140,20 @@ def authenticate():
             raise Exception(f"profile name cannot be empty")
 
     profile_mgr.authenticate_profile(profile_name=profile_name)
-    
+
+
+@profile.command("logout")
+def logout():
+    ctx = click.get_current_context()
+    profile_name = ctx.obj["profile_name"]
+    if profile_name is None:
+        profile_name = profile_mgr.get_selected_profile_name()
+
+        if profile_name is None:
+            raise Exception(f"profile name cannot be empty")
+
+    profile_mgr.set_profile_attribute(profile_name=profile_name, attribute_name='BLUE_COOKIE', attribute_value='')
+    profile_mgr.set_profile_attribute(profile_name=profile_name, attribute_name='BLUE_UID', attribute_value='')
 
 
 @click.pass_context
