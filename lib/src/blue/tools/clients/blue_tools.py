@@ -1,5 +1,5 @@
 from blue.tools.clients.blue.memory_tools import create_session_memory_tools
-from blue.memory.session_memory import SessionMemory
+from blue.memories.session_memory import SessionMemory
 from blue.properties import PROPERTIES
 
 session_memory = SessionMemory(properties=PROPERTIES, prefix=f"PLATFORM:{PROPERTIES.get('platform.name', 'default')}")

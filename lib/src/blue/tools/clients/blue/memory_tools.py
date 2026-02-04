@@ -1,4 +1,4 @@
-from blue.memory.session_memory import SessionMemory
+from blue.memories.session_memory import SessionMemory
 from blue.tools.tool import Tool
 from typing import List, Any, Dict
 import time

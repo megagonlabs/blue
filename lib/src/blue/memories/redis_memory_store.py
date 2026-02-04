@@ -1,4 +1,4 @@
-from blue.memory.memory_store import MemoryStore
+from blue.memories.memory_store import MemoryStore
 from blue.connection import PooledConnectionFactory
 from typing import List, Dict, Optional
 import json

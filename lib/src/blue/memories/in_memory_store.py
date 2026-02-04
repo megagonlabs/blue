@@ -1,8 +1,8 @@
-from blue.memory.memory_store import MemoryStore
+from blue.memories.memory_store import MemoryStore
 from typing import List, Dict
 
 from typing import List, Dict, Optional, Any, Tuple
-from blue.memory.memory_store import MemoryStore
+from blue.memories.memory_store import MemoryStore
 
 
 class InMemoryStore(MemoryStore):

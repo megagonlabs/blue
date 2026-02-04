@@ -2,9 +2,9 @@ from typing import List, Dict, Optional
 import pydash
 
 # Blue
-from blue.memory.memory_store import MemoryStore
-from blue.memory.redis_memory_store import RedisMemoryStore
-from blue.memory.in_memory_store import InMemoryStore
+from blue.memories.memory_store import MemoryStore
+from blue.memories.redis_memory_store import RedisMemoryStore
+from blue.memories.in_memory_store import InMemoryStore
 
 
 ###############

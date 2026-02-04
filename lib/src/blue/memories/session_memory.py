@@ -1,8 +1,8 @@
 import time
 from typing import List, Dict, Any, Optional
-from blue.memory.memory import Memory
+from blue.memories.memory import Memory
 from blue.utils import uuid_utils
-from blue.memory.memory_store import MemoryStore
+from blue.memories.memory_store import MemoryStore
 
 
 class SessionMemory(Memory):
