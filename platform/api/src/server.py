@@ -101,6 +101,7 @@ web_server_port = PROPERTIES["web.server.port"]
 allowed_origins = [
     *[f"http://localhost:{port}" for port in [3000, 3001, 25830]],
     f"https://{web_server}:25830",
+    f"http://{web_server}:25830",
     f"https://{web_server}",
     f"http://{web_server}:{web_server_port}",
     f"https://{web_server}:{web_server_port}",
