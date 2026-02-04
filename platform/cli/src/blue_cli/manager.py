@@ -600,12 +600,13 @@ class PlatformManager:
             if 'blue.platform' in container.labels:
                 if container.labels['blue.platform'].find("redis") >= 0:
                     redis_container = container
+                    break
 
         if redis_container is None:
             print("Platform needs to be started to perform this operation.")
 
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
-        error = self.__container_exec_run(container, ["redis-cli", "JSON.SET", "PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA", "users." + uid + ".role", '"' + role + '"'])
+        error = self.__container_exec_run(redis_container, ["redis-cli", "JSON.SET", "PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA", "users." + uid + ".role", '"' + role + '"'])
         if error:
             print("Error: " + str(error))
 
