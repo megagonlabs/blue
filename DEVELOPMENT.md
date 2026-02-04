@@ -21,8 +21,13 @@ To learn more about developing services that agents can interface with, go to [s
 
 # Utilities 
 
-To learn more about utilities that come with blue in your development go to [utils](lib/src/blue/utils) for more details.
+To learn more about utilities that come with blue in your development, go to [utils](lib/src/blue/utils) for more details.
 
 # Logging 
 
-To learn more about logging functionalities of blue go to [logging](lib/src/blue/logging) for more details.
+To learn more about logging functionalities of blue, go to [logging](lib/src/blue/logging) for more details.
+
+# Error Handling
+BlueError is an unified exception wrapper for exposing rich debug data to the frontend.
+
+To learn more about error handling artitechture in blue, please go to [blueerror.py](lib/src/blue/blueerror.py) for more details.
