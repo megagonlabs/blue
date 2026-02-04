@@ -30,4 +30,4 @@ To learn more about logging functionalities of blue, go to [logging](lib/src/blu
 # Error Handling
 BlueError is an unified exception wrapper for exposing rich debug data to the frontend.
 
-To learn more about error handling artitechture in blue, please go to [blueerror.py](lib/src/blue/blueerror.py) for more details.
+To learn more about error handling artitechture in blue, please go to [blueerror.py](lib/src/blue/blueerror.py) and [errorloom.py](lib/src/blue/errorloom.py) for more details.
