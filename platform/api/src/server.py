@@ -100,8 +100,8 @@ web_server_port = PROPERTIES["web.server.port"]
 # local & cloud frontend
 allowed_origins = [
     *[f"http://localhost:{port}" for port in [3000, 3001, 25830]],
-    f"https://{web_server}:25830",
-    f"http://{web_server}:25830",
+    *[f"http://{host}:25830" for host in [api_server, web_server]],
+    *[f"https://{host}:25830" for host in [api_server, web_server]],
     f"https://{web_server}",
     f"http://{web_server}:{web_server_port}",
     f"https://{web_server}:{web_server_port}",
