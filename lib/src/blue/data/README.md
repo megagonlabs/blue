@@ -98,7 +98,7 @@ Data-driven relationships between attributes (e.g., SEGMENTS, DERIVES, SUPPORTS)
 Functional analytical roles (e.g., IDENTIFIER, EVENT_TIME, SEGMENTATION_DRIVER, EVIDENCE) inferred from value semantics and semantic links, rather than from schema names alone.
 
 **Conditional Value Distributions (CVD)** (attribute-level)
-For numeric attributes, Blue can additionally infer conditional value distributions that describe how value ranges change when conditioned on a segmentation attribute. This inference is performed only when a validated SEGMENTS semantic link exists and the grouping attribute has been inferred as a SEGMENTATION_DRIVER, ensuring that conditioning is data-driven and intentional. Conditional distributions are computed from row-aligned data and capture per-segment support counts and robust quantiles (e.g., p50, p90, p99), providing segment-specific notions of typical and extreme values. CVD inference is strictly numeric, conservatively gated, and skipped when data is insufficient or segmentation is too fine-grained.
+For numeric attributes, Blue can additionally infer conditional value distributions that describe how value ranges change when conditioned on a segmentation attribute. This inference is performed only when a validated SEGMENTS semantic link exists and the grouping attribute has been inferred as a SEGMENTATION_DRIVER, ensuring that conditioning is data-driven and intentional. Conditional distributions are computed from row-aligned data and capture per-segment support counts and robust quantiles (e.g., p50, p90, p99), providing segment-specific notions of typical and extreme values. 
 
 ## Data Pipeline
 
