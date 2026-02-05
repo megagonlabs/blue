@@ -41,6 +41,39 @@ WHERE NOT type = "RELATIONSHIP" AND elementType = "relationship"
 RETURN label AS type, apoc.coll.sortMaps(collect({property:property, type:type}), 'property') AS properties ORDER BY type
 """.strip()
 
+NATIVE_NODE_SCHEMA_QUERY = """
+CALL db.schema.nodeTypeProperties()
+YIELD nodeType, propertyName, propertyTypes
+RETURN
+  nodeType AS label,
+  collect({
+    property: propertyName,
+    type: propertyTypes[0]
+  }) AS properties
+ORDER BY label
+""".strip()
+
+NATIVE_REL_SCHEMA_QUERY = """
+CALL db.schema.relTypeProperties()
+YIELD relType
+RETURN DISTINCT
+  relType AS type
+ORDER BY type
+""".strip()
+
+NATIVE_REL_PROPERTIES_QUERY = """
+CALL db.schema.relTypeProperties()
+YIELD relType, propertyName, propertyTypes
+RETURN
+  relType AS type,
+  collect({
+    property: propertyName,
+    type: propertyTypes[0]
+  }) AS properties
+ORDER BY type
+""".strip()
+
+
 
 ###############
 ### NEO4JSource
@@ -174,6 +207,18 @@ class NEO4JSource(DataSource):
             return [self._json_safe(v) for v in obj]
         return obj
 
+    
+    def _has_apoc_meta(self):
+        try:
+            result = self.connection.run_query("""
+            SHOW PROCEDURES
+            YIELD name
+            WHERE name = 'apoc.meta.data'
+            RETURN name
+            """)
+            return len(result) > 0
+        except Exception:
+            return False
 
     def extract_schema(self, nodes_result, relationships_result, rel_properties_result):
         """
@@ -202,7 +247,24 @@ class NEO4JSource(DataSource):
         rlabel2properties = {r['type']: r['properties'] for r in rel_properties_result}
 
         for relation in relationships_result:
-            key = schema.add_relation(relation['start'], relation['type'], relation['end'])
+            if 'start' in relation and 'end' in relation:
+                # APOC mode (full topology)
+                key = schema.add_relation(
+                    relation['start'],
+                    relation['type'],
+                    relation['end']
+                )
+                #logging.info(f"Added relation: {relation['start']} -[{relation['type']}]-> {relation['end']}")
+
+            else:
+                # Native mode (no topology)
+                key = schema.add_relation(
+                    "_ANY_",          # synthetic source
+                    relation['type'],
+                    "_ANY_"           # synthetic target
+                )
+                #logging.info(f"Added relation: _ANY_ -[{relation['type']}]-> _ANY_")
+
             for prop in rlabel2properties.get(relation['type'], []):
                 schema.add_relation_property(key, 
                                             prop['property'], 
@@ -257,9 +319,16 @@ class NEO4JSource(DataSource):
         cache_key = (database, collection)
 
         if cache_key not in self._schema_cache:
-            nodes_result = self.connection.run_query(APOC_META_NODE_PROPERTIES_QUERY)
-            relationships_result = self.connection.run_query(APOC_META_REL_QUERY)
-            rel_properties_result = self.connection.run_query(APOC_META_REL_PROPERTIES_QUERY)
+            if self._has_apoc_meta():
+                #logging.info("Using APOC-based schema extraction")
+                nodes_result = self.connection.run_query(APOC_META_NODE_PROPERTIES_QUERY)
+                relationships_result = self.connection.run_query(APOC_META_REL_QUERY)
+                rel_properties_result = self.connection.run_query(APOC_META_REL_PROPERTIES_QUERY)
+            else:
+                #logging.info("Using native Neo4j schema extraction (no APOC)")
+                nodes_result = self.connection.run_query(NATIVE_NODE_SCHEMA_QUERY)
+                relationships_result = self.connection.run_query(NATIVE_REL_SCHEMA_QUERY)
+                rel_properties_result = self.connection.run_query(NATIVE_REL_PROPERTIES_QUERY)
 
             schema = self.extract_schema(nodes_result, relationships_result, rel_properties_result)
             self._schema_cache[cache_key] = schema
