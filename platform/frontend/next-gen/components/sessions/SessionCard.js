@@ -115,7 +115,7 @@ export default function SessionCard({ sessionId }) {
         });
     }, [messages, attributes]);
     const user = useAuthStore((state) => state.user);
-    const pinned = _.get(details, ["pinned", owner], false);
+    const pinned = _.get(details, ["pinned", user.uid], false);
     const [loading, setLoading] = useState(false);
     const lastMessage = useMemo(() => {
         if (!_.isEmpty(filteredMessages)) {
@@ -261,8 +261,8 @@ export default function SessionCard({ sessionId }) {
                         lastMessage.contentType === "ERROR"
                             ? Intent.DANGER
                             : lastMessage.own
-                            ? Intent.PRIMARY
-                            : null
+                              ? Intent.PRIMARY
+                              : null
                     }
                     style={{
                         marginTop: 10,
