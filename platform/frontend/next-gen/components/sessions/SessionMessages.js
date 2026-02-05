@@ -133,11 +133,10 @@ const Row = ({ index, data, style }) => {
                 rowRef.current;
             isOverflow.current =
                 scrollHeight > clientHeight || scrollWidth > clientWidth;
-            let height =
-                61 +
-                (isOverflow.current
-                    ? MESSAGE_OVERFLOW_THRESHOLD
-                    : rowRef.current.clientHeight);
+            let height = 61;
+            height += isOverflow.current
+                ? MESSAGE_OVERFLOW_THRESHOLD
+                : rowRef.current.clientHeight;
             if (isOverflow.current) height += 35;
             if (detailedMessage) height += 30;
             setRowHeight(index, height);
@@ -253,8 +252,8 @@ const Row = ({ index, data, style }) => {
                             hasError.current || _.isEqual(contentType, "ERROR")
                                 ? Intent.DANGER
                                 : own
-                                ? Intent.PRIMARY
-                                : null
+                                  ? Intent.PRIMARY
+                                  : null
                         }
                         icon={null}
                         style={{
@@ -329,9 +328,12 @@ export default function SessionMessages({
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
     function setRowHeight(index, size) {
+        if (rowHeights.current[index] === size) {
+            return;
+        }
         rowHeights.current = { ...rowHeights.current, [index]: size };
         if (variableSizeListRef.current) {
-            variableSizeListRef.current.resetAfterIndex(0);
+            variableSizeListRef.current.resetAfterIndex(index);
         }
     }
     const {
@@ -382,8 +384,7 @@ export default function SessionMessages({
         });
     }, [messages, filterTags, attributes]);
     function getRowHeight(index) {
-        let height = 81;
-        return rowHeights.current[index] || height;
+        return rowHeights.current[index] || 81;
     }
     const addContainer = useGridStore((state) => state.addContainer);
     const addInspectionContainer = () => {
