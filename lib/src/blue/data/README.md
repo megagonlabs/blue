@@ -18,7 +18,7 @@ The structure of the various data entities across of different sources is:
 
 ## Data Registry
 
-In the data registry any data entity has metadata such as `name`, `type`, `scope`, `description`, `properties` and `contents`. `properties` includes various metadata such as statistics, etc. For an attribute, properties also include various metadata about attribute values such as `value_semantics`, `semantic_discovery`, `semantic_roles`, `semantic_roles`, `value_axis`. `contents` is for entities under the hierarchy.
+In the data registry any data entity has metadata such as `name`, `type`, `scope`, `description`, `properties` and `contents`. `properties` includes various metadata such as statistics, etc. For an attribute, properties also include various metadata about attribute values such as `value_semantics`, `semantic_discovery`, `domain_concepts`, `semantic_roles`, `value_axis`. `contents` is for entities under the hierarchy.
 
 
 ### Synchronization
@@ -96,6 +96,9 @@ Data-driven relationships between attributes (e.g., SEGMENTS, DERIVES, SUPPORTS)
 
 **Semantic Roles** (attribute-level)
 Functional analytical roles (e.g., IDENTIFIER, EVENT_TIME, SEGMENTATION_DRIVER, EVIDENCE) inferred from value semantics and semantic links, rather than from schema names alone.
+
+**Conditional Value Distributions (CVD)** (attribute-level)
+For numeric attributes, Blue can additionally infer conditional value distributions that describe how value ranges change when conditioned on a segmentation attribute. This inference is performed only when a validated SEGMENTS semantic link exists and the grouping attribute has been inferred as a SEGMENTATION_DRIVER, ensuring that conditioning is data-driven and intentional. Conditional distributions are computed from row-aligned data and capture per-segment support counts and robust quantiles (e.g., p50, p90, p99), providing segment-specific notions of typical and extreme values. CVD inference is strictly numeric, conservatively gated, and skipped when data is insufficient or segmentation is too fine-grained.
 
 ## Data Pipeline
 
