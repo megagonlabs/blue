@@ -301,6 +301,13 @@ To share data among agents processing data from the same stream, you can use `se
 
 To share data among all agents in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
 
+### session memory
+[Session memory](/lib/src/blue/memories/session_memory.py) provides a dedicated, scoped storage layer for managing session-specific data within the Blue framework. It abstracts the complexity of persistence by offering high-level methods to store, index, and retrieve interaction history and state. Key functionalities include time-series indexing for chronological retrieval, and custom key lookups for direct access to specific states (e.g., summaries). Session Memory ensures that all session context is securely isolated, searchable, and easily accessible by unique ID, time range, or custom definitions.
+- Store: Persist arbitrary data with automatic timestamping and ID generation.
+- Index: Retrieve data via Time Range, Unique ID, or Custom Key.
+#### local tool exposure
+Crucially, these memory capabilities are also exposed as local tools, bridging the gap between raw storage and agent agency. This integration allows agents to interact with their own memory programmatically during execution — enabling them to self-select what to "remember" (store) or "recall" (retrieve) based on the conversation context. By treating memory operations as executable tools, agents can actively curate their long-term context rather than relying solely on passive context windows.
+
 </br>
 </br>
 
