@@ -74,8 +74,7 @@ This supports both:
 | `operator` | Tag  | Operator filtering        |
 | `_blob`    | Text | Catch-all semantic search |
 
-Example query:
-@agent:{NL2SQLAgent} @operator:{infer_value_axis}
+
 
 ### LogSearchClient
 
@@ -191,19 +190,7 @@ All fields are stored verbatim as structured JSON, not flattened strings.
 }
 ```
 
-**Why This Matters**
 
-Because the event is structured and indexed, you can later ask questions like:
-
-“Show all failed NL2SQL executions”
-
-“Which questions produced empty results?”
-
-“Which SQL queries frequently error?”
-
-“How often does this operator succeed?”
-
-All without parsing logs or reproducing runs.
 
 **Search Examples**
 
