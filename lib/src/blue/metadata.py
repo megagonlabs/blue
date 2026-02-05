@@ -470,7 +470,6 @@ class MetaData(ServiceClient):
                     if existing and not rebuild:
                         continue
 
-                    #inferred = self.infer_attribute_value_semantics(entity_name, attr_obj)
                     inferred = self.infer_attribute_vsi(entity_name, attr_obj)
                     
                     if inferred:
@@ -553,24 +552,16 @@ class MetaData(ServiceClient):
             )
             
             if self.properties.get("enable_value_axis_inference", True):
-                logging.info(f"[MetaData] Inferring value axes for entity: {entity_name}")
                 axes = self.infer_value_axis(
                     attributes,
                     self.current_entity_row_samples
                 )
 
-                logging.info(f"[MetaData] Inferred value axes for entity {entity_name}: {axes}")
-                
                 for attr_name, axis in axes.items():
                     data_registry.set_source_database_collection_entity_attribute_property(
                         source, database, collection, entity_name,
                         attr_name, "value_axis", axis, rebuild=rebuild
                     )
-
-                    logging.info(
-                        f"[MetaData] Inferred VALUE_AXIS for {entity_name}.{attr_name}: {axis}"
-                    )
-            
 
             if self.properties.get("enable_semantic_links_inference", True):
                 # -------------------------------------------------
@@ -659,6 +650,86 @@ class MetaData(ServiceClient):
                         validated_links,
                         rebuild=rebuild
                     )
+                
+                # -------------------------------------------------
+                # CONDITIONAL VALUE DISTRIBUTIONS 
+                # -------------------------------------------------
+                # Only infer conditional distributions for validated SEGMENTS links
+                if validated_links and self.current_entity_row_samples:
+
+                    for link in validated_links:
+                        if link.get("relationship") != "SEGMENTS":
+                            continue
+
+                        try:
+                            group_attr = next(
+                                a for a in attributes if a["name"] == link["source"]
+                            )
+                            value_attr = next(
+                                a for a in attributes if a["name"] == link["target"]
+                            )
+                
+                        except StopIteration:
+                            continue
+
+                        group_role = (
+                                group_attr
+                                .get("properties", {})
+                                .get("semantic_role", {})
+                            )
+
+                        if group_role.get("primary_role") != "SEGMENTATION_DRIVER":
+                            continue
+        
+
+                        group_vsi = group_attr.get("properties", {}).get("value_semantics", {})
+                        value_vsi = value_attr.get("properties", {}).get("value_semantics", {})
+
+                        # Hard safety gate
+                        if value_vsi.get("semantic_type") not in {
+                            "CURRENCY_AMOUNT",
+                            "INTEGER",
+                            "FLOAT",
+                            "NUMERIC_GENERAL",
+                            "PERCENTAGE",
+                            "RATIO",
+                            "DURATION"
+                        }:
+                            continue
+
+                        cds = self.infer_conditional_distributions(
+                            group_attr,
+                            value_attr,
+                            self.current_entity_row_samples
+                        )
+
+                        if not cds:
+                            continue
+
+                        logging.info(
+                            f"[MetaData] Inferred conditional distributions: "
+                            f"{entity_name}.{value_attr['name']} | grouped by {group_attr['name']}"
+                        )
+
+                        existing = data_registry.get_source_database_collection_entity_attribute_property(
+                            source, database, collection, entity_name,
+                            value_attr["name"], "conditional_value_distribution"
+                            ) or {}
+
+                        existing[group_attr["name"]] = cds
+
+                        data_registry.set_source_database_collection_entity_attribute_property(
+                            source,
+                            database,
+                            collection,
+                            entity_name,
+                            value_attr["name"],
+                            "conditional_value_distribution",
+                            existing,
+                            rebuild=rebuild
+                        )
+
+                
                 # -------------------------------------------------
                 # SEMANTIC ROLE INFERENCE (LINK-DRIVEN)
                 # -------------------------------------------------
