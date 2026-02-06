@@ -368,10 +368,6 @@ const SessionMessages = forwardRef(
             if (variableSizeListRef.current) {
                 variableSizeListRef.current.resetAfterIndex(index);
             }
-            if (index < visibleRangeRef.current.start && outerRef.current) {
-                const diff = size - prevSize;
-                outerRef.current.scrollTop += diff;
-            }
         }, []);
         const {
             messages,
