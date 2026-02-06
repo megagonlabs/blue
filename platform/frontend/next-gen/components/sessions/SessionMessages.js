@@ -110,27 +110,36 @@ const Row = memo(({ message, context }) => {
         const id = _.get(message, "metadata.id", null);
         const createdBy = _.get(message, "metadata.created_by", null);
         const isUser = _.isEqual(createdBy, "USER");
+        return isUser && _.isEqual(user.uid, id);
+    }, [user, message]);
+    useEffect(() => {
+        const id = _.get(message, "metadata.id", null);
+        const createdBy = _.get(message, "metadata.created_by", null);
+        const isUser = _.isEqual(createdBy, "USER");
         if (isUser) {
             getUserProfileById(id, showAxiosErrorToast);
         } else {
             getAgentMetadata(createdBy);
         }
-        return isUser && _.isEqual(user.uid, id);
-    }, [user, message]);
+    }, [message]);
     const rowRef = useRef(null);
-    const [isOverflow, setIsOverflow] = useState(false);
-    useEffect(() => {
-        if (rowRef.current) {
-            const { clientHeight, scrollHeight } = rowRef.current;
-            setIsOverflow(scrollHeight > clientHeight);
-        }
-    });
     const stream = message.stream;
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(message, "contentType", null);
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
     const [showActions, setShowActions] = useState(false);
+    const [isOverflow, setIsOverflow] = useState(false);
+    useEffect(() => {
+        if (rowRef.current) {
+            const { clientHeight, scrollHeight } = rowRef.current;
+            const newIsOverflow = scrollHeight > clientHeight;
+            setIsOverflow((prev) => {
+                if (prev !== newIsOverflow) return newIsOverflow;
+                return prev;
+            });
+        }
+    }, [streamData, expanded, detailedMessage]);
     useEffect(() => {
         if (autoExpandMessage) {
             expandMessage(sessionId, stream);
@@ -298,6 +307,7 @@ const Row = memo(({ message, context }) => {
         </div>
     );
 });
+Row.displayName = "Row";
 const SessionMessages = forwardRef(
     ({ sessionId, showWorkspace, setShowWorkspace, setShowDetails }, ref) => {
         const virtuosoRef = useRef(null);
