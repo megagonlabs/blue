@@ -3,14 +3,20 @@ import { FAIcon } from "@/components/FAIcon";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
+    ButtonVariant,
     Classes,
     FormGroup,
     InputGroup,
     Intent,
     Size,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faCheck,
+    faClipboard,
+    faCopy,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -61,14 +67,30 @@ export default function SessionAbout({ sessionId }) {
             setDescription(details.description);
         }
     }, [details.name, details.description]);
+    const copySessionId = () => {
+        copy(sessionId);
+        if (appToaster) {
+            appToaster.show({
+                icon: <FAIcon icon={faClipboard} />,
+                message: "Copied Session ID",
+            });
+        }
+    };
     return (
         <div className="full-parent-dimension" style={{ padding: 20 }}>
             <FormGroup inline label="Session ID">
-                <div
-                    style={{ lineHeight: "30px" }}
-                    className={Classes.TEXT_MUTED}
-                >
-                    {sessionId}
+                <div style={{ display: "flex", alignItems: "center" }}>
+                    <div
+                        style={{ lineHeight: "30px", marginRight: 16 }}
+                        className={Classes.TEXT_MUTED}
+                    >
+                        {sessionId}
+                    </div>
+                    <Button
+                        onClick={copySessionId}
+                        variant={ButtonVariant.MINIMAL}
+                        icon={<FAIcon icon={faCopy} />}
+                    />
                 </div>
             </FormGroup>
             <FormGroup label="Name">

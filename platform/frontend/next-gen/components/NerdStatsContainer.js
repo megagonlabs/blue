@@ -24,6 +24,22 @@ function NerdStatsContainer({ width, height }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const elementRef = useRef(null);
     const { appToaster } = useToaster();
+    const copyConnectionId = () => {
+        copy(connectionId);
+        if (appToaster) {
+            appToaster.show({
+                icon: <FAIcon icon={faClipboard} />,
+                message: "Copied Connection ID",
+            });
+        }
+    };
+    const copyVersion = () => {
+        copy(NEXT_PUBLIC_GIT_LONG);
+        appToaster.show({
+            icon: <FAIcon icon={faClipboard} />,
+            message: `Copied "${NEXT_PUBLIC_GIT_LONG}"`,
+        });
+    };
     return (
         <div
             ref={elementRef}
@@ -74,19 +90,7 @@ function NerdStatsContainer({ width, height }) {
                                                 endIcon={
                                                     <FAIcon icon={faCopy} />
                                                 }
-                                                onClick={() => {
-                                                    copy(NEXT_PUBLIC_GIT_LONG);
-                                                    appToaster.show({
-                                                        icon: (
-                                                            <FAIcon
-                                                                icon={
-                                                                    faClipboard
-                                                                }
-                                                            />
-                                                        ),
-                                                        message: `Copied "${NEXT_PUBLIC_GIT_LONG}"`,
-                                                    });
-                                                }}
+                                                onClick={copyVersion}
                                             >
                                                 {NEXT_PUBLIC_GIT_BRANCH}-
                                                 {NEXT_PUBLIC_GIT_SHORT}
@@ -101,18 +105,7 @@ function NerdStatsContainer({ width, height }) {
                                             minimal
                                             size={Size.LARGE}
                                             endIcon={<FAIcon icon={faCopy} />}
-                                            onClick={() => {
-                                                copy(connectionId);
-                                                appToaster.show({
-                                                    icon: (
-                                                        <FAIcon
-                                                            icon={faClipboard}
-                                                        />
-                                                    ),
-                                                    message:
-                                                        "Copied Connection ID",
-                                                });
-                                            }}
+                                            onClick={copyConnectionId}
                                         >
                                             {connectionId}
                                         </Tag>
