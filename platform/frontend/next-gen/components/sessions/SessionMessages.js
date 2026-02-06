@@ -327,13 +327,26 @@ export default function SessionMessages({
 }) {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
+    const outerRef = useRef(null);
+    const visibleRangeRef = useRef({ start: 0, end: 0 });
+    const onItemsRendered = ({ visibleStartIndex, visibleStopIndex }) => {
+        visibleRangeRef.current = {
+            start: visibleStartIndex,
+            end: visibleStopIndex,
+        };
+    };
     function setRowHeight(index, size) {
-        if (rowHeights.current[index] === size) {
+        const prevSize = rowHeights.current[index] || 81;
+        if (prevSize === size) {
             return;
         }
         rowHeights.current = { ...rowHeights.current, [index]: size };
         if (variableSizeListRef.current) {
             variableSizeListRef.current.resetAfterIndex(index);
+        }
+        if (index < visibleRangeRef.current.start && outerRef.current) {
+            const diff = size - prevSize;
+            outerRef.current.scrollTop += diff;
         }
     }
     const {
@@ -603,13 +616,14 @@ export default function SessionMessages({
             <AutoSizer>
                 {({ width, height }) => (
                     <VariableSizeList
-                        overscanCount={2}
+                        overscanCount={5}
+                        outerRef={outerRef}
+                        onItemsRendered={onItemsRendered}
                         itemData={{
                             setRowHeight,
                             sessionId,
                             addInspectionContainer,
                             setShowWorkspace,
-                            variableSizeListRef,
                             filteredMessages,
                         }}
                         itemSize={getRowHeight}
