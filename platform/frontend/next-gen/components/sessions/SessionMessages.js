@@ -43,9 +43,7 @@ import {
     useRef,
     useState,
 } from "react";
-import { useResizeDetector } from "react-resize-detector";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { VariableSizeList } from "react-window";
+import { Virtuoso } from "react-virtuoso";
 import { useShallow } from "zustand/react/shallow";
 import {
     EMPTY_ARRAY,
@@ -71,15 +69,8 @@ _.set(
     "modifiers.preventOverflow.options.padding",
     0
 );
-const Row = ({ index, data, style }) => {
-    const {
-        setRowHeight,
-        sessionId,
-        addInspectionContainer,
-        setShowWorkspace,
-        filteredMessages,
-    } = data;
-    const message = filteredMessages[index];
+const Row = ({ message, context }) => {
+    const { sessionId, addInspectionContainer, setShowWorkspace } = context;
     const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
             darkMode: state.dark_mode,
@@ -107,19 +98,12 @@ const Row = ({ index, data, style }) => {
                 ["sessions", sessionId, "streams"],
                 EMPTY_OBJECT
             ),
-            messages: _.get(
-                state,
-                ["sessions", sessionId, "messages"],
-                EMPTY_ARRAY
-            ),
-            messageFilterTags: state.messageFilterTags,
             addToWorkspace: state.addToWorkspace,
             setInspectionFocusStream: state.setInspectionFocusStream,
             expandMessage: state.expandMessage,
             expandedMessages: state.expandedMessages,
         }))
     );
-    const rowRef = useRef({});
     const user = useAuthStore((state) => state.user);
     const own = useMemo(() => {
         const id = _.get(message, "metadata.id", null);
@@ -132,27 +116,17 @@ const Row = ({ index, data, style }) => {
         }
         return isUser && _.isEqual(user.uid, id);
     }, [user, message]);
-    const isOverflow = useRef(false);
-    const stream = message.stream;
-    const handleResize = useCallback(() => {
-        // do magic for resize
+    const rowRef = useRef(null);
+    const [isOverflow, setIsOverflow] = useState(false);
+    useEffect(() => {
         if (rowRef.current) {
-            const { clientWidth, clientHeight, scrollWidth, scrollHeight } =
-                rowRef.current;
-            isOverflow.current =
-                scrollHeight > clientHeight || scrollWidth > clientWidth;
-            let height = 61;
-            height += isOverflow.current
-                ? MESSAGE_OVERFLOW_THRESHOLD
-                : rowRef.current.clientHeight;
-            if (isOverflow.current) height += 35;
-            if (detailedMessage) height += 30;
-            setRowHeight(index, height);
+            const { clientHeight, scrollHeight } = rowRef.current;
+            setIsOverflow(scrollHeight > clientHeight);
         }
-    }, [rowRef, index, setRowHeight, expandMessage, detailedMessage]);
+    });
+    const stream = message.stream;
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(message, "contentType", null);
-    const { ref: resizeRef } = useResizeDetector({ onResize: handleResize });
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
     const [showActions, setShowActions] = useState(false);
@@ -162,16 +136,12 @@ const Row = ({ index, data, style }) => {
         }
     }, [autoExpandMessage]);
     const expanded = _.get(expandedMessages, [sessionId, stream], false);
-    useEffect(() => {
-        handleResize();
-    }, [expanded, detailedMessage]);
     const elementRef = useRef(null);
     if (!message) {
         return null;
     }
     return (
         <div
-            key={index}
             onMouseLeave={() => {
                 setShowActions(false);
             }}
@@ -179,7 +149,7 @@ const Row = ({ index, data, style }) => {
                 setShowActions(true);
             }}
             style={{
-                ...style,
+                position: "relative",
                 display: "flex",
                 alignItems: "flex-start",
                 padding: "10px 20px",
@@ -207,6 +177,7 @@ const Row = ({ index, data, style }) => {
                         right: own ? (detailedMessage ? 70 : 20) : null,
                         top: detailedMessage ? 40 : 10,
                         display: showActions ? null : "none",
+                        zIndex: 1,
                     }}
                 >
                     <ButtonGroup size={Size.LARGE}>
@@ -283,7 +254,6 @@ const Row = ({ index, data, style }) => {
                             }}
                         >
                             <div
-                                ref={resizeRef}
                                 style={{
                                     padding:
                                         contentType === "JSON_FORM" ? 1 : null,
@@ -309,7 +279,7 @@ const Row = ({ index, data, style }) => {
                                 )}
                             </div>
                         </div>
-                        {isOverflow.current && (
+                        {isOverflow && (
                             <Tag
                                 onClick={() => {
                                     expandMessage(sessionId, stream);
@@ -329,46 +299,7 @@ const Row = ({ index, data, style }) => {
 };
 const SessionMessages = forwardRef(
     ({ sessionId, showWorkspace, setShowWorkspace, setShowDetails }, ref) => {
-        const variableSizeListRef = useRef();
-        const rowHeights = useRef({});
-        const isAtBottom = useRef(true);
-        const onScroll = ({ scrollOffset, scrollUpdateWasRequested }) => {
-            if (!scrollUpdateWasRequested && outerRef.current) {
-                const { scrollHeight, clientHeight } = outerRef.current;
-                const distanceToBottom =
-                    scrollHeight - clientHeight - scrollOffset;
-                isAtBottom.current = distanceToBottom < 50;
-            }
-        };
-        useImperativeHandle(ref, () => ({
-            scrollToBottom: () => {
-                isAtBottom.current = true;
-                if (variableSizeListRef.current) {
-                    variableSizeListRef.current.scrollToItem(
-                        _.size(filteredMessages),
-                        "end"
-                    );
-                }
-            },
-        }));
-        const outerRef = useRef(null);
-        const visibleRangeRef = useRef({ start: 0, end: 0 });
-        const onItemsRendered = ({ visibleStartIndex, visibleStopIndex }) => {
-            visibleRangeRef.current = {
-                start: visibleStartIndex,
-                end: visibleStopIndex,
-            };
-        };
-        const setRowHeight = useCallback((index, size) => {
-            const prevSize = rowHeights.current[index] || 81;
-            if (prevSize === size) {
-                return;
-            }
-            rowHeights.current = { ...rowHeights.current, [index]: size };
-            if (variableSizeListRef.current) {
-                variableSizeListRef.current.resetAfterIndex(index);
-            }
-        }, []);
+        const virtuosoRef = useRef(null);
         const {
             messages,
             tags,
@@ -421,32 +352,24 @@ const SessionMessages = forwardRef(
                 return _.isEmpty(filterTags) || include;
             });
         }, [messages, filterTags, attributes]);
-        const getRowHeight = useCallback((index) => {
-            return rowHeights.current[index] || 81;
-        }, []);
         const addContainer = useGridStore((state) => state.addContainer);
-        const addInspectionContainer = () => {
+        const addInspectionContainer = useCallback(() => {
             addContainer({
                 icon: faBarcodeRead,
                 title: <SessionDisplayName sessionId={sessionId} />,
                 content: <DebuggerContainer sessionId={sessionId} />,
                 uniqueId: `DebuggerContainer-${sessionId}`,
             });
-        };
-        useEffect(() => {
-            if (isAtBottom.current) {
-                setTimeout(() => {
-                    requestAnimationFrame(() => {
-                        if (variableSizeListRef.current) {
-                            variableSizeListRef.current.scrollToItem(
-                                _.size(filteredMessages),
-                                "end"
-                            );
-                        }
-                    });
-                }, 0);
-            }
-        }, [variableSizeListRef, filteredMessages]);
+        }, [sessionId, addContainer]);
+        useImperativeHandle(ref, () => ({
+            scrollToBottom: () => {
+                virtuosoRef.current?.scrollToIndex({
+                    index: filteredMessages.length - 1,
+                    align: "end",
+                    behavior: "smooth",
+                });
+            },
+        }));
         const elementRef = useRef(null);
         const popoverBoundary =
             elementRef.current &&
@@ -652,31 +575,26 @@ const SessionMessages = forwardRef(
                         </div>
                     </div>
                 </div>
-                <AutoSizer>
-                    {({ width, height }) => (
-                        <VariableSizeList
-                            overscanCount={5}
-                            outerRef={outerRef}
-                            onItemsRendered={onItemsRendered}
-                            onScroll={onScroll}
-                            itemData={{
-                                setRowHeight,
-                                sessionId,
-                                addInspectionContainer,
-                                setShowWorkspace,
-                                filteredMessages,
-                            }}
-                            itemSize={getRowHeight}
-                            itemCount={_.size(filteredMessages)}
-                            width={width}
-                            height={height - 61}
-                            ref={variableSizeListRef}
-                            style={{ overflowAnchor: "none" }}
-                        >
-                            {Row}
-                        </VariableSizeList>
+                <Virtuoso
+                    computeItemKey={(index) => index}
+                    ref={virtuosoRef}
+                    style={{ height: "calc(100% - 61px)", width: "100%" }}
+                    data={filteredMessages}
+                    followOutput="auto"
+                    initialTopMostItemIndex={filteredMessages.length - 1}
+                    context={{
+                        sessionId,
+                        addInspectionContainer,
+                        setShowWorkspace,
+                    }}
+                    itemContent={(index, message, context) => (
+                        <Row
+                            index={index}
+                            message={message}
+                            context={context}
+                        />
                     )}
-                </AutoSizer>
+                />
             </>
         );
     }
