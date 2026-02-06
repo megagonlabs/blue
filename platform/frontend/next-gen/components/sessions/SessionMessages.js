@@ -327,6 +327,14 @@ export default function SessionMessages({
 }) {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
+    const isAtBottom = useRef(true);
+    const onScroll = ({ scrollOffset, scrollUpdateWasRequested }) => {
+        if (!scrollUpdateWasRequested && outerRef.current) {
+            const { scrollHeight, clientHeight } = outerRef.current;
+            const distanceToBottom = scrollHeight - clientHeight - scrollOffset;
+            isAtBottom.current = distanceToBottom < 50;
+        }
+    };
     const outerRef = useRef(null);
     const visibleRangeRef = useRef({ start: 0, end: 0 });
     const onItemsRendered = ({ visibleStartIndex, visibleStopIndex }) => {
@@ -335,7 +343,7 @@ export default function SessionMessages({
             end: visibleStopIndex,
         };
     };
-    function setRowHeight(index, size) {
+    const setRowHeight = useCallback((index, size) => {
         const prevSize = rowHeights.current[index] || 81;
         if (prevSize === size) {
             return;
@@ -348,7 +356,7 @@ export default function SessionMessages({
             const diff = size - prevSize;
             outerRef.current.scrollTop += diff;
         }
-    }
+    }, []);
     const {
         messages,
         tags,
@@ -396,9 +404,9 @@ export default function SessionMessages({
             return _.isEmpty(filterTags) || include;
         });
     }, [messages, filterTags, attributes]);
-    function getRowHeight(index) {
+    const getRowHeight = useCallback((index) => {
         return rowHeights.current[index] || 81;
-    }
+    }, []);
     const addContainer = useGridStore((state) => state.addContainer);
     const addInspectionContainer = () => {
         addContainer({
@@ -409,19 +417,18 @@ export default function SessionMessages({
         });
     };
     useEffect(() => {
-        if (variableSizeListRef.current) {
-            variableSizeListRef.current.resetAfterIndex(0);
+        if (isAtBottom.current) {
+            setTimeout(() => {
+                requestAnimationFrame(() => {
+                    if (variableSizeListRef.current) {
+                        variableSizeListRef.current.scrollToItem(
+                            _.size(filteredMessages),
+                            "end"
+                        );
+                    }
+                });
+            }, 0);
         }
-        setTimeout(() => {
-            requestAnimationFrame(() => {
-                if (variableSizeListRef.current) {
-                    variableSizeListRef.current.scrollToItem(
-                        _.size(filteredMessages),
-                        "end"
-                    );
-                }
-            });
-        }, 0);
     }, [variableSizeListRef, filteredMessages]);
     const elementRef = useRef(null);
     const popoverBoundary =
@@ -619,6 +626,7 @@ export default function SessionMessages({
                         overscanCount={5}
                         outerRef={outerRef}
                         onItemsRendered={onItemsRendered}
+                        onScroll={onScroll}
                         itemData={{
                             setRowHeight,
                             sessionId,
@@ -631,6 +639,7 @@ export default function SessionMessages({
                         width={width}
                         height={height - 61}
                         ref={variableSizeListRef}
+                        style={{ overflowAnchor: "none" }}
                     >
                         {Row}
                     </VariableSizeList>
