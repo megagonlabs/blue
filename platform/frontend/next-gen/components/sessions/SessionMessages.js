@@ -36,6 +36,7 @@ import {
 import _ from "lodash";
 import {
     forwardRef,
+    memo,
     useCallback,
     useEffect,
     useImperativeHandle,
