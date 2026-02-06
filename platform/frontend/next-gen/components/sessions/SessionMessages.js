@@ -69,7 +69,7 @@ _.set(
     "modifiers.preventOverflow.options.padding",
     0
 );
-const Row = ({ message, context }) => {
+const Row = memo(({ message, context }) => {
     const { sessionId, addInspectionContainer, setShowWorkspace } = context;
     const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
@@ -296,7 +296,7 @@ const Row = ({ message, context }) => {
             </div>
         </div>
     );
-};
+});
 const SessionMessages = forwardRef(
     ({ sessionId, showWorkspace, setShowWorkspace, setShowDetails }, ref) => {
         const virtuosoRef = useRef(null);
@@ -370,6 +370,20 @@ const SessionMessages = forwardRef(
                 });
             },
         }));
+        const itemContent = useCallback(
+            (index, message, context) => (
+                <Row index={index} message={message} context={context} />
+            ),
+            []
+        );
+        const rowContext = useMemo(
+            () => ({
+                sessionId,
+                addInspectionContainer,
+                setShowWorkspace,
+            }),
+            [sessionId, addInspectionContainer, setShowWorkspace]
+        );
         const elementRef = useRef(null);
         const popoverBoundary =
             elementRef.current &&
@@ -576,24 +590,15 @@ const SessionMessages = forwardRef(
                     </div>
                 </div>
                 <Virtuoso
+                    overscan={{ main: 500, reverse: 500 }}
                     computeItemKey={(index) => index}
                     ref={virtuosoRef}
                     style={{ height: "calc(100% - 61px)", width: "100%" }}
                     data={filteredMessages}
                     followOutput="auto"
                     initialTopMostItemIndex={filteredMessages.length - 1}
-                    context={{
-                        sessionId,
-                        addInspectionContainer,
-                        setShowWorkspace,
-                    }}
-                    itemContent={(index, message, context) => (
-                        <Row
-                            index={index}
-                            message={message}
-                            context={context}
-                        />
-                    )}
+                    context={rowContext}
+                    itemContent={itemContent}
                 />
             </>
         );
