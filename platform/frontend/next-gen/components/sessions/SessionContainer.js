@@ -23,7 +23,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Allotment } from "allotment";
 import _ from "lodash";
-import { createRef, useEffect, useMemo, useState } from "react";
+import { createRef, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
 import { useGridContainerContext } from "../contexts/GridContainerContext";
@@ -81,6 +81,7 @@ function SessionContainer({ width, height, sessionId }) {
             removeContainer(gridContainerId);
         }
     }, [sessions, gridContainerId, removeContainer]);
+    const sessionMessagesRef = useRef(null);
     const sendSessionMessage = () => {
         const trimmedUserMessage = _.trim(userMessage);
         if (_.isEmpty(trimmedUserMessage)) return;
@@ -92,6 +93,9 @@ function SessionContainer({ width, height, sessionId }) {
             })
         );
         setUserMessage("");
+        if (sessionMessagesRef.current) {
+            sessionMessagesRef.current.scrollToBottom();
+        }
     };
     const controGroupRef = createRef();
     const { height: controlGroupHeight } =
@@ -216,6 +220,7 @@ function SessionContainer({ width, height, sessionId }) {
                             </Allotment.Pane>
                             <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
                                 <SessionMessages
+                                    ref={sessionMessagesRef}
                                     setShowDetails={setShowDetails}
                                     sessionId={sessionId}
                                     showWorkspace={showWorkspace}

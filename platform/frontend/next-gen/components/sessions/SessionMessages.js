@@ -34,7 +34,15 @@ import {
     faTableColumns,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    forwardRef,
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
@@ -319,226 +327,169 @@ const Row = ({ index, data, style }) => {
         </div>
     );
 };
-export default function SessionMessages({
-    sessionId,
-    showWorkspace,
-    setShowWorkspace,
-    setShowDetails,
-}) {
-    const variableSizeListRef = useRef();
-    const rowHeights = useRef({});
-    const isAtBottom = useRef(true);
-    const onScroll = ({ scrollOffset, scrollUpdateWasRequested }) => {
-        if (!scrollUpdateWasRequested && outerRef.current) {
-            const { scrollHeight, clientHeight } = outerRef.current;
-            const distanceToBottom = scrollHeight - clientHeight - scrollOffset;
-            isAtBottom.current = distanceToBottom < 50;
-        }
-    };
-    const outerRef = useRef(null);
-    const visibleRangeRef = useRef({ start: 0, end: 0 });
-    const onItemsRendered = ({ visibleStartIndex, visibleStopIndex }) => {
-        visibleRangeRef.current = {
-            start: visibleStartIndex,
-            end: visibleStopIndex,
+const SessionMessages = forwardRef(
+    ({ sessionId, showWorkspace, setShowWorkspace, setShowDetails }, ref) => {
+        const variableSizeListRef = useRef();
+        const rowHeights = useRef({});
+        const isAtBottom = useRef(true);
+        const onScroll = ({ scrollOffset, scrollUpdateWasRequested }) => {
+            if (!scrollUpdateWasRequested && outerRef.current) {
+                const { scrollHeight, clientHeight } = outerRef.current;
+                const distanceToBottom =
+                    scrollHeight - clientHeight - scrollOffset;
+                isAtBottom.current = distanceToBottom < 50;
+            }
         };
-    };
-    const setRowHeight = useCallback((index, size) => {
-        const prevSize = rowHeights.current[index] || 81;
-        if (prevSize === size) {
-            return;
-        }
-        rowHeights.current = { ...rowHeights.current, [index]: size };
-        if (variableSizeListRef.current) {
-            variableSizeListRef.current.resetAfterIndex(index);
-        }
-        if (index < visibleRangeRef.current.start && outerRef.current) {
-            const diff = size - prevSize;
-            outerRef.current.scrollTop += diff;
-        }
-    }, []);
-    const {
-        messages,
-        tags,
-        messageFilterTags,
-        toggleMessageFilterTag,
-        clearMessageFilterTags,
-    } = useSessionStore(
-        useShallow((state) => ({
-            messages: _.get(
-                state,
-                ["sessions", sessionId, "messages"],
-                EMPTY_ARRAY
-            ),
-            tags: _.get(state, ["sessions", sessionId, "tags"], EMPTY_ARRAY),
-            messageFilterTags: state.messageFilterTags,
-            toggleMessageFilterTag: state.toggleMessageFilterTag,
-            clearMessageFilterTags: state.clearMessageFilterTags,
-        }))
-    );
-    const filterTags = _.get(messageFilterTags, sessionId, EMPTY_ARRAY);
-    const { sessionAttributes } = useSocketStore(
-        useShallow((state) => ({
-            sessionAttributes: state.sessionAttributes,
-        }))
-    );
-    const attributes = _.get(sessionAttributes, sessionId, EMPTY_OBJECT);
-    const filteredMessages = useMemo(() => {
-        const debugMode = _.get(attributes, "debug_mode", false);
-        return messages.filter((message) => {
-            const stream = _.get(message, "stream", null);
-            if (
-                _.get(message, "metadata.tags.WORKSPACE_ONLY", false) ||
-                (_.get(message, "metadata.tags.HIDDEN", false) && !debugMode) ||
-                _.endsWith(stream, "PROGRESS:STREAM")
-            ) {
-                return false;
-            }
-            let include = false;
-            for (let i = 0; i < _.size(filterTags); i++) {
-                if (_.get(message, ["metadata", "tags", filterTags[i]])) {
-                    include = true;
-                    break;
+        useImperativeHandle(ref, () => ({
+            scrollToBottom: () => {
+                isAtBottom.current = true;
+                if (variableSizeListRef.current) {
+                    variableSizeListRef.current.scrollToItem(
+                        _.size(filteredMessages),
+                        "end"
+                    );
                 }
+            },
+        }));
+        const outerRef = useRef(null);
+        const visibleRangeRef = useRef({ start: 0, end: 0 });
+        const onItemsRendered = ({ visibleStartIndex, visibleStopIndex }) => {
+            visibleRangeRef.current = {
+                start: visibleStartIndex,
+                end: visibleStopIndex,
+            };
+        };
+        const setRowHeight = useCallback((index, size) => {
+            const prevSize = rowHeights.current[index] || 81;
+            if (prevSize === size) {
+                return;
             }
-            return _.isEmpty(filterTags) || include;
-        });
-    }, [messages, filterTags, attributes]);
-    const getRowHeight = useCallback((index) => {
-        return rowHeights.current[index] || 81;
-    }, []);
-    const addContainer = useGridStore((state) => state.addContainer);
-    const addInspectionContainer = () => {
-        addContainer({
-            icon: faBarcodeRead,
-            title: <SessionDisplayName sessionId={sessionId} />,
-            content: <DebuggerContainer sessionId={sessionId} />,
-            uniqueId: `DebuggerContainer-${sessionId}`,
-        });
-    };
-    useEffect(() => {
-        if (isAtBottom.current) {
-            setTimeout(() => {
-                requestAnimationFrame(() => {
-                    if (variableSizeListRef.current) {
-                        variableSizeListRef.current.scrollToItem(
-                            _.size(filteredMessages),
-                            "end"
-                        );
+            rowHeights.current = { ...rowHeights.current, [index]: size };
+            if (variableSizeListRef.current) {
+                variableSizeListRef.current.resetAfterIndex(index);
+            }
+            if (index < visibleRangeRef.current.start && outerRef.current) {
+                const diff = size - prevSize;
+                outerRef.current.scrollTop += diff;
+            }
+        }, []);
+        const {
+            messages,
+            tags,
+            messageFilterTags,
+            toggleMessageFilterTag,
+            clearMessageFilterTags,
+        } = useSessionStore(
+            useShallow((state) => ({
+                messages: _.get(
+                    state,
+                    ["sessions", sessionId, "messages"],
+                    EMPTY_ARRAY
+                ),
+                tags: _.get(
+                    state,
+                    ["sessions", sessionId, "tags"],
+                    EMPTY_ARRAY
+                ),
+                messageFilterTags: state.messageFilterTags,
+                toggleMessageFilterTag: state.toggleMessageFilterTag,
+                clearMessageFilterTags: state.clearMessageFilterTags,
+            }))
+        );
+        const filterTags = _.get(messageFilterTags, sessionId, EMPTY_ARRAY);
+        const { sessionAttributes } = useSocketStore(
+            useShallow((state) => ({
+                sessionAttributes: state.sessionAttributes,
+            }))
+        );
+        const attributes = _.get(sessionAttributes, sessionId, EMPTY_OBJECT);
+        const filteredMessages = useMemo(() => {
+            const debugMode = _.get(attributes, "debug_mode", false);
+            return messages.filter((message) => {
+                const stream = _.get(message, "stream", null);
+                if (
+                    _.get(message, "metadata.tags.WORKSPACE_ONLY", false) ||
+                    (_.get(message, "metadata.tags.HIDDEN", false) &&
+                        !debugMode) ||
+                    _.endsWith(stream, "PROGRESS:STREAM")
+                ) {
+                    return false;
+                }
+                let include = false;
+                for (let i = 0; i < _.size(filterTags); i++) {
+                    if (_.get(message, ["metadata", "tags", filterTags[i]])) {
+                        include = true;
+                        break;
                     }
-                });
-            }, 0);
-        }
-    }, [variableSizeListRef, filteredMessages]);
-    const elementRef = useRef(null);
-    const popoverBoundary =
-        elementRef.current &&
-        elementRef.current.closest(".grid-container-boundary");
-    return (
-        <>
-            <div
-                ref={elementRef}
-                className="border-bottom"
-                style={{
-                    padding: 10,
-                    display: "flex",
-                    justifyContent: "space-between",
-                }}
-            >
-                <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
-                    <Tooltip
-                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                        content="Workspace"
-                        boundary={popoverBoundary}
-                    >
-                        <Button
-                            icon={
-                                <FAIcon
-                                    icon={
-                                        showWorkspace
-                                            ? faArrowLeft
-                                            : faTableColumns
-                                    }
-                                />
-                            }
-                            onClick={() => {
-                                setShowWorkspace(!showWorkspace);
-                            }}
-                        />
-                    </Tooltip>
-                    <Popover
-                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                        boundary={popoverBoundary}
-                        minimal
-                        content={
-                            <Menu size={Size.LARGE}>
-                                <MenuItem
-                                    text="Deselect all"
-                                    onClick={() => {
-                                        clearMessageFilterTags(sessionId);
-                                    }}
-                                    icon={<FAIcon icon={faEraser} />}
-                                />
-                                {!_.isEmpty(tags) && (
-                                    <>
-                                        <MenuDivider title="By tag" />
-                                        {tags.map((tag, index) => {
-                                            const selected = _.includes(
-                                                filterTags,
-                                                tag
-                                            );
-                                            return (
-                                                <MenuItem
-                                                    icon={
-                                                        selected ? (
-                                                            GREEN_CHECK
-                                                        ) : (
-                                                            <Icon icon="blank" />
-                                                        )
-                                                    }
-                                                    key={index}
-                                                    text={tag}
-                                                    onClick={() => {
-                                                        toggleMessageFilterTag(
-                                                            sessionId,
-                                                            tag
-                                                        );
-                                                    }}
-                                                    shouldDismissPopover={false}
-                                                />
-                                            );
-                                        })}
-                                    </>
-                                )}
-                            </Menu>
+                }
+                return _.isEmpty(filterTags) || include;
+            });
+        }, [messages, filterTags, attributes]);
+        const getRowHeight = useCallback((index) => {
+            return rowHeights.current[index] || 81;
+        }, []);
+        const addContainer = useGridStore((state) => state.addContainer);
+        const addInspectionContainer = () => {
+            addContainer({
+                icon: faBarcodeRead,
+                title: <SessionDisplayName sessionId={sessionId} />,
+                content: <DebuggerContainer sessionId={sessionId} />,
+                uniqueId: `DebuggerContainer-${sessionId}`,
+            });
+        };
+        useEffect(() => {
+            if (isAtBottom.current) {
+                setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        if (variableSizeListRef.current) {
+                            variableSizeListRef.current.scrollToItem(
+                                _.size(filteredMessages),
+                                "end"
+                            );
                         }
-                    >
-                        <Tooltip
-                            openOnTargetFocus={false}
-                            placement="bottom"
-                            content="Filter"
-                        >
-                            <Button
-                                intent={Intent.PRIMARY}
-                                alignText={Alignment.START}
-                                icon={<FAIcon icon={faBarsFilter} />}
-                                text={_.size()}
-                            />
-                        </Tooltip>
-                    </Popover>
-                </ButtonGroup>
+                    });
+                }, 0);
+            }
+        }, [variableSizeListRef, filteredMessages]);
+        const elementRef = useRef(null);
+        const popoverBoundary =
+            elementRef.current &&
+            elementRef.current.closest(".grid-container-boundary");
+        return (
+            <>
                 <div
+                    ref={elementRef}
+                    className="border-bottom"
                     style={{
+                        padding: 10,
                         display: "flex",
-                        flexDirection: "row-reverse",
-                        alignItems: "center",
-                        gap: 10,
+                        justifyContent: "space-between",
                     }}
                 >
                     <ButtonGroup
                         size={Size.LARGE}
                         variant={ButtonVariant.MINIMAL}
                     >
+                        <Tooltip
+                            {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                            content="Workspace"
+                            boundary={popoverBoundary}
+                        >
+                            <Button
+                                icon={
+                                    <FAIcon
+                                        icon={
+                                            showWorkspace
+                                                ? faArrowLeft
+                                                : faTableColumns
+                                        }
+                                    />
+                                }
+                                onClick={() => {
+                                    setShowWorkspace(!showWorkspace);
+                                }}
+                            />
+                        </Tooltip>
                         <Popover
                             {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
                             boundary={popoverBoundary}
@@ -546,105 +497,192 @@ export default function SessionMessages({
                             content={
                                 <Menu size={Size.LARGE}>
                                     <MenuItem
+                                        text="Deselect all"
                                         onClick={() => {
-                                            setShowDetails(true);
+                                            clearMessageFilterTags(sessionId);
                                         }}
-                                        text="Open session details"
+                                        icon={<FAIcon icon={faEraser} />}
                                     />
-                                    <MenuItem
-                                        labelElement={
-                                            <FAIcon
-                                                icon={faBrowsers}
-                                                style={{ marginLeft: 3 }}
-                                            />
-                                        }
-                                        icon={<FAIcon icon={faBarcodeRead} />}
-                                        onClick={addInspectionContainer}
-                                        text="Inspect"
-                                    />
+                                    {!_.isEmpty(tags) && (
+                                        <>
+                                            <MenuDivider title="By tag" />
+                                            {tags.map((tag, index) => {
+                                                const selected = _.includes(
+                                                    filterTags,
+                                                    tag
+                                                );
+                                                return (
+                                                    <MenuItem
+                                                        icon={
+                                                            selected ? (
+                                                                GREEN_CHECK
+                                                            ) : (
+                                                                <Icon icon="blank" />
+                                                            )
+                                                        }
+                                                        key={index}
+                                                        text={tag}
+                                                        onClick={() => {
+                                                            toggleMessageFilterTag(
+                                                                sessionId,
+                                                                tag
+                                                            );
+                                                        }}
+                                                        shouldDismissPopover={
+                                                            false
+                                                        }
+                                                    />
+                                                );
+                                            })}
+                                        </>
+                                    )}
                                 </Menu>
                             }
                         >
                             <Tooltip
-                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                                boundary={popoverBoundary}
-                                content="More actions"
+                                openOnTargetFocus={false}
+                                placement="bottom"
+                                content="Filter"
                             >
-                                <Button icon={<FAIcon icon={faEllipsisV} />} />
+                                <Button
+                                    intent={Intent.PRIMARY}
+                                    alignText={Alignment.START}
+                                    icon={<FAIcon icon={faBarsFilter} />}
+                                    text={_.size()}
+                                />
                             </Tooltip>
                         </Popover>
                     </ButtonGroup>
-                    <div style={{ width: 200, height: 40 }}>
-                        <SessionMemberStack
-                            style={{ justifyContent: "flex-end" }}
-                            sessionId={sessionId}
-                        />
-                    </div>
-                    <div style={{ marginLeft: 20 }}>
-                        <UITip
-                            id="session_inspection_debugger"
-                            content={
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        flexWrap: "wrap",
-                                    }}
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "row-reverse",
+                            alignItems: "center",
+                            gap: 10,
+                        }}
+                    >
+                        <ButtonGroup
+                            size={Size.LARGE}
+                            variant={ButtonVariant.MINIMAL}
+                        >
+                            <Popover
+                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                boundary={popoverBoundary}
+                                minimal
+                                content={
+                                    <Menu size={Size.LARGE}>
+                                        <MenuItem
+                                            onClick={() => {
+                                                setShowDetails(true);
+                                            }}
+                                            text="Open session details"
+                                        />
+                                        <MenuItem
+                                            labelElement={
+                                                <FAIcon
+                                                    icon={faBrowsers}
+                                                    style={{ marginLeft: 3 }}
+                                                />
+                                            }
+                                            icon={
+                                                <FAIcon icon={faBarcodeRead} />
+                                            }
+                                            onClick={addInspectionContainer}
+                                            text="Inspect"
+                                        />
+                                    </Menu>
+                                }
+                            >
+                                <Tooltip
+                                    {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                    boundary={popoverBoundary}
+                                    content="More actions"
                                 >
-                                    To debug a session, open the debugger&nbsp;
-                                    <span>by clicking on</span>
                                     <Button
-                                        className="pointer-events-none"
                                         icon={<FAIcon icon={faEllipsisV} />}
-                                        variant={ButtonVariant.MINIMAL}
                                     />
-                                    <FAIcon icon={faAngleRight} />
-                                    <Tag
+                                </Tooltip>
+                            </Popover>
+                        </ButtonGroup>
+                        <div style={{ width: 200, height: 40 }}>
+                            <SessionMemberStack
+                                style={{ justifyContent: "flex-end" }}
+                                sessionId={sessionId}
+                            />
+                        </div>
+                        <div style={{ marginLeft: 20 }}>
+                            <UITip
+                                id="session_inspection_debugger"
+                                content={
+                                    <div
                                         style={{
-                                            marginLeft: 5,
-                                            marginRight: 5,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            flexWrap: "wrap",
                                         }}
-                                        minimal
-                                        icon={<FAIcon icon={faBarcodeRead} />}
-                                        size={Size.LARGE}
-                                        endIcon={<FAIcon icon={faBrowsers} />}
                                     >
-                                        Inspect
-                                    </Tag>
-                                    <span>.</span> This action also activates
-                                    debug mode for the session, which enables
-                                    the reception of hidden data streams.
-                                </div>
-                            }
-                        />
+                                        To debug a session, open the
+                                        debugger&nbsp;
+                                        <span>by clicking on</span>
+                                        <Button
+                                            className="pointer-events-none"
+                                            icon={<FAIcon icon={faEllipsisV} />}
+                                            variant={ButtonVariant.MINIMAL}
+                                        />
+                                        <FAIcon icon={faAngleRight} />
+                                        <Tag
+                                            style={{
+                                                marginLeft: 5,
+                                                marginRight: 5,
+                                            }}
+                                            minimal
+                                            icon={
+                                                <FAIcon icon={faBarcodeRead} />
+                                            }
+                                            size={Size.LARGE}
+                                            endIcon={
+                                                <FAIcon icon={faBrowsers} />
+                                            }
+                                        >
+                                            Inspect
+                                        </Tag>
+                                        <span>.</span> This action also
+                                        activates debug mode for the session,
+                                        which enables the reception of hidden
+                                        data streams.
+                                    </div>
+                                }
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
-            <AutoSizer>
-                {({ width, height }) => (
-                    <VariableSizeList
-                        overscanCount={5}
-                        outerRef={outerRef}
-                        onItemsRendered={onItemsRendered}
-                        onScroll={onScroll}
-                        itemData={{
-                            setRowHeight,
-                            sessionId,
-                            addInspectionContainer,
-                            setShowWorkspace,
-                            filteredMessages,
-                        }}
-                        itemSize={getRowHeight}
-                        itemCount={_.size(filteredMessages)}
-                        width={width}
-                        height={height - 61}
-                        ref={variableSizeListRef}
-                        style={{ overflowAnchor: "none" }}
-                    >
-                        {Row}
-                    </VariableSizeList>
-                )}
-            </AutoSizer>
-        </>
-    );
-}
+                <AutoSizer>
+                    {({ width, height }) => (
+                        <VariableSizeList
+                            overscanCount={5}
+                            outerRef={outerRef}
+                            onItemsRendered={onItemsRendered}
+                            onScroll={onScroll}
+                            itemData={{
+                                setRowHeight,
+                                sessionId,
+                                addInspectionContainer,
+                                setShowWorkspace,
+                                filteredMessages,
+                            }}
+                            itemSize={getRowHeight}
+                            itemCount={_.size(filteredMessages)}
+                            width={width}
+                            height={height - 61}
+                            ref={variableSizeListRef}
+                            style={{ overflowAnchor: "none" }}
+                        >
+                            {Row}
+                        </VariableSizeList>
+                    )}
+                </AutoSizer>
+            </>
+        );
+    }
+);
+export default SessionMessages;
