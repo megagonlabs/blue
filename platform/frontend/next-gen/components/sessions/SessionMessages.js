@@ -685,4 +685,5 @@ const SessionMessages = forwardRef(
         );
     }
 );
+SessionMessages.displayName = "SessionMessages";
 export default SessionMessages;
