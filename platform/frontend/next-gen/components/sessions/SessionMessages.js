@@ -40,6 +40,7 @@ import {
     useCallback,
     useEffect,
     useImperativeHandle,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -87,18 +88,12 @@ const Row = memo(({ message, context }) => {
         }))
     );
     const {
-        streams,
         addToWorkspace,
         setInspectionFocusStream,
         expandMessage,
         expandedMessages,
     } = useSessionStore(
         useShallow((state) => ({
-            streams: _.get(
-                state,
-                ["sessions", sessionId, "streams"],
-                EMPTY_OBJECT
-            ),
             addToWorkspace: state.addToWorkspace,
             setInspectionFocusStream: state.setInspectionFocusStream,
             expandMessage: state.expandMessage,
@@ -111,7 +106,7 @@ const Row = memo(({ message, context }) => {
         const createdBy = _.get(message, "metadata.created_by", null);
         const isUser = _.isEqual(createdBy, "USER");
         return isUser && _.isEqual(user.uid, id);
-    }, [user, message]);
+    }, [user.uid, message.metadata.id, message.metadata.created_by]);
     useEffect(() => {
         const id = _.get(message, "metadata.id", null);
         const createdBy = _.get(message, "metadata.created_by", null);
@@ -121,26 +116,47 @@ const Row = memo(({ message, context }) => {
         } else {
             getAgentMetadata(createdBy);
         }
-    }, [message]);
-    const rowRef = useRef(null);
+    }, [message.metadata.id, message.metadata.created_by]);
     const stream = message.stream;
-    const streamData = _.get(streams, [stream, "data"], []);
+    const streamData = useSessionStore(
+        useShallow((state) =>
+            _.get(
+                state,
+                ["sessions", sessionId, "streams", stream, "data"],
+                EMPTY_ARRAY
+            )
+        )
+    );
     const contentType = _.get(message, "contentType", null);
-    const complete = _.get(streams, [stream, "complete"], false);
+    const complete = useSessionStore(
+        useShallow((state) =>
+            _.get(
+                state,
+                ["sessions", sessionId, "streams", stream, "complete"],
+                false
+            )
+        )
+    );
     const hasError = useRef(false);
     const [showActions, setShowActions] = useState(false);
+    const contentRef = useRef(null);
     const [isOverflow, setIsOverflow] = useState(false);
     const expanded = _.get(expandedMessages, [sessionId, stream], false);
-    useEffect(() => {
-        if (rowRef.current) {
-            const { clientHeight, scrollHeight } = rowRef.current;
-            const newIsOverflow = scrollHeight > clientHeight;
-            setIsOverflow((prev) => {
-                if (prev !== newIsOverflow) return newIsOverflow;
-                return prev;
-            });
-        }
-    }, [streamData, expanded, detailedMessage]);
+    useLayoutEffect(() => {
+        if (!contentRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                const currentHeight = entry.contentRect.height;
+                setIsOverflow((prev) => {
+                    const isNowOverflowing =
+                        currentHeight > MESSAGE_OVERFLOW_THRESHOLD;
+                    return prev === isNowOverflowing ? prev : isNowOverflowing;
+                });
+            }
+        });
+        observer.observe(contentRef.current);
+        return () => observer.disconnect();
+    }, []);
     useEffect(() => {
         if (autoExpandMessage) {
             expandMessage(sessionId, stream);
@@ -255,15 +271,17 @@ const Row = memo(({ message, context }) => {
                         }}
                     >
                         <div
-                            ref={rowRef}
                             className="message-bubble-callout-content"
                             style={{
                                 maxHeight: expanded
                                     ? null
                                     : MESSAGE_OVERFLOW_THRESHOLD,
+                                overflow: "hidden",
+                                transition: "max-height 0.2s ease",
                             }}
                         >
                             <div
+                                ref={contentRef}
                                 style={{
                                     padding:
                                         contentType === "JSON_FORM" ? 1 : null,
@@ -289,7 +307,7 @@ const Row = memo(({ message, context }) => {
                                 )}
                             </div>
                         </div>
-                        {isOverflow && (
+                        {isOverflow && !expanded && (
                             <Tag
                                 onClick={() => {
                                     expandMessage(sessionId, stream);
