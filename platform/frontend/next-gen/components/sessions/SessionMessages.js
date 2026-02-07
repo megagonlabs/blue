@@ -109,14 +109,17 @@ const Row = memo(({ message, context }) => {
         return isUser && _.isEqual(user.uid, id);
     }, [user.uid, message.metadata.id, message.metadata.created_by]);
     useEffect(() => {
-        const id = _.get(message, "metadata.id", null);
-        const createdBy = _.get(message, "metadata.created_by", null);
-        const isUser = _.isEqual(createdBy, "USER");
-        if (isUser) {
-            getUserProfileById(id, showAxiosErrorToast);
-        } else {
-            getAgentMetadata(createdBy);
-        }
+        const timer = setTimeout(() => {
+            const id = _.get(message, "metadata.id", null);
+            const createdBy = _.get(message, "metadata.created_by", null);
+            const isUser = _.isEqual(createdBy, "USER");
+            if (isUser) {
+                getUserProfileById(id, showAxiosErrorToast);
+            } else {
+                getAgentMetadata(createdBy);
+            }
+        }, 100);
+        return () => clearTimeout(timer);
     }, [message.metadata.id, message.metadata.created_by]);
     const stream = message.stream;
     const streamData = useSessionStore(
