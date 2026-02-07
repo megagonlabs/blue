@@ -1,3 +1,4 @@
+import { useThrottle } from "@/components/hooks/useThrottle";
 import { useAppStore } from "@/stores/app-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useDedupStore } from "@/stores/dedup-store";
@@ -359,9 +360,10 @@ const SessionMessages = forwardRef(
             }))
         );
         const attributes = _.get(sessionAttributes, sessionId, EMPTY_OBJECT);
+        const throttledMessages = useThrottle(messages, 100);
         const filteredMessages = useMemo(() => {
             const debugMode = _.get(attributes, "debug_mode", false);
-            return messages.filter((message) => {
+            return throttledMessages.filter((message) => {
                 const stream = _.get(message, "stream", null);
                 if (
                     _.get(message, "metadata.tags.WORKSPACE_ONLY", false) ||
@@ -380,7 +382,7 @@ const SessionMessages = forwardRef(
                 }
                 return _.isEmpty(filterTags) || include;
             });
-        }, [messages, filterTags, attributes]);
+        }, [throttledMessages, filterTags, attributes]);
         const addContainer = useGridStore((state) => state.addContainer);
         const addInspectionContainer = useCallback(() => {
             addContainer({
