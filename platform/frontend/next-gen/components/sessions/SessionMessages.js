@@ -130,6 +130,7 @@ const Row = memo(({ message, context }) => {
     const hasError = useRef(false);
     const [showActions, setShowActions] = useState(false);
     const [isOverflow, setIsOverflow] = useState(false);
+    const expanded = _.get(expandedMessages, [sessionId, stream], false);
     useEffect(() => {
         if (rowRef.current) {
             const { clientHeight, scrollHeight } = rowRef.current;
@@ -145,7 +146,6 @@ const Row = memo(({ message, context }) => {
             expandMessage(sessionId, stream);
         }
     }, [autoExpandMessage]);
-    const expanded = _.get(expandedMessages, [sessionId, stream], false);
     const elementRef = useRef(null);
     if (!message) {
         return null;
