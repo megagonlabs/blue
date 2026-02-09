@@ -54,6 +54,7 @@ import {
     GREEN_CHECK,
     MESSAGE_OVERFLOW_THRESHOLD,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+    VIRTUOSO_PROPS,
 } from "../constants";
 import { useToaster } from "../contexts/ToasterContext";
 import { FAIcon } from "../FAIcon";
@@ -400,13 +401,13 @@ const SessionMessages = forwardRef(
                 virtuosoRef.current?.scrollToIndex({
                     index: filteredMessages.length - 1,
                     align: "end",
-                    behavior: "smooth",
+                    behavior: "auto",
                 });
             },
         }));
         const itemContent = useCallback(
             (index, message, context) => (
-                <Row index={index} message={message} context={context} />
+                <Row message={message} context={context} />
             ),
             []
         );
@@ -624,7 +625,7 @@ const SessionMessages = forwardRef(
                     </div>
                 </div>
                 <Virtuoso
-                    overscan={{ main: 500, reverse: 500 }}
+                    overscan={VIRTUOSO_PROPS["overscan"]}
                     computeItemKey={(index) => index}
                     ref={virtuosoRef}
                     style={{ height: "calc(100% - 61px)", width: "100%" }}

@@ -19,6 +19,10 @@ export default function WSConnectionIndicator() {
             connectWebSocket: state.connectWebSocket,
         }))
     );
+    const loading = _.includes(
+        [WebSocket.CONNECTING, WebSocket.CLOSING],
+        socketReadyState
+    );
     return (
         <div style={{ marginBottom: 20, textAlign: "center" }}>
             {_.isEqual(socketReadyState, WebSocket.OPEN) ? (
@@ -34,12 +38,12 @@ export default function WSConnectionIndicator() {
                     size={Size.LARGE}
                     variant={ButtonVariant.MINIMAL}
                 >
-                    <Tooltip content="Reconnect" placement="right">
+                    <Tooltip
+                        content={`Reconnect${loading ? "ing" : null}`}
+                        placement="right"
+                    >
                         <Button
-                            loading={_.includes(
-                                [WebSocket.CONNECTING, WebSocket.CLOSING],
-                                socketReadyState
-                            )}
+                            loading={loading}
                             disabled={!_.isFunction(connectWebSocket)}
                             onClick={connectWebSocket}
                             intent={Intent.DANGER}

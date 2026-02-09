@@ -20,57 +20,36 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { faSearch } from "@fortawesome/sharp-solid-svg-icons";
 import _ from "lodash";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { VariableSizeList } from "react-window";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { Virtuoso } from "react-virtuoso";
 import { useShallow } from "zustand/react/shallow";
 import {
     CIRCLE_DOT_WITH_FADE,
     EMPTY_ARRAY,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+    VIRTUOSO_PROPS,
 } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import NoResultsFound from "../nonidealstates/NoResultsFound";
-const TrackerCard = memo(function TrackerCard({ data, index, style }) {
-    const { setRowHeight, rowHeights } = data;
-    const cardRef = useRef();
+const TrackerCard = memo(function TrackerCard({ index, message }) {
+    const tracker = message;
     const { trackers, trackerData } = useSystemStatusStore(
         useShallow((state) => ({
             trackers: state.trackers,
             trackerData: state.trackerData,
         }))
     );
-    const tracker = trackers[index];
     const contents = _.get(trackerData, [tracker, "data"], EMPTY_ARRAY);
     const darkMode = useAppStore((state) => state.dark_mode);
-    useEffect(() => {
-        const element = cardRef.current;
-        if (!element) return;
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (let entry of entries) {
-                const newHeight = entry.target.getBoundingClientRect().height;
-                if (!_.isEqual(rowHeights.current[index], newHeight)) {
-                    setRowHeight(index, newHeight);
-                }
-            }
-        });
-        resizeObserver.observe(element);
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, [index, setRowHeight, rowHeights, tracker]);
     return (
         <div
             style={{
-                ...style,
-                padding: `20px 20px ${
-                    _.isEqual(index, _.size(trackers) - 1) ? 20 : 0
-                }px 20px`,
+                padding: 20,
+                paddingBottom: _.isEqual(index, _.size(trackers) - 1) ? 20 : 0,
             }}
         >
             <div
-                ref={cardRef}
                 style={{
                     borderRadius: 2,
                     padding: 20,
@@ -87,6 +66,7 @@ const TrackerCard = memo(function TrackerCard({ data, index, style }) {
     );
 });
 function SystemStatusContainer({ width, height }) {
+    const virtuosoRef = useRef(null);
     const darkMode = useAppStore((state) => state.dark_mode);
     const { trackers, isSystemStatusLive } = useSystemStatusStore(
         useShallow((state) => ({
@@ -95,60 +75,6 @@ function SystemStatusContainer({ width, height }) {
         }))
     );
     const elementRef = useRef(null);
-    const previousTrackersRef = useRef(trackers);
-    const listRef = useRef(null);
-    const rowHeights = useRef({});
-    const firstVisibleIndex = useRef(0);
-    const focusedTracker = useMemo(
-        () => previousTrackersRef.current[firstVisibleIndex.current],
-        [previousTrackersRef.current, firstVisibleIndex.current]
-    );
-    const trackerCardOffset = useRef(0);
-    const setRowHeight = (index, size) => {
-        // only update if the height is different to avoid unnecessary resets
-        if (!_.isEqual(rowHeights.current[index], size)) {
-            rowHeights.current = { ...rowHeights.current, [index]: size };
-            // this is crucial: tell VariableSizeList to re-measure from this index onwards.
-            // this ensures the list re-calculates its total height and item positions.
-            if (listRef.current) {
-                listRef.current.resetAfterIndex(index);
-            }
-        }
-    };
-    const getRowHeight = useCallback(
-        (index) =>
-            rowHeights.current[index] +
-                20 +
-                (_.isEqual(index, _.size(trackers) - 1) ? 20 : 0) || 69,
-        [trackers]
-    );
-    const onScroll = ({ scrollOffset }) => {
-        let topOffset = 0;
-        for (let i = 0; i < firstVisibleIndex.current; i++) {
-            topOffset += getRowHeight(i);
-        }
-        trackerCardOffset.current = scrollOffset - topOffset;
-    };
-    useEffect(() => {
-        if (listRef.current) {
-            listRef.current.resetAfterIndex(0);
-            let topOffset = 0;
-            let newFocusIndex = firstVisibleIndex.current;
-            for (let i = 0; i < _.size(trackers); i++) {
-                if (_.isEqual(trackers[i], focusedTracker)) {
-                    newFocusIndex = i;
-                    break;
-                }
-            }
-            previousTrackersRef.current = trackers;
-            for (let i = 0; i < newFocusIndex; i++) {
-                topOffset += getRowHeight(i);
-            }
-            setTimeout(() => {
-                listRef.current.scrollTo(topOffset + trackerCardOffset.current);
-            }, 0);
-        }
-    }, [trackers, getRowHeight]);
     const [keywords, setKeywords] = useState("");
     const filteredTrackers = useMemo(
         () =>
@@ -158,26 +84,19 @@ function SystemStatusContainer({ width, height }) {
         [keywords, trackers]
     );
     const scrollToTracker = (tracker) => {
-        if (listRef.current) {
-            let topOffset = 0;
-            let targetIndex = 0;
-            for (let i = 0; i < _.size(trackers); i++) {
-                if (_.isEqual(trackers[i], tracker)) {
-                    targetIndex = i;
-                    break;
-                }
-            }
-            for (let i = 0; i < targetIndex; i++) {
-                topOffset += getRowHeight(i);
-            }
-            setTimeout(() => {
-                listRef.current.scrollTo(topOffset);
-            }, 0);
-        }
+        virtuosoRef.current?.scrollToIndex({
+            index: _.indexOf(trackers, tracker),
+            align: "start",
+            behavior: "auto",
+        });
     };
     const popoverBoundary =
         elementRef.current &&
         elementRef.current.closest(".grid-container-boundary");
+    const itemContent = useCallback(
+        (index, message) => <TrackerCard index={index} message={message} />,
+        []
+    );
     return (
         <div
             ref={elementRef}
@@ -258,27 +177,14 @@ function SystemStatusContainer({ width, height }) {
                         icon={<FAIcon icon={faMonitorWaveform} size={50} />}
                     />
                 ) : (
-                    <AutoSizer>
-                        {({ height, width }) => (
-                            <VariableSizeList
-                                ref={listRef}
-                                height={height}
-                                width={width}
-                                itemCount={_.size(trackers)}
-                                itemSize={getRowHeight}
-                                // itemData passes props to the individual Row components
-                                itemData={{ setRowHeight, rowHeights }}
-                                // onItemsRendered is used to track the first visible item's index
-                                onItemsRendered={({ visibleStartIndex }) => {
-                                    firstVisibleIndex.current =
-                                        visibleStartIndex;
-                                }}
-                                onScroll={onScroll}
-                            >
-                                {TrackerCard}
-                            </VariableSizeList>
-                        )}
-                    </AutoSizer>
+                    <Virtuoso
+                        overscan={VIRTUOSO_PROPS.overscan}
+                        computeItemKey={(index) => index}
+                        ref={virtuosoRef}
+                        data={trackers}
+                        followOutput={false}
+                        itemContent={itemContent}
+                    />
                 )}
             </div>
         </div>

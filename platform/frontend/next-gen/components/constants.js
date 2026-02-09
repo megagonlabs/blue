@@ -52,6 +52,9 @@ export const USER_ROLES_LOOKUP = {
         justifyContent: "space-between",
         maxWidth: "100%",
     },
+    VIRTUOSO_PROPS = {
+        overscan: { main: 500, reverse: 500 },
+    },
     IGNORED_AGENT_TYPES = ["USER", "OBSERVER"],
     ENTITY_REGISTRY_LOOKUP = {
         agent: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
