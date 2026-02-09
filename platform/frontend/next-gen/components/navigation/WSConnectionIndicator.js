@@ -39,7 +39,7 @@ export default function WSConnectionIndicator() {
                     variant={ButtonVariant.MINIMAL}
                 >
                     <Tooltip
-                        content={`Reconnect${loading ? "ing" : null}`}
+                        content={`Reconnect${loading ? "ing" : ""}`}
                         placement="right"
                     >
                         <Button
