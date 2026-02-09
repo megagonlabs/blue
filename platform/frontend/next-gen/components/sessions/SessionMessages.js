@@ -73,7 +73,7 @@ _.set(
     "modifiers.preventOverflow.options.padding",
     0
 );
-const Row = memo(({ message, context }) => {
+const MessageRow = memo(({ message, context }) => {
     const { sessionId, addInspectionContainer, setShowWorkspace } = context;
     const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
@@ -330,7 +330,7 @@ const Row = memo(({ message, context }) => {
         </div>
     );
 });
-Row.displayName = "Row";
+MessageRow.displayName = "MessageRow";
 const SessionMessages = forwardRef(
     ({ sessionId, showWorkspace, setShowWorkspace, setShowDetails }, ref) => {
         const virtuosoRef = useRef(null);
@@ -407,7 +407,7 @@ const SessionMessages = forwardRef(
         }));
         const itemContent = useCallback(
             (index, message, context) => (
-                <Row message={message} context={context} />
+                <MessageRow message={message} context={context} />
             ),
             []
         );
@@ -626,7 +626,7 @@ const SessionMessages = forwardRef(
                 </div>
                 <Virtuoso
                     overscan={VIRTUOSO_PROPS["overscan"]}
-                    computeItemKey={(index) => index}
+                    computeItemKey={(index, message) => message["stream"]}
                     ref={virtuosoRef}
                     style={{ height: "calc(100% - 61px)", width: "100%" }}
                     data={filteredMessages}

@@ -178,8 +178,8 @@ function SystemStatusContainer({ width, height }) {
                     />
                 ) : (
                     <Virtuoso
-                        overscan={VIRTUOSO_PROPS.overscan}
-                        computeItemKey={(index) => index}
+                        overscan={VIRTUOSO_PROPS["overscan"]}
+                        computeItemKey={(index, tracker) => tracker}
                         ref={virtuosoRef}
                         data={trackers}
                         followOutput={false}
