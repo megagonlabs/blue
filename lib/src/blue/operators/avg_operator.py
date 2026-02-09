@@ -59,12 +59,12 @@ def avg_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: D
     """Validate average operator attributes.
 
     Parameters:
-        input_data: List of JSON arrays.
-        attributes: Dictionary containing operator attributes.
-        properties: Optional properties dictionary.
+        input_data: List of JSON arrays (List[List[Dict[str, Any]]]) to validate.
+        attributes: Dictionary containing operator attributes to validate.
+        properties: Optional properties dictionary. Defaults to None.
 
     Returns:
-        True if attributes are valid.
+        True if attributes are valid, False otherwise.
     """
     if not default_operator_validator(input_data, attributes, properties):
         return False
@@ -77,7 +77,16 @@ def avg_operator_validator(input_data: List[List[Dict[str, Any]]], attributes: D
 
 
 def avg_operator_explainer(output: Any, input_data: List[List[Dict[str, Any]]], attributes: Dict[str, Any]) -> Dict[str, Any]:
-    """Generate explanation for average operator."""
+    """Generate explanation for average operator execution.
+
+    Parameters:
+        output: The output result from the operator execution.
+        input_data: The input data that was processed.
+        attributes: The attributes used for the operation.
+
+    Returns:
+        Dictionary containing explanation of the operation.
+    """
     return default_operator_explainer(output, input_data, attributes)
 
 

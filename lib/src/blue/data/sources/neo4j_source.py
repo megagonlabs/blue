@@ -207,7 +207,6 @@ class NEO4JSource(DataSource):
             return [self._json_safe(v) for v in obj]
         return obj
 
-    
     def _has_apoc_meta(self):
         try:
             result = self.connection.run_query("""
