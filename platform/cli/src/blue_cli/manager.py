@@ -1729,9 +1729,6 @@ class AgentRegistryManager:
         return None, r.json()
 
     def set_agent_property(self, agent_name, property_name, value):
-        if value is None:
-            value = ""
-
         url = f"{self.base_api_path}/registry/default/agent/{agent_name}/property/{property_name}"
         payload = {property_name: value}
         r = requests.post(url, json=payload, cookies=self.cookies)
