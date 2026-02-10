@@ -1,5 +1,5 @@
-src/designs/
-src/node_modules/
-src/out/
-src/.env.development
-src/.next/
+next-gen/designs/
+next-gen/node_modules/
+next-gen/out/
+next-gen/.env.development
+next-gen/.next/
