@@ -241,7 +241,7 @@ def add_agent(request: Request, agent_name, agent: AgentSchema):
         return JSONResponse(content={"message": f"\"{agent_name}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
     # TODO: properties
-    agent_registry.add_agent(agent_name, request.state.user['uid'], description=agent.description, properties={}, rebuild=True)
+    agent_registry.add_agent(agent_name, request.state.user['uid'], description=agent.description,  icon=agent.icon, properties={}, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
