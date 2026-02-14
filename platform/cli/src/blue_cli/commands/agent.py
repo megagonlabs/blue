@@ -196,7 +196,7 @@ def compute_simple_diff(old_obj, new_obj, keys=None):
     Returns a dict of changes (old vs new) or empty dict if no difference.
     """
     if keys is None:
-        keys = ["description", "properties"]
+        keys = ["description", "icon", "properties"]
 
     diff = {}
     for k in keys:
