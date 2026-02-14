@@ -21,7 +21,7 @@ class AgentRegistry(Registry):
         super()._initialize_properties()
 
     ######### agent groups
-    def add_agent_group(self, agent_group, created_by, description='', properties={}, rebuild=False):
+    def add_agent_group(self, agent_group, created_by, description='', icon=None, properties={}, rebuild=False):
         """
         Register a new agent group in the registry.
 
@@ -29,11 +29,12 @@ class AgentRegistry(Registry):
             agent_group (str): Name of the agent group.
             created_by (str): Creator identifier.
             description (str, optional): Description for the group.
+            icon (optional): Icon reference for the group.
             properties (dict, optional): Additional metadata.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
         """
 
-        super().register_record(agent_group, 'agent_group', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(agent_group, 'agent_group', '/', created_by=created_by, description=description, icon=icon, properties=properties, rebuild=rebuild)
 
     def update_agent_group(self, agent_group, description='', icon=None, properties={}, rebuild=False):
         """
@@ -235,7 +236,7 @@ class AgentRegistry(Registry):
         super().delete_record_property(agent, 'agent', f'/agent_group/{agent_group}', key, rebuild=rebuild)
 
     ######### agent
-    def add_agent(self, agent, created_by, description='', properties={}, rebuild=False):
+    def add_agent(self, agent, created_by, description='', icon=None, properties={}, rebuild=False):
         """
         Register a new agent in the registry.
 
@@ -243,11 +244,12 @@ class AgentRegistry(Registry):
             agent (str): Name of the agent.
             created_by (str): Identifier of the creator.
             description (str, optional): Description of the agent.
+            icon (optional): Icon associated with the agent.
             properties (dict, optional): Additional metadata for the agent.
             rebuild (bool, optional): Whether to rebuild dependent indexes.
         """
         scope = self._derive_scope_from_name(agent, full=False)
-        super().register_record(agent, 'agent', scope, created_by=created_by, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(agent, 'agent', scope, created_by=created_by, description=description, icon=icon, properties=properties, rebuild=rebuild)
 
     def update_agent(self, agent, description='', icon=None, properties={}, rebuild=False):
         """
