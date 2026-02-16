@@ -311,6 +311,12 @@ Crucially, these memory capabilities are also exposed as local tools, bridging t
 </br>
 </br>
 
+## locking
+Bluelock is a distributed hierarchical lock manager backed by Redis, designed to manage concurrency for nested or structured resources. Unlike standard flat mutexes, Bluelock enforces locking relationships across resource paths; acquiring a lock on a parent node (e.g., org:1) automatically blocks attempts to lock any of its descendants (e.g., org:1:user:1), and conversely, locking a child node prevents the parent from being locked. It leverages Redlock to ensure atomic operations on the shared lock index and features a with_json_lock decorator, allowing developers to easily synchronize function execution with lock paths dynamically derived from function arguments.
+
+</br>
+</br>
+
 ## interactive agents
 Building interactive agents, i.e. agents that present the user a graphical user interface, for example a form to fill out, is possible through a declarative UI specification. In blue we use [JSONForms](https://jsonforms.io/) to facilitate that. 
 
