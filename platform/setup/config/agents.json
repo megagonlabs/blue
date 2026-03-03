@@ -6,7 +6,7 @@
     "description": "Scans streams containing JSON documents to find matching records to given JSONPATH query. Record signatures are declared in the records property where each record with the following properties: variable (name of the variable), query (jsonpath query to match), and single (matching mode). variable is the name to assign to the matched data, query is the JSONPATH query to execute on JSON objects in the stream, and single when set to True only returns a single element, otherwise query returns a JSONArray if matched. If matches are found they are emitted to the output stream as well as recorded in the session memory. ",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-recorder-private",
+      "image": "megagonlabs/blue-agent-recorder",
       "records": [],
       "display_name": "Recorder Agent",
       "categories": [
@@ -43,7 +43,7 @@
     "description": "Coordinates the execution of a plan defined as a directed-acyclic graph of agents by monitoring input and output streams from agents in the plan, issuing instructions to agents to execute. This is a system agent",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-coordinator-private",
+      "image": "megagonlabs/blue-agent-coordinator",
       "tracker.autostart": false,
       "tracker.outputs": [
         "log.INFO"
@@ -99,7 +99,7 @@
     "description": "Constructs a prompt from properties and input collected and returns results from executing input prompt through OpenAI models that can be configured in properties.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-openai-private",
+      "image": "megagonlabs/blue-agent-openai",
       "openai.api": "ChatCompletion",
       "openai.model": "gpt-4o",
       "input_json": "[{\"role\": \"user\"}]",
@@ -175,7 +175,7 @@
     "description": "Blocking OpenAI agent that waits for all input to be ready to initiate an OpenAI call",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-blocking_openai-private",
+      "image": "megagonlabs/blue-agent-blocking_openai",
       "display_name": "OpenAI Blocking Agent",
       "include_extra_input": true,
       "wait_for_inputs": ["DEFAULT"],
@@ -194,7 +194,7 @@
     "properties": {
       "form": {},
       "schema": {},
-      "image": "megagonlabs/blue-agent-presenter-private",
+      "image": "megagonlabs/blue-agent-presenter",
      
       "display_name": "Presenter Agent",
       "system_agent": false,
@@ -278,7 +278,7 @@
     "description": "Converts a natural language query to SQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2sql generation, and sql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2sql-private",
+      "image": "megagonlabs/blue-agent-nl2sql",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -461,7 +461,7 @@
     "properties": {
       "requestor.service": "",
       "display_name": "Requestor Agent",
-      "image": "megagonlabs/blue-agent-requestor-private",
+      "image": "megagonlabs/blue-agent-requestor",
       "tracker.autostart": false,
       "tracker.output": [
         "log.INFO"
@@ -480,7 +480,7 @@
     "description": "Converts a natural language query to Cypher, executes, and returns the result, in and end to end manner with steps including data source selection, nl2cypher generation, and cypher execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2cypher-private",
+      "image": "megagonlabs/blue-agent-nl2cypher",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -585,7 +585,7 @@
     "description": "Converts a natural language query to MongoQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2mongoql generation, and mongoql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2mongoql-private",
+      "image": "megagonlabs/blue-agent-nl2mongoql",
       "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 512,
@@ -691,7 +691,7 @@
     "description": "Answering natural language questions and generating results by utilizing LLM models' internal knowledge. Works with any data source that has 'llm' as their protocol. Returns output as a JSON with keys `question`, `source`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2llm-private",
+      "image": "megagonlabs/blue-agent-nl2llm",
       "nl2llm_source": null,
       "nl2llm_discovery": true,
       "nl2llm_discovery_source_protocols": ["openai"],
@@ -795,7 +795,7 @@
     "description": "Summarizes data by executing queries and retrieving query results, and eventually passing them to OpenAI to summarize",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-summarizer-private",
+      "image": "megagonlabs/blue-agent-summarizer",
       "queries": {},
       "template": "",
       "input_template": "Fill in template with query results in the template below, return only the summary as natural language text, rephrasing the template contents: \n${input}",
@@ -881,7 +881,7 @@
     "description": "Executes a query on data source",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-query_executor-private",
+      "image": "megagonlabs/blue-agent-query_executor",
       "output_filters": [
         "all"
       ],
@@ -959,7 +959,7 @@
     "description": "Given queries or data, injected into a visualization template, substitute query results, and render a visualization as specified in the template",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-visualizer-private",
+      "image": "megagonlabs/blue-agent-visualizer",
       "template": {},
       "questions": {},
       "queries": {},
@@ -1070,7 +1070,7 @@
     "description": "Creates a data-driven document, optionally highlighting segments of the document using OpenAI",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-documenter-private",
+      "image": "megagonlabs/blue-agent-documenter",
       "template": "",
       "questions": {},
       "queries": {},
