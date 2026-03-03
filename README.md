@@ -20,7 +20,7 @@ To help facilitate ‘Agentic for Enterprise’, we are introducing several conc
 
 # How does Blue work?
 
-![Architecture](./docs/images/bluearchitecture.png)
+![Architecture](./docs/images/BlueArchitecture.png)
 
 Here are a few examples to inspire you to build with [Blue](https://megagon.ai/blue/):
 
