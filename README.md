@@ -1,28 +1,28 @@
 # What is Blue?
 
-Blue is an agent orchestration platform for building and deploying applications with agentic workflows for the enterprise. 
+[Blue](https://megagon.ai/blue/) is an agent orchestration platform for building and deploying applications with agentic workflows for the enterprise. 
 
-A key target use-case of Blue is enterprise, i.e. integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide-variety of enterprise use-cases. We aim to leverage what already exist in the enterprise infrastructure, i.e. existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
+A key target use-case of [Blue](https://megagon.ai/blue/) is enterprise, i.e. integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide variety of enterprise use-cases. We aim to leverage what already exists in the enterprise infrastructure, i.e. existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
 
-Blue is currently a research project to explore the design space of agent orchestration systems, agentic planning and data processing, to support a variety of use-cases: from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from applications working on purely relational data to multi-modal data  (incl. semi-structured text, graphs, and beyond), from purely textual interaction to interactive agents with user interfaces, charts, and beyond. 
+[Blue](https://megagon.ai/blue/) is currently a research project to explore the design space of agent orchestration systems, agentic planning and data processing, to support a variety of use-cases: from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from applications working on purely relational data to multi-modal data  (incl. semi-structured text, graphs, and beyond), from purely textual interaction to interactive agents with user interfaces, charts, and beyond. 
 
 # What are key concepts in Blue?
 
-To help facilitate ‘Agentic for Enterprise’ we are introducing several concepts in the design of our framework, including:
+To help facilitate ‘Agentic for Enterprise’, we are introducing several concepts in the design of our framework, including:
 - **Streams** to facilitate data, control, and communication among agents
 - **Messages** in streams to standardize of data and instructions for agents
-- **Registries** to capture metadata about data, agents and beyond
+- **Registries** to capture metadata about data, agents, and beyond
 - **Session** to provide context (and shared memory) for computation
 - **Plans** to represent workflows and execution of agents
 - **Planners** to craft task and data plans
 - **Tools** to interface with external sources and APIs
-- **Operators** to perform data-intenstive functions
+- **Operators** to perform data-intensive functions
 
 # How does Blue work?
 
 ![Architecture](./docs/images/blue_architecture.png)
 
-To get a glimpse of where we are heading with agentic architectures, read our papers:
+Here are a few examples to inspire you to build with [Blue](https://megagon.ai/blue/):
 
 * [A Blueprint Architecture of Compound AI Systems for Enterprise](https://arxiv.org/abs/2406.00584) [Compound AI Systems Workshop](https://sites.google.com/view/compound-ai-systems-workshop/home)
 * [Orchestrating Agents and Data for Enterprise: A Blueprint Architecture for Compound AI](http://arxiv.org/abs/2504.08148) [Data-AI Systems Workshop at ICDE'25](https://dais-workshop-icde.github.io/)
@@ -34,8 +34,8 @@ For more details refer to the [API Doc](https://blue.megagon.info/latest/)
 
 Here are a few examples to inspire you to build with blue:
 
-* a set of agents that convert natural language to SQL, executes, and summarizes results in natural language 
-* agents that produces interactive graphical user interfaces and visualizations with your data (e.g. self-service business intelligence) 
+* a set of agents that convert natural language to SQL, execute, and summarize results in natural language 
+* agents that produce interactive graphical user interfaces and visualizations with your data (e.g. self-service business intelligence) 
 * a conversational agent that interfaces to existing predictive models and APIs (e.g. job search agent with predictive models and data)
 * agents that execute workflows processing text data, extracting and populating databases.
 * conversational applications with agents managing dialogue and performing task planning.
@@ -63,7 +63,7 @@ Sounds interesting? Want to learn more? Read the documentation below.
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
 * [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles
 
-# Where are blue libraries?
+# Where are Blue libraries?
 
 Blue has two python libraries that you can use:
 * [blue-platform](https://pypi.org/project/blue-platform/): developers library for building agents, tools, operators, planners

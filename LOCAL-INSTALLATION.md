@@ -39,14 +39,14 @@ Another approach is through cloning code from this repo, building images and man
 To download and install `blue-cli`, you can pip install it as shown below. It is highly recommended to create a virtual environment (e.g. `venv`) to avoid any conflicts and also upgrade pip (`pip install --upgrade pip`) first:
 
 ```
-$ pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue_cli==1.0bX
+$ pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue_cli==1.1
 ```
 
 where X is the latest beta release number
 
 Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
 ```
-$ pip install blue_cli==1.0bX
+$ pip install blue_cli==1.01
 ```
 
 `blue-cli` also installs `blue-platform`, the python library for blue development.
@@ -151,11 +151,11 @@ If you type `docker ps` you should see four containers running, similar to below
 ```
 $ docker ps
 CONTAINER ID   IMAGE                                       COMMAND                  CREATED        STATUS        PORTS                                                 
-081a9c8e59a8   megagonlabs/blue-platform-frontend:v1.0bX   "docker-entrypoint.s…"   2 days ago     Up 2 days     0.0.0.0:3000->3000/tcp, :::3000->3000/tcp             
-2233a2c7cde9   megagonlabs/blue-platform-api:v1.0 bX       "sh -c 'uvicorn serv…"   2 days ago     Up 2 days     0.0.0.0:5050->5050/tcp, :::5050->5050/tcp             
+081a9c8e59a8   megagonlabs/blue-platform-frontend:v1.1   "docker-entrypoint.s…"   2 days ago     Up 2 days     0.0.0.0:3000->3000/tcp, :::3000->3000/tcp             
+2233a2c7cde9   megagonlabs/blue-platform-api:v1.1       "sh -c 'uvicorn serv…"   2 days ago     Up 2 days     0.0.0.0:5050->5050/tcp, :::5050->5050/tcp             
 79c773d9060d   redis/redis-stack:latest                    "/entrypoint.sh"         2 days ago     Up 2 days     0.0.0.0:6379->6379/tcp, :::6379->6379/tcp, 8001/tcp   
 cc0670acfc76   postgres:16.0                             "docker-entrypoint.s…"   18 hours ago   Up 18 hours   0.0.0.0:5432->5432/tcp             
-c4a7fc212597   megagonlabs/blue-platform-ray:v1.0bX        "sh -c 'ray start --…"   3 months ago   Up 3 months                              
+c4a7fc212597   megagonlabs/blue-platform-ray:v1.1        "sh -c 'ray start --…"   3 months ago   Up 3 months                              
 ```
 
 #### change user role
@@ -186,7 +186,7 @@ $ blue service --service_name OPENAI show
 OPENAI
 PORT_SRC        8001
 PORT_DST        8001
-IMAGE           megagonlabs/blue-service-openai:v1.0bX
+IMAGE           megagonlabs/blue-service-openai:v1.1
 OPENAI_API_KEY  <your key>
 ```
 
@@ -206,7 +206,7 @@ Note, if you change the configuration of a service, you must re-run ```blue serv
 
 If you type `docker ps` you should see now an additional containers running, similar to below:
 ```
-45b6488db428   megagonlabs/blue-service-openai:v1.0bX      "python openai_servi…"   18 hours ago   Up 18 hours   0.0.0.0:8001->8001/tcp             youthful_galileo
+45b6488db428   megagonlabs/blue-service-openai:v1.1      "python openai_servi…"   18 hours ago   Up 18 hours   0.0.0.0:8001->8001/tcp             youthful_galileo
 ```
 
 #### testing
