@@ -35,7 +35,7 @@ RUN rm -rf designs components pages stores \
  && rm -f public/__ENV.js .env.development
 
 # ---------- Runtime stage ----------
-FROM node:18-alpine AS runtime
+FROM --platform=$BUILDPLATFORM node:18-alpine AS runtime
 
 WORKDIR /app
 ENV PORT=3000
