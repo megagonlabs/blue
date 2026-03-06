@@ -1,4 +1,4 @@
 grpcio==1.74.0
 ray[default]==2.50.0
-click==8.1.7
+click==8.2.1
 pydantic==2.11.7
