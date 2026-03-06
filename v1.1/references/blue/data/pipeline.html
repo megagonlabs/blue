@@ -1446,15 +1446,6 @@ version.
 </li>
       
         <li class="md-nav__item">
-  <a href="#blue.data.pipeline.DataPipeline.to_jsonform_diagram_json" class="md-nav__link">
-    <span class="md-ellipsis">
-      to_jsonform_diagram_json
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#blue.data.pipeline.Status" class="md-nav__link">
     <span class="md-ellipsis">
       Status
@@ -3718,15 +3709,6 @@ version.
 </li>
       
         <li class="md-nav__item">
-  <a href="#blue.data.pipeline.DataPipeline.to_jsonform_diagram_json" class="md-nav__link">
-    <span class="md-ellipsis">
-      to_jsonform_diagram_json
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#blue.data.pipeline.Status" class="md-nav__link">
     <span class="md-ellipsis">
       Status
@@ -4255,86 +4237,7 @@ version.
 <span class="normal">542</span>
 <span class="normal">543</span>
 <span class="normal">544</span>
-<span class="normal">545</span>
-<span class="normal">546</span>
-<span class="normal">547</span>
-<span class="normal">548</span>
-<span class="normal">549</span>
-<span class="normal">550</span>
-<span class="normal">551</span>
-<span class="normal">552</span>
-<span class="normal">553</span>
-<span class="normal">554</span>
-<span class="normal">555</span>
-<span class="normal">556</span>
-<span class="normal">557</span>
-<span class="normal">558</span>
-<span class="normal">559</span>
-<span class="normal">560</span>
-<span class="normal">561</span>
-<span class="normal">562</span>
-<span class="normal">563</span>
-<span class="normal">564</span>
-<span class="normal">565</span>
-<span class="normal">566</span>
-<span class="normal">567</span>
-<span class="normal">568</span>
-<span class="normal">569</span>
-<span class="normal">570</span>
-<span class="normal">571</span>
-<span class="normal">572</span>
-<span class="normal">573</span>
-<span class="normal">574</span>
-<span class="normal">575</span>
-<span class="normal">576</span>
-<span class="normal">577</span>
-<span class="normal">578</span>
-<span class="normal">579</span>
-<span class="normal">580</span>
-<span class="normal">581</span>
-<span class="normal">582</span>
-<span class="normal">583</span>
-<span class="normal">584</span>
-<span class="normal">585</span>
-<span class="normal">586</span>
-<span class="normal">587</span>
-<span class="normal">588</span>
-<span class="normal">589</span>
-<span class="normal">590</span>
-<span class="normal">591</span>
-<span class="normal">592</span>
-<span class="normal">593</span>
-<span class="normal">594</span>
-<span class="normal">595</span>
-<span class="normal">596</span>
-<span class="normal">597</span>
-<span class="normal">598</span>
-<span class="normal">599</span>
-<span class="normal">600</span>
-<span class="normal">601</span>
-<span class="normal">602</span>
-<span class="normal">603</span>
-<span class="normal">604</span>
-<span class="normal">605</span>
-<span class="normal">606</span>
-<span class="normal">607</span>
-<span class="normal">608</span>
-<span class="normal">609</span>
-<span class="normal">610</span>
-<span class="normal">611</span>
-<span class="normal">612</span>
-<span class="normal">613</span>
-<span class="normal">614</span>
-<span class="normal">615</span>
-<span class="normal">616</span>
-<span class="normal">617</span>
-<span class="normal">618</span>
-<span class="normal">619</span>
-<span class="normal">620</span>
-<span class="normal">621</span>
-<span class="normal">622</span>
-<span class="normal">623</span>
-<span class="normal">624</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DataPipeline</span><span class="p">(</span><span class="n">dag_utils</span><span class="o">.</span><span class="n">Plan</span><span class="p">):</span>
+<span class="normal">545</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DataPipeline</span><span class="p">(</span><span class="n">dag_utils</span><span class="o">.</span><span class="n">Plan</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DataPipeline class to represent a data pipeline in the system, compromising of nodes (input, operators, output) and edges, representing the data flow between nodes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -4795,85 +4698,6 @@ version.
         <span class="n">operator</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="s2">&quot;attributes&quot;</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">operator</span>
-
-    <span class="c1"># override merge to set provenance</span>
-    <span class="c1"># def merge(self, merge_plan, merge_plan_provenance, sync=None):</span>
-    <span class="c1">#     merge_plan_id = merge_plan.get_id()</span>
-
-    <span class="c1">#     merge_plan_nodes = merge_plan.get_nodes()</span>
-
-    <span class="c1">#     super().merge(merge_plan, sync=sync)</span>
-
-    <span class="c1">#     # set provenance for each node in merged plan</span>
-    <span class="c1">#     merge_plan.set_data(&quot;provenance&quot;, merge_plan_provenance)</span>
-
-    <span class="c1">#     merge_plan_operator_provenance = merge_plan_provenance + &quot;.&quot; + merge_plan_id</span>
-    <span class="c1">#     for merge_plan_node_id in merge_plan_nodes:</span>
-    <span class="c1">#         merge_plan_node = self.get_node(merge_plan_node_id)</span>
-    <span class="c1">#         merge_plan_node.set_data(&quot;provenance&quot;, merge_plan_operator_provenance, sync=sync)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_jsonform_diagram_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Exports the DataPipeline nodes and edges into a dictionary</span>
-<span class="sd">        of nodes and edges formatted specifically for the</span>
-<span class="sd">        JSONForms Diagram UI component.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nodes_data</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">edges_data</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># map nodes</span>
-        <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
-            <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="c1"># in DataPipeline, status is stored directly on the node&#39;s data</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">INITED</span><span class="p">)</span>
-            <span class="c1"># retrieve progress if explicitly set, otherwise infer from the data pipeline status</span>
-            <span class="n">progress</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;progress&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">EXECUTED</span><span class="p">):</span>
-                    <span class="n">progress</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">EXECUTING</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">REFINING</span><span class="p">)]:</span>
-                    <span class="n">progress</span> <span class="o">=</span> <span class="mf">0.5</span>
-                <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">PLANNED</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">REFINED</span><span class="p">)]:</span>
-                    <span class="n">progress</span> <span class="o">=</span> <span class="mf">0.25</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">progress</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="c1"># determine a description (fallback to node type if no explicit description is provided)</span>
-            <span class="n">description</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">description</span><span class="p">:</span>
-                <span class="n">node_type</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
-                <span class="c1"># optionally append the operator name if it&#39;s an operator</span>
-                <span class="k">if</span> <span class="n">node_type</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">NodeType</span><span class="o">.</span><span class="n">OPERATOR</span><span class="p">):</span>
-                    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Operator&quot;</span>
-                    <span class="n">operator_entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_entity</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">EntityType</span><span class="o">.</span><span class="n">OPERATOR</span><span class="p">))</span>
-                    <span class="k">if</span> <span class="n">operator_entity</span><span class="p">:</span>
-                        <span class="n">description</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Operator: </span><span class="si">{</span><span class="n">operator_entity</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">description</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="n">node_type</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="c1"># construct the react-flow node object</span>
-            <span class="n">nodes_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;node-</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span>  <span class="c1"># enforce custom &#39;status&#39; node type</span>
-                    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">),</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span> <span class="s2">&quot;progress&quot;</span><span class="p">:</span> <span class="n">progress</span><span class="p">},</span>
-                <span class="p">}</span>
-            <span class="p">)</span>
-        <span class="c1"># map edges by traversing the &#39;next&#39; connections of each node</span>
-        <span class="n">seen_edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">source_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
-            <span class="n">source_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">source_node</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="c1"># get_data(&quot;next&quot;) returns a list of target node IDs</span>
-            <span class="n">next_ids</span> <span class="o">=</span> <span class="n">source_node</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">target_id</span> <span class="ow">in</span> <span class="n">next_ids</span><span class="p">:</span>
-                <span class="n">edge_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source_id</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_id</span><span class="p">))</span>
-                <span class="c1"># only add if we haven&#39;t seen this exact connection before</span>
-                <span class="k">if</span> <span class="n">edge_tuple</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_edges</span><span class="p">:</span>
-                    <span class="n">seen_edges</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">edge_tuple</span><span class="p">)</span>
-                    <span class="n">edge_id</span> <span class="o">=</span> <span class="n">uuid_utils</span><span class="o">.</span><span class="n">create_uuid</span><span class="p">()</span>
-                    <span class="n">edges_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;edge-</span><span class="si">{</span><span class="n">edge_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">source_id</span><span class="p">),</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_id</span><span class="p">),</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;smoothstep&quot;</span><span class="p">,</span> <span class="s2">&quot;animated&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;strokeWidth&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}})</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="n">nodes_data</span><span class="p">,</span> <span class="s2">&quot;edges&quot;</span><span class="p">:</span> <span class="n">edges_data</span><span class="p">}</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -7479,153 +7303,6 @@ version.
 <span class="sd">        sync: Synchronization flag.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="s2">&quot;provenance&quot;</span><span class="p">,</span> <span class="n">plan_provenance</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="n">sync</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h2 id="blue.data.pipeline.DataPipeline.to_jsonform_diagram_json" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">to_jsonform_diagram_json</span><span class="p">()</span></code>
-
-</h2>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Exports the DataPipeline nodes and edges into a dictionary
-of nodes and edges formatted specifically for the
-JSONForms Diagram UI component.</p>
-
-
-            <details class="quote">
-              <summary>Source code in <code>blue/data/pipeline.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">563</span>
-<span class="normal">564</span>
-<span class="normal">565</span>
-<span class="normal">566</span>
-<span class="normal">567</span>
-<span class="normal">568</span>
-<span class="normal">569</span>
-<span class="normal">570</span>
-<span class="normal">571</span>
-<span class="normal">572</span>
-<span class="normal">573</span>
-<span class="normal">574</span>
-<span class="normal">575</span>
-<span class="normal">576</span>
-<span class="normal">577</span>
-<span class="normal">578</span>
-<span class="normal">579</span>
-<span class="normal">580</span>
-<span class="normal">581</span>
-<span class="normal">582</span>
-<span class="normal">583</span>
-<span class="normal">584</span>
-<span class="normal">585</span>
-<span class="normal">586</span>
-<span class="normal">587</span>
-<span class="normal">588</span>
-<span class="normal">589</span>
-<span class="normal">590</span>
-<span class="normal">591</span>
-<span class="normal">592</span>
-<span class="normal">593</span>
-<span class="normal">594</span>
-<span class="normal">595</span>
-<span class="normal">596</span>
-<span class="normal">597</span>
-<span class="normal">598</span>
-<span class="normal">599</span>
-<span class="normal">600</span>
-<span class="normal">601</span>
-<span class="normal">602</span>
-<span class="normal">603</span>
-<span class="normal">604</span>
-<span class="normal">605</span>
-<span class="normal">606</span>
-<span class="normal">607</span>
-<span class="normal">608</span>
-<span class="normal">609</span>
-<span class="normal">610</span>
-<span class="normal">611</span>
-<span class="normal">612</span>
-<span class="normal">613</span>
-<span class="normal">614</span>
-<span class="normal">615</span>
-<span class="normal">616</span>
-<span class="normal">617</span>
-<span class="normal">618</span>
-<span class="normal">619</span>
-<span class="normal">620</span>
-<span class="normal">621</span>
-<span class="normal">622</span>
-<span class="normal">623</span>
-<span class="normal">624</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_jsonform_diagram_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Exports the DataPipeline nodes and edges into a dictionary</span>
-<span class="sd">    of nodes and edges formatted specifically for the</span>
-<span class="sd">    JSONForms Diagram UI component.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">nodes_data</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">edges_data</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># map nodes</span>
-    <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
-        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="c1"># in DataPipeline, status is stored directly on the node&#39;s data</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">INITED</span><span class="p">)</span>
-        <span class="c1"># retrieve progress if explicitly set, otherwise infer from the data pipeline status</span>
-        <span class="n">progress</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;progress&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">EXECUTED</span><span class="p">):</span>
-                <span class="n">progress</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">EXECUTING</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">REFINING</span><span class="p">)]:</span>
-                <span class="n">progress</span> <span class="o">=</span> <span class="mf">0.5</span>
-            <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">PLANNED</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">REFINED</span><span class="p">)]:</span>
-                <span class="n">progress</span> <span class="o">=</span> <span class="mf">0.25</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">progress</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c1"># determine a description (fallback to node type if no explicit description is provided)</span>
-        <span class="n">description</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">description</span><span class="p">:</span>
-            <span class="n">node_type</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
-            <span class="c1"># optionally append the operator name if it&#39;s an operator</span>
-            <span class="k">if</span> <span class="n">node_type</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">NodeType</span><span class="o">.</span><span class="n">OPERATOR</span><span class="p">):</span>
-                <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Operator&quot;</span>
-                <span class="n">operator_entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_entity</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">EntityType</span><span class="o">.</span><span class="n">OPERATOR</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">operator_entity</span><span class="p">:</span>
-                    <span class="n">description</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Operator: </span><span class="si">{</span><span class="n">operator_entity</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">description</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="n">node_type</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="c1"># construct the react-flow node object</span>
-        <span class="n">nodes_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;node-</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span>  <span class="c1"># enforce custom &#39;status&#39; node type</span>
-                <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">),</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span> <span class="s2">&quot;progress&quot;</span><span class="p">:</span> <span class="n">progress</span><span class="p">},</span>
-            <span class="p">}</span>
-        <span class="p">)</span>
-    <span class="c1"># map edges by traversing the &#39;next&#39; connections of each node</span>
-    <span class="n">seen_edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">source_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
-        <span class="n">source_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">source_node</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="c1"># get_data(&quot;next&quot;) returns a list of target node IDs</span>
-        <span class="n">next_ids</span> <span class="o">=</span> <span class="n">source_node</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">target_id</span> <span class="ow">in</span> <span class="n">next_ids</span><span class="p">:</span>
-            <span class="n">edge_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source_id</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_id</span><span class="p">))</span>
-            <span class="c1"># only add if we haven&#39;t seen this exact connection before</span>
-            <span class="k">if</span> <span class="n">edge_tuple</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_edges</span><span class="p">:</span>
-                <span class="n">seen_edges</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">edge_tuple</span><span class="p">)</span>
-                <span class="n">edge_id</span> <span class="o">=</span> <span class="n">uuid_utils</span><span class="o">.</span><span class="n">create_uuid</span><span class="p">()</span>
-                <span class="n">edges_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;edge-</span><span class="si">{</span><span class="n">edge_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">source_id</span><span class="p">),</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_id</span><span class="p">),</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;smoothstep&quot;</span><span class="p">,</span> <span class="s2">&quot;animated&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;strokeWidth&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}})</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="n">nodes_data</span><span class="p">,</span> <span class="s2">&quot;edges&quot;</span><span class="p">:</span> <span class="n">edges_data</span><span class="p">}</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

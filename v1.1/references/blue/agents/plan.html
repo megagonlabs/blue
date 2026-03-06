@@ -1103,15 +1103,6 @@ version.
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#blue.agents.plan.AgenticPlan.to_jsonform_diagram_json" class="md-nav__link">
-    <span class="md-ellipsis">
-      to_jsonform_diagram_json
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -3544,15 +3535,6 @@ version.
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#blue.agents.plan.AgenticPlan.to_jsonform_diagram_json" class="md-nav__link">
-    <span class="md-ellipsis">
-      to_jsonform_diagram_json
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -4319,61 +4301,7 @@ version.
 <span class="normal">737</span>
 <span class="normal">738</span>
 <span class="normal">739</span>
-<span class="normal">740</span>
-<span class="normal">741</span>
-<span class="normal">742</span>
-<span class="normal">743</span>
-<span class="normal">744</span>
-<span class="normal">745</span>
-<span class="normal">746</span>
-<span class="normal">747</span>
-<span class="normal">748</span>
-<span class="normal">749</span>
-<span class="normal">750</span>
-<span class="normal">751</span>
-<span class="normal">752</span>
-<span class="normal">753</span>
-<span class="normal">754</span>
-<span class="normal">755</span>
-<span class="normal">756</span>
-<span class="normal">757</span>
-<span class="normal">758</span>
-<span class="normal">759</span>
-<span class="normal">760</span>
-<span class="normal">761</span>
-<span class="normal">762</span>
-<span class="normal">763</span>
-<span class="normal">764</span>
-<span class="normal">765</span>
-<span class="normal">766</span>
-<span class="normal">767</span>
-<span class="normal">768</span>
-<span class="normal">769</span>
-<span class="normal">770</span>
-<span class="normal">771</span>
-<span class="normal">772</span>
-<span class="normal">773</span>
-<span class="normal">774</span>
-<span class="normal">775</span>
-<span class="normal">776</span>
-<span class="normal">777</span>
-<span class="normal">778</span>
-<span class="normal">779</span>
-<span class="normal">780</span>
-<span class="normal">781</span>
-<span class="normal">782</span>
-<span class="normal">783</span>
-<span class="normal">784</span>
-<span class="normal">785</span>
-<span class="normal">786</span>
-<span class="normal">787</span>
-<span class="normal">788</span>
-<span class="normal">789</span>
-<span class="normal">790</span>
-<span class="normal">791</span>
-<span class="normal">792</span>
-<span class="normal">793</span>
-<span class="normal">794</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AgenticPlan</span><span class="p">(</span><span class="n">dag_utils</span><span class="o">.</span><span class="n">Plan</span><span class="p">):</span>
+<span class="normal">740</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AgenticPlan</span><span class="p">(</span><span class="n">dag_utils</span><span class="o">.</span><span class="n">Plan</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Agentic Plan class for defining and managing agentic plans comprised of agents, inputs, outputs, and streams.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;AGENTIC_PLAN&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">synchronizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">auto_sync</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -5020,60 +4948,6 @@ version.
 
         <span class="c1"># write plan</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_write_plan</span><span class="p">(</span><span class="n">worker</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_jsonform_diagram_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Exports the AgenticPlan nodes and edges into a dictionary</span>
-<span class="sd">        of nodes and edges formatted specifically for the</span>
-<span class="sd">        JSONForms Diagram UI component.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nodes_data</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">edges_data</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># map nodes</span>
-        <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
-            <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="c1"># derive the current status from the node&#39;s associated stream</span>
-            <span class="n">stream_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_stream</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_stream_status</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">status</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">status</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">INACTIVE</span><span class="p">)</span>
-            <span class="c1"># retrieve progress if explicitly set, otherwise infer from the status</span>
-            <span class="n">progress</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;progress&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">FINISHED</span><span class="p">):</span>
-                    <span class="n">progress</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">):</span>
-                    <span class="n">progress</span> <span class="o">=</span> <span class="mf">0.5</span>
-                <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">INITED</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">PLANNED</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">SUBMITTED</span><span class="p">)]:</span>
-                    <span class="n">progress</span> <span class="o">=</span> <span class="mf">0.25</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">progress</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="c1"># construct the react-flow node object</span>
-            <span class="n">nodes_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;node-</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span>  <span class="c1"># enforce custom &#39;status&#39; node type</span>
-                    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">),</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span> <span class="s2">&quot;progress&quot;</span><span class="p">:</span> <span class="n">progress</span><span class="p">},</span>
-                <span class="p">}</span>
-            <span class="p">)</span>
-        <span class="c1"># map edges</span>
-        <span class="n">seen_edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">source_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
-            <span class="n">source_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">source_node</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="c1"># get_data(&quot;next&quot;) returns a list of target node IDs</span>
-            <span class="n">next_ids</span> <span class="o">=</span> <span class="n">source_node</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">target_id</span> <span class="ow">in</span> <span class="n">next_ids</span><span class="p">:</span>
-                <span class="n">edge_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source_id</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_id</span><span class="p">))</span>
-                <span class="c1"># only add if we haven&#39;t seen this exact connection before</span>
-                <span class="k">if</span> <span class="n">edge_tuple</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_edges</span><span class="p">:</span>
-                    <span class="n">seen_edges</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">edge_tuple</span><span class="p">)</span>
-                    <span class="n">edge_id</span> <span class="o">=</span> <span class="n">uuid_utils</span><span class="o">.</span><span class="n">create_uuid</span><span class="p">()</span>
-                    <span class="n">edges_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;edge-</span><span class="si">{</span><span class="n">edge_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">source_id</span><span class="p">),</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_id</span><span class="p">),</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;smoothstep&quot;</span><span class="p">,</span> <span class="s2">&quot;animated&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;strokeWidth&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}})</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="n">nodes_data</span><span class="p">,</span> <span class="s2">&quot;edges&quot;</span><span class="p">:</span> <span class="n">edges_data</span><span class="p">}</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -6593,135 +6467,6 @@ Returns:
 <span class="sd">        sync: Whether to synchronize the status immediately.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">status</span><span class="p">),</span> <span class="n">sync</span><span class="o">=</span><span class="n">sync</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="blue.agents.plan.AgenticPlan.to_jsonform_diagram_json" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">to_jsonform_diagram_json</span><span class="p">()</span></code>
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Exports the AgenticPlan nodes and edges into a dictionary
-of nodes and edges formatted specifically for the
-JSONForms Diagram UI component.</p>
-
-
-            <details class="quote">
-              <summary>Source code in <code>blue/agents/plan.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">728</span>
-<span class="normal">729</span>
-<span class="normal">730</span>
-<span class="normal">731</span>
-<span class="normal">732</span>
-<span class="normal">733</span>
-<span class="normal">734</span>
-<span class="normal">735</span>
-<span class="normal">736</span>
-<span class="normal">737</span>
-<span class="normal">738</span>
-<span class="normal">739</span>
-<span class="normal">740</span>
-<span class="normal">741</span>
-<span class="normal">742</span>
-<span class="normal">743</span>
-<span class="normal">744</span>
-<span class="normal">745</span>
-<span class="normal">746</span>
-<span class="normal">747</span>
-<span class="normal">748</span>
-<span class="normal">749</span>
-<span class="normal">750</span>
-<span class="normal">751</span>
-<span class="normal">752</span>
-<span class="normal">753</span>
-<span class="normal">754</span>
-<span class="normal">755</span>
-<span class="normal">756</span>
-<span class="normal">757</span>
-<span class="normal">758</span>
-<span class="normal">759</span>
-<span class="normal">760</span>
-<span class="normal">761</span>
-<span class="normal">762</span>
-<span class="normal">763</span>
-<span class="normal">764</span>
-<span class="normal">765</span>
-<span class="normal">766</span>
-<span class="normal">767</span>
-<span class="normal">768</span>
-<span class="normal">769</span>
-<span class="normal">770</span>
-<span class="normal">771</span>
-<span class="normal">772</span>
-<span class="normal">773</span>
-<span class="normal">774</span>
-<span class="normal">775</span>
-<span class="normal">776</span>
-<span class="normal">777</span>
-<span class="normal">778</span>
-<span class="normal">779</span>
-<span class="normal">780</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_jsonform_diagram_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Exports the AgenticPlan nodes and edges into a dictionary</span>
-<span class="sd">    of nodes and edges formatted specifically for the</span>
-<span class="sd">    JSONForms Diagram UI component.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">nodes_data</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">edges_data</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># map nodes</span>
-    <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
-        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="c1"># derive the current status from the node&#39;s associated stream</span>
-        <span class="n">stream_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_stream</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_stream_status</span><span class="p">(</span><span class="n">stream_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">status</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">INACTIVE</span><span class="p">)</span>
-        <span class="c1"># retrieve progress if explicitly set, otherwise infer from the status</span>
-        <span class="n">progress</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;progress&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">progress</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">FINISHED</span><span class="p">):</span>
-                <span class="n">progress</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">):</span>
-                <span class="n">progress</span> <span class="o">=</span> <span class="mf">0.5</span>
-            <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">INITED</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">PLANNED</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">Status</span><span class="o">.</span><span class="n">SUBMITTED</span><span class="p">)]:</span>
-                <span class="n">progress</span> <span class="o">=</span> <span class="mf">0.25</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">progress</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c1"># construct the react-flow node object</span>
-        <span class="n">nodes_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;node-</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span>  <span class="c1"># enforce custom &#39;status&#39; node type</span>
-                <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">),</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span> <span class="s2">&quot;progress&quot;</span><span class="p">:</span> <span class="n">progress</span><span class="p">},</span>
-            <span class="p">}</span>
-        <span class="p">)</span>
-    <span class="c1"># map edges</span>
-    <span class="n">seen_edges</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">source_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nodes</span><span class="p">():</span>
-        <span class="n">source_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">source_node</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="c1"># get_data(&quot;next&quot;) returns a list of target node IDs</span>
-        <span class="n">next_ids</span> <span class="o">=</span> <span class="n">source_node</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s2">&quot;next&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">target_id</span> <span class="ow">in</span> <span class="n">next_ids</span><span class="p">:</span>
-            <span class="n">edge_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source_id</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_id</span><span class="p">))</span>
-            <span class="c1"># only add if we haven&#39;t seen this exact connection before</span>
-            <span class="k">if</span> <span class="n">edge_tuple</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_edges</span><span class="p">:</span>
-                <span class="n">seen_edges</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">edge_tuple</span><span class="p">)</span>
-                <span class="n">edge_id</span> <span class="o">=</span> <span class="n">uuid_utils</span><span class="o">.</span><span class="n">create_uuid</span><span class="p">()</span>
-                <span class="n">edges_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;edge-</span><span class="si">{</span><span class="n">edge_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">source_id</span><span class="p">),</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_id</span><span class="p">),</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;smoothstep&quot;</span><span class="p">,</span> <span class="s2">&quot;animated&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;strokeWidth&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}})</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="n">nodes_data</span><span class="p">,</span> <span class="s2">&quot;edges&quot;</span><span class="p">:</span> <span class="n">edges_data</span><span class="p">}</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
