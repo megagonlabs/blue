@@ -22,16 +22,8 @@ RUN pip install --no-cache-dir --upgrade pip
 # Copy requirements first to leverage Docker layer caching
 COPY src/requirements.* /app/
 
-# Install ping
-RUN apt-get update
-RUN apt-get install iputils-ping -y
-
-# Update pip
-RUN pip install --upgrade pip
-
 # Add core requirements
 RUN pip install --no-cache-dir \
-        -r requirements.agent \
         -r requirements.data \
         --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry \
         -r requirements.tool \
