@@ -1,24 +1,49 @@
-FROM --platform=$BUILDPLATFORM node:18-alpine
-WORKDIR /src
-RUN npm config set "@fortawesome:registry" https://npm.fontawesome.com/
+# ---------- Build stage ----------
+FROM --platform=$BUILDPLATFORM node:18-alpine AS builder
+
 ARG fa_token
 ARG git_short
 ARG git_long
 ARG git_branch
-RUN npm config set "//npm.fontawesome.com/:_authToken" ${fa_token}
+
 ENV PORT 3000
-COPY launch.sh launch.sh
-COPY ./next-gen /src
-RUN npm install
-RUN cat > .env.production
-RUN echo "NEXT_PUBLIC_GIT_SHORT=${git_short}" >> .env.production
-RUN echo "NEXT_PUBLIC_GIT_LONG=${git_long}" >> .env.production
-RUN echo "NEXT_PUBLIC_GIT_BRANCH=${git_branch}" >> .env.production
+
+WORKDIR /src
+
+# Configure npm and fontawesome registry
+RUN npm config set "@fortawesome:registry" https://npm.fontawesome.com/ \
+ && npm config set "//npm.fontawesome.com/:_authToken" ${fa_token}
+
+# Copy dependency files first to leverage cache
+COPY next-gen/package*.json ./
+
+# Install dependencies (faster and reproducible)
+RUN npm ci
+
+# Copy application source
+COPY next-gen .
+
+# Generate production env file
+RUN printf "NEXT_PUBLIC_GIT_SHORT=%s\nNEXT_PUBLIC_GIT_LONG=%s\nNEXT_PUBLIC_GIT_BRANCH=%s\n" \
+    "$git_short" "$git_long" "$git_branch" > .env.production
+
+# Build the app
 RUN npm run build
-RUN rm -rf /src/designs
-RUN rm -f /src/public/__ENV.js
-RUN rm -f /src/.env.development
-RUN rm -rf /src/components
-RUN rm -rf /src/pages
-RUN rm -rf /src/stores
-CMD ["sh", "-c", "./launch.sh"]
+
+# Remove unnecessary sources
+RUN rm -rf designs components pages stores \
+ && rm -f public/__ENV.js .env.development
+
+# ---------- Runtime stage ----------
+FROM node:18-alpine AS runtime
+
+WORKDIR /app
+ENV PORT=3000
+
+# Copy only required artifacts from build
+COPY --from=builder /src ./
+COPY launch.sh ./launch.sh
+
+RUN chmod +x launch.sh
+
+CMD ["./launch.sh"]

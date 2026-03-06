@@ -7,15 +7,24 @@ ENV BLUE_DEPLOY_VERSION=${BLUE_DEPLOY_VERSION}
 # Set workdir
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip first
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy requirements first to leverage Docker layer caching
+COPY src/requirements.* /app/
+
 # Build requirements first
-ADD src/requirements.core /app/requirements.core
-RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
+RUN pip install --no-cache-dir \
+        -r requirements.agent \
+        -r requirements.service \
+        -r requirements.openai \
+        ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
 
-ADD src/requirements.service /app/requirements.service
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.service
-
-ADD src/requirements.openai /app/requirements.openai
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.openai
 
 # Copy service files
 ADD /src /app/

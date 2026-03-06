@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.10.12
+FROM --platform=$BUILDPLATFORM python:3.10.12-slim
 ARG BLUE_BUILD_CACHE_ARG
 ARG BLUE_BUILD_LIB_ARG
 ARG BLUE_DEPLOY_VERSION
@@ -7,26 +7,25 @@ ENV BLUE_DEPLOY_VERSION=${BLUE_DEPLOY_VERSION}
 # Set workdir
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip first
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy requirements first to leverage Docker layer caching
+COPY src/requirements.* /app/
+
 # Build requirements first
-ADD src/requirements.core /app/requirements.core
-RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
-
-ADD src/requirements.agent /app/requirements.agent
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.agent
-
-ADD src/requirements.data /app/requirements.data
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.data
-
-ADD src/requirements.registry /app/requirements.registry
-RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
-
-ADD src/requirements.tool /app/requirements.tool
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.tool
-
-ADD src/requirements.nl2llm /app/requirements.nl2llm
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.nl2llm
-
-
+RUN pip install --no-cache-dir \
+        -r requirements.agent \
+        -r requirements.data \
+        --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry \
+        -r requirements.tool \
+        -r requirements.nl2llm \
+        ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
 
 # Copy service files
 ADD /src /app/

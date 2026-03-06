@@ -1,10 +1,15 @@
-FROM --platform=$BUILDPLATFORM python:3.10.12
+FROM --platform=$BUILDPLATFORM python:3.10.12-slim
 
 # Set workdir
 WORKDIR /app
 
-# Updates
-RUN pip install --upgrade pip
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip first
+RUN pip install --no-cache-dir --upgrade pip
 
 # Copy setup files
 ADD /config /app/config/

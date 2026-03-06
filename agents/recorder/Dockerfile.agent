@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.10.12
+FROM --platform=$BUILDPLATFORM python:3.10.12-slim
 ARG BLUE_BUILD_CACHE_ARG
 ARG BLUE_BUILD_LIB_ARG
 ARG BLUE_DEPLOY_VERSION
@@ -7,15 +7,22 @@ ENV BLUE_DEPLOY_VERSION=${BLUE_DEPLOY_VERSION}
 # Set workdir
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip first
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy requirements first to leverage Docker layer caching
+COPY src/requirements.* /app/
+
 # Build requirements first
-ADD src/requirements.core /app/requirements.core
-RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
-
-ADD src/requirements.agent /app/requirements.agent
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.agent
-
-ADD src/requirements.recorder /app/requirements.recorder
-RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.recorder
+RUN pip install --no-cache-dir \
+        -r requirements.agent \
+        -r requirements.recorder \
+        ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
 
 # Copy service files
 ADD /src /app/
