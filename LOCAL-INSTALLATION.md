@@ -46,7 +46,7 @@ where X is the latest beta release number
 
 Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
 ```
-$ pip install blue_cli==1.01
+$ pip install blue_cli==1.1
 ```
 
 `blue-cli` also installs `blue-platform`, the python library for blue development.
