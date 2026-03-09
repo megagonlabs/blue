@@ -20,7 +20,6 @@ COPY src/requirements.* /app/
 
 # Build requirements first
 RUN pip install --no-cache-dir \
-        -r requirements.agent \
         -r requirements.service \
         -r requirements.openai \
         ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
