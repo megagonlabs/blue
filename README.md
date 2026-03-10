@@ -41,11 +41,14 @@ Here are a few examples to inspire you to build with blue:
 * conversational applications with agents managing dialogue and performing task planning.
 * complex agentic data processing pipelines, with multi-modal operators
 
+# Want to try out blue?
 
-# Want to try out blue demos?
+To help you started:
 
-You can try out a demos on our [blue-examples repository!](http://github.com/rit-git/blue-examples)
+* Blue platform installation walk through [video](https://youtu.be/EGVjuxtqNws)
+* Once installed the following videos guides you through validating your installation and creating your first session [video](https://youtu.be/rzWpEV6K-T4)
 
+You can also try out our demos on our [blue-examples repository!](http://github.com/rit-git/blue-examples)
 </br>
 
 Sounds interesting? Want to learn more? Read the documentation below.
