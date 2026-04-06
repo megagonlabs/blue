@@ -46,7 +46,7 @@ Here are a few examples to inspire you to build with blue:
 To help you started:
 
 * Blue platform installation walk through [video](https://youtu.be/EGVjuxtqNws)
-* Once installed the following videos guides you through validating your installation and creating your first session [video](https://youtu.be/rzWpEV6K-T4)
+* Once installed the following videos guides you through validating your installation and creating your first session [video](https://youtu.be/uXmLwW36tQc)
 
 You can also try out our demos on our [blue-examples repository!](http://github.com/megagonlabs/blue-examples)
 </br>
